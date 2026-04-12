@@ -1,5 +1,7 @@
 # Architecture Decision Records
 
+[← Back to project README](../../README.md)
+
 This directory contains Architecture Decision Records (ADRs) for the Skill Forge project.
 
 ADRs document significant architectural decisions made during the project's development. Each record captures the context, decision, and consequences of a choice that affects the system's structure, dependencies, or behavior.

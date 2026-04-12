@@ -90,6 +90,11 @@ harnesses:
   - claude-code
 ```
 
+## Documentation
+
+- [Skill Forge README](skill-forge/README.md) — CLI usage, project structure, supported harnesses
+- [Architecture Decision Records](skill-forge/docs/adr/README.md) — design rationale and key technical choices
+
 ## License
 
 [Boost Software License 1.0](LICENSE)

@@ -58,6 +58,10 @@ skill-forge/
 └── package.json
 ```
 
+## Architecture Decisions
+
+Key design choices are documented as [Architecture Decision Records](docs/adr/README.md).
+
 ## License
 
 MIT
