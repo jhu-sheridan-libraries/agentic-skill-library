@@ -1,6 +1,21 @@
 node_modules/
 build/
-dist/
 *.tgz
 .env
 .env.local
+
+# forge publish working directory
+.forge-publish/
+
+# forge install provenance manifest (written to install targets, not source)
+.forge-manifest.json
+
+# forge user-global config — credentials and personal overrides live here.
+# NEVER commit ~/.forge/config.yaml. The per-repo forge.config.yaml
+# (backend names, bucket names, governance allowlists) MAY be committed
+# but must not contain API keys, tokens, or secrets.
+.forge/
+
+# Eval output
+eval-results.json
+audit-results.json
