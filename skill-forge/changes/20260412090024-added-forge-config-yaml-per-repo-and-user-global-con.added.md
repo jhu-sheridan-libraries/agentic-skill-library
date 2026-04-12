@@ -1,0 +1,1 @@
+Added `forge.config.yaml` per-repo configuration and `~/.forge/config.yaml` user-global configuration loaded via `src/config.ts`; declares named install backends, publish target, and governance author allowlists

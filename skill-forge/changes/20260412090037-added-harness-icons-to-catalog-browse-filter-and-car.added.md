@@ -1,0 +1,1 @@
+Added harness-specific emoji icons to the catalog browser filter checkboxes, card footer, and detail view (👻 kiro, 🤖 claude-code, 🐙 copilot, 🖱️ cursor, 🏄 windsurf, 🔧 cline, ☁️ qdeveloper)

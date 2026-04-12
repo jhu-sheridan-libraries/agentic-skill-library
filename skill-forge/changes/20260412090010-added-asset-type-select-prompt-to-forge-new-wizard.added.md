@@ -1,0 +1,1 @@
+Added asset type select prompt to the `forge new` interactive wizard with descriptions for all 8 asset types; prompt is skipped when `--type` is passed on the command line

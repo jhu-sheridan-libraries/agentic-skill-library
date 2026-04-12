@@ -1,0 +1,1 @@
+Added interactive wizard to forge new command using @clack/prompts for guided artifact configuration including frontmatter metadata, knowledge body, hooks, and MCP server definitions with inline Zod validation and cancellation safety

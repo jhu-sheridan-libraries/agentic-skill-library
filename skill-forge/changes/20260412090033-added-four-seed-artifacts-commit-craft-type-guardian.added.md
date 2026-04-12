@@ -1,0 +1,1 @@
+Added four seed knowledge artifacts to the Neon Caravan collection: `commit-craft` (prompt), `type-guardian` (skill), `debug-journal` (workflow with three phase files), and `review-ritual` (skill)

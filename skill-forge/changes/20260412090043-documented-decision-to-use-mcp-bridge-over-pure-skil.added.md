@@ -1,0 +1,1 @@
+Documented decision to use a pre-bundled MCP server as the Claude Code plugin integration layer over pure skill file distribution or a slash command, enabling interactive parameterised catalog queries from inside the assistant (ADR-0020)

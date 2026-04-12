@@ -1,0 +1,1 @@
+Added download cache at `~/.forge/cache/<backend>/<artifact>@<version>/` so remote backend artifacts (GitHub releases, S3, HTTP) are not re-downloaded on repeated installs

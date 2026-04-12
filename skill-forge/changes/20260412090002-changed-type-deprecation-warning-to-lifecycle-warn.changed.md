@@ -1,0 +1,1 @@
+Changed the type-field deprecation warning to a lifecycle warning emitted during `forge validate` when an artifact has `maturity: deprecated` but no `successor` field set

@@ -1,0 +1,1 @@
+Changed catalog browser to registry-style card hierarchy with display name, monospace package name, 2-line description, pill keywords, and icon-only harness footer; added Space Grotesk display font and Inter body font; improved filter bar with labeled groups and pill-style checkboxes

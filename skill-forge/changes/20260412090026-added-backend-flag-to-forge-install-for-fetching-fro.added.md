@@ -1,0 +1,1 @@
+Added `--backend <name>` flag to `forge install` for fetching artifacts from a named backend declared in `forge.config.yaml`; enables installing from private S3 buckets and HTTP endpoints alongside the existing `--from-release` GitHub path

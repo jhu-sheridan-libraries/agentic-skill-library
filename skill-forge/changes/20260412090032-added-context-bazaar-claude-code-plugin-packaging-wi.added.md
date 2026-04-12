@@ -1,0 +1,1 @@
+Added context-bazaar Claude Code plugin packaging with `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `.mcp.json`, and a bundled MCP bridge (`bridge/mcp-server.cjs`) exposing `catalog_list`, `artifact_content`, and `collection_list` tools

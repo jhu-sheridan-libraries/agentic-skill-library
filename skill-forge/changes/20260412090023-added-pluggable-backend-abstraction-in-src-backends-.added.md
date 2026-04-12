@@ -1,0 +1,1 @@
+Added pluggable backend abstraction in `src/backends/` with a shared `ArtifactBackend` interface and four implementations: `LocalBackend` (filesystem), `GitHubBackend` (gh CLI), `S3Backend` (aws CLI, compatible with R2/MinIO), and `HttpBackend` (generic HTTPS with bearer token support)

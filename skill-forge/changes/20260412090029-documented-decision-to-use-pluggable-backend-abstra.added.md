@@ -1,0 +1,1 @@
+Documented decision to use a pluggable ArtifactBackend interface over hardcoding GitHub as the only install/publish target, enabling private S3 and HTTP backends alongside the public GitHub releases backend (ADR-0017)

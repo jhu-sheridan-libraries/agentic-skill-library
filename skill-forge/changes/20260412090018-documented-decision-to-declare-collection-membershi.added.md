@@ -1,0 +1,1 @@
+Documented decision to declare collection membership in artifact frontmatter rather than in collection manifests, with four alternatives considered and rationale for eliminating the two-source-of-truth problem (ADR-0016)

@@ -1,0 +1,1 @@
+Documented decision to use an auto-detecting multi-format importer for `forge import` over a hardcoded single-format path, enabling extensibility to future source formats without CLI surface changes (ADR-0019)

@@ -1,0 +1,1 @@
+Added bazaar governance and discovery fields to artifact frontmatter and catalog entries: `maturity`, `trust`, `risk-level`, `audience`, `model-assumptions`, `id`, `license`, `successor`, and `replaces`, all optional with safe defaults so existing artifacts require no changes

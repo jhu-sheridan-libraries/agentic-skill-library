@@ -1,0 +1,1 @@
+Added `.forge-manifest.json` written alongside installed artifacts recording artifact name, harness, version, backend label, and install timestamp to enable future upgrade tracking

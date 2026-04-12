@@ -1,0 +1,1 @@
+Added `src/collections.ts` with `loadCollections`, `validateArtifactCollectionRefs`, and `buildCollectionMembership` for loading collection manifests, cross-validating artifact collection references, and computing derived membership maps
