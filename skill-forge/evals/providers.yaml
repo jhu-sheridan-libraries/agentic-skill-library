@@ -1,0 +1,7 @@
+# Shared LLM provider configurations for eval suites
+# Reference these in per-artifact eval configs
+#
+# providers:
+#   - id: bedrock:anthropic.claude-sonnet-4-20250514-v1:0
+#   - id: openai:gpt-4o
+#   - id: anthropic:messages:claude-sonnet-4-20250514
