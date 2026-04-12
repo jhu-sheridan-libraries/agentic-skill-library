@@ -21,6 +21,171 @@ import { generateCatalog } from "./catalog";
 
 export type { ValidationError, ValidationResult, ValidationWarning };
 
+// ── Security validation ───────────────────────────────────────────────────────
+
+/** Prompt injection and override patterns — errors, not warnings. */
+const PROMPT_INJECTION_PATTERNS: Array<{ pattern: RegExp; message: string }> = [
+  {
+    pattern: /ignore\s+(previous|prior|all)\s+instructions/i,
+    message: 'Contains prompt injection pattern: "ignore previous instructions"',
+  },
+  {
+    pattern: /disregard\s+(your|all)\s+(guidelines|rules|training|instructions)/i,
+    message: 'Contains prompt injection pattern: "disregard your guidelines"',
+  },
+  {
+    pattern: /you\s+are\s+now\s+(?!a\s+(?:skill|power|workflow|agent|prompt))/i,
+    message: 'Contains identity override pattern: "you are now"',
+  },
+  {
+    pattern: /act\s+as\s+(?:if\s+you\s+have\s+no|without)\s+restrictions/i,
+    message: 'Contains restriction bypass pattern: "act as if you have no restrictions"',
+  },
+  {
+    pattern: /\[SYSTEM\]/,
+    message: 'Contains fake system prompt marker: [SYSTEM]',
+  },
+  {
+    pattern: /\bDAN\b|\bDo Anything Now\b/i,
+    message: 'Contains known jailbreak marker: DAN / Do Anything Now',
+  },
+];
+
+/** Hook command patterns that suggest exfiltration or remote code execution. */
+const DANGEROUS_HOOK_PATTERNS: Array<{ pattern: RegExp; message: string }> = [
+  {
+    pattern: /curl\s+.*(?:\$\{?[A-Z_]{3,}\}?|\$\()/,
+    message: "Hook command uses curl with an environment variable or command substitution — potential exfiltration",
+  },
+  {
+    pattern: /wget\s+.*https?:\/\//,
+    message: "Hook command makes outbound request via wget",
+  },
+  {
+    pattern: /\bnc\b.*\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/,
+    message: "Hook command uses netcat with a remote IP address",
+  },
+  {
+    pattern: /python.*-c.*(?:exec|eval|__import__)/,
+    message: "Hook command runs inline Python with exec/eval",
+  },
+  {
+    pattern: /node\s+-e\s+/,
+    message: "Hook command runs inline Node.js code",
+  },
+  {
+    pattern: /bash\s+-c\s+.*base64/,
+    message: "Hook command runs base64-encoded payload via bash",
+  },
+];
+
+/** MCP server command patterns that indicate risky execution. */
+const DANGEROUS_MCP_PATTERNS: Array<{ pattern: RegExp; message: string }> = [
+  {
+    pattern: /^(?:bash|sh|zsh|fish)$/,
+    message: 'MCP server uses a shell interpreter as its command — high-risk execution surface',
+  },
+  {
+    pattern: /^python\d*$|^node$|^ruby$|^perl$/,
+    message: 'MCP server uses a language runtime as its command without a specific script path',
+  },
+];
+
+/** Hidden/obfuscated content patterns — warnings. */
+const OBFUSCATION_PATTERNS: Array<{ pattern: RegExp; message: string }> = [
+  {
+    pattern: /[\u200B-\u200D\uFEFF\u2060]/,
+    message: "Body contains zero-width or invisible Unicode characters",
+  },
+  {
+    pattern: /[A-Za-z0-9+/]{80,}={0,2}/,
+    message: "Body contains a long base64-like string that may encode hidden instructions",
+  },
+];
+
+/**
+ * Run security-focused checks on an artifact.
+ * Returns additional errors and warnings to merge into the validation result.
+ */
+export async function validateArtifactSecurity(
+  artifactPath: string,
+): Promise<{ errors: ValidationError[]; warnings: ValidationWarning[] }> {
+  const errors: ValidationError[] = [];
+  const warnings: ValidationWarning[] = [];
+  const knowledgeMdPath = join(artifactPath, "knowledge.md");
+  const hooksPath = join(artifactPath, "hooks.yaml");
+  const mcpPath = join(artifactPath, "mcp-servers.yaml");
+
+  // ── knowledge.md body ───────────────────────────────────────────────────────
+  const mdResult = await parseKnowledgeMd(knowledgeMdPath);
+  if (!isParseError(mdResult)) {
+    const body = mdResult.data.body;
+
+    for (const { pattern, message } of PROMPT_INJECTION_PATTERNS) {
+      if (pattern.test(body)) {
+        errors.push({ field: "body", message, filePath: knowledgeMdPath });
+      }
+    }
+
+    for (const { pattern, message } of OBFUSCATION_PATTERNS) {
+      if (pattern.test(body)) {
+        warnings.push({ field: "body", message, filePath: knowledgeMdPath });
+      }
+    }
+  }
+
+  // ── hooks.yaml ──────────────────────────────────────────────────────────────
+  if (await exists(hooksPath)) {
+    const hooksResult = await parseHooksYaml(hooksPath);
+    if (!isParseError(hooksResult)) {
+      for (const hook of hooksResult.data) {
+        if (hook.action.type === "run_command") {
+          const cmd = hook.action.command;
+          for (const { pattern, message } of DANGEROUS_HOOK_PATTERNS) {
+            if (pattern.test(cmd)) {
+              errors.push({
+                field: `hooks[${hook.name}].action.command`,
+                message,
+                filePath: hooksPath,
+              });
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // ── mcp-servers.yaml ────────────────────────────────────────────────────────
+  if (await exists(mcpPath)) {
+    const mcpResult = await parseMcpServersYaml(mcpPath);
+    if (!isParseError(mcpResult)) {
+      for (const server of mcpResult.data) {
+        for (const { pattern, message } of DANGEROUS_MCP_PATTERNS) {
+          if (pattern.test(server.command)) {
+            warnings.push({
+              field: `mcp-servers[${server.name}].command`,
+              message,
+              filePath: mcpPath,
+            });
+          }
+        }
+        // Flag servers with env vars that look like credentials
+        for (const [key] of Object.entries(server.env)) {
+          if (/(?:key|secret|token|password|credential)/i.test(key)) {
+            warnings.push({
+              field: `mcp-servers[${server.name}].env.${key}`,
+              message: `MCP server references a credential-like env var "${key}" — ensure this is not hardcoded`,
+              filePath: mcpPath,
+            });
+          }
+        }
+      }
+    }
+  }
+
+  return { errors, warnings };
+}
+
 /**
  * Detect cycles in a dependency graph using DFS.
  * @param graph - Map from artifact name to its direct dependencies
@@ -363,7 +528,10 @@ export async function validateAll(
 
 export const SOURCE_DIRS = ["knowledge", "packages"] as const;
 
-export async function validateCommand(artifactPath?: string): Promise<void> {
+export async function validateCommand(
+  artifactPath?: string,
+  options: { security?: boolean } = {},
+): Promise<void> {
   let results: ValidationResult[];
 
   if (artifactPath) {
@@ -371,6 +539,39 @@ export async function validateCommand(artifactPath?: string): Promise<void> {
     results = [result];
   } else {
     results = await validateAll([...SOURCE_DIRS]);
+  }
+
+  // Overlay security checks if --security flag is set
+  if (options.security) {
+    const sourceDirs = artifactPath ? [] : [...SOURCE_DIRS];
+    const artifactPaths: string[] = [];
+
+    if (artifactPath) {
+      artifactPaths.push(artifactPath);
+    } else {
+      for (const dir of sourceDirs) {
+        if (!(await exists(dir))) continue;
+        const entries = await readdir(dir, { withFileTypes: true });
+        for (const entry of entries.filter((e) => e.isDirectory())) {
+          artifactPaths.push(join(dir, entry.name));
+        }
+      }
+    }
+
+    for (const aPath of artifactPaths) {
+      const aName = aPath.split("/").pop() ?? aPath;
+      const secResult = await validateArtifactSecurity(aPath);
+      const matching = results.find((r) => r.artifactName === aName);
+      if (matching) {
+        if (secResult.errors.length > 0) {
+          matching.errors.push(...secResult.errors);
+          matching.valid = false;
+        }
+        if (secResult.warnings.length > 0) {
+          matching.warnings = [...(matching.warnings ?? []), ...secResult.warnings];
+        }
+      }
+    }
   }
 
   if (results.length === 0) {

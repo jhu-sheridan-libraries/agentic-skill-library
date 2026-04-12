@@ -145,7 +145,8 @@ program
 program
   .command("validate [artifact-path]")
   .description("Validate knowledge artifacts")
-  .action(validateCommand);
+  .option("--security", "Run additional security checks (prompt injection, dangerous hooks, obfuscation)")
+  .action((artifactPath, options) => validateCommand(artifactPath, options));
 
 const catalogCmd = program
   .command("catalog")

@@ -33,6 +33,9 @@ jobs:
       - name: Validate artifacts
         run: bun run dev validate
 
+      - name: Security scan artifacts
+        run: bun run dev validate --security
+
       - name: Build
         run: bun run dev build
 
