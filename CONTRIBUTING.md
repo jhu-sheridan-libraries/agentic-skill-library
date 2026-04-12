@@ -96,6 +96,26 @@ bun run dev import ~/my-powers --all --collections my-collection
 
 Supports Kiro power format (`POWER.md` + `steering/`) and skill format (`SKILL.md` + `references/`).
 
+## Configuration and credentials
+
+`forge.config.yaml` (per-repo, at the repo root) declares backend names, S3 bucket names, GitHub repo slugs, and governance allowlists. **It may be committed** — it should contain no secrets.
+
+`~/.forge/config.yaml` (user-global, in your home directory) holds credentials, bearer tokens, and personal overrides. **It must never be committed.** It is not tracked by git and will not appear in `git status` — this is by design.
+
+If you need to reference a credential in `forge.config.yaml`, use an environment variable reference instead of a literal value:
+
+```yaml
+# forge.config.yaml — safe to commit
+install:
+  backends:
+    internal:
+      type: http
+      baseUrl: https://artifacts.example.com
+      token: "${FORGE_INTERNAL_TOKEN}"   # read from env at runtime, never stored
+```
+
+Running `forge validate --security` will warn if it detects credential-like values hardcoded in `mcp-servers.yaml` env blocks.
+
 ## Development workflow
 
 ### Running tests

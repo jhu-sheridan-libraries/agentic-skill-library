@@ -1,2 +1,16 @@
 # Kiro MCP Manager - Sensitive configuration files
 .kiro/settings/
+
+# forge user-global config — contains credentials, backend tokens, personal overrides.
+# This file lives at ~/.forge/config.yaml and must never be committed.
+# The per-repo forge.config.yaml (which declares backend names and S3 bucket names
+# but not credentials) MAY be committed — see CONTRIBUTING.md.
+.forge/
+forge-credentials.yaml
+forge-secrets.yaml
+
+# forge publish working directory — created during publish, safe to ignore
+skill-forge/.forge-publish/
+
+# forge install manifest — written to project roots on install, not part of source
+.forge-manifest.json

@@ -99,6 +99,14 @@ The Kiro hooks in `.kiro/hooks/` enforce two conventions:
 
 2. **ADRs**: changes to `.ts`, `.json`, `.yaml`, `.njk`, schema, config, module, or adapter files should be assessed for architectural significance. If a real decision with trade-offs was made, document it in `skill-forge/docs/adr/` (next number after `0020-*.md`). ADR-0001 through ADR-0020 are in the index at `docs/adr/README.md`.
 
+## Configuration boundaries
+
+`forge.config.yaml` (per-repo) — backend names, S3 buckets, governance allowlists. **May be committed.** No credentials.
+
+`~/.forge/config.yaml` (user-global) — credentials, tokens, personal overrides. **Must never be committed.** Gitignored at the repo root level.
+
+Use `${ENV_VAR}` syntax in `forge.config.yaml` to reference credentials at runtime without storing them. `forge validate --security` warns on credential-like values hardcoded in `mcp-servers.yaml`.
+
 ## forge publish flow
 
 `forge publish [--dry-run]` runs the full release pipeline: validate → rebuild bridge → build all harnesses → generate catalog → create release manifest → package per-harness tarballs → `gh release create`. The `--dry-run` flag stops before any upload.
