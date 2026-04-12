@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "Context Bazaar & Skill Forge "
+abstract: "Write knowledge once, compile to every AI coding assistant harness."
+version: 0.1.0
+date-released: "2026-04-12"
+license: MIT
+repository-code: "https://github.com/thinkingsage/context-bazaar"
+authors:
+  - name: "Steven J. Miklovic"
+keywords:
+  - ai-coding-assistants
+  - knowledge-artifacts
+  - multi-harness
+  - developer-tools
+  - skill-authoring
