@@ -1,0 +1,45 @@
+{
+  "name": "@jhu-sheridan-libraries/skill-forge",
+  "version": "0.1.0",
+  "description": "Write knowledge once, compile to every AI coding assistant harness",
+  "type": "module",
+  "bin": {
+    "forge": "./src/cli.ts"
+  },
+  "scripts": {
+    "dev": "bun run src/cli.ts",
+    "build": "bun build src/cli.ts --compile --outfile forge",
+    "build:bridge": "bun build src/mcp-bridge.ts --outfile bridge/mcp-server.cjs --target node --format cjs",
+    "test": "bun test",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "changelog:new": "bun run scripts/changelog-fragment.ts",
+    "changelog:compile": "bun run scripts/changelog-compile.ts",
+    "changelog:draft": "bun run scripts/changelog-compile.ts --draft",
+    "release": "bun run scripts/release-tag.ts"
+  },
+  "dependencies": {
+    "chalk": "^5.6.2",
+    "commander": "^14.0.3",
+    "gray-matter": "^4.0.3",
+    "js-yaml": "^4.1.0",
+    "nunjucks": "^3.2.4",
+    "promptfoo": "^0.121.0",
+    "zod": "^4.3.6",
+    "@clack/prompts": "^1.2.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.0",
+    "@types/js-yaml": "^4.0.9",
+    "@types/nunjucks": "^3.2.6",
+    "@biomejs/biome": "^2.4.0",
+    "fast-check": "^4.6.0",
+    "typescript": "^6.0.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jhu-sheridan-libraries/skill-forge.git"
+  }
+}

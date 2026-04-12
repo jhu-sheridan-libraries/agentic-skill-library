@@ -1,0 +1,6 @@
+{
+  "context-bazaar": {
+    "command": "node",
+    "args": ["${CLAUDE_PLUGIN_ROOT}/skill-forge/bridge/mcp-server.cjs"]
+  }
+}

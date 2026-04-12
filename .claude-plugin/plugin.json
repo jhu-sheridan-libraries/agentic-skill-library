@@ -1,0 +1,18 @@
+{
+  "name": "context-bazaar",
+  "version": "0.1.0",
+  "description": "A typed, discoverable knowledge bazaar for AI coding harness configurations — skills, powers, workflows, prompts, and agents for Kiro, Claude Code, Copilot, Cursor, and more.",
+  "author": {
+    "name": "Steven J. Miklovic"
+  },
+  "repository": "https://github.com/thinkingsage/context-bazaar",
+  "homepage": "https://github.com/thinkingsage/context-bazaar",
+  "license": "BSL-1.0",
+  "keywords": [
+    "claude-code", "kiro", "copilot", "cursor", "windsurf",
+    "knowledge", "skills", "powers", "workflows", "prompts",
+    "ai-coding", "context", "bazaar"
+  ],
+  "skills": "./skill-forge/dist/claude-code/",
+  "mcpServers": "./.mcp.json"
+}
