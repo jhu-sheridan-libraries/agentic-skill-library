@@ -1,0 +1,1 @@
+Expanded pull request template with artifact changes table, breaking changes callout, split checklist (Code / Artifacts / Housekeeping), harness output preview command, and structured prompting to prevent empty sections

@@ -1,0 +1,1 @@
+Added GitHub issue templates for artifact submission (identity table, content preview, quality self-assessment) and content quality report (exact-quote requirement, severity taxonomy, fix capacity check)

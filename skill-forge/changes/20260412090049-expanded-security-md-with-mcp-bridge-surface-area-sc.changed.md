@@ -1,0 +1,1 @@
+Expanded SECURITY.md with MCP bridge attack surface documentation, distinction between security issues and content quality issues, coordinated disclosure timeline, and in-scope vs. out-of-scope table

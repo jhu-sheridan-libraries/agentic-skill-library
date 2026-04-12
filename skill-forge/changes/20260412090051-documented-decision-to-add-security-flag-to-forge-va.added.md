@@ -1,0 +1,1 @@
+Documented decision to add `--security` flag to `forge validate` over a standalone command or CI-only approach, integrating prompt injection, hook exfiltration, and MCP surface checks as a local-and-CI gate (ADR-0021)
