@@ -28,6 +28,8 @@ ADRs document significant architectural decisions made during the project's deve
 | [018](0018-use-gh-cli-as-github-release-backend.md) | Use `gh` CLI as the GitHub release backend | Proposed | 2026-04-12 |
 | [019](0019-forge-import-auto-detecting-kiro-format-importer.md) | `forge import` — auto-detecting importer for external Kiro format | Proposed | 2026-04-12 |
 | [020](0020-mcp-bridge-as-claude-code-plugin-integration-layer.md) | MCP bridge as the Claude Code plugin integration layer | Proposed | 2026-04-12 |
+| [021](0021-integrated-static-security-validation.md) | Integrated static security validation in `forge validate --security` | Proposed | 2026-04-12 |
+| [022](0022-two-layer-artifact-security-review.md) | Two-layer artifact security review — static + LLM adversarial eval | Proposed | 2026-04-12 |
 
 ## Creating a New ADR
 
