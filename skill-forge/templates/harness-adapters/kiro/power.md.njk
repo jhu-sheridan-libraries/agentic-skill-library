@@ -1,0 +1,10 @@
+{% extends "../_base/base.md.njk" %}
+{% block frontmatter %}
+---
+name: {{ artifact.frontmatter.name }}
+displayName: {{ artifact.frontmatter.displayName | default(artifact.frontmatter.name) }}
+description: {{ artifact.frontmatter.description }}
+keywords: {{ artifact.frontmatter.keywords | dump }}
+author: {{ artifact.frontmatter.author }}
+---
+{% endblock %}

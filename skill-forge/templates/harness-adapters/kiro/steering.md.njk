@@ -1,0 +1,9 @@
+{% extends "../_base/base.md.njk" %}
+{% block frontmatter %}
+---
+inclusion: {{ artifact.frontmatter.inclusion | default("always") }}
+{% if artifact.frontmatter.inclusion == "fileMatch" and harnessConfig.fileMatchPattern %}
+fileMatchPattern: "{{ harnessConfig.fileMatchPattern }}"
+{% endif %}
+---
+{% endblock %}
