@@ -1,0 +1,5 @@
+name: neon-caravan
+displayName: "Neon Caravan"
+description: "Craft-focused developer workflow artifacts — commit messages, type discipline, debugging methodology, and code review."
+trust: community
+tags: [workflow, craft, developer-experience]
