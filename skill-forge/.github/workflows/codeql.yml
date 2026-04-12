@@ -1,0 +1,59 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "bridge/**"
+      - "scripts/**"
+  pull_request:
+    paths:
+      - "src/**"
+      - "bridge/**"
+      - "scripts/**"
+  schedule:
+    # Weekly scan — catches newly-published CVEs against existing code
+    - cron: "0 8 * * 1"
+
+permissions:
+  security-events: write
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          # Focus on the CLI source and MCP bridge; exclude generated dist and node_modules
+          paths-ignore: |
+            dist
+            node_modules
+            build
+          queries: +security-extended
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: /language:${{ matrix.language }}
