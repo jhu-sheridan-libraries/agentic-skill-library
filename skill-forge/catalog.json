@@ -1,0 +1,375 @@
+[
+  {
+    "name": "book-agent-publicist",
+    "displayName": "Book Agent & Publicist",
+    "description": "A comprehensive guide for the business of books — from finding and working with literary agents to publicity campaigns, media outreach, author branding, and long-term career strategy. Covers both traditional and independent publishing paths.",
+    "keywords": [
+      "literary-agent",
+      "book-publicist",
+      "publishing",
+      "book-marketing",
+      "author-platform",
+      "media",
+      "book-launch",
+      "publicity"
+    ],
+    "author": "Kiro Power Builder",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/book-agent-publicist",
+    "evals": false,
+    "categories": [
+      "documentation"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "steering"
+    },
+    "maturity": "stable",
+    "trust": "community",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "byron-powers"
+    ]
+  },
+  {
+    "name": "commit-craft",
+    "displayName": "Commit Craft",
+    "description": "Write commit messages that tell the story of why, not just what.",
+    "keywords": [
+      "git",
+      "commits",
+      "workflow",
+      "changelog"
+    ],
+    "author": "skill-forge",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro",
+      "claude-code",
+      "copilot",
+      "cursor",
+      "windsurf",
+      "cline",
+      "qdeveloper"
+    ],
+    "type": "prompt",
+    "path": "knowledge/commit-craft",
+    "evals": false,
+    "categories": [
+      "documentation"
+    ],
+    "ecosystem": [
+      "git"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "steering",
+      "claude-code": "claude-md",
+      "copilot": "instructions",
+      "cursor": "rule",
+      "windsurf": "rule",
+      "cline": "rule",
+      "qdeveloper": "rule"
+    },
+    "maturity": "stable",
+    "trust": "community",
+    "model-assumptions": [],
+    "collections": [
+      "neon-caravan"
+    ]
+  },
+  {
+    "name": "debug-journal",
+    "displayName": "Debug Journal",
+    "description": "A systematic debugging workflow — articulate the problem before chasing the solution.",
+    "keywords": [
+      "debugging",
+      "methodology",
+      "workflow",
+      "problem-solving"
+    ],
+    "author": "skill-forge",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro",
+      "claude-code",
+      "copilot",
+      "cursor",
+      "windsurf",
+      "cline",
+      "qdeveloper"
+    ],
+    "type": "workflow",
+    "path": "knowledge/debug-journal",
+    "evals": false,
+    "categories": [
+      "debugging"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "steering",
+      "claude-code": "claude-md",
+      "copilot": "instructions",
+      "cursor": "rule",
+      "windsurf": "rule",
+      "cline": "rule",
+      "qdeveloper": "rule"
+    },
+    "maturity": "beta",
+    "trust": "community",
+    "model-assumptions": [],
+    "collections": [
+      "neon-caravan"
+    ]
+  },
+  {
+    "name": "hello",
+    "displayName": "Hello",
+    "description": "The second test artifact.",
+    "keywords": [
+      "testing"
+    ],
+    "author": "Steven",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro",
+      "claude-code"
+    ],
+    "type": "template",
+    "path": "knowledge/hello",
+    "evals": false,
+    "categories": [
+      "documentation"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power",
+      "claude-code": "claude-md"
+    },
+    "maturity": "experimental",
+    "model-assumptions": [],
+    "collections": []
+  },
+  {
+    "name": "novelist",
+    "displayName": "Novelty",
+    "description": "A complete novel-writing companion covering both creative craft and professional publishing. Guides authors from first idea through drafting, revision, market positioning, and agent submission with Fiction Seeds for voice consistency.",
+    "keywords": [
+      "novelist",
+      "fiction-writing",
+      "novel",
+      "creative-writing",
+      "manuscript",
+      "storytelling"
+    ],
+    "author": "Steven J. Miklovic",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/novelist",
+    "evals": false,
+    "categories": [
+      "documentation"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "steering"
+    },
+    "maturity": "stable",
+    "trust": "community",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "byron-powers"
+    ]
+  },
+  {
+    "name": "proofreader-review-checklist",
+    "displayName": "Proofreader Review Checklist",
+    "description": "Structured checklists for proofreading and reviewing writing documents — manuscript chapters, outlines, proposals, query letters, character sheets, and world-building docs.",
+    "keywords": [
+      "proofread",
+      "review",
+      "manuscript",
+      "checklist",
+      "query-letter",
+      "proposal",
+      "outline",
+      "consistency",
+      "chapter",
+      "character-sheet"
+    ],
+    "author": "Demo",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/proofreader-review-checklist",
+    "evals": false,
+    "categories": [
+      "documentation"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "steering"
+    },
+    "maturity": "stable",
+    "trust": "community",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "byron-powers"
+    ]
+  },
+  {
+    "name": "review-ritual",
+    "displayName": "Review Ritual",
+    "description": "Code review as a craft — read with intent, comment with purpose, approve with confidence.",
+    "keywords": [
+      "code-review",
+      "quality",
+      "collaboration",
+      "feedback"
+    ],
+    "author": "skill-forge",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro",
+      "claude-code",
+      "copilot",
+      "cursor",
+      "windsurf",
+      "cline",
+      "qdeveloper"
+    ],
+    "type": "skill",
+    "path": "knowledge/review-ritual",
+    "evals": false,
+    "categories": [
+      "testing",
+      "architecture"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "steering",
+      "claude-code": "claude-md",
+      "copilot": "instructions",
+      "cursor": "rule",
+      "windsurf": "rule",
+      "cline": "rule",
+      "qdeveloper": "rule"
+    },
+    "maturity": "stable",
+    "trust": "community",
+    "model-assumptions": [],
+    "collections": [
+      "neon-caravan"
+    ]
+  },
+  {
+    "name": "technical-author",
+    "displayName": "Technical Author",
+    "description": "A methodical guide for writing technical books from initial concept to published manuscript. Walks authors through every phase of the technical publishing process with structured workflows and practical techniques, tailored for publishers like O'Reilly, Pragmatic Bookshelf, Manning, and Addison-Wesley.",
+    "keywords": [
+      "technical-writing",
+      "technical-book",
+      "oreilly",
+      "publishing",
+      "manuscript",
+      "nonfiction"
+    ],
+    "author": "Kiro Power Builder",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/technical-author",
+    "evals": false,
+    "categories": [
+      "documentation"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "steering"
+    },
+    "maturity": "stable",
+    "trust": "community",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "byron-powers"
+    ]
+  },
+  {
+    "name": "type-guardian",
+    "displayName": "Type Guardian",
+    "description": "TypeScript type discipline — keep the compiler working for you, not against you.",
+    "keywords": [
+      "typescript",
+      "types",
+      "safety",
+      "strictness"
+    ],
+    "author": "skill-forge",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro",
+      "claude-code",
+      "copilot",
+      "cursor",
+      "windsurf",
+      "cline",
+      "qdeveloper"
+    ],
+    "type": "skill",
+    "path": "knowledge/type-guardian",
+    "evals": false,
+    "categories": [
+      "code-style"
+    ],
+    "ecosystem": [
+      "typescript"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "steering",
+      "claude-code": "claude-md",
+      "copilot": "instructions",
+      "cursor": "rule",
+      "windsurf": "rule",
+      "cline": "rule",
+      "qdeveloper": "rule"
+    },
+    "maturity": "stable",
+    "trust": "community",
+    "model-assumptions": [],
+    "collections": [
+      "neon-caravan"
+    ]
+  }
+]
