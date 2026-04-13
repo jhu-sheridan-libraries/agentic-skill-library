@@ -170,4 +170,117 @@ export const commandMetaRegistry: Record<string, CommandHelpMeta> = {
 		],
 		showHarnessList: true,
 	},
+	"guild init": {
+		examples: [
+			{
+				comment: "Add an artifact to the manifest (auto-fetches if not cached)",
+				invocation: "forge guild init adr",
+			},
+			{
+				comment: "Add a collection from a named backend",
+				invocation: "forge guild init jhu --collection --backend jhu",
+			},
+			{
+				comment: "Pin a specific version as an optional dependency",
+				invocation: "forge guild init adr --version 0.1.0 --mode optional",
+			},
+		],
+		optionGroups: [
+			{
+				label: "Entry Options",
+				options: ["--collection", "--mode", "--version"],
+			},
+			{
+				label: "Source Options",
+				options: ["--backend"],
+			},
+		],
+	},
+	"guild sync": {
+		examples: [
+			{
+				comment: "Sync manifest artifacts into harness targets",
+				invocation: "forge guild sync",
+			},
+			{
+				comment: "Check for updates before syncing",
+				invocation: "forge guild sync --auto-update",
+			},
+			{
+				comment: "Sync only Kiro harness files",
+				invocation: "forge guild sync --harness kiro",
+			},
+			{
+				comment: "Preview what would be synced",
+				invocation: "forge guild sync --dry-run",
+			},
+		],
+		optionGroups: [
+			{
+				label: "Update Options",
+				options: ["--auto-update", "--throttle"],
+			},
+			{
+				label: "Behavior Options",
+				options: ["--dry-run", "--harness"],
+			},
+		],
+		showHarnessList: true,
+	},
+	"guild status": {
+		examples: [
+			{
+				comment: "Show manifest entries and sync state",
+				invocation: "forge guild status",
+			},
+		],
+	},
+	"guild hook install": {
+		examples: [
+			{
+				comment: "Print shell hook snippet for auto-sync on cd",
+				invocation: "forge guild hook install",
+			},
+			{
+				comment: "Install hook for a specific shell",
+				invocation: "forge guild hook install --shell zsh",
+			},
+		],
+	},
+	tutorial: {
+		examples: [
+			{
+				comment: "Start the guided walkthrough",
+				invocation: "forge tutorial",
+			},
+		],
+	},
+	import: {
+		examples: [
+			{
+				comment: "Import a single knowledge artifact",
+				invocation: "forge import path/to/artifact",
+			},
+			{
+				comment: "Import all artifacts from a directory",
+				invocation: "forge import path/to/artifacts --all",
+			},
+			{
+				comment: "Preview what would be imported",
+				invocation: "forge import path/to/artifact --dry-run",
+			},
+		],
+	},
+	help: {
+		examples: [
+			{
+				comment: "Show help for the build command",
+				invocation: "forge help build",
+			},
+			{
+				comment: "Show help for a subcommand",
+				invocation: "forge help guild init",
+			},
+		],
+	},
 };

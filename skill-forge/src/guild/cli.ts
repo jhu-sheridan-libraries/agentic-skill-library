@@ -509,7 +509,7 @@ export function registerGuildCommands(program: Command): void {
 		.description("Team mode artifact distribution");
 
 	// --- guild init <name> ---
-	guild
+	const init = guild
 		.command("init <name>")
 		.description("Add an artifact or collection to the manifest")
 		.option("--collection", "Treat <name> as a collection reference")

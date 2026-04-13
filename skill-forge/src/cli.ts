@@ -392,6 +392,13 @@ if (import.meta.main !== false) {
 						description: o.description,
 					}));
 					const meta = commandMetaRegistry[subName];
+					const nestedSubs =
+						sub.commands.length > 0
+							? sub.commands.map((s) => ({
+									name: s.name(),
+									description: s.description(),
+								}))
+							: undefined;
 					return renderCommandHelp(
 						subName,
 						sub.description(),
@@ -399,8 +406,31 @@ if (import.meta.main !== false) {
 						opts,
 						meta,
 						{ useColor },
+						nestedSubs,
 					);
 				};
+
+				// Handle third-level subcommands (e.g., guild hook install)
+				if (sub.commands && sub.commands.length > 0) {
+					for (const nested of sub.commands) {
+						const nestedName = `${subName} ${nested.name()}`;
+						nested.helpInformation = () => {
+							const opts = nested.options.map((o) => ({
+								flags: o.flags,
+								description: o.description,
+							}));
+							const meta = commandMetaRegistry[nestedName];
+							return renderCommandHelp(
+								nestedName,
+								nested.description(),
+								`forge ${nestedName} ${nested.usage()}`.trim(),
+								opts,
+								meta,
+								{ useColor },
+							);
+						};
+					}
+				}
 			}
 		}
 	}
