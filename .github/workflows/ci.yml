@@ -101,12 +101,7 @@ jobs:
     defaults:
       run:
         working-directory: skill-forge
-    if: >
-      !inputs.skip-eval &&
-      (github.event_name == 'workflow_dispatch' ||
-      contains(github.event.pull_request.changed_files_names || '', 'skill-forge/knowledge/') ||
-      contains(github.event.pull_request.changed_files_names || '', 'skill-forge/templates/') ||
-      contains(github.event.pull_request.changed_files_names || '', 'skill-forge/evals/'))
+    if: ${{ !inputs.skip-eval }}
     env:
       OPENAI_API_KEY: ${{ secrets.GITHUB_TOKEN }}
       OPENAI_BASE_URL: https://models.github.ai/inference
