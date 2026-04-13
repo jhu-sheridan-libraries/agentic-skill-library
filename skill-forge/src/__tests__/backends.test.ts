@@ -237,15 +237,20 @@ describe("HttpBackend", () => {
 
 describe("GitHubBackend", () => {
 	test("fetchCatalog returns parsed catalog content", async () => {
+		const catalogData = JSON.stringify([makeCatalogEntry({ name: "one" })]);
 		const spawnSpy = spyOn(Bun, "spawnSync").mockImplementation(
-			(() =>
-				({
+			((args: string[]) => {
+				// Write catalog to the --output path so Bun.file().text() can read it
+				const outputIdx = args.indexOf("--output");
+				if (outputIdx !== -1 && args[outputIdx + 1]) {
+					Bun.write(args[outputIdx + 1], catalogData);
+				}
+				return {
 					exitCode: 0,
-					stdout: Buffer.from(
-						JSON.stringify([makeCatalogEntry({ name: "one" })]),
-					),
+					stdout: new Uint8Array(),
 					stderr: new Uint8Array(),
-				}) as ReturnType<typeof Bun.spawnSync>) as typeof Bun.spawnSync,
+				} as ReturnType<typeof Bun.spawnSync>;
+			}) as typeof Bun.spawnSync,
 		);
 
 		const backend = new GitHubBackend(

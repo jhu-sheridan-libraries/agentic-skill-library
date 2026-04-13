@@ -1,1 +1,0 @@
-Changed root help screen to display subcommands indented under their parent commands (catalog, collection) in a structured hierarchy; stripped `[options]` noise from command names at the overview level

@@ -1,0 +1,5 @@
+name: jhu
+displayName: "JHU Sheridan Libraries"
+description: "Knowledge artifacts from the Johns Hopkins University Sheridan Libraries agentic-skill-forge."
+trust: community
+tags: [jhu, academic, libraries]

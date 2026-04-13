@@ -6,6 +6,9 @@ import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import chalk from "chalk";
 import type { Command } from "commander";
+import { resolveBackend } from "../backends/index";
+import { loadForgeConfig, resolveBackendConfigs } from "../config";
+import { SUPPORTED_HARNESSES } from "../schemas";
 import { GlobalCache } from "./global-cache";
 import type { ShellType } from "./hook-generator";
 import { detectShell, generateHookSnippet } from "./hook-generator";
@@ -75,6 +78,7 @@ interface InitOptions {
 	collection?: boolean;
 	mode?: "required" | "optional";
 	version?: string;
+	backend?: string;
 }
 
 async function guildInit(name: string, opts: InitOptions): Promise<void> {
@@ -87,20 +91,117 @@ async function guildInit(name: string, opts: InitOptions): Promise<void> {
 
 	if (!versionPin) {
 		// Query cache for latest version (Req 4.7)
-		const versions = await cache.listVersions(name);
+		const collectionVersions = isCollection
+			? await cache.readCollectionCatalog(name, "check").then(
+					() => cache.listVersions(`collections/${name}`),
+					() => [] as string[],
+				)
+			: [];
+		const versions = isCollection ? collectionVersions : await cache.listVersions(name);
 		if (versions.length === 0) {
-			// Req 4.8 — artifact not in cache and no --version
+			// Auto-fetch from configured backend
 			console.error(
-				chalk.red(
-					`Error: guild init: "${name}" is not in the global cache and no --version was specified.\n` +
-						`  Run \`forge install --global ${name}\` first.`,
+				chalk.yellow(
+					`"${name}" is not in the global cache. Attempting to fetch…`,
 				),
 			);
-			process.exit(1);
+			const config = await loadForgeConfig();
+			const backendConfigs = resolveBackendConfigs(config);
+			const backendName = opts.backend ??
+				[...backendConfigs.keys()].find((k) => k !== "local") ??
+				[...backendConfigs.keys()][0];
+			const backendConfig = backendConfigs.get(backendName);
+			if (!backendConfig) {
+				console.error(
+					chalk.red("Error: No backends configured in forge.config.yaml."),
+				);
+				process.exit(1);
+			}
+			const backend = resolveBackend(backendConfig);
+			let fetchedVersions: string[];
+			try {
+				fetchedVersions = await backend.listVersions();
+			} catch (err: unknown) {
+				const reason = err instanceof Error ? err.message : String(err);
+				console.error(
+					chalk.red(`Error: Failed to reach backend "${backendName}": ${reason}`),
+				);
+				process.exit(1);
+			}
+			if (fetchedVersions.length === 0) {
+				console.error(
+					chalk.red(`No versions available for "${name}" from backend "${backendName}".`),
+				);
+				process.exit(1);
+			}
+			const latestVersion = fetchedVersions[0];
+
+			if (isCollection) {
+				// Fetch catalog, filter to collection members, store collection catalog + member artifacts
+				let catalog: import("../schemas").CatalogEntry[];
+				try {
+					catalog = await backend.fetchCatalog();
+				} catch (err: unknown) {
+					const reason = err instanceof Error ? err.message : String(err);
+					console.error(chalk.red(`Error: Failed to fetch catalog: ${reason}`));
+					process.exit(1);
+				}
+				const members = catalog.filter((e) => e.collections.includes(name));
+				if (members.length === 0) {
+					console.error(
+						chalk.red(`No artifacts belong to collection "${name}" in the catalog.`),
+					);
+					process.exit(1);
+				}
+				await cache.writeCatalogMeta(name, latestVersion, members);
+				let storedCount = 0;
+				for (const entry of members) {
+					for (const h of SUPPORTED_HARNESSES) {
+						try {
+							const tempDir = await backend.fetchArtifact(entry.name, h, latestVersion);
+							await cache.store(entry.name, latestVersion, h, tempDir, backendName);
+							storedCount++;
+						} catch {
+							// skip unavailable harnesses
+						}
+					}
+				}
+				console.error(
+					chalk.green(
+						`✓ Fetched collection "${name}" ${latestVersion} — ${members.length} artifact(s), ${storedCount} harness(es) cached.`,
+					),
+				);
+				versionPin = latestVersion;
+			} else {
+				let storedCount = 0;
+				for (const h of SUPPORTED_HARNESSES) {
+					try {
+						const tempDir = await backend.fetchArtifact(name, h, latestVersion);
+						await cache.store(name, latestVersion, h, tempDir, backendName);
+						storedCount++;
+					} catch (err: unknown) {
+						const reason = err instanceof Error ? err.message : String(err);
+						console.error(chalk.dim(`  ⊘ ${h}: ${reason}`));
+					}
+				}
+				if (storedCount === 0) {
+					console.error(
+						chalk.red(`Error: Failed to fetch "${name}" from backend "${backendName}".`),
+					);
+					process.exit(1);
+				}
+				console.error(
+					chalk.green(
+						`✓ Fetched "${name}" ${latestVersion} (${storedCount} harness(es)) into global cache.`,
+					),
+				);
+				versionPin = latestVersion;
+			}
+		} else {
+			// Pick the highest version (sort ascending, take last)
+			const sorted = [...versions].sort(Bun.semver.order);
+			versionPin = sorted[sorted.length - 1];
 		}
-		// Pick the highest version (sort ascending, take last)
-		const sorted = [...versions].sort(Bun.semver.order);
-		versionPin = sorted[sorted.length - 1];
 	}
 
 	// Read or create manifest
@@ -421,6 +522,7 @@ export function registerGuildCommands(program: Command): void {
 			"--version <pin>",
 			"Semver version pin (default: latest from cache)",
 		)
+		.option("--backend <name>", "Named backend from forge.config.yaml")
 		.action(async (name: string, opts: InitOptions) => {
 			await guildInit(name, opts);
 		});

@@ -1,1 +1,0 @@
-Added `src/asset-conventions.ts` registry mapping each of the 8 asset types to required files, optional files, and type-specific validation rule keys

@@ -1,1 +1,0 @@
-Fixed `forge import` crashing on non-artifact directories by verifying `POWER.md` / `SKILL.md` existence before dispatching, and filtering out dot-directories (`.github`, `.kiro`, etc.) during source scanning

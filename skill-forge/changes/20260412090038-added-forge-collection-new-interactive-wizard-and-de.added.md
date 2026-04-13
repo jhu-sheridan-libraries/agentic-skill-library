@@ -1,1 +1,0 @@
-Added `forge collection new [name]` interactive wizard for scaffolding collection manifests; changed `forge collection` bare invocation to show a status overview with member counts and an interactive "create first collection?" prompt when none exist

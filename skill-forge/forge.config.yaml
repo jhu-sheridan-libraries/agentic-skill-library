@@ -1,0 +1,10 @@
+install:
+  backends:
+    github:
+      type: github
+      repo: thinkingsage/context-bazaar
+      releasePrefix: v
+    jhu:
+      type: github
+      repo: jhu-sheridan-libraries/agentic-skill-forge
+      releasePrefix: v

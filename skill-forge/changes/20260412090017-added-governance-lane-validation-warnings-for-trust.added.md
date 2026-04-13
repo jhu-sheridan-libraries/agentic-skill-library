@@ -1,1 +1,0 @@
-Added governance lane validation warnings: `trust: official` or `partner` without a `license` field, `risk-level: high` without a `trust` lane, and artifacts declaring a collection name with no matching manifest in `collections/`

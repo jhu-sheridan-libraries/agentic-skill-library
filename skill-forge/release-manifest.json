@@ -1,0 +1,36 @@
+{
+  "version": "v0.1.1",
+  "date": "2026-04-13T19:24:40.857Z",
+  "artifactCount": 41,
+  "harnesses": [
+    "kiro",
+    "claude-code",
+    "copilot",
+    "cursor",
+    "windsurf",
+    "cline",
+    "qdeveloper"
+  ],
+  "governanceSummary": {
+    "official": 0,
+    "partner": 0,
+    "community": 40,
+    "experimental": 0,
+    "unclassified": 1
+  },
+  "collectionSummary": {
+    "neon-caravan": 6,
+    "jhu": 1,
+    "kiro-official": 26,
+    "byron-powers": 8
+  },
+  "perHarnessFileCounts": {
+    "kiro": 253,
+    "claude-code": 6,
+    "copilot": 5,
+    "cursor": 4,
+    "windsurf": 7,
+    "cline": 4,
+    "qdeveloper": 7
+  }
+}

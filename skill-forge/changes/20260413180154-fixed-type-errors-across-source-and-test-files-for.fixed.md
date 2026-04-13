@@ -1,1 +1,0 @@
-Fixed type errors across source and test files for strict TypeScript compliance — added missing collections/inherit-hooks fields, corrected Dirent typing for Node.js compatibility, and resolved narrowing issues in tests

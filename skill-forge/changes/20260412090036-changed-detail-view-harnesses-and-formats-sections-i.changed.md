@@ -1,1 +1,0 @@
-Changed detail view to merge redundant Harnesses and Formats sections into a single Targets section showing icon, harness name, and format inline; improved back-to-catalog button with pill styling and animated arrow

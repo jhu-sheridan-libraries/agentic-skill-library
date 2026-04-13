@@ -1,1 +1,0 @@
-Added dependency cycle detection to `forge validate` using DFS over the `depends` graph; cycles now produce hard validation errors identifying the full cycle path

@@ -1,1 +1,0 @@
-Added dependency composition for `workflow` and `agent` artifact types: MCP servers from `depends` artifacts are merged before compilation, and hooks are merged when `inherit-hooks: true` is set in the artifact's frontmatter

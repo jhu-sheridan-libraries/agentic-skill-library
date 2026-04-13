@@ -1,1 +1,0 @@
-Changed eval output formatting to use horizontal rules, filled progress bars, tree connectors (├─/╰─) for response and grading reason detail lines, and suppressed noisy GCP metadata probe warnings from promptfoo

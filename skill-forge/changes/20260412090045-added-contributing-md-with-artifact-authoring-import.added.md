@@ -1,1 +1,0 @@
-Added CONTRIBUTING.md covering artifact scaffolding, frontmatter fields, quality bar, collection assignment, import workflow, development commands, changelog fragment process, and pull request checklist

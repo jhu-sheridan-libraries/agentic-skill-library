@@ -1,1 +1,0 @@
-Added asset-type-aware validation warnings to `forge validate`: `reference-pack` without `inclusion: manual`, `workflow` with empty or missing `workflows/` directory, and `prompt` with a body shorter than 50 characters

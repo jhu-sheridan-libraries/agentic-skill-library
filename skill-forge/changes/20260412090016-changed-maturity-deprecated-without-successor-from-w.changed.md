@@ -1,1 +1,0 @@
-Changed `maturity: deprecated` without a `successor` field from a validation warning to a validation error, enforcing that deprecated artifacts always point to their replacement

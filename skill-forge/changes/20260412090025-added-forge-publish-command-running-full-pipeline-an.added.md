@@ -1,1 +1,0 @@
-Added `forge publish` command running the full pipeline (validate --strict, build, catalog, release-manifest.json, per-harness tarballs) and publishing via `gh release create` for GitHub or `aws s3 sync` for S3; `--dry-run` packages without uploading

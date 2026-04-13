@@ -1,1 +1,0 @@
-Added `--strict` flag to `forge build` that treats compatibility warnings (partial or missing harness support for an asset type) as hard errors

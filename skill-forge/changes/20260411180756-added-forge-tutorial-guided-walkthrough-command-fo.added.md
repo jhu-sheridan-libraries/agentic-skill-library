@@ -1,1 +1,0 @@
-Added forge tutorial command providing a step-by-step guided walkthrough for first-time users covering artifact creation via the interactive wizard, generated file exploration, and building with progress indicators and jargon-free language

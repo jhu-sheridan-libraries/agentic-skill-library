@@ -1,1 +1,0 @@
-Added DevSecOps GitHub Actions workflows: CodeQL static analysis (src/ and bridge/ with security-extended queries), scheduled dependency audit with bun audit and Gitleaks secret scanning (custom rules for mcp-servers.yaml env blocks), OSSF Scorecard, Dependabot weekly updates, path-based PR labeler, and stale issue management

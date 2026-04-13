@@ -1,1 +1,0 @@
-Documented decision to combine static pattern matching with LLM adversarial rubric evals as a two-layer artifact security review, using the existing promptfoo eval infrastructure against compiled CLAUDE.md artifacts (ADR-0022)

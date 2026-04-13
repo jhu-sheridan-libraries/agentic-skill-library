@@ -1,1 +1,0 @@
-Added root-level CLAUDE.md providing Claude Code with commands, architecture overview, compile pipeline, type system, collection model, MCP bridge details, test helper conventions, and changelog/ADR discipline

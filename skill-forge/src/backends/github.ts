@@ -1,4 +1,4 @@
-import { mkdir } from "node:fs/promises";
+import { access, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { CatalogEntry, HarnessName } from "../schemas";
@@ -29,21 +29,24 @@ export class GitHubBackend implements ArtifactBackend {
 
 	async fetchCatalog(): Promise<CatalogEntry[]> {
 		const tag = this.tag ?? (await this.latestTag());
-		const assetUrl = await this.resolveAssetUrl(tag, "catalog.json");
+		const tmp = join(tmpdir(), `forge-catalog-${Date.now()}`);
+		await mkdir(tmp, { recursive: true });
+		const outPath = join(tmp, "catalog.json");
 
 		const proc = Bun.spawnSync(
 			[
 				"gh",
-				"api",
-				"--paginate",
-				assetUrl,
-				"--header",
-				"Accept: application/octet-stream",
+				"release",
+				"download",
+				tag,
+				"--repo",
+				this.config.repo,
+				"--pattern",
+				"catalog.json",
+				"--output",
+				outPath,
 			],
-			{
-				stdout: "pipe",
-				stderr: "pipe",
-			},
+			{ stdout: "pipe", stderr: "pipe" },
 		);
 
 		if (proc.exitCode !== 0) {
@@ -53,7 +56,8 @@ export class GitHubBackend implements ArtifactBackend {
 			);
 		}
 
-		return JSON.parse(new TextDecoder().decode(proc.stdout)) as CatalogEntry[];
+		const raw = await Bun.file(outPath).text();
+		return JSON.parse(raw) as CatalogEntry[];
 	}
 
 	async fetchArtifact(
@@ -75,8 +79,11 @@ export class GitHubBackend implements ArtifactBackend {
 		const artifactDir = join(extractedDir, name);
 
 		// Return cached copy if available
-		if (await Bun.file(artifactDir).exists()) {
+		try {
+			await access(artifactDir);
 			return artifactDir;
+		} catch {
+			// not cached yet
 		}
 
 		await mkdir(extractedDir, { recursive: true });
@@ -108,7 +115,7 @@ export class GitHubBackend implements ArtifactBackend {
 
 		// Extract the tarball
 		const extractProc = Bun.spawnSync(
-			["tar", "-xzf", downloadPath, "-C", extractedDir],
+			["tar", "-xzf", downloadPath, "-C", cacheDir],
 			{ stdout: "pipe", stderr: "pipe" },
 		);
 
@@ -116,7 +123,9 @@ export class GitHubBackend implements ArtifactBackend {
 			throw new Error(`Failed to extract ${assetName}`);
 		}
 
-		if (!(await Bun.file(artifactDir).exists())) {
+		try {
+			await access(artifactDir);
+		} catch {
 			throw new Error(
 				`Artifact "${name}" not found in ${assetName} for harness "${harness}"`,
 			);

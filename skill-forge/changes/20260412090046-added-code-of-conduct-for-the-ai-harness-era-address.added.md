@@ -1,1 +1,0 @@
-Added CODE_OF_CONDUCT.md addressing contributor responsibility in the AI harness era: curated vs. uncurated AI-assisted contributions, knowledge quality standards, attribution policy, and the expectation that all submitted content has been reviewed and understood by its author

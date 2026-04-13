@@ -1,1 +1,0 @@
-Added `collections` field to artifact frontmatter and catalog entries so artifacts declare their own collection membership; the catalog derives collection membership from artifact metadata rather than from a separate member list

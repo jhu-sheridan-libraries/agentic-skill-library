@@ -1,1 +1,0 @@
-Fixed CLI banner right edge so all lines render as a uniform rectangle by computing visual terminal column width (handling wide emoji including ⚡) and normalising trailing padding dynamically rather than hardcoding it per line

@@ -1,1 +1,0 @@
-Added `--type <type>` flag to `forge new` for pre-selecting the asset type and bypassing the wizard type prompt; validates against the 8-value AssetTypeSchema and scaffolds type-appropriate structure (e.g. `workflow` pre-creates `workflows/main.md`)

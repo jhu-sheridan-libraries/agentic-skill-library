@@ -1,1 +1,0 @@
-Added AssetTypeSchema expanding the `type` field to 8 values (skill, power, rule, workflow, agent, prompt, template, reference-pack) as a semantic asset taxonomy, with ArtifactTypeSchema kept as a backward-compatible alias

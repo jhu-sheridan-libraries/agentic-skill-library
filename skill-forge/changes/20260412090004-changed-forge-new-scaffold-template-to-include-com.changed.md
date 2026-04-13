@@ -1,1 +1,0 @@
-Changed `forge new` scaffold template to include commented-out bazaar metadata stubs (maturity, trust, license, audience, risk-level, model-assumptions) so authors can see available fields without being required to fill them in

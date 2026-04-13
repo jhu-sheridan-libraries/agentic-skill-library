@@ -1,1 +1,0 @@
-Added `forge collection build` subcommand and `src/collection-builder.ts` that assembles per-collection dist bundles at `dist/<harness>/collections/<name>/` by merging pre-built member artifact outputs derived from catalog collection membership

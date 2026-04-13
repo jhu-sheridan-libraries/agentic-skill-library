@@ -1,1 +1,0 @@
-Added maturity badge, trust lane label, and maturity filter to catalog browser card and detail views in `forge catalog browse`

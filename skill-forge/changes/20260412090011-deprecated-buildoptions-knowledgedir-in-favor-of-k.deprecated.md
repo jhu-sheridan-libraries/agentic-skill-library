@@ -1,1 +1,0 @@
-Deprecated `BuildOptions.knowledgeDir` (singular string) in favor of `BuildOptions.knowledgeDirs: string[]` to support multi-root scanning; the old field is still accepted but will be removed in a future version

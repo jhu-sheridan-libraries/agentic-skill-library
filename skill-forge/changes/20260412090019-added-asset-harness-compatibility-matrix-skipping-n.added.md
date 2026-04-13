@@ -1,1 +1,0 @@
-Added asset × harness compatibility matrix in `src/compatibility.ts` so `forge build` skips type/harness combinations with no meaningful output and emits partial-support warnings for degraded combinations

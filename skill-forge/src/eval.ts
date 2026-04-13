@@ -136,6 +136,7 @@ export async function runEvals(options: EvalOptions): Promise<EvalResult[]> {
 	const evalsDir = "evals";
 	const distDir = "dist";
 	const _threshold = options.threshold ?? 0.7;
+	const maxRetries = options.ci ? 2 : 0;
 
 	const configs = await discoverEvalConfigs(
 		knowledgeDir,
@@ -183,9 +184,39 @@ export async function runEvals(options: EvalOptions): Promise<EvalResult[]> {
 				);
 			}) as typeof process.stderr.write;
 
-			const evalResult = await promptfoo.evaluate(resolved as any, {
-				maxConcurrency: 2,
-			});
+			// Retry loop — transient API errors (empty responses, rate limits)
+			// can cause a full wipeout; retry the whole eval config up to
+			// maxRetries times before accepting the result.
+			let evalResult: Awaited<ReturnType<typeof promptfoo.evaluate>>;
+			let attempt = 0;
+			while (true) {
+				evalResult = await promptfoo.evaluate(resolved as any, {
+					maxConcurrency: 2,
+				});
+
+				// Check if every result is an API error — likely transient
+				const allApiErrors =
+					evalResult.results.length > 0 &&
+					evalResult.results.every((r) => {
+						const rowAny = r as unknown as Record<string, unknown>;
+						return (
+							!r.success &&
+							typeof rowAny.error === "string" &&
+							(rowAny.error as string).includes("API call error")
+						);
+					});
+
+				if (!allApiErrors || attempt >= maxRetries) break;
+
+				attempt++;
+				const delay = attempt * 5_000; // 5s, 10s
+				console.error(
+					chalk.yellow(
+						`  ⟳ All ${evalResult.results.length} tests hit API errors — retrying (${attempt}/${maxRetries}) in ${delay / 1000}s…`,
+					),
+				);
+				await new Promise((resolve) => setTimeout(resolve, delay));
+			}
 
 			process.stderr.write = originalStderrWrite;
 

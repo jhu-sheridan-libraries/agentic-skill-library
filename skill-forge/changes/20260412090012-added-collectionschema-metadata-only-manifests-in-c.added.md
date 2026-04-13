@@ -1,1 +1,0 @@
-Added CollectionSchema for metadata-only collection manifests in `collections/*.yaml`; collection membership is declared by artifacts in their own frontmatter via `collections: [name]` rather than listed in the manifest, eliminating stale cross-references

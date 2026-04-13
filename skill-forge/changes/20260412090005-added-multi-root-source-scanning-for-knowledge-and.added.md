@@ -1,1 +1,0 @@
-Added multi-root source scanning so `forge build`, `forge validate`, and `forge catalog generate` scan both `knowledge/` and `packages/` directories, skipping roots that do not exist

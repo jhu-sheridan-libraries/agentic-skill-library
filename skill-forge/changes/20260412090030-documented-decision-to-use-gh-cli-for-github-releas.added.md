@@ -1,1 +1,0 @@
-Documented decision to use the `gh` CLI rather than direct GitHub REST API calls for release creation and asset download, delegating auth management to an already-installed tool (ADR-0018)

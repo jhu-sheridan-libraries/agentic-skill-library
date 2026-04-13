@@ -1,1 +1,0 @@
-Added Collection filter group to `forge catalog browse` UI so users can browse artifacts scoped to a single collection; filter group is hidden when no artifacts have collection membership

@@ -1,1 +1,0 @@
-Added namespaced artifact layout support for `packages/@org/<artifact>/knowledge.md` alongside the existing flat `knowledge/<artifact>/knowledge.md` layout; dist output paths always use the leaf artifact name

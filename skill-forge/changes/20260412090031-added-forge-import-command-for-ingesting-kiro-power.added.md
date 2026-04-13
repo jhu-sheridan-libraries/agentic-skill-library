@@ -1,1 +1,0 @@
-Added `forge import <path> [--all] [--format] [--dry-run] [--collections]` command for ingesting external Kiro powers (`POWER.md` + `steering/`) and skills (`SKILL.md` + `references/`) into the skill-forge knowledge directory
