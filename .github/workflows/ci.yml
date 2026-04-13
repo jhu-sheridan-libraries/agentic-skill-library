@@ -39,6 +39,10 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: read
+  models: read
+
 jobs:
   validate-and-build:
     runs-on: ubuntu-latest
