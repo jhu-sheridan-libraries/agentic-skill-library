@@ -19,3 +19,6 @@ build/
 # Eval output
 eval-results.json
 audit-results.json
+
+# Coverage reports
+coverage/
