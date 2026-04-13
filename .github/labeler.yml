@@ -1,0 +1,52 @@
+# Labels applied automatically based on changed file paths.
+# Used by label-pr.yml workflow.
+
+artifact:
+  - changed-files:
+      - any-glob-to-any-file: knowledge/**
+
+collection:
+  - changed-files:
+      - any-glob-to-any-file: collections/**
+
+tool:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/**
+          - templates/**
+          - scripts/**
+
+bridge:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/mcp-bridge.ts
+          - bridge/**
+
+schemas:
+  - changed-files:
+      - any-glob-to-any-file: src/schemas.ts
+
+adapters:
+  - changed-files:
+      - any-glob-to-any-file: src/adapters/**
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file: .github/**
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "*.md"
+          - docs/**
+          - skill-forge/docs/**
+
+adr:
+  - changed-files:
+      - any-glob-to-any-file: docs/adr/**
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - package.json
+          - bun.lockb

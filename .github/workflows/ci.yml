@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  pull_request:
+    paths:
+      - "knowledge/**"
+      - "templates/**"
+      - "evals/**"
+      - "src/**"
+      - "scripts/**"
+
+jobs:
+  validate-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Type check
+        run: bun x tsc --noEmit
+
+      - name: Test
+        run: bun test
+
+      - name: Validate artifacts
+        run: bun run dev validate
+
+      - name: Security scan artifacts
+        run: bun run dev validate --security
+
+      - name: Build
+        run: bun run dev build
+
+      - name: Verify dist is up to date
+        run: git diff --exit-code dist/
+
+  eval:
+    runs-on: ubuntu-latest
+    needs: validate-and-build
+    if: >
+      contains(github.event.pull_request.changed_files_names || '', 'knowledge/') ||
+      contains(github.event.pull_request.changed_files_names || '', 'templates/') ||
+      contains(github.event.pull_request.changed_files_names || '', 'evals/')
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install
+
+      - name: Build artifacts
+        run: bun run dev build
+
+      - name: Run evals
+        run: bun run dev eval --ci --output eval-results.json
+
+      - name: Upload eval results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results
+          path: eval-results.json
