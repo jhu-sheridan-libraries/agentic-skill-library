@@ -20,7 +20,7 @@ upstream: https://github.com/forrestchang/andrej-karpathy-skills
 type: reference-pack
 inclusion: always
 categories:
-  - best-practices
+  - code-style
 harnesses:
   - kiro
   - claude-code
@@ -29,7 +29,7 @@ depends: []
 enhances: []
 maturity: stable
 trust: community
-audience: all
+audience: intermediate
 model-assumptions: []
 collections:
   - neon-caravan
