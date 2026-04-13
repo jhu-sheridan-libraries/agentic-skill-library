@@ -97,7 +97,9 @@ async function guildInit(name: string, opts: InitOptions): Promise<void> {
 					() => [] as string[],
 				)
 			: [];
-		const versions = isCollection ? collectionVersions : await cache.listVersions(name);
+		const versions = isCollection
+			? collectionVersions
+			: await cache.listVersions(name);
 		if (versions.length === 0) {
 			// Auto-fetch from configured backend
 			console.error(
@@ -107,7 +109,8 @@ async function guildInit(name: string, opts: InitOptions): Promise<void> {
 			);
 			const config = await loadForgeConfig();
 			const backendConfigs = resolveBackendConfigs(config);
-			const backendName = opts.backend ??
+			const backendName =
+				opts.backend ??
 				[...backendConfigs.keys()].find((k) => k !== "local") ??
 				[...backendConfigs.keys()][0];
 			const backendConfig = backendConfigs.get(backendName);
@@ -124,13 +127,17 @@ async function guildInit(name: string, opts: InitOptions): Promise<void> {
 			} catch (err: unknown) {
 				const reason = err instanceof Error ? err.message : String(err);
 				console.error(
-					chalk.red(`Error: Failed to reach backend "${backendName}": ${reason}`),
+					chalk.red(
+						`Error: Failed to reach backend "${backendName}": ${reason}`,
+					),
 				);
 				process.exit(1);
 			}
 			if (fetchedVersions.length === 0) {
 				console.error(
-					chalk.red(`No versions available for "${name}" from backend "${backendName}".`),
+					chalk.red(
+						`No versions available for "${name}" from backend "${backendName}".`,
+					),
 				);
 				process.exit(1);
 			}
@@ -149,7 +156,9 @@ async function guildInit(name: string, opts: InitOptions): Promise<void> {
 				const members = catalog.filter((e) => e.collections.includes(name));
 				if (members.length === 0) {
 					console.error(
-						chalk.red(`No artifacts belong to collection "${name}" in the catalog.`),
+						chalk.red(
+							`No artifacts belong to collection "${name}" in the catalog.`,
+						),
 					);
 					process.exit(1);
 				}
@@ -158,8 +167,18 @@ async function guildInit(name: string, opts: InitOptions): Promise<void> {
 				for (const entry of members) {
 					for (const h of SUPPORTED_HARNESSES) {
 						try {
-							const tempDir = await backend.fetchArtifact(entry.name, h, latestVersion);
-							await cache.store(entry.name, latestVersion, h, tempDir, backendName);
+							const tempDir = await backend.fetchArtifact(
+								entry.name,
+								h,
+								latestVersion,
+							);
+							await cache.store(
+								entry.name,
+								latestVersion,
+								h,
+								tempDir,
+								backendName,
+							);
 							storedCount++;
 						} catch {
 							// skip unavailable harnesses
@@ -186,7 +205,9 @@ async function guildInit(name: string, opts: InitOptions): Promise<void> {
 				}
 				if (storedCount === 0) {
 					console.error(
-						chalk.red(`Error: Failed to fetch "${name}" from backend "${backendName}".`),
+						chalk.red(
+							`Error: Failed to fetch "${name}" from backend "${backendName}".`,
+						),
 					);
 					process.exit(1);
 				}
@@ -509,7 +530,7 @@ export function registerGuildCommands(program: Command): void {
 		.description("Team mode artifact distribution");
 
 	// --- guild init <name> ---
-	const init = guild
+	guild
 		.command("init <name>")
 		.description("Add an artifact or collection to the manifest")
 		.option("--collection", "Treat <name> as a collection reference")

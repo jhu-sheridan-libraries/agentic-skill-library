@@ -1,5 +1,6 @@
 # Kiro MCP Manager - Sensitive configuration files
 .kiro/settings/
+skill-forge/.kiro/
 
 # forge user-global config — contains credentials, backend tokens, personal overrides.
 # This file lives at ~/.forge/config.yaml and must never be committed.

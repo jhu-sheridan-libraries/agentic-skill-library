@@ -276,10 +276,13 @@ describe("File writer properties", () => {
 				} else {
 					expect(Array.isArray(parsed)).toBe(true);
 					expect(parsed?.length).toBe(hooks.length);
+					if (!parsed) {
+						throw new Error("Expected parsed hooks to be an array");
+					}
 
 					for (let i = 0; i < hooks.length; i++) {
 						const original = hooks[i];
-						const roundTripped = parsed![i];
+						const roundTripped = parsed[i];
 
 						expect(roundTripped.name).toBe(original.name);
 						expect(roundTripped.event).toBe(original.event);
@@ -315,10 +318,13 @@ describe("File writer properties", () => {
 				} else {
 					expect(Array.isArray(parsed)).toBe(true);
 					expect(parsed?.length).toBe(servers.length);
+					if (!parsed) {
+						throw new Error("Expected parsed MCP servers to be an array");
+					}
 
 					for (let i = 0; i < servers.length; i++) {
 						const original = servers[i];
-						const roundTripped = parsed![i];
+						const roundTripped = parsed[i];
 
 						expect(roundTripped.name).toBe(original.name);
 						expect(roundTripped.command).toBe(original.command);

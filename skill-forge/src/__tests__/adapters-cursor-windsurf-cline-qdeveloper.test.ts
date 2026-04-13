@@ -31,6 +31,17 @@ function makeHook(overrides: Partial<CanonicalHook> = {}): CanonicalHook {
 	};
 }
 
+function expectFileContent(
+	file: { content: string } | undefined,
+	relativePath: string,
+): string {
+	expect(file).toBeDefined();
+	if (!file) {
+		throw new Error(`Expected generated file ${relativePath}`);
+	}
+	return file.content;
+}
+
 // =============================================================================
 // Cursor Adapter Tests
 // =============================================================================
@@ -137,7 +148,7 @@ describe("cursorAdapter", () => {
 		);
 		expect(mcpFile).toBeDefined();
 
-		const mcpJson = JSON.parse(mcpFile!.content);
+		const mcpJson = JSON.parse(expectFileContent(mcpFile, ".cursor/mcp.json"));
 		expect(mcpJson.mcpServers["my-server"]).toEqual({
 			command: "uvx",
 			args: ["my-server@latest"],
@@ -279,7 +290,9 @@ describe("windsurfAdapter", () => {
 		);
 		expect(mcpFile).toBeDefined();
 
-		const mcpJson = JSON.parse(mcpFile!.content);
+		const mcpJson = JSON.parse(
+			expectFileContent(mcpFile, ".windsurf/mcp.json"),
+		);
 		expect(mcpJson.mcpServers["docs-server"]).toEqual({
 			command: "npx",
 			args: ["docs-server"],
@@ -443,7 +456,9 @@ describe("clineAdapter", () => {
 		);
 		expect(mcpFile).toBeDefined();
 
-		const mcpJson = JSON.parse(mcpFile!.content);
+		const mcpJson = JSON.parse(
+			expectFileContent(mcpFile, ".clinerules/mcp.json"),
+		);
 		expect(mcpJson.mcpServers["my-mcp"]).toEqual({
 			command: "node",
 			args: ["server.js"],
@@ -586,7 +601,7 @@ describe("qdeveloperAdapter", () => {
 		const mcpFile = result.files.find((f) => f.relativePath === ".q/mcp.json");
 		expect(mcpFile).toBeDefined();
 
-		const mcpJson = JSON.parse(mcpFile!.content);
+		const mcpJson = JSON.parse(expectFileContent(mcpFile, ".q/mcp.json"));
 		expect(mcpJson.mcpServers["q-server"]).toEqual({
 			command: "python",
 			args: ["-m", "q_server"],

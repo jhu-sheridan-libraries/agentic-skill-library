@@ -113,7 +113,11 @@ for (const type of sortedTypes) {
 	const label = type.charAt(0).toUpperCase() + type.slice(1);
 	lines.push("");
 	lines.push(`### ${label}`);
-	for (const msg of grouped.get(type)!) {
+	const messages = grouped.get(type);
+	if (!messages) {
+		continue;
+	}
+	for (const msg of messages) {
 		lines.push(`- ${msg}`);
 	}
 }
