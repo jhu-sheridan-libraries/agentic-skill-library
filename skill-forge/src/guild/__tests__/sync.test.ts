@@ -77,7 +77,7 @@ async function writeManifest(
 		artifacts: artifacts.map((a) => ({
 			name: a.name,
 			version: a.version,
-			mode: a.mode ?? "required",
+			mode: (a.mode ?? "required") as "optional" | "required",
 			...(a.harnesses ? { harnesses: a.harnesses } : {}),
 		})),
 	};

@@ -105,9 +105,11 @@ async function readAllFiles(
 	base = "",
 ): Promise<Map<string, string>> {
 	const result = new Map<string, string>();
-	let entries: Awaited<ReturnType<typeof readdir>>;
+	let entries: import("node:fs").Dirent[];
 	try {
-		entries = await readdir(dir, { withFileTypes: true });
+		entries = (await readdir(dir, {
+			withFileTypes: true,
+		})) as import("node:fs").Dirent[];
 	} catch {
 		return result;
 	}
@@ -127,7 +129,9 @@ async function readAllFiles(
 	return result;
 }
 
-function makeBuildOptions(overrides?: Partial<BuildOptions>): BuildOptions {
+function makeBuildOptions(
+	overrides?: Partial<BuildOptions>,
+): BuildOptions & { knowledgeDir: string } {
 	return {
 		knowledgeDir: join(tempDir, "knowledge"),
 		distDir: join(tempDir, "dist"),

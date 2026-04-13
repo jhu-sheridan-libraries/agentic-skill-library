@@ -48,9 +48,11 @@ const backendArb = fc.constantFrom("github", "s3", "local", "http");
 /** Recursively collect all relative file paths under a directory. */
 async function collectFiles(dir: string, base = ""): Promise<string[]> {
 	const results: string[] = [];
-	let entries: Awaited<ReturnType<typeof readdir>>;
+	let entries: import("node:fs").Dirent[];
 	try {
-		entries = await readdir(dir, { withFileTypes: true });
+		entries = (await readdir(dir, {
+			withFileTypes: true,
+		})) as import("node:fs").Dirent[];
 	} catch {
 		return results;
 	}

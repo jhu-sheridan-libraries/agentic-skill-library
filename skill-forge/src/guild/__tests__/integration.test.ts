@@ -814,7 +814,7 @@ describe("integration: auto-update throttle behavior and sync pipeline", () => {
 		// Throttle state should have been updated to a recent timestamp (Req 6.3)
 		const throttleState = await cache.readThrottleState();
 		expect(throttleState).not.toBeNull();
-		const elapsedSinceUpdate = Date.now() - throttleState?.getTime();
+		const elapsedSinceUpdate = Date.now() - throttleState!.getTime();
 		// Should have been written within the last few seconds
 		expect(elapsedSinceUpdate).toBeLessThan(10_000);
 	});
@@ -982,7 +982,7 @@ describe("integration: auto-update throttle behavior and sync pipeline", () => {
 		const stateAfterSkip = await cache.readThrottleState();
 		expect(stateAfterSkip).not.toBeNull();
 		// The timestamp should still be approximately 5 minutes ago
-		const elapsedAfterSkip = Date.now() - stateAfterSkip?.getTime();
+		const elapsedAfterSkip = Date.now() - stateAfterSkip!.getTime();
 		expect(elapsedAfterSkip).toBeGreaterThan(4 * 60 * 1000);
 
 		// With 3-minute throttle, 5 minutes elapsed → should proceed
@@ -998,7 +998,7 @@ describe("integration: auto-update throttle behavior and sync pipeline", () => {
 		// Throttle state should have been updated (check proceeded)
 		const stateAfterProceed = await cache.readThrottleState();
 		expect(stateAfterProceed).not.toBeNull();
-		const elapsedAfterProceed = Date.now() - stateAfterProceed?.getTime();
+		const elapsedAfterProceed = Date.now() - stateAfterProceed!.getTime();
 		expect(elapsedAfterProceed).toBeLessThan(10_000);
 	});
 

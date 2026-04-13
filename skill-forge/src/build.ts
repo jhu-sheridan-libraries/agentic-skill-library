@@ -241,21 +241,18 @@ export async function build(options: BuildOptions): Promise<BuildResult> {
 			(fm.type === "workflow" || fm.type === "agent") &&
 			fm.depends.length > 0
 		) {
-			const { resolved, cycleError } = await resolveComposition(
-				artifact,
-				sourceDirs,
-			);
-			if (cycleError) {
+			const compositionResult = await resolveComposition(artifact, sourceDirs);
+			if (compositionResult.cycleError) {
 				errors.push({
 					artifactName: artifact.name,
 					harnessName: "compose",
-					message: cycleError,
+					message: compositionResult.cycleError,
 				});
 				continue;
 			}
 			// Merge dependency mcpServers (artifact-local takes precedence)
 			const localMcpNamesComp = new Set(artifact.mcpServers.map((s) => s.name));
-			for (const depServer of resolved.mcpServers) {
+			for (const depServer of compositionResult.mcpServers) {
 				if (!localMcpNamesComp.has(depServer.name)) {
 					artifact.mcpServers.push(depServer);
 				}
@@ -263,7 +260,7 @@ export async function build(options: BuildOptions): Promise<BuildResult> {
 			// Merge hooks only if artifact opts in
 			if (fm["inherit-hooks"]) {
 				const localHookNames = new Set(artifact.hooks.map((h) => h.name));
-				for (const depHook of resolved.hooks) {
+				for (const depHook of compositionResult.hooks) {
 					if (!localHookNames.has(depHook.name)) {
 						artifact.hooks.push(depHook);
 					}

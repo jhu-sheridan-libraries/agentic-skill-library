@@ -1,3 +1,4 @@
+import type { Dirent } from "node:fs";
 import {
 	access,
 	copyFile,
@@ -77,9 +78,9 @@ export interface GlobalCacheAPI {
 /** Recursively collect all relative file paths under `dir`. */
 async function collectFiles(dir: string, base: string = ""): Promise<string[]> {
 	const results: string[] = [];
-	let entries: Awaited<ReturnType<typeof readdir>>;
+	let entries: Dirent[];
 	try {
-		entries = await readdir(dir, { withFileTypes: true });
+		entries = (await readdir(dir, { withFileTypes: true })) as Dirent[];
 	} catch {
 		return results;
 	}

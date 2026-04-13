@@ -124,7 +124,7 @@ async function loadConfigFile(filePath: string): Promise<ForgeConfig> {
 }
 
 function deepMerge<T extends Record<string, unknown>>(base: T, override: T): T {
-	const result = { ...base };
+	const result = { ...base } as Record<string, unknown>;
 	for (const [key, value] of Object.entries(override)) {
 		if (
 			value !== undefined &&
@@ -137,12 +137,12 @@ function deepMerge<T extends Record<string, unknown>>(base: T, override: T): T {
 			result[key] = deepMerge(
 				result[key] as Record<string, unknown>,
 				value as Record<string, unknown>,
-			) as T[typeof key];
+			);
 		} else if (value !== undefined) {
-			result[key] = value as T[typeof key];
+			result[key] = value;
 		}
 	}
-	return result;
+	return result as T;
 }
 
 /**

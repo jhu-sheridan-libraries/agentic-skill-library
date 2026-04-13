@@ -96,6 +96,8 @@ const frontmatterArb: fc.Arbitrary<Frontmatter> = fc.record({
 	enhances: fc.array(kebabCaseString(), { maxLength: 3 }),
 	maturity: maturityArb,
 	"model-assumptions": fc.array(safeString(), { maxLength: 3 }),
+	collections: fc.array(kebabCaseString(), { maxLength: 3 }),
+	"inherit-hooks": fc.boolean(),
 });
 
 const canonicalEventArb = fc.constantFrom(
@@ -277,7 +279,7 @@ describe("File writer properties", () => {
 
 					for (let i = 0; i < hooks.length; i++) {
 						const original = hooks[i];
-						const roundTripped = parsed?.[i];
+						const roundTripped = parsed![i];
 
 						expect(roundTripped.name).toBe(original.name);
 						expect(roundTripped.event).toBe(original.event);
@@ -316,7 +318,7 @@ describe("File writer properties", () => {
 
 					for (let i = 0; i < servers.length; i++) {
 						const original = servers[i];
-						const roundTripped = parsed?.[i];
+						const roundTripped = parsed![i];
 
 						expect(roundTripped.name).toBe(original.name);
 						expect(roundTripped.command).toBe(original.command);

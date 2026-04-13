@@ -129,6 +129,8 @@ const frontmatterArb: fc.Arbitrary<Frontmatter> = fc.record({
 	enhances: fc.array(kebabCaseString(), { maxLength: 3 }),
 	maturity: maturityArb,
 	"model-assumptions": fc.array(safeString(), { maxLength: 3 }),
+	collections: fc.array(kebabCaseString(), { maxLength: 3 }),
+	"inherit-hooks": fc.boolean(),
 });
 
 const mcpServerArb: fc.Arbitrary<McpServerDefinition> = fc.record({

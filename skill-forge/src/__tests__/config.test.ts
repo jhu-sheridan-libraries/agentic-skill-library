@@ -107,11 +107,11 @@ describe("loadForgeConfig", () => {
 		const config = await loadForgeConfig();
 		expect(config.install?.backends).toBeDefined();
 		const backends = config.install?.backends;
-		expect(backends["my-github"]).toMatchObject({
+		expect(backends!["my-github"]).toMatchObject({
 			type: "github",
 			repo: "my-org/skills",
 		});
-		expect(backends["my-local"]).toMatchObject({
+		expect(backends!["my-local"]).toMatchObject({
 			type: "local",
 			path: "/tmp/skills",
 		});
@@ -165,7 +165,7 @@ describe("resolveBackendConfigs", () => {
 		const config: ForgeConfig = {
 			install: {
 				backends: {
-					upstream: { type: "github", repo: "org/repo" },
+					upstream: { type: "github", repo: "org/repo", releasePrefix: "" },
 				},
 			},
 		};
@@ -182,7 +182,7 @@ describe("resolveBackendConfigs", () => {
 		const config: ForgeConfig = {
 			install: {
 				backends: {
-					gh: { type: "github", repo: "org/skills" },
+					gh: { type: "github", repo: "org/skills", releasePrefix: "" },
 					s3: { type: "s3", bucket: "my-bucket" },
 					http: { type: "http", baseUrl: "https://example.com/forge" },
 				},

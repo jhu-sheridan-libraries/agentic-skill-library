@@ -370,7 +370,7 @@ export async function installCommand(
 
 		// --from-release maps to the github backend
 		if (fromRelease && !backendConfig) {
-			backendConfig = { type: "github" as const, repo: "" };
+			backendConfig = { type: "github" as const, repo: "", releasePrefix: "" };
 			resolvedBackendName = "github";
 		}
 

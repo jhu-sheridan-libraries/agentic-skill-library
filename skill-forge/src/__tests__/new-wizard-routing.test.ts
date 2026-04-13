@@ -81,6 +81,8 @@ beforeEach(async () => {
 					enhances: [],
 					maturity: "experimental" as const,
 					"model-assumptions": [],
+					collections: [],
+					"inherit-hooks": false,
 				},
 				knowledgeBody: "Wizard body content",
 				hooks: [],

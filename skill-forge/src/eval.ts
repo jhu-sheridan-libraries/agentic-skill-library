@@ -199,7 +199,7 @@ export async function runEvals(options: EvalOptions): Promise<EvalResult[]> {
 					if (testPassed) passed++;
 					else failed++;
 
-					const rowAny = row as Record<string, unknown>;
+					const rowAny = row as unknown as Record<string, unknown>;
 					const gradingResult = rowAny.gradingResult as
 						| Record<string, unknown>
 						| undefined;

@@ -134,6 +134,8 @@ describe("Wizard validation properties", () => {
 					"deprecated",
 				) as fc.Arbitrary<Frontmatter["maturity"]>,
 				"model-assumptions": fc.array(safeString(), { maxLength: 3 }),
+				collections: fc.array(kebabCaseString(), { maxLength: 3 }),
+				"inherit-hooks": fc.boolean(),
 			});
 
 			fc.assert(

@@ -202,9 +202,11 @@ async function readAllFiles(
 	base = "",
 ): Promise<Map<string, string>> {
 	const result = new Map<string, string>();
-	let entries: Awaited<ReturnType<typeof readdir>>;
+	let entries: import("node:fs").Dirent[];
 	try {
-		entries = await readdir(dir, { withFileTypes: true });
+		entries = (await readdir(dir, {
+			withFileTypes: true,
+		})) as import("node:fs").Dirent[];
 	} catch {
 		return result;
 	}

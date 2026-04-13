@@ -137,7 +137,7 @@ describe("cursorAdapter", () => {
 		);
 		expect(mcpFile).toBeDefined();
 
-		const mcpJson = JSON.parse(mcpFile?.content);
+		const mcpJson = JSON.parse(mcpFile!.content);
 		expect(mcpJson.mcpServers["my-server"]).toEqual({
 			command: "uvx",
 			args: ["my-server@latest"],
@@ -279,7 +279,7 @@ describe("windsurfAdapter", () => {
 		);
 		expect(mcpFile).toBeDefined();
 
-		const mcpJson = JSON.parse(mcpFile?.content);
+		const mcpJson = JSON.parse(mcpFile!.content);
 		expect(mcpJson.mcpServers["docs-server"]).toEqual({
 			command: "npx",
 			args: ["docs-server"],
@@ -443,7 +443,7 @@ describe("clineAdapter", () => {
 		);
 		expect(mcpFile).toBeDefined();
 
-		const mcpJson = JSON.parse(mcpFile?.content);
+		const mcpJson = JSON.parse(mcpFile!.content);
 		expect(mcpJson.mcpServers["my-mcp"]).toEqual({
 			command: "node",
 			args: ["server.js"],
@@ -586,7 +586,7 @@ describe("qdeveloperAdapter", () => {
 		const mcpFile = result.files.find((f) => f.relativePath === ".q/mcp.json");
 		expect(mcpFile).toBeDefined();
 
-		const mcpJson = JSON.parse(mcpFile?.content);
+		const mcpJson = JSON.parse(mcpFile!.content);
 		expect(mcpJson.mcpServers["q-server"]).toEqual({
 			command: "python",
 			args: ["-m", "q_server"],
