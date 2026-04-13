@@ -18,7 +18,7 @@ harnesses:
 type: power
 inclusion: manual
 categories:
-  - documentation
+  - architecture
 ecosystem: []
 depends: []
 enhances: []

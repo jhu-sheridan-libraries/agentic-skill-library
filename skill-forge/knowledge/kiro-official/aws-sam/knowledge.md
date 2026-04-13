@@ -16,7 +16,8 @@ harnesses:
 type: power
 inclusion: manual
 categories:
-  - documentation
+  - architecture
+  - devops
 ecosystem: []
 depends: []
 enhances: []

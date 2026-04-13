@@ -7,7 +7,7 @@ author: skill-forge
 version: 0.1.0
 type: prompt
 inclusion: manual
-categories: [documentation]
+categories: [code-style, devops]
 ecosystem: [git]
 collections: [neon-caravan]
 maturity: stable

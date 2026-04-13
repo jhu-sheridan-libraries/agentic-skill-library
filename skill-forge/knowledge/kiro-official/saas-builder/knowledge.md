@@ -20,7 +20,9 @@ harnesses:
 type: power
 inclusion: manual
 categories:
-  - documentation
+  - architecture
+  - devops
+  - security
 ecosystem: []
 depends: []
 enhances: []

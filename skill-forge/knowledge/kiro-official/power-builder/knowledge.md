@@ -17,6 +17,7 @@ type: power
 inclusion: manual
 categories:
   - documentation
+  - devops
 ecosystem: []
 depends: []
 enhances: []

@@ -19,7 +19,8 @@ harnesses:
 type: power
 inclusion: manual
 categories:
-  - documentation
+  - devops
+  - performance
 ecosystem: []
 depends: []
 enhances: []
