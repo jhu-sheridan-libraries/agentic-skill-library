@@ -61,7 +61,16 @@ jobs:
         run: bun x tsc --noEmit
 
       - name: Test
-        run: bun test
+        run: bun test --coverage --coverage-reporter=lcov
+
+      - name: Upload coverage to Codecov
+        if: ${{ !inputs.skip-test }}
+        uses: codecov/codecov-action@v5
+        with:
+          files: skill-forge/coverage/lcov.info
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Validate artifacts
         run: bun run dev validate
@@ -89,8 +98,8 @@ jobs:
       contains(github.event.pull_request.changed_files_names || '', 'skill-forge/templates/') ||
       contains(github.event.pull_request.changed_files_names || '', 'skill-forge/evals/'))
     env:
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.GITHUB_TOKEN }}
+      OPENAI_BASE_URL: https://models.github.ai/inference
     steps:
       - uses: actions/checkout@v6
 
@@ -104,7 +113,7 @@ jobs:
         run: bun run dev build
 
       - name: Run evals
-        run: bun run dev eval --ci --output eval-results.json
+        run: bun run dev eval --ci --provider openai:gpt-4o --output eval-results.json
 
       - name: Upload eval results
         if: always()
