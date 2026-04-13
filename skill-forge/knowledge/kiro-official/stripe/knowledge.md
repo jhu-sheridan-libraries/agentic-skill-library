@@ -20,7 +20,7 @@ inclusion: manual
 categories:
   - devops
   - security
-ecosystem: []
+ecosystem: [stripe]
 depends: []
 enhances: []
 maturity: stable

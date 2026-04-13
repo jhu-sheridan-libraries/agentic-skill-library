@@ -19,7 +19,7 @@ inclusion: manual
 categories:
   - testing
   - devops
-ecosystem: []
+ecosystem: [postman]
 depends: []
 enhances: []
 maturity: stable

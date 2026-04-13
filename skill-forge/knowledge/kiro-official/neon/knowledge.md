@@ -18,7 +18,7 @@ type: power
 inclusion: manual
 categories:
   - devops
-ecosystem: []
+ecosystem: [neon, postgres]
 depends: []
 enhances: []
 maturity: stable

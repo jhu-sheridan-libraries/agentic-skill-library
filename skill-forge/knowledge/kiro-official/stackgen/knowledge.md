@@ -21,7 +21,7 @@ inclusion: manual
 categories:
   - architecture
   - devops
-ecosystem: []
+ecosystem: [stackgen, terraform]
 depends: []
 enhances: []
 maturity: stable

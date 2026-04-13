@@ -20,7 +20,7 @@ inclusion: manual
 categories:
   - architecture
   - devops
-ecosystem: []
+ecosystem: [terraform, hashicorp]
 depends: []
 enhances: []
 maturity: stable
