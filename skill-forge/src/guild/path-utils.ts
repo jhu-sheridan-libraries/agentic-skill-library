@@ -8,5 +8,5 @@
  * in committed files (Req 8.3).
  */
 export function normalizePath(p: string): string {
-  return p.replace(/\\/g, "/");
+	return p.replace(/\\/g, "/");
 }

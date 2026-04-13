@@ -10,65 +10,65 @@ import type { AssetType } from "./schemas";
  * defines which rules apply to which types.
  */
 export interface AssetFileConvention {
-  requiredFiles: string[];
-  optionalFiles: string[];
-  /** Rule keys that validate.ts will check for this type. */
-  validationRuleKeys: AssetValidationRuleKey[];
+	requiredFiles: string[];
+	optionalFiles: string[];
+	/** Rule keys that validate.ts will check for this type. */
+	validationRuleKeys: AssetValidationRuleKey[];
 }
 
 export type AssetValidationRuleKey =
-  | "reference-pack-must-be-manual"
-  | "workflow-should-have-workflows-dir"
-  | "prompt-body-too-short";
+	| "reference-pack-must-be-manual"
+	| "workflow-should-have-workflows-dir"
+	| "prompt-body-too-short";
 
 export const ASSET_CONVENTION_RULES: Record<AssetValidationRuleKey, string> = {
-  "reference-pack-must-be-manual":
-    'reference-pack artifacts should use inclusion: "manual" to avoid being auto-injected into every session',
-  "workflow-should-have-workflows-dir":
-    "workflow artifacts should contain at least one file in the workflows/ directory",
-  "prompt-body-too-short":
-    "prompt artifacts should have a non-trivial body (at least 50 characters)",
+	"reference-pack-must-be-manual":
+		'reference-pack artifacts should use inclusion: "manual" to avoid being auto-injected into every session',
+	"workflow-should-have-workflows-dir":
+		"workflow artifacts should contain at least one file in the workflows/ directory",
+	"prompt-body-too-short":
+		"prompt artifacts should have a non-trivial body (at least 50 characters)",
 };
 
 export const ASSET_CONVENTIONS: Record<AssetType, AssetFileConvention> = {
-  skill: {
-    requiredFiles: ["knowledge.md"],
-    optionalFiles: ["hooks.yaml", "mcp-servers.yaml", "workflows/"],
-    validationRuleKeys: [],
-  },
-  power: {
-    requiredFiles: ["knowledge.md"],
-    optionalFiles: ["hooks.yaml", "mcp-servers.yaml", "workflows/"],
-    validationRuleKeys: [],
-  },
-  rule: {
-    requiredFiles: ["knowledge.md"],
-    optionalFiles: [],
-    validationRuleKeys: [],
-  },
-  workflow: {
-    requiredFiles: ["knowledge.md"],
-    optionalFiles: ["workflows/"],
-    validationRuleKeys: ["workflow-should-have-workflows-dir"],
-  },
-  agent: {
-    requiredFiles: ["knowledge.md"],
-    optionalFiles: ["hooks.yaml", "mcp-servers.yaml", "workflows/"],
-    validationRuleKeys: [],
-  },
-  prompt: {
-    requiredFiles: ["knowledge.md"],
-    optionalFiles: [],
-    validationRuleKeys: ["prompt-body-too-short"],
-  },
-  template: {
-    requiredFiles: ["knowledge.md"],
-    optionalFiles: [],
-    validationRuleKeys: [],
-  },
-  "reference-pack": {
-    requiredFiles: ["knowledge.md"],
-    optionalFiles: [],
-    validationRuleKeys: ["reference-pack-must-be-manual"],
-  },
+	skill: {
+		requiredFiles: ["knowledge.md"],
+		optionalFiles: ["hooks.yaml", "mcp-servers.yaml", "workflows/"],
+		validationRuleKeys: [],
+	},
+	power: {
+		requiredFiles: ["knowledge.md"],
+		optionalFiles: ["hooks.yaml", "mcp-servers.yaml", "workflows/"],
+		validationRuleKeys: [],
+	},
+	rule: {
+		requiredFiles: ["knowledge.md"],
+		optionalFiles: [],
+		validationRuleKeys: [],
+	},
+	workflow: {
+		requiredFiles: ["knowledge.md"],
+		optionalFiles: ["workflows/"],
+		validationRuleKeys: ["workflow-should-have-workflows-dir"],
+	},
+	agent: {
+		requiredFiles: ["knowledge.md"],
+		optionalFiles: ["hooks.yaml", "mcp-servers.yaml", "workflows/"],
+		validationRuleKeys: [],
+	},
+	prompt: {
+		requiredFiles: ["knowledge.md"],
+		optionalFiles: [],
+		validationRuleKeys: ["prompt-body-too-short"],
+	},
+	template: {
+		requiredFiles: ["knowledge.md"],
+		optionalFiles: [],
+		validationRuleKeys: [],
+	},
+	"reference-pack": {
+		requiredFiles: ["knowledge.md"],
+		optionalFiles: [],
+		validationRuleKeys: ["reference-pack-must-be-manual"],
+	},
 };

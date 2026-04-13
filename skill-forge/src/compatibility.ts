@@ -13,72 +13,72 @@ export type CompatibilityLevel = "full" | "partial" | "none";
  * support skills/powers/rules fully by default).
  */
 export const ASSET_HARNESS_COMPATIBILITY: Record<
-  AssetType,
-  Partial<Record<HarnessName, CompatibilityLevel>>
+	AssetType,
+	Partial<Record<HarnessName, CompatibilityLevel>>
 > = {
-  // Core types — all harnesses support these fully
-  skill: {},
-  power: {
-    // Power is a Kiro-specific concept; other harnesses treat it as a skill
-    "claude-code": "partial",
-    copilot:       "partial",
-    cursor:        "partial",
-    windsurf:      "partial",
-    cline:         "partial",
-    qdeveloper:    "partial",
-  },
-  rule: {},
+	// Core types — all harnesses support these fully
+	skill: {},
+	power: {
+		// Power is a Kiro-specific concept; other harnesses treat it as a skill
+		"claude-code": "partial",
+		copilot: "partial",
+		cursor: "partial",
+		windsurf: "partial",
+		cline: "partial",
+		qdeveloper: "partial",
+	},
+	rule: {},
 
-  // Extended types
-  workflow: {
-    // Kiro, Copilot, and Q Developer have native workflow/agent file support
-    kiro:           "full",
-    copilot:        "full",
-    qdeveloper:     "full",
-    "claude-code":  "partial", // emitted as CLAUDE.md sections
-    cursor:         "partial", // emitted as rule file
-    windsurf:       "partial",
-    cline:          "partial",
-  },
-  agent: {
-    kiro:           "full",
-    copilot:        "full",
-    qdeveloper:     "full",
-    "claude-code":  "partial",
-    cursor:         "none",
-    windsurf:       "none",
-    cline:          "none",
-  },
-  prompt: {
-    // Prompts are universally representable as steering/rule content
-    kiro:           "full",
-    "claude-code":  "full",
-    copilot:        "full",
-    cursor:         "full",
-    windsurf:       "full",
-    cline:          "full",
-    qdeveloper:     "full",
-  },
-  template: {
-    // Templates are reference material — includable in any harness context
-    kiro:           "full",
-    "claude-code":  "full",
-    copilot:        "partial",
-    cursor:         "partial",
-    windsurf:       "partial",
-    cline:          "partial",
-    qdeveloper:     "partial",
-  },
-  "reference-pack": {
-    // Reference packs are manual-inclusion only; all harnesses can host them
-    kiro:           "full",
-    "claude-code":  "full",
-    copilot:        "full",
-    cursor:         "full",
-    windsurf:       "full",
-    cline:          "full",
-    qdeveloper:     "full",
-  },
+	// Extended types
+	workflow: {
+		// Kiro, Copilot, and Q Developer have native workflow/agent file support
+		kiro: "full",
+		copilot: "full",
+		qdeveloper: "full",
+		"claude-code": "partial", // emitted as CLAUDE.md sections
+		cursor: "partial", // emitted as rule file
+		windsurf: "partial",
+		cline: "partial",
+	},
+	agent: {
+		kiro: "full",
+		copilot: "full",
+		qdeveloper: "full",
+		"claude-code": "partial",
+		cursor: "none",
+		windsurf: "none",
+		cline: "none",
+	},
+	prompt: {
+		// Prompts are universally representable as steering/rule content
+		kiro: "full",
+		"claude-code": "full",
+		copilot: "full",
+		cursor: "full",
+		windsurf: "full",
+		cline: "full",
+		qdeveloper: "full",
+	},
+	template: {
+		// Templates are reference material — includable in any harness context
+		kiro: "full",
+		"claude-code": "full",
+		copilot: "partial",
+		cursor: "partial",
+		windsurf: "partial",
+		cline: "partial",
+		qdeveloper: "partial",
+	},
+	"reference-pack": {
+		// Reference packs are manual-inclusion only; all harnesses can host them
+		kiro: "full",
+		"claude-code": "full",
+		copilot: "full",
+		cursor: "full",
+		windsurf: "full",
+		cline: "full",
+		qdeveloper: "full",
+	},
 };
 
 /**
@@ -86,8 +86,8 @@ export const ASSET_HARNESS_COMPATIBILITY: Record<
  * Defaults to "full" if the harness is not explicitly listed for that type.
  */
 export function getCompatibility(
-  type: AssetType,
-  harness: HarnessName,
+	type: AssetType,
+	harness: HarnessName,
 ): CompatibilityLevel {
-  return ASSET_HARNESS_COMPATIBILITY[type]?.[harness] ?? "full";
+	return ASSET_HARNESS_COMPATIBILITY[type]?.[harness] ?? "full";
 }

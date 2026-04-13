@@ -6,10 +6,10 @@
  * Result of resolving a version pin against available versions.
  */
 export interface ResolutionResult {
-  name: string;
-  requestedVersion: string;
-  resolvedVersion: string | null;
-  availableVersions: string[];
+	name: string;
+	requestedVersion: string;
+	resolvedVersion: string | null;
+	availableVersions: string[];
 }
 
 /**
@@ -20,23 +20,23 @@ export interface ResolutionResult {
  * version ordering.
  */
 export function resolveVersion(
-  artifactName: string,
-  versionPin: string,
-  availableVersions: string[],
+	artifactName: string,
+	versionPin: string,
+	availableVersions: string[],
 ): ResolutionResult {
-  // Filter to versions that satisfy the pin
-  const satisfying = availableVersions.filter((v) =>
-    Bun.semver.satisfies(v, versionPin),
-  );
+	// Filter to versions that satisfy the pin
+	const satisfying = availableVersions.filter((v) =>
+		Bun.semver.satisfies(v, versionPin),
+	);
 
-  // Sort ascending and pick the last (highest) one
-  const sorted = satisfying.sort(Bun.semver.order);
-  const resolvedVersion = sorted.length > 0 ? sorted[sorted.length - 1] : null;
+	// Sort ascending and pick the last (highest) one
+	const sorted = satisfying.sort(Bun.semver.order);
+	const resolvedVersion = sorted.length > 0 ? sorted[sorted.length - 1] : null;
 
-  return {
-    name: artifactName,
-    requestedVersion: versionPin,
-    resolvedVersion,
-    availableVersions,
-  };
+	return {
+		name: artifactName,
+		requestedVersion: versionPin,
+		resolvedVersion,
+		availableVersions,
+	};
 }

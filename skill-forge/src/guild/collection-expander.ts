@@ -9,12 +9,12 @@ import type { GlobalCacheAPI } from "./global-cache";
  * Inherits mode, harnesses, and backend from the originating collection ref.
  */
 export interface ExpandedArtifact {
-  name: string;
-  version: string;
-  mode: "required" | "optional";
-  harnesses?: string[];
-  backend?: string;
-  source: string; // originating collection name
+	name: string;
+	version: string;
+	mode: "required" | "optional";
+	harnesses?: string[];
+	backend?: string;
+	source: string; // originating collection name
 }
 
 /**
@@ -27,21 +27,21 @@ export interface ExpandedArtifact {
  * Returns an empty array if the collection has no members.
  */
 export async function expandCollection(
-  collectionName: string,
-  version: string,
-  mode: "required" | "optional",
-  harnesses: string[] | undefined,
-  backend: string | undefined,
-  cache: GlobalCacheAPI,
+	collectionName: string,
+	version: string,
+	mode: "required" | "optional",
+	harnesses: string[] | undefined,
+	backend: string | undefined,
+	cache: GlobalCacheAPI,
 ): Promise<ExpandedArtifact[]> {
-  const members = await cache.readCollectionCatalog(collectionName, version);
+	const members = await cache.readCollectionCatalog(collectionName, version);
 
-  return members.map((entry) => ({
-    name: entry.name,
-    version,
-    mode,
-    ...(harnesses ? { harnesses } : {}),
-    ...(backend ? { backend } : {}),
-    source: collectionName,
-  }));
+	return members.map((entry) => ({
+		name: entry.name,
+		version,
+		mode,
+		...(harnesses ? { harnesses } : {}),
+		...(backend ? { backend } : {}),
+		source: collectionName,
+	}));
 }

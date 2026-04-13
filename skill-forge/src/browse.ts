@@ -1,6 +1,6 @@
-import chalk from "chalk";
 import { exists } from "node:fs/promises";
 import { join } from "node:path";
+import chalk from "chalk";
 import { generateCatalog } from "./catalog";
 import type { CatalogEntry } from "./schemas";
 
@@ -9,16 +9,16 @@ import type { CatalogEntry } from "./schemas";
  * The `&` character is replaced first to avoid double-escaping.
  */
 export function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+	return str
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#39;");
 }
 
 export interface BrowseOptions {
-  port: number;
+	port: number;
 }
 
 /**
@@ -26,14 +26,16 @@ export interface BrowseOptions {
  * Exits with a descriptive error if the input is invalid.
  */
 export function validatePort(portStr: string): number {
-  const port = Number.parseInt(portStr, 10);
-  if (!Number.isFinite(port) || port < 1 || port > 65535) {
-    console.error(
-      chalk.red(`Invalid port "${portStr}": must be an integer between 1 and 65535`),
-    );
-    process.exit(1);
-  }
-  return port;
+	const port = Number.parseInt(portStr, 10);
+	if (!Number.isFinite(port) || port < 1 || port > 65535) {
+		console.error(
+			chalk.red(
+				`Invalid port "${portStr}": must be an integer between 1 and 65535`,
+			),
+		);
+		process.exit(1);
+	}
+	return port;
 }
 
 /**
@@ -41,8 +43,8 @@ export function validatePort(portStr: string): number {
  * Validates the port option and starts the browse server.
  */
 export async function browseCommand(options: { port: string }): Promise<void> {
-  const port = validatePort(options.port);
-  await startBrowseServer({ port });
+	const port = validatePort(options.port);
+	await startBrowseServer({ port });
 }
 
 /**
@@ -50,7 +52,7 @@ export async function browseCommand(options: { port: string }): Promise<void> {
  * All CSS and JS are inlined — no external resources.
  */
 export function generateHtmlPage(): string {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -660,7 +662,7 @@ export function generateHtmlPage(): string {
         cb.className = 'collection-cb';
         label.appendChild(cb);
         // Humanise: replace hyphens with spaces and title-case
-        var display = c.replace(/-/g, ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); });
+        var display = c.replace(/-/g, ' ').replace(/\bw/g, function(l) { return l.toUpperCase(); });
         label.appendChild(document.createTextNode(' ' + display));
         container.appendChild(label);
       });
@@ -923,69 +925,69 @@ export function generateHtmlPage(): string {
  * Routes incoming HTTP requests to the appropriate handler.
  */
 export async function handleRequest(
-  req: Request,
-  catalogEntries: CatalogEntry[],
-  htmlPage: string,
+	req: Request,
+	catalogEntries: CatalogEntry[],
+	htmlPage: string,
 ): Promise<Response> {
-  const url = new URL(req.url);
-  const pathname = url.pathname;
+	const url = new URL(req.url);
+	const pathname = url.pathname;
 
-  // GET / → serve cached HTML page
-  if (pathname === "/") {
-    return new Response(htmlPage, {
-      status: 200,
-      headers: { "Content-Type": "text/html; charset=utf-8" },
-    });
-  }
+	// GET / → serve cached HTML page
+	if (pathname === "/") {
+		return new Response(htmlPage, {
+			status: 200,
+			headers: { "Content-Type": "text/html; charset=utf-8" },
+		});
+	}
 
-  // GET /api/catalog → serve JSON catalog entries
-  if (pathname === "/api/catalog") {
-    return new Response(JSON.stringify(catalogEntries), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
+	// GET /api/catalog → serve JSON catalog entries
+	if (pathname === "/api/catalog") {
+		return new Response(JSON.stringify(catalogEntries), {
+			status: 200,
+			headers: { "Content-Type": "application/json" },
+		});
+	}
 
-  // GET /api/artifact/:name/content → serve knowledge.md content
-  const artifactMatch = pathname.match(/^\/api\/artifact\/([^/]+)\/content$/);
-  if (artifactMatch) {
-    const name = decodeURIComponent(artifactMatch[1]);
-    const entry = catalogEntries.find((e) => e.name === name);
+	// GET /api/artifact/:name/content → serve knowledge.md content
+	const artifactMatch = pathname.match(/^\/api\/artifact\/([^/]+)\/content$/);
+	if (artifactMatch) {
+		const name = decodeURIComponent(artifactMatch[1]);
+		const entry = catalogEntries.find((e) => e.name === name);
 
-    if (!entry) {
-      return new Response(
-        JSON.stringify({ error: `Artifact '${name}' not found` }),
-        { status: 404, headers: { "Content-Type": "application/json" } },
-      );
-    }
+		if (!entry) {
+			return new Response(
+				JSON.stringify({ error: `Artifact '${name}' not found` }),
+				{ status: 404, headers: { "Content-Type": "application/json" } },
+			);
+		}
 
-    const filePath = join(entry.path, "knowledge.md");
-    try {
-      const fileExists = await exists(filePath);
-      if (!fileExists) {
-        return new Response(
-          JSON.stringify({ error: `Content not available for '${name}'` }),
-          { status: 404, headers: { "Content-Type": "application/json" } },
-        );
-      }
-      const content = await Bun.file(filePath).text();
-      return new Response(content, {
-        status: 200,
-        headers: { "Content-Type": "text/plain" },
-      });
-    } catch {
-      return new Response(
-        JSON.stringify({ error: `Content not available for '${name}'` }),
-        { status: 404, headers: { "Content-Type": "application/json" } },
-      );
-    }
-  }
+		const filePath = join(entry.path, "knowledge.md");
+		try {
+			const fileExists = await exists(filePath);
+			if (!fileExists) {
+				return new Response(
+					JSON.stringify({ error: `Content not available for '${name}'` }),
+					{ status: 404, headers: { "Content-Type": "application/json" } },
+				);
+			}
+			const content = await Bun.file(filePath).text();
+			return new Response(content, {
+				status: 200,
+				headers: { "Content-Type": "text/plain" },
+			});
+		} catch {
+			return new Response(
+				JSON.stringify({ error: `Content not available for '${name}'` }),
+				{ status: 404, headers: { "Content-Type": "application/json" } },
+			);
+		}
+	}
 
-  // All other routes → 404
-  return new Response(JSON.stringify({ error: "Not found" }), {
-    status: 404,
-    headers: { "Content-Type": "application/json" },
-  });
+	// All other routes → 404
+	return new Response(JSON.stringify({ error: "Not found" }), {
+		status: 404,
+		headers: { "Content-Type": "application/json" },
+	});
 }
 
 /**
@@ -994,56 +996,61 @@ export async function handleRequest(
  * opens the browser, and registers a SIGINT handler for clean shutdown.
  */
 export async function startBrowseServer(options: BrowseOptions): Promise<void> {
-  const { port } = options;
+	const { port } = options;
 
-  // Load catalog entries on-the-fly from the knowledge/ directory
-  const catalogEntries = await generateCatalog("knowledge");
+	// Load catalog entries on-the-fly from the knowledge/ directory
+	const catalogEntries = await generateCatalog("knowledge");
 
-  // Pre-generate the HTML page string (cached in memory)
-  const htmlPage = generateHtmlPage();
+	// Pre-generate the HTML page string (cached in memory)
+	const htmlPage = generateHtmlPage();
 
-  let server: ReturnType<typeof Bun.serve>;
+	let server: ReturnType<typeof Bun.serve>;
 
-  try {
-    server = Bun.serve({
-      hostname: "localhost",
-      port,
-      fetch(req) {
-        return handleRequest(req, catalogEntries, htmlPage);
-      },
-    });
-  } catch (err: unknown) {
-    const error = err as { code?: string; message?: string };
-    if (error.code === "EADDRINUSE" || error.message?.includes("address already in use")) {
-      console.error(
-        chalk.red(`Port ${port} is already in use. Choose a different port with --port <number>.`),
-      );
-      process.exit(1);
-    }
-    throw err;
-  }
+	try {
+		server = Bun.serve({
+			hostname: "localhost",
+			port,
+			fetch(req) {
+				return handleRequest(req, catalogEntries, htmlPage);
+			},
+		});
+	} catch (err: unknown) {
+		const error = err as { code?: string; message?: string };
+		if (
+			error.code === "EADDRINUSE" ||
+			error.message?.includes("address already in use")
+		) {
+			console.error(
+				chalk.red(
+					`Port ${port} is already in use. Choose a different port with --port <number>.`,
+				),
+			);
+			process.exit(1);
+		}
+		throw err;
+	}
 
-  const url = `http://localhost:${port}`;
-  console.error(chalk.green(`Catalog browser running at ${chalk.bold(url)}`));
+	const url = `http://localhost:${port}`;
+	console.error(chalk.green(`Catalog browser running at ${chalk.bold(url)}`));
 
-  // Attempt to open the default browser (best-effort, non-blocking)
-  try {
-    const platform = process.platform;
-    const cmd =
-      platform === "darwin"
-        ? "open"
-        : platform === "win32"
-          ? "start"
-          : "xdg-open";
-    Bun.spawn([cmd, url], { stdout: "ignore", stderr: "ignore" });
-  } catch {
-    // Silently ignore — browser opening is best-effort
-  }
+	// Attempt to open the default browser (best-effort, non-blocking)
+	try {
+		const platform = process.platform;
+		const cmd =
+			platform === "darwin"
+				? "open"
+				: platform === "win32"
+					? "start"
+					: "xdg-open";
+		Bun.spawn([cmd, url], { stdout: "ignore", stderr: "ignore" });
+	} catch {
+		// Silently ignore — browser opening is best-effort
+	}
 
-  // Register SIGINT handler for clean shutdown
-  process.on("SIGINT", () => {
-    server.stop();
-    console.error(chalk.yellow("\nBrowse server shut down."));
-    process.exit(0);
-  });
+	// Register SIGINT handler for clean shutdown
+	process.on("SIGINT", () => {
+		server.stop();
+		console.error(chalk.yellow("\nBrowse server shut down."));
+		process.exit(0);
+	});
 }

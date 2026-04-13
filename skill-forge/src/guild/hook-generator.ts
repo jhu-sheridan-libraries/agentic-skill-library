@@ -13,16 +13,16 @@ export type ShellType = "bash" | "zsh" | "fish" | "powershell";
  * Requirements: 7.1, 7.2, 7.3, 7.4, 7.7
  */
 export function generateHookSnippet(shell: ShellType): string {
-  switch (shell) {
-    case "bash":
-      return bashSnippet();
-    case "zsh":
-      return zshSnippet();
-    case "fish":
-      return fishSnippet();
-    case "powershell":
-      return powershellSnippet();
-  }
+	switch (shell) {
+		case "bash":
+			return bashSnippet();
+		case "zsh":
+			return zshSnippet();
+		case "fish":
+			return fishSnippet();
+		case "powershell":
+			return powershellSnippet();
+	}
 }
 
 /**
@@ -32,14 +32,14 @@ export function generateHookSnippet(shell: ShellType): string {
  * Requirements: 7.5, 7.6
  */
 export function detectShell(): ShellType | null {
-  const shellEnv = process.env.SHELL;
-  if (!shellEnv) return null;
+	const shellEnv = process.env.SHELL;
+	if (!shellEnv) return null;
 
-  if (shellEnv.includes("zsh")) return "zsh";
-  if (shellEnv.includes("bash")) return "bash";
-  if (shellEnv.includes("fish")) return "fish";
+	if (shellEnv.includes("zsh")) return "zsh";
+	if (shellEnv.includes("bash")) return "bash";
+	if (shellEnv.includes("fish")) return "fish";
 
-  return null;
+	return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -47,7 +47,7 @@ export function detectShell(): ShellType | null {
 // ---------------------------------------------------------------------------
 
 function bashSnippet(): string {
-  return `# Skill Forge auto-sync hook (bash)
+	return `# Skill Forge auto-sync hook (bash)
 _forge_guild_autosync() {
   if [ -f ".forge/manifest.yaml" ]; then
     forge guild sync --auto-update > /dev/null 2>&1 &
@@ -60,7 +60,7 @@ cd() {
 }
 
 function zshSnippet(): string {
-  return `# Skill Forge auto-sync hook (zsh)
+	return `# Skill Forge auto-sync hook (zsh)
 _forge_guild_autosync() {
   if [ -f ".forge/manifest.yaml" ]; then
     forge guild sync --auto-update > /dev/null 2>&1 &
@@ -72,7 +72,7 @@ add-zsh-hook chpwd _forge_guild_autosync`;
 }
 
 function fishSnippet(): string {
-  return `# Skill Forge auto-sync hook (fish)
+	return `# Skill Forge auto-sync hook (fish)
 function _forge_guild_autosync --on-variable PWD
   if test -f ".forge/manifest.yaml"
     forge guild sync --auto-update > /dev/null 2>&1 &
@@ -81,7 +81,7 @@ end`;
 }
 
 function powershellSnippet(): string {
-  return `# Skill Forge auto-sync hook (PowerShell)
+	return `# Skill Forge auto-sync hook (PowerShell)
 function Invoke-ForgeGuildAutoSync {
   if (Test-Path ".forge/manifest.yaml") {
     Start-Process -NoNewWindow -FilePath "forge" -ArgumentList "guild","sync","--auto-update" -RedirectStandardOutput $null -RedirectStandardError $null

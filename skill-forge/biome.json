@@ -1,0 +1,13 @@
+{
+	"files": {
+		"includes": [
+			"src/**",
+			"scripts/**",
+			"evals/**",
+			"collections/**",
+			"package.json",
+			"tsconfig.json",
+			"bunfig.toml"
+		]
+	}
+}

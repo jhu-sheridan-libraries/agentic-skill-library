@@ -1,6 +1,6 @@
-import { describe, test, expect, afterEach } from "bun:test";
-import { generateHookSnippet, detectShell } from "../hook-generator";
+import { afterEach, describe, expect, test } from "bun:test";
 import type { ShellType } from "../hook-generator";
+import { detectShell, generateHookSnippet } from "../hook-generator";
 
 /**
  * Unit tests for shell snippet generation per shell type.
@@ -11,11 +11,11 @@ import type { ShellType } from "../hook-generator";
 const originalShell = process.env.SHELL;
 
 afterEach(() => {
-  if (originalShell !== undefined) {
-    process.env.SHELL = originalShell;
-  } else {
-    delete process.env.SHELL;
-  }
+	if (originalShell !== undefined) {
+		process.env.SHELL = originalShell;
+	} else {
+		delete process.env.SHELL;
+	}
 });
 
 // ---------------------------------------------------------------------------
@@ -23,32 +23,32 @@ afterEach(() => {
 // ---------------------------------------------------------------------------
 
 describe("generateHookSnippet — bash", () => {
-  test("contains manifest check (Req 7.2)", () => {
-    const snippet = generateHookSnippet("bash");
-    expect(snippet).toContain(".forge/manifest.yaml");
-  });
+	test("contains manifest check (Req 7.2)", () => {
+		const snippet = generateHookSnippet("bash");
+		expect(snippet).toContain(".forge/manifest.yaml");
+	});
 
-  test("contains sync invocation (Req 7.2)", () => {
-    const snippet = generateHookSnippet("bash");
-    expect(snippet).toContain("forge guild sync --auto-update");
-  });
+	test("contains sync invocation (Req 7.2)", () => {
+		const snippet = generateHookSnippet("bash");
+		expect(snippet).toContain("forge guild sync --auto-update");
+	});
 
-  test("redirects output to /dev/null (Req 7.3)", () => {
-    const snippet = generateHookSnippet("bash");
-    expect(snippet).toContain("/dev/null");
-  });
+	test("redirects output to /dev/null (Req 7.3)", () => {
+		const snippet = generateHookSnippet("bash");
+		expect(snippet).toContain("/dev/null");
+	});
 
-  test("runs sync in background", () => {
-    const snippet = generateHookSnippet("bash");
-    // Background execution indicated by &
-    expect(snippet).toContain("&");
-  });
+	test("runs sync in background", () => {
+		const snippet = generateHookSnippet("bash");
+		// Background execution indicated by &
+		expect(snippet).toContain("&");
+	});
 
-  test("overrides cd to trigger auto-sync", () => {
-    const snippet = generateHookSnippet("bash");
-    expect(snippet).toContain("cd()");
-    expect(snippet).toContain("builtin cd");
-  });
+	test("overrides cd to trigger auto-sync", () => {
+		const snippet = generateHookSnippet("bash");
+		expect(snippet).toContain("cd()");
+		expect(snippet).toContain("builtin cd");
+	});
 });
 
 // ---------------------------------------------------------------------------
@@ -56,26 +56,26 @@ describe("generateHookSnippet — bash", () => {
 // ---------------------------------------------------------------------------
 
 describe("generateHookSnippet — zsh", () => {
-  test("contains manifest check", () => {
-    const snippet = generateHookSnippet("zsh");
-    expect(snippet).toContain(".forge/manifest.yaml");
-  });
+	test("contains manifest check", () => {
+		const snippet = generateHookSnippet("zsh");
+		expect(snippet).toContain(".forge/manifest.yaml");
+	});
 
-  test("contains sync invocation", () => {
-    const snippet = generateHookSnippet("zsh");
-    expect(snippet).toContain("forge guild sync --auto-update");
-  });
+	test("contains sync invocation", () => {
+		const snippet = generateHookSnippet("zsh");
+		expect(snippet).toContain("forge guild sync --auto-update");
+	});
 
-  test("redirects output to /dev/null", () => {
-    const snippet = generateHookSnippet("zsh");
-    expect(snippet).toContain("/dev/null");
-  });
+	test("redirects output to /dev/null", () => {
+		const snippet = generateHookSnippet("zsh");
+		expect(snippet).toContain("/dev/null");
+	});
 
-  test("uses zsh chpwd hook", () => {
-    const snippet = generateHookSnippet("zsh");
-    expect(snippet).toContain("add-zsh-hook");
-    expect(snippet).toContain("chpwd");
-  });
+	test("uses zsh chpwd hook", () => {
+		const snippet = generateHookSnippet("zsh");
+		expect(snippet).toContain("add-zsh-hook");
+		expect(snippet).toContain("chpwd");
+	});
 });
 
 // ---------------------------------------------------------------------------
@@ -83,25 +83,25 @@ describe("generateHookSnippet — zsh", () => {
 // ---------------------------------------------------------------------------
 
 describe("generateHookSnippet — fish", () => {
-  test("contains manifest check", () => {
-    const snippet = generateHookSnippet("fish");
-    expect(snippet).toContain(".forge/manifest.yaml");
-  });
+	test("contains manifest check", () => {
+		const snippet = generateHookSnippet("fish");
+		expect(snippet).toContain(".forge/manifest.yaml");
+	});
 
-  test("contains sync invocation", () => {
-    const snippet = generateHookSnippet("fish");
-    expect(snippet).toContain("forge guild sync --auto-update");
-  });
+	test("contains sync invocation", () => {
+		const snippet = generateHookSnippet("fish");
+		expect(snippet).toContain("forge guild sync --auto-update");
+	});
 
-  test("redirects output to /dev/null", () => {
-    const snippet = generateHookSnippet("fish");
-    expect(snippet).toContain("/dev/null");
-  });
+	test("redirects output to /dev/null", () => {
+		const snippet = generateHookSnippet("fish");
+		expect(snippet).toContain("/dev/null");
+	});
 
-  test("uses fish PWD variable event", () => {
-    const snippet = generateHookSnippet("fish");
-    expect(snippet).toContain("--on-variable PWD");
-  });
+	test("uses fish PWD variable event", () => {
+		const snippet = generateHookSnippet("fish");
+		expect(snippet).toContain("--on-variable PWD");
+	});
 });
 
 // ---------------------------------------------------------------------------
@@ -109,28 +109,28 @@ describe("generateHookSnippet — fish", () => {
 // ---------------------------------------------------------------------------
 
 describe("generateHookSnippet — powershell", () => {
-  test("contains manifest check", () => {
-    const snippet = generateHookSnippet("powershell");
-    expect(snippet).toContain(".forge/manifest.yaml");
-  });
+	test("contains manifest check", () => {
+		const snippet = generateHookSnippet("powershell");
+		expect(snippet).toContain(".forge/manifest.yaml");
+	});
 
-  test("contains sync invocation", () => {
-    const snippet = generateHookSnippet("powershell");
-    expect(snippet).toContain("forge");
-    expect(snippet).toContain("guild");
-    expect(snippet).toContain("sync");
-    expect(snippet).toContain("--auto-update");
-  });
+	test("contains sync invocation", () => {
+		const snippet = generateHookSnippet("powershell");
+		expect(snippet).toContain("forge");
+		expect(snippet).toContain("guild");
+		expect(snippet).toContain("sync");
+		expect(snippet).toContain("--auto-update");
+	});
 
-  test("suppresses output via $null", () => {
-    const snippet = generateHookSnippet("powershell");
-    expect(snippet).toContain("$null");
-  });
+	test("suppresses output via $null", () => {
+		const snippet = generateHookSnippet("powershell");
+		expect(snippet).toContain("$null");
+	});
 
-  test("overrides Set-Location for directory change detection", () => {
-    const snippet = generateHookSnippet("powershell");
-    expect(snippet).toContain("Set-Location");
-  });
+	test("overrides Set-Location for directory change detection", () => {
+		const snippet = generateHookSnippet("powershell");
+		expect(snippet).toContain("Set-Location");
+	});
 });
 
 // ---------------------------------------------------------------------------
@@ -138,29 +138,29 @@ describe("generateHookSnippet — powershell", () => {
 // ---------------------------------------------------------------------------
 
 describe("generateHookSnippet — all shells", () => {
-  const shells: ShellType[] = ["bash", "zsh", "fish", "powershell"];
+	const shells: ShellType[] = ["bash", "zsh", "fish", "powershell"];
 
-  for (const shell of shells) {
-    test(`${shell} snippet contains manifest check`, () => {
-      const snippet = generateHookSnippet(shell);
-      expect(snippet).toContain(".forge/manifest.yaml");
-    });
+	for (const shell of shells) {
+		test(`${shell} snippet contains manifest check`, () => {
+			const snippet = generateHookSnippet(shell);
+			expect(snippet).toContain(".forge/manifest.yaml");
+		});
 
-    test(`${shell} snippet contains sync command`, () => {
-      const snippet = generateHookSnippet(shell);
-      expect(snippet).toContain("forge");
-      expect(snippet).toContain("sync");
-      expect(snippet).toContain("--auto-update");
-    });
+		test(`${shell} snippet contains sync command`, () => {
+			const snippet = generateHookSnippet(shell);
+			expect(snippet).toContain("forge");
+			expect(snippet).toContain("sync");
+			expect(snippet).toContain("--auto-update");
+		});
 
-    test(`${shell} snippet contains output suppression`, () => {
-      const snippet = generateHookSnippet(shell);
-      // Either /dev/null (POSIX) or $null (PowerShell)
-      const hasDevNull = snippet.includes("/dev/null");
-      const hasPsNull = snippet.includes("$null");
-      expect(hasDevNull || hasPsNull).toBe(true);
-    });
-  }
+		test(`${shell} snippet contains output suppression`, () => {
+			const snippet = generateHookSnippet(shell);
+			// Either /dev/null (POSIX) or $null (PowerShell)
+			const hasDevNull = snippet.includes("/dev/null");
+			const hasPsNull = snippet.includes("$null");
+			expect(hasDevNull || hasPsNull).toBe(true);
+		});
+	}
 });
 
 // ---------------------------------------------------------------------------
@@ -168,33 +168,33 @@ describe("generateHookSnippet — all shells", () => {
 // ---------------------------------------------------------------------------
 
 describe("detectShell", () => {
-  test("detects bash from SHELL env var (Req 7.5)", () => {
-    process.env.SHELL = "/bin/bash";
-    expect(detectShell()).toBe("bash");
-  });
+	test("detects bash from SHELL env var (Req 7.5)", () => {
+		process.env.SHELL = "/bin/bash";
+		expect(detectShell()).toBe("bash");
+	});
 
-  test("detects zsh from SHELL env var (Req 7.5)", () => {
-    process.env.SHELL = "/bin/zsh";
-    expect(detectShell()).toBe("zsh");
-  });
+	test("detects zsh from SHELL env var (Req 7.5)", () => {
+		process.env.SHELL = "/bin/zsh";
+		expect(detectShell()).toBe("zsh");
+	});
 
-  test("detects fish from SHELL env var (Req 7.5)", () => {
-    process.env.SHELL = "/usr/bin/fish";
-    expect(detectShell()).toBe("fish");
-  });
+	test("detects fish from SHELL env var (Req 7.5)", () => {
+		process.env.SHELL = "/usr/bin/fish";
+		expect(detectShell()).toBe("fish");
+	});
 
-  test("detects zsh from path containing zsh", () => {
-    process.env.SHELL = "/usr/local/bin/zsh";
-    expect(detectShell()).toBe("zsh");
-  });
+	test("detects zsh from path containing zsh", () => {
+		process.env.SHELL = "/usr/local/bin/zsh";
+		expect(detectShell()).toBe("zsh");
+	});
 
-  test("returns null when SHELL is not set (Req 7.6)", () => {
-    delete process.env.SHELL;
-    expect(detectShell()).toBeNull();
-  });
+	test("returns null when SHELL is not set (Req 7.6)", () => {
+		delete process.env.SHELL;
+		expect(detectShell()).toBeNull();
+	});
 
-  test("returns null for unrecognized shell", () => {
-    process.env.SHELL = "/usr/bin/tcsh";
-    expect(detectShell()).toBeNull();
-  });
+	test("returns null for unrecognized shell", () => {
+		process.env.SHELL = "/usr/bin/tcsh";
+		expect(detectShell()).toBeNull();
+	});
 });

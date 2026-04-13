@@ -5,21 +5,21 @@ import { distance } from "fastest-levenshtein";
  * Returns null if no command is close enough.
  */
 export function suggestCommand(
-  input: string,
-  validCommands: string[],
+	input: string,
+	validCommands: string[],
 ): string | null {
-  if (validCommands.length === 0) return null;
+	if (validCommands.length === 0) return null;
 
-  let bestMatch: string | null = null;
-  let bestDistance = Infinity;
+	let bestMatch: string | null = null;
+	let bestDistance = Infinity;
 
-  for (const cmd of validCommands) {
-    const d = distance(input, cmd);
-    if (d < bestDistance) {
-      bestDistance = d;
-      bestMatch = cmd;
-    }
-  }
+	for (const cmd of validCommands) {
+		const d = distance(input, cmd);
+		if (d < bestDistance) {
+			bestDistance = d;
+			bestMatch = cmd;
+		}
+	}
 
-  return bestDistance <= 2 ? bestMatch : null;
+	return bestDistance <= 2 ? bestMatch : null;
 }
