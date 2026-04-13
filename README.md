@@ -1,4 +1,4 @@
-# Skillforge & Contextbazaar
+# Skill-forge & Context bazaar
 
 Knowledge artifacts for AI coding assistants. Author once, compile to every harness.
 
@@ -122,4 +122,4 @@ Artifact types: `skill` · `power` · `rule` · `workflow` · `agent` · `prompt
 
 ## License
 
-[Boost Software License 1.0](LICENSE)
+[MIT License](LICENSE)
