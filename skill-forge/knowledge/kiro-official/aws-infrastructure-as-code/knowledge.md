@@ -27,7 +27,7 @@ inclusion: manual
 categories:
   - architecture
   - devops
-ecosystem: []
+ecosystem: [aws, cdk, cloudformation]
 depends: []
 enhances: []
 maturity: stable

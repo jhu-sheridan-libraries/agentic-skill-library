@@ -19,7 +19,7 @@ type: power
 inclusion: manual
 categories:
   - devops
-ecosystem: []
+ecosystem: [aws, healthomics]
 depends: []
 enhances: []
 maturity: stable

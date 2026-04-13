@@ -90,7 +90,7 @@ categories:
   - devops
   - debugging
   - performance
-ecosystem: []
+ecosystem: [aws, cloudwatch]
 depends: []
 enhances: []
 maturity: stable

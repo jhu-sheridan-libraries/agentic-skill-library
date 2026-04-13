@@ -29,7 +29,7 @@ type: power
 inclusion: manual
 categories:
   - devops
-ecosystem: []
+ecosystem: [aws]
 depends: []
 enhances: []
 maturity: stable

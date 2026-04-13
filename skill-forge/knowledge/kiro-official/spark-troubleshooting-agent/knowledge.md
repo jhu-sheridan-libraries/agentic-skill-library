@@ -23,7 +23,7 @@ categories:
   - debugging
   - devops
   - performance
-ecosystem: []
+ecosystem: [aws, spark, emr]
 depends: []
 enhances: []
 maturity: stable

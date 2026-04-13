@@ -22,7 +22,7 @@ categories:
   - devops
   - debugging
   - performance
-ecosystem: []
+ecosystem: [datadog]
 depends: []
 enhances: []
 maturity: stable

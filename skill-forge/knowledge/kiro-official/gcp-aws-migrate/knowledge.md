@@ -20,7 +20,7 @@ inclusion: manual
 categories:
   - architecture
   - devops
-ecosystem: []
+ecosystem: [aws, gcp, terraform]
 depends: []
 enhances: []
 maturity: stable

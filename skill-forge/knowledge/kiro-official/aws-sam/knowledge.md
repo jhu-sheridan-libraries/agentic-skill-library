@@ -18,7 +18,7 @@ inclusion: manual
 categories:
   - architecture
   - devops
-ecosystem: []
+ecosystem: [aws, sam, lambda]
 depends: []
 enhances: []
 maturity: stable

@@ -25,7 +25,7 @@ type: power
 inclusion: manual
 categories:
   - documentation
-ecosystem: []
+ecosystem: [checkout-com]
 depends: []
 enhances: []
 maturity: stable

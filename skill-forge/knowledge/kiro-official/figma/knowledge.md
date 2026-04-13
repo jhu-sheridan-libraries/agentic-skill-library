@@ -19,7 +19,7 @@ type: power
 inclusion: manual
 categories:
   - architecture
-ecosystem: []
+ecosystem: [figma]
 depends: []
 enhances: []
 maturity: stable

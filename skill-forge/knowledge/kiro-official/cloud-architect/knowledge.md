@@ -20,7 +20,7 @@ inclusion: manual
 categories:
   - architecture
   - devops
-ecosystem: []
+ecosystem: [aws, cdk, python]
 depends: []
 enhances: []
 maturity: stable

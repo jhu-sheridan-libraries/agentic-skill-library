@@ -22,7 +22,7 @@ inclusion: manual
 categories:
   - architecture
   - devops
-ecosystem: []
+ecosystem: [arm, embedded]
 depends: []
 enhances: []
 maturity: stable

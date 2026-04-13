@@ -41,7 +41,7 @@ inclusion: manual
 categories:
   - architecture
   - devops
-ecosystem: []
+ecosystem: [aws, amplify]
 depends: []
 enhances: []
 maturity: stable

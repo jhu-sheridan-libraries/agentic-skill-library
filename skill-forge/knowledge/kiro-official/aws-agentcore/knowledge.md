@@ -19,7 +19,7 @@ inclusion: manual
 categories:
   - architecture
   - devops
-ecosystem: []
+ecosystem: [aws, bedrock]
 depends: []
 enhances: []
 maturity: stable

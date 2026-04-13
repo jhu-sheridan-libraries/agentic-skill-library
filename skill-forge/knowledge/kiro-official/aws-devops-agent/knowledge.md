@@ -30,7 +30,7 @@ inclusion: manual
 categories:
   - devops
   - debugging
-ecosystem: []
+ecosystem: [aws]
 depends: []
 enhances: []
 maturity: stable

@@ -22,7 +22,7 @@ categories:
   - devops
   - debugging
   - performance
-ecosystem: []
+ecosystem: [dynatrace]
 depends: []
 enhances: []
 maturity: stable

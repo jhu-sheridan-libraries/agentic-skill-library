@@ -23,7 +23,7 @@ categories:
   - architecture
   - devops
   - security
-ecosystem: []
+ecosystem: [aws, lambda, dynamodb, stripe, react]
 depends: []
 enhances: []
 maturity: stable

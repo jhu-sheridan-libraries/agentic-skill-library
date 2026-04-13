@@ -21,7 +21,7 @@ inclusion: manual
 categories:
   - devops
   - performance
-ecosystem: []
+ecosystem: [aws, cloudwatch]
 depends: []
 enhances: []
 maturity: stable

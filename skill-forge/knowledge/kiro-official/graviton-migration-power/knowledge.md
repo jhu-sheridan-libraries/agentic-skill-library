@@ -22,7 +22,7 @@ categories:
   - architecture
   - devops
   - performance
-ecosystem: []
+ecosystem: [aws, graviton, arm]
 depends: []
 enhances: []
 maturity: stable

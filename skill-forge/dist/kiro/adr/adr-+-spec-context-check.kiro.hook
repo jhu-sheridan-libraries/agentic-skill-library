@@ -1,0 +1,12 @@
+{
+  "name": "ADR + Spec Context Check",
+  "version": "1.0.0",
+  "description": "Before starting a spec task, reminds the agent to review existing ADRs and the current spec's design decisions so architectural context is front-of-mind during implementation.",
+  "when": {
+    "type": "preTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Before starting this task, review the active spec's design.md for key design decisions and cross-reference them against existing ADRs in the project's ADR directory. Keep these architectural constraints in mind during implementation. If the task introduces new architectural choices not covered by an existing ADR, flag it for the user."
+  }
+}
