@@ -1,0 +1,6 @@
+name: kiro-official
+displayName: "Kiro Official Powers"
+description: "Upstream powers from kirodotdev/powers — AWS, observability, infrastructure, and partner integrations."
+version: "0.1.0"
+trust: official
+tags: [aws, infrastructure, observability, kiro, upstream, partner]

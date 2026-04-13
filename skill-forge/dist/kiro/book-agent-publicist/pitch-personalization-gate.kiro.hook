@@ -1,0 +1,15 @@
+{
+  "name": "pitch-personalization-gate",
+  "version": "1.0.0",
+  "description": "Before the agent writes a media pitch email, verify it is personalized to the specific journalist or outlet, leads with a story angle (not \"I wrote a book\"), stays under 200 words, and includes the press kit link.",
+  "when": {
+    "type": "preToolUse",
+    "toolTypes": [
+      "write"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Before writing this media pitch, verify: (1) Is it personalized to the specific journalist with a reference to their recent coverage? (2) Does it lead with a story angle — why this matters to their audience right now — not just the book announcement? (3) Is it under 200 words? Journalists scan, they don't read. (4) Does it include the press kit link? (5) Is there a clear, specific ask (review, interview, excerpt, feature)? Flag issues before writing."
+  }
+}

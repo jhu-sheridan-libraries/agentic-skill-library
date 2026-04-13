@@ -1,0 +1,12 @@
+{
+  "name": "full-magic-consistency-review",
+  "version": "1.0.0",
+  "description": "User-triggered complete magic consistency validation — all seven passes.",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Run the full magic consistency validation: (1) Magic rule compliance calibrated to hardness, (2) Deus ex magica check, (3) Cost accounting, (4) Species and culture compliance, (5) Prophecy consistency, (6) World-building consistency, (7) Trope awareness scan. Compile into the Magic Consistency Report template."
+  }
+}

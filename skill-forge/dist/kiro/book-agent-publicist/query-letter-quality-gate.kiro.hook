@@ -1,0 +1,15 @@
+{
+  "name": "query-letter-quality-gate",
+  "version": "1.0.0",
+  "description": "Before the agent writes a query letter or pitch email, verify it meets professional standards — 250-400 words, personalized to the specific agent, leads with the hook not the book, and includes genre, word count, and comp titles.",
+  "when": {
+    "type": "preToolUse",
+    "toolTypes": [
+      "write"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Before writing this query letter or pitch, verify: (1) Is it 250-400 words? (2) Is it personalized to the specific agent with a reference to their recent sales, MSWL, or interviews? (3) Does it lead with the hook — why this story matters — not just \"I wrote a book\"? (4) Does it include genre, word count, and comp titles? (5) Is the tone professional but not stiff? If any element is missing or weak, flag it before writing."
+  }
+}

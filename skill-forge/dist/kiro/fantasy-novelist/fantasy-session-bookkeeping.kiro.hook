@@ -1,0 +1,12 @@
+{
+  "name": "fantasy-session-bookkeeping",
+  "version": "1.0.0",
+  "description": "After a drafting task completes, update the magic bible and species bible with any new facts, note any rule violations discovered, and produce a genre-specific session summary.",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The drafting task is complete. Perform fantasy-specific bookkeeping:\nUPDATE BIBLES: Review content written this session. Update the magic bible with any new magic uses, rule clarifications, or cost examples. Update the species/culture bible with any new behavioral details or cultural information established. Update prophecy tracking if any prophecy was referenced or advanced.\nGENRE SUMMARY: Note any magic rule violations flagged during drafting, any species behavior inconsistencies, any prophecy references that need cross-checking, and any tropes used that the author should confirm are intentional. This supplements the Novelist power's general session bookkeeping."
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "agent-red-flag-check",
+  "version": "1.0.0",
+  "description": "When an agent research or evaluation file is saved, scan for red flags — reading fees, referrals to paid services, no verifiable sales, missing client lists, or pressure to sign quickly.",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/agents/**",
+      "**/query/**",
+      "**/research/**",
+      "**/submission*"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "An agent-related file was just saved. Scan for red flags: (1) Any mention of reading fees or evaluation fees? (2) Referrals to paid editing services? (3) No verifiable recent sales to recognized publishers? (4) Vague or missing client lists? (5) Pressure to sign quickly? (6) Upfront costs for marketing or submission packages? Flag any concerns — legitimate agents never charge to read work."
+  }
+}

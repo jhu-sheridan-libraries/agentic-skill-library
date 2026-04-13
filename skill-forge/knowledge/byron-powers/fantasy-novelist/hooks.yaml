@@ -1,0 +1,201 @@
+# Canonical hooks for fantasy-novelist
+# Events: file_edited, file_created, file_deleted,
+# agent_stop, prompt_submit, pre_tool_use, post_tool_use, pre_task, post_task, user_triggered
+#
+# THREE-PHASE WRITING DISCIPLINE (genre layer — complements Novelist's base discipline)
+# Phase 1 (pre_task): Load genre-specific bibles and context
+# Phase 2 (pre_tool_use + file_edited): Validate against genre rules
+# Phase 3 (post_task): Update genre bibles, produce genre-specific summary
+
+# ============================================================
+# PHASE 1: PRE-TASK — Load fantasy-specific context
+# ============================================================
+
+- name: fantasy-context-loader
+  description: >-
+    Before a drafting task begins, load all fantasy-specific context: the
+    magic bible entries relevant to this chapter, species/culture bible
+    entries for non-human characters present, prophecy state, world-building
+    rules that apply, and the hardness rating calibration.
+  event: pre_task
+  action:
+    type: ask_agent
+    prompt: >-
+      A drafting task is about to begin. Load fantasy-specific context:
+      (1) Magic bible — which magic systems or abilities are relevant to
+      this chapter? What are the rules, costs, and limitations in play?
+      (2) Species/culture bible — are any non-human characters present?
+      Load their species and cultural variant profiles. (3) Prophecy state
+      — if prophecy exists, what does the reader know about it at this
+      point? What do the characters believe? (4) World-building rules —
+      which cosmological, political, or geographic constraints apply?
+      (5) Hardness rating — confirm the calibration level for magic
+      validation. Summarize the loaded context briefly. This supplements
+      the Novelist power's general context loading.
+
+# ============================================================
+# PHASE 2: DURING DRAFTING — Genre-specific validation
+# ============================================================
+
+- name: deus-ex-magica-gate
+  description: >-
+    Before the agent writes content where magic resolves a conflict,
+    apply Sanderson's First Law calibrated to the project's hardness.
+  event: pre_tool_use
+  condition:
+    tool_types:
+      - write
+  action:
+    type: ask_agent
+    prompt: >-
+      Before writing this content, check if magic is being used to resolve
+      a conflict or solve a problem. If so, apply Sanderson's First Law:
+      (1) At hard hardness — does the reader understand this magic well
+      enough to see how it solves this problem? (2) At hybrid hardness —
+      is the systematic part solving the problem, not the mysterious part?
+      (3) At soft hardness — is the protagonist solving the problem through
+      character and choice, with magic as atmosphere rather than solution?
+      Also check: is the magic cost being paid? Are any limitations
+      violated? Flag issues before writing.
+
+- name: magic-bible-compliance-on-save
+  description: >-
+    When a manuscript file is saved, check all magic usage against the
+    magic bible — rules, costs, limitations, and failure modes.
+  event: file_edited
+  condition:
+    file_patterns:
+      - "**/chapters/**"
+      - "**/manuscript/**"
+      - "**/draft/**"
+      - "**/scenes/**"
+  action:
+    type: ask_agent
+    prompt: >-
+      A manuscript file was just saved. Cross-reference every magic use
+      against the magic bible. Check: (1) Does magic behave consistently
+      with established rules? (2) Is the established cost paid? (3) Are
+      any limitations violated? (4) If magic fails, does the failure mode
+      match the bible? Calibrate strictness to the project's hardness
+      level. Report specific passages.
+
+- name: species-culture-compliance-on-save
+  description: >-
+    When a manuscript file is saved, check non-human character behavior
+    against the species and culture bible.
+  event: file_edited
+  condition:
+    file_patterns:
+      - "**/chapters/**"
+      - "**/manuscript/**"
+      - "**/draft/**"
+      - "**/scenes/**"
+  action:
+    type: ask_agent
+    prompt: >-
+      A manuscript file was just saved. Check non-human character behavior
+      against the species and culture bible: (1) Does behavior match the
+      character's specific cultural variant? (2) Are biological traits
+      consistent? (3) Is the species' relationship to magic consistent?
+      (4) If the species is long-lived, are lifespan consequences
+      reflected? (5) Any monoculture violations? Distinguish individual
+      variation from authorial inconsistency.
+
+- name: prophecy-consistency-on-save
+  description: >-
+    When a manuscript file is saved, check prophecy references for
+    consistent wording and supported interpretations.
+  event: file_edited
+  condition:
+    file_patterns:
+      - "**/chapters/**"
+      - "**/manuscript/**"
+      - "**/draft/**"
+      - "**/scenes/**"
+  action:
+    type: ask_agent
+    prompt: >-
+      A manuscript file was just saved. If the project includes prophecy,
+      check: (1) Is the prophecy's wording consistent with all previous
+      mentions? (2) Are character interpretations reasonable given the
+      actual words? (3) If being fulfilled, does fulfillment match the
+      actual text? (4) If misinterpreted, does the true interpretation
+      also fit the words? Flag inconsistencies.
+
+- name: trope-awareness-on-save
+  description: >-
+    When a manuscript file is saved, scan for major fantasy tropes and
+    flag for deliberate awareness.
+  event: file_edited
+  condition:
+    file_patterns:
+      - "**/chapters/**"
+      - "**/manuscript/**"
+      - "**/draft/**"
+      - "**/scenes/**"
+  action:
+    type: ask_agent
+    prompt: >-
+      A manuscript file was just saved. Scan for major fantasy tropes:
+      the Chosen One, the Dark Lord, the Mentor's Death, the Magic School,
+      the Quest Object, the Hidden Heir, the Power of Friendship, the
+      Ancient Evil, the Prophecy Fulfillment. For each trope detected,
+      note it and ask: is this intentional? What does this version add
+      or subvert? This is an awareness prompt, not an error flag.
+
+# ============================================================
+# PHASE 3: POST-TASK — Genre-specific bookkeeping
+# ============================================================
+
+- name: fantasy-session-bookkeeping
+  description: >-
+    After a drafting task completes, update the magic bible and species
+    bible with any new facts, note any rule violations discovered, and
+    produce a genre-specific session summary.
+  event: post_task
+  action:
+    type: ask_agent
+    prompt: >-
+      The drafting task is complete. Perform fantasy-specific bookkeeping:
+
+      UPDATE BIBLES: Review content written this session. Update the magic
+      bible with any new magic uses, rule clarifications, or cost examples.
+      Update the species/culture bible with any new behavioral details or
+      cultural information established. Update prophecy tracking if any
+      prophecy was referenced or advanced.
+
+      GENRE SUMMARY: Note any magic rule violations flagged during
+      drafting, any species behavior inconsistencies, any prophecy
+      references that need cross-checking, and any tropes used that the
+      author should confirm are intentional. This supplements the
+      Novelist power's general session bookkeeping.
+
+# ============================================================
+# USER-TRIGGERED — On-demand audits
+# ============================================================
+
+- name: full-magic-consistency-review
+  description: >-
+    User-triggered complete magic consistency validation — all seven passes.
+  event: user_triggered
+  action:
+    type: ask_agent
+    prompt: >-
+      Run the full magic consistency validation: (1) Magic rule compliance
+      calibrated to hardness, (2) Deus ex magica check, (3) Cost
+      accounting, (4) Species and culture compliance, (5) Prophecy
+      consistency, (6) World-building consistency, (7) Trope awareness
+      scan. Compile into the Magic Consistency Report template.
+
+- name: subgenre-contract-check
+  description: >-
+    User-triggered evaluation against the declared fantasy subgenre's
+    reader contract.
+  event: user_triggered
+  action:
+    type: ask_agent
+    prompt: >-
+      Check the manuscript against the declared fantasy subgenre's reader
+      contract using the fantasy-subgenre-conventions reference. Verify
+      core expectations, trope handling, comp title alignment, and
+      deliberate subversion signaling. Report with specific passages.

@@ -1,0 +1,209 @@
+# Canonical hooks for book-agent-publicist
+# Events: file_edited, file_created, file_deleted,
+# agent_stop, prompt_submit, pre_tool_use, post_tool_use, pre_task, post_task, user_triggered
+
+# --- Representation Track Hooks ---
+
+- name: query-letter-quality-gate
+  description: >-
+    Before the agent writes a query letter or pitch email, verify it meets
+    professional standards — 250-400 words, personalized to the specific
+    agent, leads with the hook not the book, and includes genre, word count,
+    and comp titles.
+  event: pre_tool_use
+  condition:
+    tool_types:
+      - write
+  action:
+    type: ask_agent
+    prompt: >-
+      Before writing this query letter or pitch, verify: (1) Is it
+      250-400 words? (2) Is it personalized to the specific agent with a
+      reference to their recent sales, MSWL, or interviews? (3) Does it
+      lead with the hook — why this story matters — not just "I wrote a
+      book"? (4) Does it include genre, word count, and comp titles?
+      (5) Is the tone professional but not stiff? If any element is missing
+      or weak, flag it before writing.
+
+- name: submission-tracker-update
+  description: >-
+    After a query campaign task completes, remind the agent to update the
+    submission tracker with batch number, agents queried, dates sent,
+    materials included, and current response summary.
+  event: post_task
+  action:
+    type: ask_agent
+    prompt: >-
+      The query campaign task is complete. Update the submission tracker
+      with: batch number, each agent queried (name, agency, method),
+      date sent, materials included, and current response status. Then
+      produce a response summary — total queries sent, requests for
+      partial, requests for full, personalized rejections, form rejections,
+      no responses, and pending. Flag if the request rate suggests the
+      query letter needs revision.
+
+- name: agent-red-flag-check
+  description: >-
+    When an agent research or evaluation file is saved, scan for red flags —
+    reading fees, referrals to paid services, no verifiable sales, missing
+    client lists, or pressure to sign quickly.
+  event: file_edited
+  condition:
+    file_patterns:
+      - "**/agents/**"
+      - "**/query/**"
+      - "**/research/**"
+      - "**/submission*"
+  action:
+    type: ask_agent
+    prompt: >-
+      An agent-related file was just saved. Scan for red flags: (1) Any
+      mention of reading fees or evaluation fees? (2) Referrals to paid
+      editing services? (3) No verifiable recent sales to recognized
+      publishers? (4) Vague or missing client lists? (5) Pressure to sign
+      quickly? (6) Upfront costs for marketing or submission packages?
+      Flag any concerns — legitimate agents never charge to read work.
+
+# --- Deal & Contract Track Hooks ---
+
+- name: contract-clause-review
+  description: >-
+    User-triggered hook to run the contract review checklist against the
+    current document — rights granted, financial terms, option clause,
+    non-compete, reversion, and protective clauses.
+  event: user_triggered
+  action:
+    type: ask_agent
+    prompt: >-
+      Run the contract review checklist against the current document.
+      Check: Rights Granted (territory, subsidiary rights, audio, film/TV,
+      foreign), Financial Terms (advance, royalties, e-book rate, reserve
+      against returns, joint accounting), Option Clause (scope, deadline,
+      matching right vs. first refusal), Non-Compete (breadth, duration,
+      self-publishing carve-out), Reversion (sales threshold, trigger
+      mechanism), Delivery (acceptance criteria, cure period), and Other
+      (copyright ownership, cover consultation, audit rights, assignment
+      consent, warranty/indemnification). Flag any clause that is missing,
+      overly broad, or unfavorable to the author.
+
+- name: deal-terms-comparison
+  description: >-
+    After a deal negotiation task completes, produce a structured summary
+    comparing the offered terms against standard industry benchmarks for
+    the genre and deal level.
+  event: post_task
+  action:
+    type: ask_agent
+    prompt: >-
+      The deal negotiation task is complete. Produce a structured comparison
+      of the offered terms against standard industry benchmarks: advance
+      amount and payout schedule, hardcover/paperback/e-book royalty rates,
+      subsidiary rights retained vs. granted, option clause scope, non-
+      compete breadth, reversion threshold, and any unusual clauses. Note
+      which terms are favorable, standard, or below market. This is not
+      legal advice — recommend consulting a publishing attorney for
+      significant deals.
+
+# --- Publicity Track Hooks ---
+
+- name: pitch-personalization-gate
+  description: >-
+    Before the agent writes a media pitch email, verify it is personalized
+    to the specific journalist or outlet, leads with a story angle (not
+    "I wrote a book"), stays under 200 words, and includes the press kit
+    link.
+  event: pre_tool_use
+  condition:
+    tool_types:
+      - write
+  action:
+    type: ask_agent
+    prompt: >-
+      Before writing this media pitch, verify: (1) Is it personalized to
+      the specific journalist with a reference to their recent coverage?
+      (2) Does it lead with a story angle — why this matters to their
+      audience right now — not just the book announcement? (3) Is it under
+      200 words? Journalists scan, they don't read. (4) Does it include
+      the press kit link? (5) Is there a clear, specific ask (review,
+      interview, excerpt, feature)? Flag issues before writing.
+
+- name: launch-week-metrics-summary
+  description: >-
+    After a launch execution task completes, compile launch week metrics —
+    sales data, media placements, social media impressions, event
+    attendance, and qualitative observations — into the standard tracking
+    format.
+  event: post_task
+  action:
+    type: ask_agent
+    prompt: >-
+      The launch execution task is complete. Compile launch week metrics:
+      Sales (day 1, week 1, Amazon rank, bestseller placement if any),
+      Media (placements count and list, podcast episodes, reviews published),
+      Social Media (impressions, engagement rate, new followers, newsletter
+      signups), Events (attendance, books sold). Add qualitative notes:
+      what worked best, what underperformed, unexpected wins, and
+      adjustments for the post-launch push.
+
+- name: publicity-timeline-check
+  description: >-
+    User-triggered hook to audit the publicity plan timeline against the
+    publication date — flagging any tasks that are overdue, approaching
+    deadline, or missing from the plan.
+  event: user_triggered
+  action:
+    type: ask_agent
+    prompt: >-
+      Audit the publicity plan timeline against the publication date.
+      Check: Are ARCs distributed (4 months out)? Long-lead media pitched
+      (4 months)? Short-lead media pitched (2 months)? Launch events
+      confirmed (2 months)? Social media content calendar ready (1 month)?
+      Personal network briefed (1 month)? Press kit complete and hosted?
+      Flag any tasks that are overdue, approaching deadline, or missing
+      entirely. Suggest a catch-up plan for anything behind schedule.
+
+# --- Career Track Hooks ---
+
+- name: brand-consistency-check
+  description: >-
+    When an author-facing document is saved (bio, website copy, social
+    media content, newsletter), scan for consistency with the established
+    author brand — voice, messaging, visual identity references, and
+    public persona.
+  event: file_edited
+  condition:
+    file_patterns:
+      - "**/brand/**"
+      - "**/platform/**"
+      - "**/marketing/**"
+      - "**/bio*"
+      - "**/newsletter*"
+      - "**/website*"
+  action:
+    type: ask_agent
+    prompt: >-
+      An author-facing document was just saved. Scan for brand consistency:
+      (1) Does the voice match the established author brand and tone?
+      (2) Are key messaging points present and consistent? (3) Is the
+      author bio aligned with the current version? (4) Are visual identity
+      references (colors, fonts, logo usage) consistent if mentioned?
+      (5) Does the public persona feel coherent with other published
+      materials? Flag any drift from the established brand.
+
+- name: career-strategy-review
+  description: >-
+    User-triggered hook to produce a career health snapshot — current
+    publishing status, rights inventory, income streams, platform metrics,
+    and upcoming milestones or deadlines.
+  event: user_triggered
+  action:
+    type: ask_agent
+    prompt: >-
+      Produce a career health snapshot based on available project documents.
+      Cover: Publishing Status (books in progress, under contract, published),
+      Rights Inventory (which rights are granted vs. retained for each title,
+      reversion eligibility), Income Streams (advances, royalties, speaking,
+      other), Platform Metrics (newsletter size, social following, website
+      traffic if known), and Upcoming Milestones (delivery deadlines, option
+      clause windows, reversion trigger dates, planned launches). Highlight
+      any time-sensitive items that need attention.

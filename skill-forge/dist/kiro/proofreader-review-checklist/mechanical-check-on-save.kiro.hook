@@ -1,0 +1,22 @@
+{
+  "name": "mechanical-check-on-save",
+  "version": "1.0.0",
+  "description": "When a manuscript, chapter, or prose document is saved, run the mechanical checklist — spelling, grammar, punctuation consistency, stray formatting artifacts, double spaces, and mismatched markup.",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "*.md",
+      "*.txt",
+      "*.adoc",
+      "*.asciidoc",
+      "**/chapters/**",
+      "**/manuscript/**",
+      "**/draft/**",
+      "**/scenes/**"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A document was just saved. Run the mechanical proofreading checklist: (1) Spelling, grammar, and punctuation errors. (2) Punctuation style consistency — Oxford comma, em-dash vs. en-dash, curly vs. straight quotes. (3) Stray formatting artifacts — double spaces, broken markdown, mismatched italics or bold. (4) Scene breaks correctly marked. (5) Paragraph breaks appropriate — no walls of text, no excessive fragmentation. Report specific passages with line references where possible. Distinguish mechanical errors from stylistic choices."
+  }
+}

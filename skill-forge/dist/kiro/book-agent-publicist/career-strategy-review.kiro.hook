@@ -1,0 +1,12 @@
+{
+  "name": "career-strategy-review",
+  "version": "1.0.0",
+  "description": "User-triggered hook to produce a career health snapshot — current publishing status, rights inventory, income streams, platform metrics, and upcoming milestones or deadlines.",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Produce a career health snapshot based on available project documents. Cover: Publishing Status (books in progress, under contract, published), Rights Inventory (which rights are granted vs. retained for each title, reversion eligibility), Income Streams (advances, royalties, speaking, other), Platform Metrics (newsletter size, social following, website traffic if known), and Upcoming Milestones (delivery deadlines, option clause windows, reversion trigger dates, planned launches). Highlight any time-sensitive items that need attention."
+  }
+}

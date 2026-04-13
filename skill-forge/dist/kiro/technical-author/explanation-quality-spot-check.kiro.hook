@@ -1,0 +1,12 @@
+{
+  "name": "explanation-quality-spot-check",
+  "version": "1.0.0",
+  "description": "User-triggered evaluation of explanation clarity, depth, and progressive disclosure.",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Spot-check explanations in the current file: (1) Clear on first reading? (2) Depth appropriate for audience? (3) Analogies or examples grounding abstract ideas? (4) Progressive disclosure — simple first, then nuance? (5) Jargon defined? Flag weak explanations with specific suggestions."
+  }
+}

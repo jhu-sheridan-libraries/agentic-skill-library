@@ -44,15 +44,15 @@ The Creative Track covers the craft of writing a novel from first idea to comple
 ### Creative Track Steering Files
 
 - **concept-and-premise** — Develop your core idea into a compelling premise with stakes, conflict, and thematic resonance
-- **character-creation** — Build multi-dimensional characters with backstories, motivations, arcs, and authentic voices
+- **character-creation** — Build multi-dimensional characters with backstories, motivations, arcs, authentic voices, and character POV Seeds for multi-POV novels
 - **world-building** — Construct your setting with the right level of detail, from physical geography to social systems and rules
-- **style-and-tone** — Define and maintain a consistent narrative voice, prose style, pacing rhythm, and emotional register
-- **fiction-seeds** — Create and manage Fiction Seeds: reusable style generators that capture a voice and reproduce it on demand
-- **seed-library** — Organize Seeds across projects, genres, and registers into a professional library with cataloging, versioning, and maintenance workflows
+- **style-and-tone** — Define and maintain a consistent narrative voice, prose style, pacing rhythm, and emotional register. Write a style sample that becomes the source passage for your first Fiction Seed.
+- **fiction-seeds** — Create and manage Fiction Seeds: reusable style generators with structured frontmatter (quality metrics, compatibility mapping, lineage tracking) that capture a voice and reproduce it on demand. Seeds are library-ready from creation.
+- **seed-library** — Organize Seeds across projects, genres, and registers into a professional library with structured metadata, agent-driven search and recommendation, formalized blend recipes, borrowed Seed graduation paths, client/ghostwriting conventions, series continuity integration, and maintenance workflows
 - **dialogue** — Craft authentic conversations with distinct character voices, subtext, and narrative purpose
 - **plot-structure** — Shape your narrative arc using proven structural frameworks, from three-act to hero's journey and beyond
 - **multi-pov-and-timeline** — Manage multiple viewpoint characters, non-linear timelines, information asymmetry, and thread convergence
-- **scene-drafting** — Write scene by scene with attention to purpose, tension, dialogue, and forward momentum
+- **scene-drafting** — Write scene by scene with attention to purpose, tension, dialogue, forward momentum, and Seed-guided voice consistency
 
 ## Professional Track
 
@@ -68,7 +68,7 @@ The Professional Track covers everything after the draft is written — analysis
 ### Professional Track Steering Files
 
 - **manuscript-diagnostics** — Analyze a completed draft for pacing, tension, emotional arc, character consistency, information flow, tonal drift, and structural balance
-- **revision-and-editing** — Systematically revise for structure, character consistency, prose quality, and polish
+- **revision-and-editing** — Systematically revise for structure, character consistency, prose quality, voice consistency (via Seed Diffing), and polish
 - **market-and-genre** — Research genre conventions, competitive landscape, trends, comp titles, and market positioning
 - **submission-and-query** — Craft query letters, synopses, comp titles, and manage the agent submission process
 
@@ -169,6 +169,9 @@ Each character should sound distinct in dialogue and internal thought. Consider:
 - **Verbal tics** — Repeated phrases, filler words, characteristic expressions?
 
 Write a short monologue from each major character's perspective to test their voice.
+
+**Creating Character POV Seeds:**
+If your novel uses multiple POV characters, each one's narrative voice should be captured as a Fiction Seed. A character POV Seed defines not just how the character speaks (that's dialogue) but how the narrative sounds when filtered through their perception — what they notice, how they process information, the rhythm of their thoughts. Use the monologue you just wrote as the sample passage for the Seed. See the **Fiction Seeds** phase for the Seed creation workflow and the **Seed Library** phase for organizing character Seeds within your project manifest.
 
 ### Step 5: Validate Against the Premise
 
@@ -472,9 +475,27 @@ Seeds are useful for:
 
 ## Seed File Format
 
-Seeds are stored as markdown files in a `seeds/` directory within your project. Each Seed file follows this structure:
+Seeds are stored as markdown files in a `seeds/` directory within your project (or in the central `~/seed-library/` for cross-project Seeds). Each Seed file follows this structure:
 
 ```markdown
+---
+name: cold_noir_narration
+category: genre                          # house | genre | register | borrowed | client
+tags: [crime, noir, urban, dark, clipped]
+mood: [tense, detached, gritty]
+compatible_with: []                      # Seeds this layers well with (populated as you use it)
+conflicts_with: []                       # Seeds that clash with this one (populated as you use it)
+derived_from:                            # Lineage — which Seed this evolved from (if any)
+version: 1
+created: {date}
+last_updated: {date}
+last_tested:                             # Populated after Step 5
+reliability:                             # high | medium | low — populated after testing
+drift_notes:                             # Known drift patterns — populated over time
+projects_used: []
+status: active                           # active | retired | draft
+---
+
 # {seed_name}
 
 ## Sample Passage
@@ -505,7 +526,17 @@ Example:
 tense. Avoid adverbs. Let silence and white space do emotional work. Descriptions should be
 sensory and specific — textures, temperatures, sounds — never summarized emotions. Dialogue
 is sparse and clipped. Characters say less than they mean."
+
+## Version History
+
+### v1 — {date}
+- Initial creation
+- Source: {where the sample passage came from}
 ```
+
+The frontmatter makes Seeds library-ready from the moment they're created. You don't need to fill in every field upfront — `compatible_with`, `conflicts_with`, `reliability`, and `drift_notes` are populated as you use the Seed and learn its behavior. But including the structure from the start means you never have to retrofit metadata later.
+
+For full details on frontmatter fields and how they power the Seed Library's catalog, search, and recommendation features, see the **Seed Library** phase.
 
 ## Seed Naming Convention
 
@@ -527,7 +558,7 @@ Start with a passage that captures the voice you want to reproduce. This can be:
 
 - **Something you wrote** — A paragraph or scene from your manuscript that nails the tone
 - **A writing exercise** — A passage written specifically to explore a style
-- **An existing work** — A passage from a published novel that represents your target voice (for reference only — the Seed captures the style, not the content)
+- **An existing work** — A passage from a published novel that represents your target voice (for reference only — the Seed captures the style, not the content). If you're creating a Seed from another author's work, this becomes a *borrowed Seed* — set `category: borrowed` in the frontmatter and `derived_from` to note the influence. See the **Seed Library** phase for the full borrowed Seed graduation path.
 
 The passage should be 200-500 words — long enough to establish a pattern, short enough to be focused.
 
@@ -589,8 +620,13 @@ For `spare_literary_realism`:
 
 ### Step 4: Save the Seed
 
-Save the completed Seed file to your project's `seeds/` directory:
+Save the completed Seed file with its frontmatter populated:
 
+1. **Fill in the frontmatter.** Set `name`, `category`, `tags`, `mood`, `version: 1`, `created`, and `status: active`. If the Seed is derived from another Seed or influenced by a published author, set `derived_from`.
+2. **Leave discovery fields empty for now.** `compatible_with`, `conflicts_with`, `reliability`, `drift_notes`, and `last_tested` get populated after you test and use the Seed. Including the empty fields now means you won't have to retrofit them later.
+3. **Choose the right location:**
+
+For project-specific Seeds (character POV voices, section variants):
 ```
 your-novel-project/
 ├── manuscript/
@@ -601,19 +637,41 @@ your-novel-project/
     └── spare_literary_realism.md
 ```
 
-### Step 5: Test the Seed
+For Seeds intended for cross-project reuse (house voices, genre Seeds, register Seeds), save them directly to the central library:
+```
+~/seed-library/house/default_authorial_voice.md
+~/seed-library/genre/cold_noir_narration.md
+~/seed-library/register/action_sequence_urgency.md
+~/seed-library/borrowed/chandler_influenced_noir.md
+```
 
-Before relying on a Seed, test it:
+See the **Seed Library** phase for the full library directory structure and catalog system.
+
+### Step 5: Test and Rate the Seed
+
+Before relying on a Seed, test it and record the results:
 
 1. Load the Seed's generation prompt
 2. Ask for a short passage (200-300 words) on a topic unrelated to your novel
 3. Compare the output to your original sample passage
 4. Ask yourself: Does this sound like it belongs in the same book?
 
+**Rate the Seed's reliability** based on your test results:
+- **high** — The output consistently matches the intended style across multiple test passages. Minor variations stay within the voice.
+- **medium** — The output mostly matches but drifts in predictable ways (e.g., sentences get longer, metaphors multiply). Usable with awareness.
+- **low** — The output is inconsistent or only partially captures the voice. Needs prompt refinement before use.
+
+**Update the frontmatter** after testing:
+- Set `last_tested` to today's date
+- Set `reliability` to your rating
+- If you noticed drift patterns, record them in `drift_notes` — these are valuable for refining the generation prompt and for the Seed Library's audit process
+
 If the output drifts from the intended style, refine the generation prompt. Common adjustments:
 - Add constraints you forgot ("No exclamation points," "Paragraphs no longer than 3 sentences")
 - Remove instructions that are too vague ("Write beautifully" → "Use one metaphor per paragraph, drawn from natural imagery")
 - Add negative examples ("Don't summarize emotions — show them through physical sensation")
+
+After refining, re-test and update the reliability rating. A Seed that required multiple refinement rounds isn't necessarily low-reliability — it's one that's been tuned. Update the `## Version History` section if the refinements were significant enough to constitute a new version.
 
 ## Workflow: Using a Seed
 
@@ -634,6 +692,10 @@ You can blend Seeds for scenes that need mixed registers:
 - Shift Seeds at chapter boundaries to reflect tonal changes
 - Layer a "base" Seed with modifiers ("Use `spare_literary_realism` but increase sensory detail for this scene")
 
+When you find a blend that works, formalize it. The **Seed Library** phase defines a structured blend recipe format with a base Seed, modifier Seeds, explicit adjustments, anti-patterns, and a test passage. Formalizing blends makes them reproducible — ad-hoc blending instructions get interpreted differently each time.
+
+As you combine Seeds, update their frontmatter: add successful pairings to `compatible_with` and note clashes in `conflicts_with`. This compatibility data becomes essential when the library grows large enough that you can't remember every pairing you've tried.
+
 ### Evolving Seeds
 
 Seeds aren't static. As your manuscript develops, you may need to:
@@ -641,6 +703,15 @@ Seeds aren't static. As your manuscript develops, you may need to:
 - Refine the generation prompt based on what's working in the draft
 - Create variant Seeds for different sections (e.g., `cold_noir_narration_act_three` with higher emotional intensity)
 - Archive Seeds that no longer match the project's direction
+
+When you make significant changes to a Seed, treat it as a new version rather than a silent overwrite:
+
+1. Increment the `version` number in the frontmatter
+2. Update `last_updated`
+3. Add an entry to the `## Version History` section describing what changed and why
+4. Re-test and update `reliability` and `drift_notes`
+
+This version trail matters for series writers — you may need to load an earlier version of a Seed to match a character's voice at a specific point in the series arc. See the **Seed Library** phase for the full versioning workflow and guidance on when to create a separate file vs. a new version.
 
 ## Techniques
 
@@ -651,7 +722,7 @@ Write the same scene using two different Seeds. Compare the results to understan
 Take a passage from your draft that you love and reverse-engineer a Seed from it. This captures your natural voice at its best, which you can then reproduce consistently.
 
 ### The Mentor Seed
-Create a Seed based on a published author's style (for your private reference, not publication). Use it to understand what makes that voice work, then evolve it into something distinctly yours.
+Create a Seed based on a published author's style (for your private reference, not publication). Use it to understand what makes that voice work, then evolve it into something distinctly yours. Set `category: borrowed` and `derived_from: {author}_influenced_{quality}` in the frontmatter. The **Seed Library** phase provides a structured five-step graduation path for evolving borrowed Seeds into original ones — from identifying which techniques to keep, through testing against both the borrowed source and your house voice, to graduating the Seed into your personal library.
 
 ### The Constraint Seed
 Create a Seed defined primarily by restrictions: "No adjectives. No sentences over 8 words. No metaphors. Present tense only." Extreme constraints often produce surprisingly distinctive voices.
@@ -659,17 +730,21 @@ Create a Seed defined primarily by restrictions: "No adjectives. No sentences ov
 ## Deliverables
 
 By the end of this phase, you should have:
-- At least one Fiction Seed for your novel's primary narrative voice
+- At least one Fiction Seed for your novel's primary narrative voice, with frontmatter populated
 - Optional additional Seeds for alternate registers (character voices, tonal shifts)
-- A `seeds/` directory in your project
-- Tested Seeds that reliably reproduce the intended style
+- A `seeds/` directory in your project (and/or Seeds placed in the central `~/seed-library/`)
+- Tested Seeds with `reliability` ratings and `last_tested` dates recorded in frontmatter
+- `drift_notes` for any Seeds that showed predictable drift patterns during testing
+- Initial `compatible_with` and `conflicts_with` entries for any Seeds you've already tried combining
 
 ## Connection to Other Phases
 
-- **Style & Tone** — Seeds are the practical, reusable output of your style decisions
-- **Character Creation** — Character-specific Seeds can capture individual voices for dialogue
-- **Scene Drafting** — Load the appropriate Seed before drafting each scene
-- **Revision & Editing** — Use Seeds to check tonal consistency across the manuscript
+- **Style & Tone** — Seeds are the practical, reusable output of your style decisions. The style profile fields map directly to the dimensions defined in that phase.
+- **Seed Library** — This phase creates individual Seeds; the Seed Library organizes them at scale. The frontmatter format defined here powers the library's catalog generation, search, compatibility tracking, and agent-driven Seed recommendation. Seeds created here are library-ready from the start.
+- **Character Creation** — Character-specific Seeds capture individual narrative voices for multi-POV novels. For series, character Seed evolution tracks alongside character arc development via the Series Continuity integration.
+- **Scene Drafting** — Load the appropriate Seed (or blend recipe) before drafting each scene. The Seed Library's Recommendation Map can automate this — the agent reads the project manifest and suggests the right Seed for each chapter.
+- **Revision & Editing** — Use Seeds to check tonal consistency across the manuscript. Compare draft passages against their intended Seed's style profile to identify where prose has drifted (Seed Diffing).
+- **Series Continuity** — For series writers, Seed versions track alongside character arcs and tonal progression in the series bible. The agent loads the correct Seed version for each book's timeline position.
 
 ## Manuscript Diagnostics
 
@@ -1892,6 +1967,7 @@ Now focus on prose quality, paragraph by paragraph:
 - Does the narrative voice stay consistent throughout?
 - Are there passages where the style shifts unintentionally?
 - Does the voice match the tone established in your style guide?
+- **Seed Diffing:** For each chapter or scene, compare the prose against its intended Seed's style profile. Check sentence length, vocabulary register, figurative language density, and emotional distance against the Seed's parameters. If the prose has drifted, the Seed's generation prompt tells you exactly what to correct toward. Update the Seed's `drift_notes` in its frontmatter if you discover consistent patterns — this feeds back into the Seed Library's audit process.
 
 ### Pass 5: Continuity and Polish
 
@@ -1995,6 +2071,12 @@ Pick a target you can sustain. Consistency beats intensity.
 
 Before writing a scene, spend 5 minutes answering:
 
+**Load the right Seed:**
+- Check the project manifest's Seed Recommendation Map for this chapter/scene
+- If a specific Seed or blend recipe is mapped, load its generation prompt
+- If no Seed is mapped, consider the scene's needs: Which POV character? What register (action, interiority, exposition)? What tonal direction?
+- The agent should proactively suggest the appropriate Seed based on scene context — see the **Seed Library** phase for the full recommendation workflow
+
 **Purpose:**
 - Why does this scene exist? What does it accomplish?
 - What changes between the beginning and end of this scene?
@@ -2060,6 +2142,7 @@ Dialogue does multiple jobs simultaneously:
 - Note which scenes/chapters are drafted
 - Mark scenes that need significant revision (but don't revise yet)
 - Track continuity notes (character details, timeline, plot threads)
+- After drafting each scene, compare the output against the loaded Seed's style profile — if the prose has drifted from the intended voice (sentence length, vocabulary register, emotional distance), note it for revision. This is Seed Diffing applied during drafting rather than waiting for the revision phase.
 
 **When you get stuck:**
 - Skip the scene and write the next one you're excited about
@@ -2099,13 +2182,20 @@ Before writing a scene, note the POV character's emotional state at the start an
 
 By the end of this phase, you should have:
 - A complete first draft (or substantial progress toward one)
-- A scene-by-scene log of what's been written
+- A scene-by-scene log of what's been written, including which Seed was used for each scene
 - Continuity notes for revision
 - A list of known issues to address in revision (but not yet fixed)
+- Seed drift notes for any scenes where the prose diverged from the intended voice
+
+## Connection to Other Phases
+
+- **Fiction Seeds / Seed Library** — Load the appropriate Seed or blend recipe before each drafting session. The project manifest's Seed Recommendation Map automates this. Update Seed compatibility data (`compatible_with`, `conflicts_with`) based on what you learn during drafting.
+- **Revision & Editing** — Seed drift notes from drafting feed directly into the revision process. Use Seed Diffing in Pass 4 to diagnose and correct voice inconsistencies.
+- **Series Continuity** — For series writers, ensure you're loading the correct Seed version for the current book's timeline position. Character POV Seeds should match the character's state at this point in the series arc.
 
 ## Next Phase
 
-Once the draft is complete, move to **revision-and-editing** to shape the raw material into a polished manuscript.
+Once the draft is complete, move to **manuscript-diagnostics** to analyze the raw material before revision.
 
 ## Seed Library
 
@@ -2115,7 +2205,7 @@ Once the draft is complete, move to **revision-and-editing** to shape the raw ma
 
 A Seed Library is a professional author's collection of Fiction Seeds organized across projects, genres, and purposes. Where the fiction-seeds phase teaches you to create and use individual Seeds, the Seed Library is the system for managing them at scale — across a career, not just a single manuscript.
 
-Working authors don't write one book in one voice. They write series with evolving tones, switch between genres, ghostwrite in someone else's style, and return to dormant projects years later. A well-maintained Seed Library makes all of that faster and more consistent.
+Working authors don't write one book in one voice. They write series with evolving tones, switch between genres, ghostwrite in someone else's style, collaborate with co-authors, and return to dormant projects years later. A well-maintained Seed Library makes all of that faster and more consistent.
 
 ## Library Structure
 
@@ -2140,10 +2230,20 @@ The Seed Library lives in a central location accessible across projects, with pr
 │   ├── comic_relief_lightness.md
 │   ├── expository_world_delivery.md
 │   └── dream_sequence_surreal.md
-└── borrowed/                            ← Reference Seeds from other authors
-    ├── _README.md                       ← Ethics note: for study only, not publication
-    ├── chandler_influenced_noir.md
-    └── munro_influenced_domestic.md
+├── borrowed/                            ← Reference Seeds from other authors
+│   ├── _README.md                       ← Ethics note: for study only, not publication
+│   ├── chandler_influenced_noir.md
+│   └── munro_influenced_domestic.md
+├── client/                              ← Client and ghostwriting Seeds
+│   ├── _README.md                       ← Confidentiality and usage guidelines
+│   ├── client_a_memoir_voice.md
+│   └── client_b_business_narrative.md
+├── blends/                              ← Reusable blend recipes
+│   ├── elena_action_blend.md
+│   └── literary_thriller_hybrid.md
+└── archive/                             ← Retired Seeds preserved for reference
+    ├── default_authorial_voice_v1.md
+    └── old_fantasy_register.md
 
 your-novel-project/                      ← Project-level Seeds
 └── seeds/
@@ -2155,7 +2255,43 @@ your-novel-project/                      ← Project-level Seeds
 
 ## The Catalog
 
-The catalog is the master index of your entire Seed Library. It makes Seeds discoverable without opening every file.
+The catalog is the master index of your entire Seed Library. It makes Seeds discoverable without opening every file. Each Seed file includes structured frontmatter that enables the agent to search, filter, and recommend Seeds dynamically — the catalog is generated from this metadata, not maintained by hand.
+
+### Seed File Metadata
+
+Every Seed file should include a YAML frontmatter block at the top, before the standard fiction-seeds format sections. This metadata powers catalog generation, search, compatibility checks, and lineage tracking:
+
+```markdown
+---
+name: cold_noir_narration
+category: genre                          # house | genre | register | borrowed | client
+tags: [crime, noir, urban, dark, clipped]
+mood: [tense, detached, gritty]
+compatible_with:                         # Seeds this layers well with
+  - default_authorial_voice
+  - action_sequence_urgency
+conflicts_with:                          # Seeds that clash with this one
+  - cozy_mystery_warmth
+  - comic_relief_lightness
+derived_from: chandler_influenced_noir   # Lineage — which Seed this evolved from (if any)
+version: 2
+created: 2024-03-15
+last_updated: 2025-11-02
+last_tested: 2025-10-28
+reliability: high                        # high | medium | low — how consistently it reproduces
+drift_notes: "Tends to over-produce metaphors in passages longer than 500 words. Add explicit cap."
+projects_used: [The Liar's Garden, Nightfall Sequence]
+series_context:                          # Series continuity link (if applicable)
+  series: Nightfall Sequence
+  books_used_in: [1, 2, 3]
+  evolution_notes: "Loosened sentence length constraints in book 3 to reflect narrator's emotional thaw."
+status: active                           # active | retired | draft
+---
+```
+
+### Catalog Format
+
+The catalog is generated from Seed frontmatter. It includes quality and compatibility data alongside the style summaries:
 
 ```markdown
 # Seed Library Catalog
@@ -2163,31 +2299,42 @@ The catalog is the master index of your entire Seed Library. It makes Seeds disc
 Last updated: {date}
 
 ## House Seeds
-| Seed | Style Summary | Projects Used |
-|------|--------------|---------------|
-| default_authorial_voice | Clean literary realism, close third, sensory | All |
-| intimate_first_person | Confessional, present tense, fragmentary | The Liar's Garden, Untitled #4 |
-| detached_third_omniscient | Ironic distance, long sentences, panoramic | The Bellweather Trilogy |
+| Seed | Style Summary | Reliability | Projects Used | Compatible With |
+|------|--------------|-------------|---------------|-----------------|
+| default_authorial_voice | Clean literary realism, close third, sensory | high | All | all register Seeds |
+| intimate_first_person | Confessional, present tense, fragmentary | high | The Liar's Garden, Untitled #4 | quiet_emotional_interiority |
+| detached_third_omniscient | Ironic distance, long sentences, panoramic | medium | The Bellweather Trilogy | expository_world_delivery |
 
 ## Genre Seeds
-| Seed | Style Summary | Genre |
-|------|--------------|-------|
-| hardboiled_crime_narration | Clipped, declarative, urban sensory | Crime/Noir |
-| cozy_mystery_warmth | Warm, observational, gentle humor | Cozy Mystery |
-| epic_fantasy_grandeur | Elevated diction, sweeping, mythic register | Epic Fantasy |
+| Seed | Style Summary | Genre | Reliability | Derived From |
+|------|--------------|-------|-------------|--------------|
+| hardboiled_crime_narration | Clipped, declarative, urban sensory | Crime/Noir | high | chandler_influenced_noir |
+| cozy_mystery_warmth | Warm, observational, gentle humor | Cozy Mystery | high | — |
+| epic_fantasy_grandeur | Elevated diction, sweeping, mythic register | Epic Fantasy | medium | — |
 
 ## Register Seeds
-| Seed | Purpose | Best For |
-|------|---------|----------|
-| action_sequence_urgency | Short sentences, present-tense feel, visceral | Chase scenes, fights, escapes |
-| quiet_emotional_interiority | Long sentences, reflective, sensory memory | Aftermath, grief, realization |
-| comic_relief_lightness | Wry observations, timing-aware, understated | Tension breaks, character moments |
+| Seed | Purpose | Best For | Reliability | Conflicts With |
+|------|---------|----------|-------------|----------------|
+| action_sequence_urgency | Short sentences, present-tense feel, visceral | Chase scenes, fights, escapes | high | quiet_emotional_interiority |
+| quiet_emotional_interiority | Long sentences, reflective, sensory memory | Aftermath, grief, realization | high | action_sequence_urgency |
+| comic_relief_lightness | Wry observations, timing-aware, understated | Tension breaks, character moments | medium | hardboiled_crime_narration |
 
 ## Borrowed Seeds
-| Seed | Influence | Study Purpose |
-|------|-----------|---------------|
-| chandler_influenced_noir | Raymond Chandler | Metaphor construction, urban atmosphere |
-| munro_influenced_domestic | Alice Munro | Time compression, emotional precision |
+| Seed | Influence | Study Purpose | Graduated To |
+|------|-----------|---------------|--------------|
+| chandler_influenced_noir | Raymond Chandler | Metaphor construction, urban atmosphere | hardboiled_crime_narration |
+| munro_influenced_domestic | Alice Munro | Time compression, emotional precision | — (in progress) |
+
+## Client Seeds
+| Seed | Client | Project Type | Confidentiality |
+|------|--------|-------------|-----------------|
+| client_a_memoir_voice | Client A | Memoir/ghostwrite | restricted — do not share or blend with personal Seeds |
+
+## Blend Recipes
+| Blend | Base Seed | Modifiers | Use Case |
+|-------|-----------|-----------|----------|
+| elena_action_blend | elena_pov_voice | + action_sequence_urgency, −30% sentence length | Elena's chase/confrontation scenes |
+| literary_thriller_hybrid | default_authorial_voice | + tense_psychological_thriller, keep sensory density | Crossover literary thriller project |
 ```
 
 ## Workflow: Building Your Library
@@ -2246,10 +2393,16 @@ If your novel has multiple POV characters, each should have a distinct voice See
 Some novels shift tone across their arc. A Seed for the opening chapters (establishing, measured) might differ from one for the climax (compressed, urgent). Create variants rather than trying to make one Seed cover everything.
 
 **Project manifest:**
-Each project should have a `project_manifest.md` that maps Seeds to usage:
+Each project should have a `project_manifest.md` that maps Seeds to usage, including blend recipes and series context:
 
 ```markdown
 # Project: The Liar's Garden
+
+## Series Context
+- Series: The Liar's Garden Trilogy
+- Book: 1 of 3
+- Series bible reference: ~/series-bibles/liars-garden-trilogy/
+- Seed evolution plan: Elena's voice tightens across the trilogy; Marcus gains warmth
 
 ## Primary Seed
 - default_authorial_voice (base)
@@ -2264,19 +2417,62 @@ Each project should have a `project_manifest.md` that maps Seeds to usage:
 
 ## Section Variants
 - act_three_escalation — Chapters 11-15 (tighter sentences, less description, more dialogue)
+
+## Blend Recipes
+
+### elena_action_blend
+- **Base:** elena_pov_voice
+- **Modifier:** action_sequence_urgency
+- **Adjustments:** Reduce sentence length by 30%. Keep Elena's sensory interiority but shift from reflective to reactive. Limit metaphors to one per paragraph.
+- **Use in:** Chapter 9 (the chase), Chapter 14 (confrontation)
+
+### resolution_blend
+- **Base:** default_authorial_voice
+- **Modifier:** quiet_emotional_interiority
+- **Adjustments:** Increase paragraph length. Allow longer sentences. Sensory details shift from visual to tactile. Pacing slows deliberately.
+- **Use in:** Chapter 15 (resolution)
+
+## Seed Recommendation Map
+When drafting, the agent should recommend Seeds based on chapter context:
+| Chapter | POV | Primary Seed | Register Override | Blend (if any) |
+|---------|-----|-------------|-------------------|----------------|
+| 1 | Elena | elena_pov_voice | — | — |
+| 9 | Elena | elena_pov_voice | action_sequence_urgency | elena_action_blend |
+| 15 | Both | default_authorial_voice | quiet_emotional_interiority | resolution_blend |
 ```
 
 ## Library Maintenance
 
 ### Versioning Seeds
 
-As your writing evolves, so should your Seeds. Rather than overwriting, version them:
+As your writing evolves, so should your Seeds. Rather than creating separate files for each version (which fragments the library and creates naming ambiguity), track version history inside the Seed file itself:
 
-- `default_authorial_voice.md` — Current version
-- `default_authorial_voice_v1.md` — Archived original
-- `default_authorial_voice_2024.md` — Date-stamped snapshot
+**In the Seed's frontmatter**, increment the `version` number and update `last_updated` with each significant change.
 
-This lets you return to earlier versions of your voice if a project calls for it, and track how your style has developed over time.
+**In the Seed file**, maintain a `## Version History` section at the bottom:
+
+```markdown
+## Version History
+
+### v3 — 2025-11-02
+- Tightened sentence length cap from 20 words to 15
+- Added constraint against back-to-back metaphors
+- Reason: Drift detected during Nightfall Sequence book 3 revision
+
+### v2 — 2025-03-10
+- Shifted from past tense to present tense default
+- Added sensory emphasis on sound (previously visual-dominant)
+- Reason: Better match for thriller pacing after A/B testing
+
+### v1 — 2024-03-15
+- Original version extracted from The Liar's Garden draft
+```
+
+**When to create a separate file vs. a new version:**
+- New version (same file): The Seed is evolving — you want the latest version to be the default
+- Separate file: The old version represents a fundamentally different voice you may want to use again (e.g., `default_authorial_voice_liars_garden.md` alongside the current `default_authorial_voice.md`)
+
+The `archive/` directory is reserved for fully retired Seeds — not for version history.
 
 ### Retiring Seeds
 
@@ -2290,20 +2486,67 @@ Some Seeds outlive their usefulness. When a Seed no longer represents how you wr
 
 Every 6-12 months (or between major projects), review your library:
 
+**Quality audit:**
+- Test each active Seed by generating a 200-word passage and comparing against the sample passage
+- Update the `reliability` rating in frontmatter based on results
+- Record any drift patterns in `drift_notes` — these are diagnostic gold for refining generation prompts
+- Update `last_tested` dates
+
+**Compatibility audit:**
+- Review `compatible_with` and `conflicts_with` fields — have you discovered new pairings that work or clash?
+- Test any blend recipes that haven't been used recently
+- Update compatibility metadata based on actual drafting experience
+
+**Coverage audit:**
 - Are your house Seeds still accurate to how you actually write?
 - Are there genre or register Seeds you've never used? (Consider retiring them)
 - Are there styles you've been writing that don't have Seeds yet? (Create them)
 - Do any Seeds overlap enough to be merged?
 
+**Lineage audit:**
+- Are there borrowed Seeds ready to graduate to original ones?
+- Have any Seeds diverged enough from their `derived_from` parent to warrant clearing the lineage link?
+- Are there Seeds that share enough DNA to be consolidated?
+
+**Series audit (if applicable):**
+- Do Seeds used across a series still reflect the intended voice evolution?
+- Are `series_context` entries in frontmatter up to date?
+- Does the series bible reference the correct Seed versions for each book?
+
 ## Advanced Techniques
 
 ### Seed Blending
 
-For scenes that need a mixed register, specify a blend:
+For scenes that need a mixed register, create a formal blend recipe rather than ad-hoc prose instructions. Blend recipes can live in the project manifest (for project-specific blends) or in the `~/seed-library/blends/` directory (for reusable cross-project blends).
 
-> "Use `elena_pov_voice` as the base. Layer in `action_sequence_urgency` for pacing but keep Elena's sensory interiority. Reduce her typical sentence length by 30%."
+**Blend recipe format:**
 
-Blending instructions go in the project manifest or in scene-planning notes.
+```markdown
+# elena_action_blend
+
+## Base Seed
+elena_pov_voice
+
+## Modifier Seeds
+- action_sequence_urgency (pacing layer)
+
+## Adjustments
+- Reduce typical sentence length by 30%
+- Keep Elena's sensory interiority but shift from reflective to reactive
+- Limit metaphors to one per paragraph
+- Maintain Elena's anxious undercurrent — express it through body awareness, not thought
+
+## Anti-patterns
+- Don't lose Elena's voice entirely into generic action prose
+- Don't let the urgency modifier eliminate all interiority — she still notices textures and sounds, just faster
+
+## Test Passage
+{A 200-word sample of what this blend should sound like — written or generated and approved}
+```
+
+**Why formalize blends?** Ad-hoc blending instructions ("Use X as base, layer in Y") produce inconsistent results because the instructions are interpreted differently each time. A tested blend recipe with a sample passage and explicit anti-patterns is reproducible.
+
+Blending instructions in the project manifest should reference the blend recipe by name rather than restating the instructions inline.
 
 ### Seed Diffing
 
@@ -2336,24 +2579,175 @@ Seeds based on other authors' styles are valuable study tools but require ethica
 - The goal is to understand technique, not to replicate voice
 - Name them `{author}_influenced_{quality}` to be explicit about the relationship
 - Include a note in each borrowed Seed about what you're studying and how it informs your own work
-- Evolve borrowed Seeds into original ones by identifying what you want to keep and what you want to change
+
+### Graduating a Borrowed Seed
+
+Borrowed Seeds should evolve into original ones over time. This is a structured process, not a vague aspiration:
+
+**Step 1: Identify what you're keeping.**
+Read the borrowed Seed's generation prompt and style profile. Highlight the specific techniques you want to absorb — not the whole voice, but particular moves. (Chandler's metaphor construction. Munro's time compression. McCarthy's sentence rhythm.)
+
+**Step 2: Identify what you're changing.**
+What about this borrowed voice doesn't sound like you? Where does it clash with your house Seeds? These are the elements you'll replace with your own tendencies.
+
+**Step 3: Write a new generation prompt.**
+Combine the techniques you're keeping with your own voice characteristics. The new prompt should read as instructions for *your* voice with borrowed techniques integrated, not as a modified version of someone else's voice.
+
+**Step 4: Test against both sources.**
+Generate a passage using the new Seed. Compare it to:
+- The original borrowed Seed's sample passage (it should sound noticeably different)
+- Your house Seed's sample passage (it should sound recognizably like you, with new capabilities)
+
+If it's too close to the borrowed source, you haven't changed enough. If it's indistinguishable from your house voice, you haven't kept enough.
+
+**Step 5: Graduate.**
+Move the new Seed to the appropriate directory (house, genre, or register). Set `derived_from` in the frontmatter to reference the borrowed Seed. Update the catalog's "Graduated To" column for the borrowed Seed.
+
+The borrowed Seed stays in the `borrowed/` directory as a reference — it's the study material, not the finished product.
+
+## Client and Ghostwriting Seeds
+
+The overview mentions ghostwriting, and many professional authors write for clients. Client Seeds require their own conventions:
+
+### The `client/` Directory
+
+Client Seeds live in `~/seed-library/client/`, separate from your personal library. Each client gets a subdirectory if they have multiple Seeds:
+
+```
+client/
+├── _README.md                           ← Confidentiality guidelines
+├── client_a_memoir_voice.md
+└── client_b/
+    ├── business_narrative.md
+    └── thought_leadership.md
+```
+
+### Confidentiality Rules
+
+The `_README.md` in the client directory should establish:
+
+- Client Seeds are never blended with personal Seeds without explicit permission
+- Client voice profiles are confidential — don't reference them in personal project manifests
+- When a client engagement ends, archive their Seeds but don't delete them (you may be rehired)
+- Client Seeds should not appear in the main catalog — maintain a separate `client_catalog.md` if needed
+
+### Creating Client Seeds
+
+The process mirrors house Seed creation, but the source material is the client's voice, not yours:
+
+1. Gather 3-5 passages of the client's existing writing (or approved sample prose)
+2. Extract the style profile as you would for any Seed
+3. Test the Seed by generating a passage and having the client confirm it sounds like them
+4. Iterate until the client approves — their ear is the standard, not yours
+
+### Collaborative Seeds
+
+When co-authoring, you may need Seeds that blend two authors' voices into a unified third voice:
+
+1. Each author creates a house Seed (or provides an existing one)
+2. Identify the overlap — where do your voices naturally converge?
+3. Create a collaborative Seed that lives in the shared project, not in either author's personal library
+4. Both authors test and approve the collaborative Seed before drafting begins
+
+## Seed Discovery and Recommendation
+
+A library is only useful if the right Seed gets loaded at the right time. The agent should proactively recommend Seeds during drafting rather than waiting for the author to manually look them up.
+
+### How Seed Recommendation Works
+
+During scene drafting, the agent should:
+
+1. **Check the project manifest.** Read the Seed Recommendation Map (if present) to see which Seed is assigned to the current chapter or scene.
+2. **Consider the scene context.** If the scene involves action, check for register overrides. If it's a POV shift, check for character Seeds. If it's a tonal transition, check for section variants.
+3. **Suggest a Seed or blend.** Before the author starts writing, recommend the appropriate Seed with a brief rationale: "Chapter 9 is Elena's chase scene — loading `elena_action_blend` (elena_pov_voice + action_sequence_urgency, −30% sentence length)."
+4. **Flag compatibility issues.** If the recommended Seed has `conflicts_with` entries that overlap with other Seeds in play, warn the author.
+
+### Search and Filtering
+
+The structured frontmatter on each Seed file enables the agent to search the library by:
+
+- **Tags:** "Find all Seeds tagged `dark` and `urban`"
+- **Mood:** "Which Seeds have a `tense` mood?"
+- **Compatibility:** "What register Seeds are compatible with `epic_fantasy_grandeur`?"
+- **Reliability:** "Show me only high-reliability Seeds"
+- **Lineage:** "What Seeds are derived from `chandler_influenced_noir`?"
+- **Series:** "Which Seeds have been used in the Nightfall Sequence?"
+
+This turns the catalog from a static reference document into a queryable system.
+
+### Drafting Integration
+
+The connection between the Seed Library and Scene Drafting should be seamless:
+
+- When the author opens a scene-drafting session, the agent reads the project manifest and loads the appropriate Seed's generation prompt automatically
+- If no Seed is mapped to the current scene, the agent suggests candidates from the library based on scene metadata (POV character, scene type, emotional register)
+- After drafting, the agent can compare the output against the loaded Seed's style profile and flag drift — this is the Seed Diffing technique applied automatically
+
+## Series Continuity Integration
+
+For authors writing series, Seeds evolve across books. The Seed Library should integrate with the Series Continuity power to track this evolution.
+
+### How Seeds Connect to the Series Bible
+
+The series bible (managed by the Series Continuity power) tracks character state, setting consistency, and timeline integrity across books. Seeds add a voice dimension to this tracking:
+
+- **Character voice evolution:** A character who starts guarded and clipped in book 1 may become more open and flowing by book 3. Their POV Seed should evolve to match, and the series bible should reference which Seed version applies to which book.
+- **Tonal arc across books:** A series that starts light and darkens over time needs Seeds that reflect this progression. Track the tonal arc in the series bible alongside plot and character arcs.
+- **Consistency checks:** When drafting a new book in a series, the agent should load the Seed version that matches the character's state at that point in the series — not necessarily the latest version.
+
+### Series Seed Tracking
+
+Add a `## Seed Evolution` section to the series bible:
+
+```markdown
+## Seed Evolution
+
+### Elena POV Voice
+| Book | Seed Version | Key Changes | Rationale |
+|------|-------------|-------------|-----------|
+| 1 | elena_pov_voice v1 | Anxious, sensory, fragmented | Establishing character under stress |
+| 2 | elena_pov_voice v2 | Longer sentences, more reflective | Character gaining confidence |
+| 3 | elena_pov_voice v3 | Balanced, fewer fragments, warmer | Character arc resolution |
+
+### Series Tone
+| Book | Primary Seed | Register Emphasis | Tonal Direction |
+|------|-------------|-------------------|-----------------|
+| 1 | default_authorial_voice | action_sequence_urgency (heavy) | Tense, propulsive |
+| 2 | default_authorial_voice | quiet_emotional_interiority (moderate) | Reflective, deepening |
+| 3 | default_authorial_voice | balanced registers | Resolution, earned warmth |
+```
+
+### Cross-Book Seed Consistency
+
+When starting a new book in a series:
+
+1. Load the series bible's Seed Evolution section
+2. Identify which Seed versions apply to the new book's starting point
+3. Check whether any Seeds need new versions for this book's arc
+4. Create new versions if needed, documenting the changes in both the Seed's version history and the series bible
+5. Update the project manifest for the new book with the correct Seed versions
 
 ## Deliverables
 
 By the end of this phase, you should have:
-- A `~/seed-library/` directory with house, genre, register, and (optionally) borrowed subdirectories
-- A `catalog.md` indexing all Seeds with summaries
-- At least one house Seed representing your default voice
-- A project manifest for your current work-in-progress
-- A maintenance rhythm for keeping the library current
+- A `~/seed-library/` directory with house, genre, register, borrowed, client (if applicable), blends, and archive subdirectories
+- Structured frontmatter on every Seed file (tags, mood, compatibility, reliability, lineage)
+- A `catalog.md` generated from Seed metadata, including quality and compatibility data
+- At least one house Seed representing your default voice, tested and rated for reliability
+- A project manifest for your current work-in-progress, including blend recipes and a Seed Recommendation Map
+- Compatibility and conflict mappings between Seeds you use together
+- A maintenance rhythm for keeping the library current (quality audits, compatibility audits, lineage audits)
+- Series continuity integration if writing a series (Seed Evolution section in the series bible)
+- A graduation plan for any borrowed Seeds you intend to evolve into original ones
 
 ## Connection to Other Phases
 
-- **Fiction Seeds** — Individual Seed creation; this phase is the management layer on top
-- **Style & Tone** — Style decisions feed into house and genre Seeds
-- **Character Creation** — Character voice profiles become character POV Seeds
-- **Scene Drafting** — Load the right Seed before each writing session
-- **Revision & Editing** — Use Seeds diagnostically to check tonal consistency
+- **Fiction Seeds** — Individual Seed creation; this phase is the management layer on top. Seed file format is defined there; this phase adds frontmatter metadata, quality tracking, and compatibility mapping.
+- **Style & Tone** — Style decisions feed into house and genre Seeds. The style profile fields in each Seed map directly to the style dimensions defined in this phase.
+- **Character Creation** — Character voice profiles become character POV Seeds. For series, character Seed evolution tracks alongside character arc development.
+- **Scene Drafting** — The agent loads the right Seed (or blend) before each writing session using the project manifest's Seed Recommendation Map. After drafting, automatic Seed Diffing checks for voice drift.
+- **Revision & Editing** — Use Seeds diagnostically to check tonal consistency. Compare draft passages against their intended Seed's style profile to identify where prose has drifted.
+- **Series Continuity** — For series writers, Seed evolution is tracked in the series bible. Character POV Seeds version alongside character arcs. The agent loads the correct Seed version for each book's timeline position.
 
 ## Style And Tone
 
@@ -2452,6 +2846,8 @@ Before committing to a full manuscript, write 1,000-2,000 words in your chosen s
 
 If it doesn't feel right, adjust and try again. It's much easier to recalibrate now than after 50,000 words.
 
+Once you have a style sample you're happy with, it becomes the source passage for your first Fiction Seed. The **Fiction Seeds** phase walks you through extracting the style profile and writing a generation prompt from this sample. Creating the Seed now — while the style decisions are fresh — means you can reproduce this voice consistently throughout the manuscript.
+
 ## Techniques
 
 ### The Mentor Text Method
@@ -2485,7 +2881,7 @@ By the end of this phase, you should have:
 
 ## Next Phase
 
-With your voice defined, move to **plot-structure** to outline the narrative arc.
+With your voice defined, move to **fiction-seeds** to capture it as a reusable Seed for consistent generation throughout the manuscript.
 
 ## Submission And Query
 

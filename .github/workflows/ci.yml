@@ -8,6 +8,36 @@ on:
       - "evals/**"
       - "src/**"
       - "scripts/**"
+  workflow_dispatch:
+    inputs:
+      skip-lint:
+        description: "Skip lint step"
+        type: boolean
+        default: false
+      skip-typecheck:
+        description: "Skip type check step"
+        type: boolean
+        default: false
+      skip-test:
+        description: "Skip test step"
+        type: boolean
+        default: false
+      skip-validate:
+        description: "Skip artifact validation"
+        type: boolean
+        default: false
+      skip-security:
+        description: "Skip security scan"
+        type: boolean
+        default: false
+      skip-build:
+        description: "Skip build + dist check"
+        type: boolean
+        default: false
+      skip-eval:
+        description: "Skip eval job"
+        type: boolean
+        default: false
 
 jobs:
   validate-and-build:
@@ -22,33 +52,42 @@ jobs:
       - run: bun install
 
       - name: Lint
+        if: ${{ !inputs.skip-lint }}
         run: bun run lint
 
       - name: Type check
+        if: ${{ !inputs.skip-typecheck }}
         run: bun x tsc --noEmit
 
       - name: Test
-        run: bun test
+        if: ${{ !inputs.skip-test }}
+        run: bun test --coverage
 
       - name: Validate artifacts
+        if: ${{ !inputs.skip-validate }}
         run: bun run dev validate
 
       - name: Security scan artifacts
+        if: ${{ !inputs.skip-security }}
         run: bun run dev validate --security
 
       - name: Build
+        if: ${{ !inputs.skip-build }}
         run: bun run dev build
 
       - name: Verify dist is up to date
+        if: ${{ !inputs.skip-build }}
         run: git diff --exit-code dist/
 
   eval:
     runs-on: ubuntu-latest
     needs: validate-and-build
     if: >
+      !inputs.skip-eval &&
+      (github.event_name == 'workflow_dispatch' ||
       contains(github.event.pull_request.changed_files_names || '', 'knowledge/') ||
       contains(github.event.pull_request.changed_files_names || '', 'templates/') ||
-      contains(github.event.pull_request.changed_files_names || '', 'evals/')
+      contains(github.event.pull_request.changed_files_names || '', 'evals/'))
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

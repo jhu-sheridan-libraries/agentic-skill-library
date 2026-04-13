@@ -1,0 +1,12 @@
+{
+  "name": "Post-Task ADR Check",
+  "version": "1.0.0",
+  "description": "After completing a spec task, shows git diff stats so the agent can assess architectural significance.",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "bash -c 'echo \"=== Post-task diff ===\"; git diff --stat HEAD 2>/dev/null || echo \"No git changes detected\"'"
+  }
+}

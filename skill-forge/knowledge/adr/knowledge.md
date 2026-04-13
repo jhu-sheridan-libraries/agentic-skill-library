@@ -8,7 +8,7 @@ keywords:
   - madr
   - architecture
   - decision-log
-author: Steven Murawski
+author: Steven J. Miklovic
 version: 0.1.0
 harnesses:
   - kiro
@@ -26,6 +26,9 @@ model-assumptions: []
 collections:
   - neon-caravan
 inherit-hooks: false
+harness-config:
+  kiro:
+    format: power
 ---
 # ADR Power
 
@@ -96,20 +99,18 @@ See `workflow` steering, section 5.
 
 > **Important:** Use `runCommand` instead of `askAgent` for `preTaskExecution` and `postTaskExecution` hooks. `askAgent` prompts are injected verbatim into the conversation as `<HOOK_INSTRUCTION>` blocks, leaking raw instructions to the user. `runCommand` outputs are consumed by the agent without being displayed as instructions.
 
+> **Path discovery:** ADR directories may live in subdirectories (e.g. monorepos). Hooks search both the workspace root and common subdirectory prefixes. The search pattern iterates `for base in . */; do` to cover both layouts.
+
 ### agentStop — ADR Reminder
+Smarter diff analysis: filters out test/spec files, only shows design decisions from specs whose source files were actually touched, and lists the changed architectural files for actionable cross-referencing. Exits silently if only non-architectural files changed.
 ```json
-{"name":"ADR Reminder","version":"1.0.0","when":{"type":"agentStop"},"then":{"type":"runCommand","command":"bash -c 'DIFF=$(git diff --stat HEAD 2>/dev/null); if echo \"$DIFF\" | grep -qiE \"\\.(ts|json|yaml|yml|njk)|schema|config|module|adapter\"; then echo \"ADR reminder: architectural changes detected this session. Consider creating an ADR to capture any decisions worth documenting.\"; fi'"}}
+{"name":"ADR Reminder","version":"1.1.0","when":{"type":"agentStop"},"then":{"type":"runCommand","command":"bash -c 'DIFF=$(git diff --stat HEAD 2>/dev/null); if [ -z \"$DIFF\" ]; then exit 0; fi; ARCH_FILES=$(echo \"$DIFF\" | grep -iE \"src/|lib/|commands/|modules/\" | grep -viE \"test|spec|__test|__spec|\\\\.test\\\\.|\\\\.spec\\\\.\" || true); ARCH_COUNT=$(echo \"$ARCH_FILES\" | grep -c . 2>/dev/null || true); if [ \"$ARCH_COUNT\" -lt 1 ]; then exit 0; fi; echo \"ADR reminder: $ARCH_COUNT architectural file(s) changed this session.\"; echo; echo \"Changed architectural files:\"; echo \"$ARCH_FILES\" | sed \"s/^/  /\" | head -15; echo; echo \"Recent ADRs:\"; for base in . */; do for d in \"${base}docs/adr\" \"${base}docs/decisions\" \"${base}docs/architecture/decisions\"; do if [ -d \"$d\" ]; then ls \"$d\"/0*.md 2>/dev/null | tail -5 | while read f; do head -1 \"$f\" | sed \"s/^# //\"; done; break 2; fi; done; done; echo; CHANGED_DIRS=$(echo \"$DIFF\" | sed \"s|^[[:space:]]*||\" | cut -d/ -f1-3 | sort -u); MATCHED=0; for d in .kiro/specs/*/design.md; do if [ -f \"$d\" ]; then SPEC=$(dirname \"$d\" | xargs basename); SPEC_KEBAB=$(echo \"$SPEC\" | tr \"_\" \"-\"); if echo \"$CHANGED_DIRS\" | grep -qi \"$SPEC_KEBAB\"; then echo \"--- $SPEC (active) ---\"; grep -iE \"(key design decision|design decision|trade.?off|chose|instead of|alternative|rationale)\" \"$d\" 2>/dev/null | head -8; MATCHED=1; fi; fi; done; if [ \"$MATCHED\" -eq 0 ]; then echo \"No spec design decisions matched the changed files.\"; fi; echo; echo \"Cross-reference the changed files and design decisions against existing ADRs. Flag any undocumented architectural choices.\"; '"}}
 ```
 
-### preTaskExecution — Pre-Task Review
+### preTaskExecution — ADR + Spec Context Check
+Lightweight `askAgent` prompt that reminds the agent to review the active spec's design decisions and cross-reference against existing ADRs before starting work. No shell command overhead on every task.
 ```json
-{"name":"ADR Pre-Task Review","version":"1.0.0","when":{"type":"preTaskExecution"},"then":{"type":"runCommand","command":"bash -c 'for d in docs/adr docs/decisions docs/architecture/decisions; do if [ -d \"$d\" ]; then echo \"Existing ADRs in $d/:\"; ls \"$d\"/*.md 2>/dev/null; exit 0; fi; done'"}}
-```
-
-### postTaskExecution — Post-Task: ADR Check + Changelog
-Uses `runCommand` to surface diff stats without leaking prompt text into the conversation.
-```json
-{"name":"Post-Task: ADR Check + Changelog","version":"1.0.0","when":{"type":"postTaskExecution"},"then":{"type":"runCommand","command":"bash -c 'echo \"=== Post-task diff ===\"; git diff --stat HEAD 2>/dev/null || echo \"No git changes detected\"'"}}
+{"name":"ADR + Spec Context Check","version":"1.0.0","when":{"type":"preTaskExecution"},"then":{"type":"askAgent","prompt":"Before starting this task, review the active spec's design.md for key design decisions and cross-reference them against existing ADRs in the project's ADR directory. Keep these architectural constraints in mind during implementation. If the task introduces new architectural choices not covered by an existing ADR, flag it for the user."}}
 ```
 
 ### fileCreated — New Module Check (optional)

@@ -1,0 +1,12 @@
+{
+  "name": "full-science-consistency-review",
+  "version": "1.0.0",
+  "description": "User-triggered complete six-pass science consistency validation.",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Run the full science consistency validation: (1) Technology bible compliance, (2) Species bible compliance, (3) Physics validation calibrated to hardness, (4) Extrapolation gap analysis, (5) Exposition density scan, (6) Subgenre contract check. Compile into the Science Consistency Report template."
+  }
+}

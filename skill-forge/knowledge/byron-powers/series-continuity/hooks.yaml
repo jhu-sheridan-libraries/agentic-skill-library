@@ -1,0 +1,154 @@
+# Canonical hooks for series-continuity
+# Events: file_edited, file_created, file_deleted,
+# agent_stop, prompt_submit, pre_tool_use, post_tool_use, pre_task, post_task, user_triggered
+#
+# THREE-PHASE WRITING DISCIPLINE (continuity layer — complements Novelist's base discipline)
+# Phase 1 (pre_task): Load continuity state and series bible
+# Phase 2 (pre_tool_use + file_edited): Validate against continuity records
+# Phase 3 (post_task): Update logs and bibles, check thread health
+
+# ============================================================
+# PHASE 1: PRE-TASK — Load continuity context
+# ============================================================
+
+- name: continuity-context-loader
+  description: >-
+    Before a drafting task begins, load the continuity state: character
+    whereabouts, information state table, active plot threads, and (if
+    series) the series bible entries for recurring characters and settings
+    relevant to this chapter.
+  event: pre_task
+  action:
+    type: ask_agent
+    prompt: >-
+      A drafting task is about to begin. Load continuity context:
+      (1) Character whereabouts — where is every significant character at
+      this point in the story? (2) Information state — what does each
+      character know? What does the reader know? (3) Active plot threads —
+      which threads are open and which should be advanced in this chapter?
+      Are any threads dormant and due for attention? (4) If series — load
+      the series bible entries for recurring characters present in this
+      chapter, their current state, and any canon registry entries
+      relevant to this chapter's content. Summarize briefly. This
+      supplements the Novelist power's general context loading.
+
+# ============================================================
+# PHASE 2: DURING DRAFTING — Continuity validation
+# ============================================================
+
+- name: information-leak-gate
+  description: >-
+    Before the agent writes dialogue or internal monologue, verify no
+    character references information they have not yet acquired.
+  event: pre_tool_use
+  condition:
+    tool_types:
+      - write
+  action:
+    type: ask_agent
+    prompt: >-
+      Before writing this content, check if any character references,
+      acts on, or reacts to information they should not yet know per the
+      information state tracking. Verify: (1) Has this character acquired
+      every piece of information they reference? (2) Does this content
+      accidentally reveal something the reader shouldn't know yet?
+      (3) If dramatic irony is intended, does the scene exploit the
+      tension? Flag any information leaks before writing.
+
+- name: continuity-check-on-save
+  description: >-
+    When a manuscript file is saved, cross-reference against the
+    continuity log for character details, timeline, settings, and
+    whereabouts.
+  event: file_edited
+  condition:
+    file_patterns:
+      - "*.md"
+      - "*.txt"
+      - "*.adoc"
+      - "**/chapters/**"
+      - "**/manuscript/**"
+      - "**/draft/**"
+      - "**/scenes/**"
+  action:
+    type: ask_agent
+    prompt: >-
+      A manuscript file was just saved. Cross-reference against the
+      continuity log: (1) Character descriptions match established details?
+      (2) Character knowledge consistent with information state? (3)
+      Character locations plausible given last known position? (4) Timeline
+      references consistent? (5) Setting descriptions match previous?
+      Classify by severity. Report specific passages.
+
+- name: series-bible-compliance-on-save
+  description: >-
+    When a manuscript file is saved in a series project, check against
+    the series bible for recurring character and setting consistency.
+  event: file_edited
+  condition:
+    file_patterns:
+      - "**/chapters/**"
+      - "**/manuscript/**"
+      - "**/draft/**"
+      - "**/scenes/**"
+  action:
+    type: ask_agent
+    prompt: >-
+      A manuscript file was just saved. If this is a series, check against
+      the series bible: (1) Recurring character states consistent with
+      end-of-previous-book? (2) Setting descriptions match canonical?
+      (3) Previous event references accurate per canon registry? (4)
+      Timeline consistent with cross-book timeline? (5) Could a new reader
+      follow this scene? Classify by severity. Report specific passages.
+
+# ============================================================
+# PHASE 3: POST-TASK — Continuity bookkeeping
+# ============================================================
+
+- name: continuity-session-bookkeeping
+  description: >-
+    After a drafting task completes, update the continuity log and series
+    bible with new facts, check thread health, evaluate new-reader
+    accessibility, and set up continuity context for the next session.
+  event: post_task
+  action:
+    type: ask_agent
+    prompt: >-
+      The drafting task is complete. Perform continuity bookkeeping:
+
+      UPDATE LOGS: Review content written this session. Update the
+      continuity log with new character details, timeline markers, setting
+      facts, plot threads introduced or advanced, character whereabouts at
+      scene boundaries, and information revealed to characters or reader.
+      If series, update the series bible with new canon entries.
+
+      THREAD HEALTH: Are any threads dormant for 4+ chapters? Any
+      introduced but never advanced? Any still open that should be
+      resolved by now? List each with status and recommendation.
+
+      NEW-READER CHECK (series only): Are recurring characters introduced
+      through action? Are previous-book references brief and non-essential?
+      Could a new reader follow the standalone plot?
+
+      NEXT SESSION: Note character whereabouts at end of session,
+      information state updates, and which threads need attention next.
+      This supplements the Novelist power's general session bookkeeping.
+
+# ============================================================
+# USER-TRIGGERED — On-demand audits
+# ============================================================
+
+- name: full-continuity-report
+  description: >-
+    User-triggered comprehensive continuity audit — within-book and
+    cross-book.
+  event: user_triggered
+  action:
+    type: ask_agent
+    prompt: >-
+      Produce a full continuity report. Within-book: character detail
+      consistency, timeline integrity, setting facts, whereabouts
+      plausibility, thread status, information state. If series: series
+      bible compliance, recurring character accuracy, cross-book timeline,
+      canon registry, new-reader accessibility. Classify all issues by
+      severity. Use the Continuity Report template.

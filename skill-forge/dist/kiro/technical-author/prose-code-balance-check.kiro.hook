@@ -1,0 +1,19 @@
+{
+  "name": "prose-code-balance-check",
+  "version": "1.0.0",
+  "description": "After a chapter file is saved, scan for prose-code balance and cross-reference integrity.",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "*.md",
+      "*.adoc",
+      "*.asciidoc",
+      "**/chapters/**",
+      "**/manuscript/**"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A chapter file was just saved. Check: (1) Prose-code balance — flag stretches of ~1000+ words without code, or ~50+ lines of code without prose explanation. (2) Cross-reference integrity — do chapter, section, figure, and listing numbers match actual content? Are forward/backward references accurate? (3) Terminology consistency — are technical terms used the same way throughout? Report imbalances and mismatches."
+  }
+}

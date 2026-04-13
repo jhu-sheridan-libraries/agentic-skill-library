@@ -1,0 +1,12 @@
+{
+  "name": "session-bookkeeping",
+  "version": "1.0.0",
+  "description": "After a drafting task completes, perform three post-session duties: update the continuity log with new facts established in this session, produce a session summary, and set up context notes for the next session.",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The drafting task is complete. Perform post-session bookkeeping:\nPART 1 — UPDATE TRACKING DOCUMENTS: Review everything written in this session and update the continuity log: new character details established, timeline markers, setting facts, plot threads introduced or advanced, character whereabouts at scene boundaries, information revealed to characters or the reader. If a Fiction Seed was used, note any voice drift observed. List what was added or updated.\nPART 2 — SESSION SUMMARY: Produce a brief summary: total new words written, scenes or chapters completed, which Fiction Seed was used, open plot threads, any continuity issues flagged during drafting, and known items to address in revision.\nPART 3 — NEXT SESSION SETUP: Note what the next drafting session should start with: which chapter or scene is next in the outline, which POV character, which Fiction Seed to load, any unresolved issues from this session that need attention first, and where all significant characters are at the end of this session."
+  }
+}

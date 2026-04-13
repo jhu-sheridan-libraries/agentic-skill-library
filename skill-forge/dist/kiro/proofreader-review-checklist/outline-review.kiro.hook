@@ -1,0 +1,12 @@
+{
+  "name": "outline-review",
+  "version": "1.0.0",
+  "description": "User-triggered hook to run the outline and beat sheet checklist — completeness of plot points, character arc tracking, timeline plausibility, and formatting consistency.",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Run the outline / beat sheet review checklist on the current document: Completeness (all major plot points present, character arcs tracked through each beat, each entry has a stated dramatic purpose), Consistency (character motivations consistent beat to beat, timeline plausible with no impossible travel or time compression, stakes escalate toward climax), Formatting (consistent headings/numbering/ indentation, consistent chapter or scene labels, no orphaned beats lacking context). Cite specific entries for each issue."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "review-feedback-triage",
+  "version": "1.0.0",
+  "description": "After a technical review task completes, compile feedback into the standard triage format.",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The technical review task is complete. Compile feedback: Factual Error (fix immediately), Code Bug (fix and retest), Confusing Explanation (rewrite), Missing Content (evaluate scope), Style Preference (consider), Scope Expansion (usually decline). Note chapter, reviewer, issue, category, action. Highlight conflicts."
+  }
+}

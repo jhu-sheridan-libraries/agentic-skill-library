@@ -1,0 +1,12 @@
+{
+  "name": "full-continuity-audit",
+  "version": "1.0.0",
+  "description": "User-triggered hook to run a comprehensive continuity audit across the full manuscript — character consistency, timeline integrity, setting facts, plot thread status, information state, and whereabouts plausibility.",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Run a full continuity audit across the manuscript. Check: character detail consistency across all chapters, timeline integrity (no impossible sequences or travel times), setting fact consistency, plot thread status (open, resolved, dormant — flag any dormant for 4+ chapters), information state (any leaks where characters know things they shouldn't), and character whereabouts plausibility. Compile into a report with critical, significant, and minor categories. Cite specific chapters and passages."
+  }
+}

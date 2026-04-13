@@ -1,0 +1,12 @@
+{
+  "name": "query-letter-review",
+  "version": "1.0.0",
+  "description": "User-triggered hook to run the full query letter and synopsis checklist — mechanical quality, pitch effectiveness, comp title currency, and consistency with the manuscript.",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Run the query letter / synopsis review checklist on the current document: Mechanical (spelling, grammar, word count within submission guidelines), Pitch Quality (hook in first sentence, protagonist/goal/ conflict/stakes all present, voice matches manuscript register, comp titles current within 3-5 years and accurately comparable), Consistency (character names match manuscript, plot summary reflects actual events, stated genre/word count/age category match). Cite specific passages for each issue."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "mystery-session-bookkeeping",
+  "version": "1.0.0",
+  "description": "After a drafting task completes, update the clue and suspect bibles, advance the revelation sequence tracker, evaluate investigation pacing, and produce a mystery-specific session summary.",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The drafting task is complete. Perform mystery-specific bookkeeping:\nUPDATE BIBLES: Review content written this session. Update the clue bible with any clues planted (noting chapter, visibility, planting method). Update the suspect bible with any eliminations, alibi changes, or suspicion level shifts. Advance the revelation sequence tracker to reflect the reader's current knowledge state.\nINVESTIGATION PACING: Does every chapter written this session advance the case with new information? Do tension beats alternate appropriately? Are dead ends brief? Is the false-solution beat on track for the midpoint?\nGENRE SUMMARY: Note any fair-play issues flagged, any suspect plausibility concerns, any clue bible discrepancies, and the current position in the revelation sequence. If series, note any case registry or returning character updates needed. This supplements the Novelist power's general session bookkeeping."
+  }
+}

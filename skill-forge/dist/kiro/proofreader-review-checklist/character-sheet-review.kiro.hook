@@ -1,0 +1,12 @@
+{
+  "name": "character-sheet-review",
+  "version": "1.0.0",
+  "description": "User-triggered hook to run the character sheet and world-building document checklist — field completeness, internal contradictions, reciprocal relationships, and consistency with the manuscript.",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Run the character sheet / world-building review checklist on the current document: Completeness (all required fields filled, gaps flagged for the author), Internal Consistency (no contradictions — age vs. birth year, unique details not duplicated across characters, relationships reciprocal where expected), Manuscript Consistency (details match what has appeared in chapters so far, discrepancies flagged for the author to decide which is canonical). Do not silently resolve conflicts — flag them."
+  }
+}

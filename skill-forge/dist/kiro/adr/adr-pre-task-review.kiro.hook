@@ -1,0 +1,12 @@
+{
+  "name": "ADR Pre-Task Review",
+  "version": "1.0.0",
+  "description": "Before starting a spec task, lists any existing ADRs so the agent can consider prior architectural decisions.",
+  "when": {
+    "type": "preTaskExecution"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "bash -c 'for d in docs/adr docs/decisions docs/architecture/decisions; do if [ -d \"$d\" ]; then echo \"Existing ADRs in $d/:\"; ls \"$d\"/*.md 2>/dev/null; exit 0; fi; done'"
+  }
+}

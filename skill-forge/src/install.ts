@@ -8,6 +8,7 @@ import { SUPPORTED_HARNESSES } from "./schemas";
 import { generateCatalog } from "./catalog";
 import { loadForgeConfig, resolveBackendConfigs } from "./config";
 import { resolveBackend } from "./backends/index";
+import { GlobalCache } from "./guild/global-cache";
 
 export interface InstallOptions {
   artifactName?: string;
@@ -224,6 +225,81 @@ export async function installCommand(
   options?: Record<string, unknown>,
 ): Promise<void> {
   const opts = options || {};
+
+  // --- Global install path: route to GlobalCache ---
+  if (opts.global) {
+    if (!artifact) {
+      console.error(chalk.red("Error: Artifact name is required for global install."));
+      process.exit(1);
+    }
+
+    const config = await loadForgeConfig();
+    const backendConfigs = resolveBackendConfigs(config);
+
+    const backendName = (opts.backend as string | undefined) ?? "github";
+    const backendConfig = backendConfigs.get(backendName);
+    if (!backendConfig) {
+      const available = [...backendConfigs.keys()].join(", ");
+      console.error(chalk.red(`Unknown backend "${backendName}". Available backends: ${available}`));
+      process.exit(1);
+    }
+
+    const fromRelease = opts.fromRelease as string | undefined;
+    const backend = resolveBackend(backendConfig, fromRelease);
+    const cache = new GlobalCache();
+
+    // Determine version: use --from-release tag, or fetch latest from backend
+    let version: string;
+    if (fromRelease) {
+      version = fromRelease;
+    } else {
+      try {
+        const versions = await backend.listVersions();
+        if (versions.length === 0) {
+          console.error(chalk.red(`No versions available for "${artifact}" from backend "${backend.label}".`));
+          process.exit(1);
+        }
+        // Pick the latest (last) version from the sorted list
+        version = versions[versions.length - 1];
+      } catch (err: unknown) {
+        const reason = err instanceof Error ? err.message : String(err);
+        console.error(chalk.red(`Error: Failed to reach backend "${backend.label}": ${reason}`));
+        process.exit(1);
+      }
+    }
+
+    // Skip if same version already cached (Req 1.4)
+    if (await cache.has(artifact, version)) {
+      console.error(chalk.yellow(`"${artifact}" v${version} is already cached. Skipping installation.`));
+      return;
+    }
+
+    // Fetch and store each harness into the global cache (Req 1.1, 1.5, 1.6)
+    const targetHarnesses: HarnessName[] = opts.harness
+      ? [opts.harness as HarnessName]
+      : [...SUPPORTED_HARNESSES];
+
+    let storedCount = 0;
+    for (const h of targetHarnesses) {
+      try {
+        const tempDir = await backend.fetchArtifact(artifact, h, version);
+        await cache.store(artifact, version, h, tempDir, backend.label);
+        console.error(`  ${chalk.green("✓")} ${artifact}@${version} → ${h} (global cache)`);
+        storedCount++;
+      } catch (err: unknown) {
+        const reason = err instanceof Error ? err.message : String(err);
+        console.error(chalk.yellow(`  Skipping ${h}: ${reason}`));
+      }
+    }
+
+    if (storedCount > 0) {
+      console.error(chalk.green(`\n✓ Globally installed "${artifact}" v${version} for ${storedCount} harness(es).`));
+    } else {
+      console.error(chalk.red(`Error: Failed to install any harness for "${artifact}" from backend "${backend.label}".`));
+      process.exit(1);
+    }
+    return;
+  }
 
   // Resolve backend if --backend or --from-release is specified
   const backendName = opts.backend as string | undefined;

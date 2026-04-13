@@ -1,0 +1,12 @@
+{
+  "name": "launch-week-metrics-summary",
+  "version": "1.0.0",
+  "description": "After a launch execution task completes, compile launch week metrics — sales data, media placements, social media impressions, event attendance, and qualitative observations — into the standard tracking format.",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The launch execution task is complete. Compile launch week metrics: Sales (day 1, week 1, Amazon rank, bestseller placement if any), Media (placements count and list, podcast episodes, reviews published), Social Media (impressions, engagement rate, new followers, newsletter signups), Events (attendance, books sold). Add qualitative notes: what worked best, what underperformed, unexpected wins, and adjustments for the post-launch push."
+  }
+}

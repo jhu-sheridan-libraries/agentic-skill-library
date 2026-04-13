@@ -1,0 +1,15 @@
+{
+  "name": "edit-preserves-style-gate",
+  "version": "1.0.0",
+  "description": "Before the agent writes edits to a prose document, verify that corrections distinguish mechanical errors (fix directly) from stylistic choices (flag with a note), and that no lore or continuity details are silently changed.",
+  "when": {
+    "type": "preToolUse",
+    "toolTypes": [
+      "write"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Before writing these edits, verify: (1) Are mechanical errors (spelling, grammar, punctuation) being corrected directly? (2) Are stylistic choices being flagged with a note rather than silently changed? (3) Are continuity or lore details left for the author's decision rather than auto-corrected? (4) Is the author's voice preserved — no over-editing that sands away personality? (5) Are ambiguous cases (possible error vs. intentional choice) marked as questions rather than corrections? Adjust the edits if any of these principles are violated."
+  }
+}

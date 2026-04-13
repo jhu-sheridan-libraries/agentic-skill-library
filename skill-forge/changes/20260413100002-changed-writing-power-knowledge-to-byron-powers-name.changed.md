@@ -1,0 +1,1 @@
+Changed writing-related power knowledge (novelist, technical-author, proofreader-review-checklist, book-agent-publicist, scifi-novelist, fantasy-novelist, mystery-series-novelist, series-continuity) to live under `knowledge/byron-powers/` namespace with new hooks and workflow content

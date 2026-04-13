@@ -1,0 +1,12 @@
+{
+  "name": "subgenre-contract-check",
+  "version": "1.0.0",
+  "description": "User-triggered evaluation against the declared mystery subgenre's reader contract.",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Check the manuscript against the declared mystery subgenre's reader contract. Verify core expectations, fair-play strictness, trope handling, series conventions, and comp title alignment. Report with specific passages."
+  }
+}

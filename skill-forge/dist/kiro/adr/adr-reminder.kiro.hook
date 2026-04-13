@@ -1,0 +1,12 @@
+{
+  "name": "ADR Reminder",
+  "version": "1.0.0",
+  "description": "When an agent session ends, checks git diff for changes to architectural file types and reminds you to create an ADR if any are detected.",
+  "when": {
+    "type": "agentStop"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "bash -c 'DIFF=$(git diff --stat HEAD 2>/dev/null); if echo \"$DIFF\" | grep -qiE \"\\.(ts|json|yaml|yml|njk)|schema|config|module|adapter\"; then echo \"ADR reminder: architectural changes detected this session. Consider creating an ADR to capture any decisions worth documenting.\"; fi'"
+  }
+}

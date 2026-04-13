@@ -1,0 +1,169 @@
+# Canonical hooks for scifi-novelist
+# Events: file_edited, file_created, file_deleted,
+# agent_stop, prompt_submit, pre_tool_use, post_tool_use, pre_task, post_task, user_triggered
+#
+# THREE-PHASE WRITING DISCIPLINE (genre layer — complements Novelist's base discipline)
+# Phase 1 (pre_task): Load genre-specific bibles and context
+# Phase 2 (pre_tool_use + file_edited): Validate against genre rules
+# Phase 3 (post_task): Update genre bibles, produce genre-specific summary
+
+# ============================================================
+# PHASE 1: PRE-TASK — Load SF-specific context
+# ============================================================
+
+- name: sf-context-loader
+  description: >-
+    Before a drafting task begins, load all SF-specific context: technology
+    bible entries relevant to this chapter, species bible entries for
+    non-human characters, the hardness rating, and any subgenre-specific
+    constraints.
+  event: pre_task
+  action:
+    type: ask_agent
+    prompt: >-
+      A drafting task is about to begin. Load SF-specific context:
+      (1) Technology bible — which technologies are relevant to this
+      chapter? What are their constraints, costs, and failure modes?
+      (2) Species bible — are any non-human characters present? Load
+      their biology, cognition, and communication profiles. (3) Hardness
+      rating — confirm the calibration level for science validation.
+      (4) Subgenre constraints — what does the declared subgenre expect
+      from this type of scene? (5) Extrapolation chains — are there
+      second-order consequences of technologies in this chapter that
+      should be reflected? Summarize briefly. This supplements the
+      Novelist power's general context loading.
+
+# ============================================================
+# PHASE 2: DURING DRAFTING — Genre-specific validation
+# ============================================================
+
+- name: novum-justification-gate
+  description: >-
+    Before the agent writes content introducing a new speculative element,
+    verify it has a story purpose, constraints, and an extrapolation chain.
+  event: pre_tool_use
+  condition:
+    tool_types:
+      - write
+  action:
+    type: ask_agent
+    prompt: >-
+      Before writing this content, check if it introduces any new
+      speculative element (technology, species, phenomenon). If so, verify:
+      (1) What story problem does this element solve or create? (2) What
+      are its constraints — what can it NOT do? (3) What is the
+      extrapolation chain — at least two steps from technology to story
+      implication? If undefined, pause and define before writing.
+
+- name: technology-bible-compliance-on-save
+  description: >-
+    When a manuscript file is saved, check all technology usage against
+    the technology bible.
+  event: file_edited
+  condition:
+    file_patterns:
+      - "**/chapters/**"
+      - "**/manuscript/**"
+      - "**/draft/**"
+      - "**/scenes/**"
+  action:
+    type: ask_agent
+    prompt: >-
+      A manuscript file was just saved. Cross-reference every technology
+      use against the technology bible. Flag constraint violations, unpaid
+      costs, and mechanism inconsistencies. Calibrate severity to the
+      project's hardness rating. Report specific passages.
+
+- name: species-behavior-compliance-on-save
+  description: >-
+    When a manuscript file is saved, check non-human character behavior
+    against the species bible.
+  event: file_edited
+  condition:
+    file_patterns:
+      - "**/chapters/**"
+      - "**/manuscript/**"
+      - "**/draft/**"
+      - "**/scenes/**"
+  action:
+    type: ask_agent
+    prompt: >-
+      A manuscript file was just saved. Check every non-human character
+      action against the species bible. Distinguish intentional individual
+      variation from species-level inconsistency. Watch for communication
+      modality violations, sensory contradictions, and cultural behavior
+      inconsistencies. Report specific passages.
+
+- name: exposition-density-on-save
+  description: >-
+    When a manuscript file is saved, scan for unanchored exposition and
+    "as you know Bob" dialogue.
+  event: file_edited
+  condition:
+    file_patterns:
+      - "**/chapters/**"
+      - "**/manuscript/**"
+      - "**/draft/**"
+      - "**/scenes/**"
+  action:
+    type: ask_agent
+    prompt: >-
+      A manuscript file was just saved. Scan for exposition management:
+      (1) Flag exposition blocks longer than ~150 words not anchored to
+      character action. (2) Flag "as you know, Bob" dialogue. (3) Flag
+      technology descriptions that lead with mechanism rather than story
+      function. Suggest anchoring strategies.
+
+# ============================================================
+# PHASE 3: POST-TASK — Genre-specific bookkeeping
+# ============================================================
+
+- name: sf-session-bookkeeping
+  description: >-
+    After a drafting task completes, update the technology and species
+    bibles with new facts, note any violations discovered, and produce
+    a genre-specific session summary.
+  event: post_task
+  action:
+    type: ask_agent
+    prompt: >-
+      The drafting task is complete. Perform SF-specific bookkeeping:
+
+      UPDATE BIBLES: Review content written this session. Update the
+      technology bible with any new technology uses, constraint
+      clarifications, or extrapolation chain extensions. Update the
+      species bible with any new behavioral or cultural details.
+
+      GENRE SUMMARY: Note any technology constraint violations flagged,
+      any species behavior inconsistencies, any exposition density issues,
+      and any new speculative elements introduced that need bible entries.
+      This supplements the Novelist power's general session bookkeeping.
+
+# ============================================================
+# USER-TRIGGERED — On-demand audits
+# ============================================================
+
+- name: full-science-consistency-review
+  description: >-
+    User-triggered complete six-pass science consistency validation.
+  event: user_triggered
+  action:
+    type: ask_agent
+    prompt: >-
+      Run the full science consistency validation: (1) Technology bible
+      compliance, (2) Species bible compliance, (3) Physics validation
+      calibrated to hardness, (4) Extrapolation gap analysis, (5)
+      Exposition density scan, (6) Subgenre contract check. Compile into
+      the Science Consistency Report template.
+
+- name: subgenre-contract-check
+  description: >-
+    User-triggered evaluation against the declared subgenre's reader
+    contract.
+  event: user_triggered
+  action:
+    type: ask_agent
+    prompt: >-
+      Check the manuscript against the declared subgenre's reader contract.
+      Verify core expectations, trope handling, comp title alignment, and
+      deliberate subversion signaling. Report with specific passages.

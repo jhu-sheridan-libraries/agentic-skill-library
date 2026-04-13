@@ -1,0 +1,12 @@
+{
+  "name": "proposal-review",
+  "version": "1.0.0",
+  "description": "User-triggered hook to run the book proposal checklist — required sections present, market accuracy, comp title quality, audience specificity, and internal consistency between overview and outline.",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Run the book proposal review checklist on the current document: Mechanical (spelling, grammar, all required sections present — overview, audience, competitive analysis, TOC, author bio, sample chapter), Market Accuracy (comp titles current and appropriately scoped, audience definition specific and credible, market data recent and sourced), Internal Consistency (chapter summaries align with TOC, author bio claims verifiable, scope in overview matches detailed outline). Flag any over-promising or unsupported claims."
+  }
+}

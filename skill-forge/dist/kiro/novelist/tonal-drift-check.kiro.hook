@@ -1,0 +1,12 @@
+{
+  "name": "tonal-drift-check",
+  "version": "1.0.0",
+  "description": "User-triggered hook to run a tonal consistency spot-check on the current file against the project's Fiction Seed.",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Run a tonal consistency spot-check on the current file. Compare the prose against the project's Fiction Seed (if one exists) or the established style guide. Check sentence length patterns, vocabulary register, figurative language density, emotional distance, and overall rhythm. Flag any passages where the voice drifts and classify the drift type (gradual formalization, tonal contamination, scene-type drift, or revision scarring)."
+  }
+}

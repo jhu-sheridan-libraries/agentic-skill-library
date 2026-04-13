@@ -1,0 +1,15 @@
+{
+  "name": "information-leak-gate",
+  "version": "1.0.0",
+  "description": "Before the agent writes dialogue or internal monologue, verify no character references information they have not yet acquired.",
+  "when": {
+    "type": "preToolUse",
+    "toolTypes": [
+      "write"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Before writing this content, check if any character references, acts on, or reacts to information they should not yet know per the information state tracking. Verify: (1) Has this character acquired every piece of information they reference? (2) Does this content accidentally reveal something the reader shouldn't know yet? (3) If dramatic irony is intended, does the scene exploit the tension? Flag any information leaks before writing."
+  }
+}

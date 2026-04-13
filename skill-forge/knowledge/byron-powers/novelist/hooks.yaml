@@ -1,0 +1,229 @@
+# Canonical hooks for novelist
+# Events: file_edited, file_created, file_deleted,
+# agent_stop, prompt_submit, pre_tool_use, post_tool_use, pre_task, post_task, user_triggered
+#
+# THREE-PHASE WRITING DISCIPLINE
+# Phase 1 (pre_task): Load context, review bibles, check the outline
+# Phase 2 (pre_tool_use + file_edited): Validate content against all rules
+# Phase 3 (post_task): Update tracking documents, produce summary, set up next session
+
+# ============================================================
+# PHASE 1: PRE-TASK — Preparation before drafting begins
+# ============================================================
+
+- name: drafting-context-loader
+  description: >-
+    Before a drafting task begins, load all relevant context: the chapter's
+    position in the outline, the POV character's profile and Fiction Seed,
+    the current continuity state, character whereabouts, open plot threads,
+    and any genre-specific bibles (magic, clue, technology) that apply to
+    this chapter's content.
+  event: pre_task
+  action:
+    type: ask_agent
+    prompt: >-
+      A drafting task is about to begin. Before writing, load and review:
+      (1) The outline entry for this chapter — its purpose, key beats, and
+      position in the story arc. (2) The POV character's profile — current
+      emotional state, knowledge state, and relationships. (3) The Fiction
+      Seed or style guide for this POV character or scene type. (4) The
+      continuity log — where are all significant characters right now? What
+      does the reader know at this point? What plot threads are active?
+      (5) Any genre-specific bibles relevant to this chapter (magic system,
+      technology, clue chain, species). Summarize the loaded context briefly
+      so the author can confirm or adjust before drafting starts.
+
+# ============================================================
+# PHASE 2: DURING DRAFTING — Validation on every write and save
+# ============================================================
+
+# --- Pre-write validation (fires before every write operation) ---
+
+- name: prose-quality-gate
+  description: >-
+    Before the agent writes manuscript content, validate against all
+    applicable rules: scene purpose, POV consistency, Fiction Seed voice
+    match, information integrity (no character knowledge leaks), exposition
+    density, and any genre-specific constraints from active bibles.
+  event: pre_tool_use
+  condition:
+    tool_types:
+      - write
+  action:
+    type: ask_agent
+    prompt: >-
+      Before writing this manuscript content, run the pre-write checklist:
+      (1) Scene purpose — does this content advance the scene's stated
+      purpose from the outline? (2) POV integrity — is the perspective
+      consistent? No head-hopping, no information the POV character lacks.
+      (3) Voice match — does the prose style match the loaded Fiction Seed
+      or style guide? Check sentence length, vocabulary register, emotional
+      distance. (4) Exposition check — is any exposition block longer than
+      ~150 words without being anchored to character action? (5) Genre
+      rules — does this content comply with all active bibles (magic costs
+      paid, clues planted fairly, technology constraints respected, species
+      behavior consistent)? Flag issues before writing. Do not block the
+      write for minor style concerns — only flag critical rule violations.
+
+# --- Post-save validation (fires when the author saves a file) ---
+
+- name: continuity-check-on-save
+  description: >-
+    When a manuscript file is saved, scan for continuity issues — character
+    details, timeline logic, setting consistency, character whereabouts
+    plausibility, and information state integrity.
+  event: file_edited
+  condition:
+    file_patterns:
+      - "*.md"
+      - "*.txt"
+      - "**/chapters/**"
+      - "**/manuscript/**"
+      - "**/draft/**"
+      - "**/scenes/**"
+  action:
+    type: ask_agent
+    prompt: >-
+      A manuscript file was just saved. Scan for continuity issues:
+      (1) Character details — do descriptions, names, and traits match
+      established records? (2) Timeline — do time references follow
+      logically from the previous scene? (3) Setting — do location
+      descriptions match previous descriptions? (4) Whereabouts — could
+      every character present in this scene plausibly be here given their
+      last known location? (5) Information state — does any character
+      reference knowledge they have not yet acquired? Classify issues by
+      severity (critical, significant, minor). Flag but don't rewrite.
+
+# --- Scaffolding for new files ---
+
+- name: new-chapter-scaffold
+  description: >-
+    When a new file is created in a manuscript directory, offer a scene
+    scaffold with planning prompts and suggest loading the appropriate
+    Fiction Seed and outline context.
+  event: file_created
+  condition:
+    file_patterns:
+      - "**/chapters/**"
+      - "**/manuscript/**"
+      - "**/scenes/**"
+      - "**/draft/**"
+  action:
+    type: ask_agent
+    prompt: >-
+      A new manuscript file was just created. Offer the author: (1) A scene
+      scaffold — Purpose, POV Character, Character Goal, Conflict, Expected
+      Outcome, Entry Point (enter late), Exit Point (leave early). (2) The
+      relevant outline entry for this chapter position. (3) The recommended
+      Fiction Seed based on the POV character and scene type. (4) A summary
+      of where all significant characters are at this point in the story.
+      Present as a template the author can fill in, adjust, or skip.
+
+# ============================================================
+# PHASE 3: POST-TASK — Bookkeeping after drafting completes
+# ============================================================
+
+- name: session-bookkeeping
+  description: >-
+    After a drafting task completes, perform three post-session duties:
+    update the continuity log with new facts established in this session,
+    produce a session summary, and set up context notes for the next
+    session.
+  event: post_task
+  action:
+    type: ask_agent
+    prompt: >-
+      The drafting task is complete. Perform post-session bookkeeping:
+
+      PART 1 — UPDATE TRACKING DOCUMENTS:
+      Review everything written in this session and update the continuity
+      log: new character details established, timeline markers, setting
+      facts, plot threads introduced or advanced, character whereabouts at
+      scene boundaries, information revealed to characters or the reader.
+      If a Fiction Seed was used, note any voice drift observed. List what
+      was added or updated.
+
+      PART 2 — SESSION SUMMARY:
+      Produce a brief summary: total new words written, scenes or chapters
+      completed, which Fiction Seed was used, open plot threads, any
+      continuity issues flagged during drafting, and known items to address
+      in revision.
+
+      PART 3 — NEXT SESSION SETUP:
+      Note what the next drafting session should start with: which chapter
+      or scene is next in the outline, which POV character, which Fiction
+      Seed to load, any unresolved issues from this session that need
+      attention first, and where all significant characters are at the end
+      of this session.
+
+# ============================================================
+# PROFESSIONAL TRACK — Diagnostics and revision
+# ============================================================
+
+- name: diagnostic-report-on-completion
+  description: >-
+    After a manuscript diagnostics task finishes, compile findings into the
+    standard Diagnostic Report Template with critical, significant, and
+    minor issues plus a revision priority order.
+  event: post_task
+  action:
+    type: ask_agent
+    prompt: >-
+      The diagnostics task is complete. Compile all findings into a
+      Diagnostic Report using the standard template: Critical Issues (fix
+      first), Significant Issues (fix in revision), Minor Issues (fix in
+      polish), Strengths (preserve in revision), and a numbered Revision
+      Priority Order. Include the project title, date, draft number, and
+      word count at the top.
+
+# ============================================================
+# USER-TRIGGERED — On-demand audits and tools
+# ============================================================
+
+- name: tonal-drift-check
+  description: >-
+    User-triggered hook to run a tonal consistency spot-check on the current
+    file against the project's Fiction Seed.
+  event: user_triggered
+  action:
+    type: ask_agent
+    prompt: >-
+      Run a tonal consistency spot-check on the current file. Compare the
+      prose against the project's Fiction Seed (if one exists) or the
+      established style guide. Check sentence length patterns, vocabulary
+      register, figurative language density, emotional distance, and overall
+      rhythm. Flag any passages where the voice drifts and classify the
+      drift type (gradual formalization, tonal contamination, scene-type
+      drift, or revision scarring).
+
+- name: word-count-tracker
+  description: >-
+    User-triggered hook to tally the current word count across all
+    manuscript files and report progress against the author's target.
+  event: user_triggered
+  action:
+    type: ask_agent
+    prompt: >-
+      Count the total words across all manuscript, chapter, and scene files
+      in the project. Report the current total, the per-file breakdown, and
+      — if the author has stated a word count target — progress toward that
+      goal with an estimated completion timeline based on recent output.
+
+- name: full-continuity-audit
+  description: >-
+    User-triggered hook to run a comprehensive continuity audit across the
+    full manuscript — character consistency, timeline integrity, setting
+    facts, plot thread status, information state, and whereabouts
+    plausibility.
+  event: user_triggered
+  action:
+    type: ask_agent
+    prompt: >-
+      Run a full continuity audit across the manuscript. Check: character
+      detail consistency across all chapters, timeline integrity (no
+      impossible sequences or travel times), setting fact consistency,
+      plot thread status (open, resolved, dormant — flag any dormant for
+      4+ chapters), information state (any leaks where characters know
+      things they shouldn't), and character whereabouts plausibility.
+      Compile into a report with critical, significant, and minor
+      categories. Cite specific chapters and passages.

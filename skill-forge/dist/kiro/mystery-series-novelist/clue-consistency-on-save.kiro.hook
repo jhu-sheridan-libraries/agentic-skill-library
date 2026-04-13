@@ -1,0 +1,18 @@
+{
+  "name": "clue-consistency-on-save",
+  "version": "1.0.0",
+  "description": "When a manuscript file is saved, cross-reference clues and evidence against the clue bible.",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/chapters/**",
+      "**/manuscript/**",
+      "**/draft/**",
+      "**/scenes/**"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A manuscript file was just saved. Cross-reference clues against the clue bible: (1) Does every clue match its bible entry? (2) Are red herrings factually true? (3) Does any solution element appear without prior planting? (4) Is the revelation sequence consistent? Flag discrepancies with specific passages."
+  }
+}

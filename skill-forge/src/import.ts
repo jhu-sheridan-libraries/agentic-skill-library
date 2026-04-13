@@ -89,6 +89,7 @@ async function importKiroPower(
     "model-assumptions": [],
     collections: opts.collections ?? [],
     "inherit-hooks": false,
+    "harness-config": { kiro: { format: "power" } },
   };
 
   const frontmatterYaml = yaml.dump(fm, { lineWidth: -1 });
@@ -229,14 +230,37 @@ async function importOne(
   opts: ImportOptions & { dryRun: boolean; knowledgeDir: string },
 ): Promise<ImportResult> {
   const entries = await readdir(sourceDir);
+
+  // Always verify the expected file exists — even when format is explicitly set.
+  // This prevents crashes on non-artifact directories (e.g. .github, .kiro).
   const detectedFormat = opts.format === "auto" || !opts.format
     ? detectFormat(sourceDir, entries)
     : opts.format;
 
   if (detectedFormat === "kiro-power") {
+    if (!entries.includes("POWER.md")) {
+      return {
+        name: basename(sourceDir),
+        sourcePath: sourceDir,
+        targetPath: "",
+        filesWritten: [],
+        workflowsCopied: 0,
+        skipped: `No POWER.md found in ${sourceDir}`,
+      };
+    }
     return importKiroPower(sourceDir, opts);
   }
   if (detectedFormat === "kiro-skill") {
+    if (!entries.includes("SKILL.md")) {
+      return {
+        name: basename(sourceDir),
+        sourcePath: sourceDir,
+        targetPath: "",
+        filesWritten: [],
+        workflowsCopied: 0,
+        skipped: `No SKILL.md found in ${sourceDir}`,
+      };
+    }
     return importKiroSkill(sourceDir, opts);
   }
 
@@ -282,7 +306,7 @@ export async function importCommand(
     }
     const entries = await readdir(resolved, { withFileTypes: true });
     sources = entries
-      .filter((e) => e.isDirectory())
+      .filter((e) => e.isDirectory() && !e.name.startsWith("."))
       .map((e) => join(resolved, e.name))
       .sort();
   } else {

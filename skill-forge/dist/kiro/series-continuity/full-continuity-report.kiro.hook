@@ -1,0 +1,12 @@
+{
+  "name": "full-continuity-report",
+  "version": "1.0.0",
+  "description": "User-triggered comprehensive continuity audit — within-book and cross-book.",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Produce a full continuity report. Within-book: character detail consistency, timeline integrity, setting facts, whereabouts plausibility, thread status, information state. If series: series bible compliance, recurring character accuracy, cross-book timeline, canon registry, new-reader accessibility. Classify all issues by severity. Use the Continuity Report template."
+  }
+}

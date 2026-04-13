@@ -1,0 +1,28 @@
+Added `hello-world` example power and full `kiro-official` collection knowledge definitions covering 26 powers:
+
+- `arm-soc-migration`
+- `aws-agentcore`
+- `aws-amplify`
+- `aws-devops-agent`
+- `aws-healthomics`
+- `aws-infrastructure-as-code`
+- `aws-mcp`
+- `aws-observability`
+- `aws-sam`
+- `checkout-api-reference`
+- `cloud-architect`
+- `cloudwatch-application-signals`
+- `datadog`
+- `dynatrace`
+- `figma`
+- `gcp-aws-migrate`
+- `graviton-migration-power`
+- `neon`
+- `postman`
+- `power-builder`
+- `saas-builder`
+- `spark-troubleshooting-agent`
+- `stackgen`
+- `strands`
+- `stripe`
+- `terraform`

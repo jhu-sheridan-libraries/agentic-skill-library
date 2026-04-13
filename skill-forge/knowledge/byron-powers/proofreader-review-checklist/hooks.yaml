@@ -1,0 +1,203 @@
+# Canonical hooks for proofreader-review-checklist
+# Events: file_edited, file_created, file_deleted,
+# agent_stop, prompt_submit, pre_tool_use, post_tool_use, pre_task, post_task, user_triggered
+
+# --- Automatic Proofreading Hooks ---
+
+- name: mechanical-check-on-save
+  description: >-
+    When a manuscript, chapter, or prose document is saved, run the
+    mechanical checklist — spelling, grammar, punctuation consistency,
+    stray formatting artifacts, double spaces, and mismatched markup.
+  event: file_edited
+  condition:
+    file_patterns:
+      - "*.md"
+      - "*.txt"
+      - "*.adoc"
+      - "*.asciidoc"
+      - "**/chapters/**"
+      - "**/manuscript/**"
+      - "**/draft/**"
+      - "**/scenes/**"
+  action:
+    type: ask_agent
+    prompt: >-
+      A document was just saved. Run the mechanical proofreading checklist:
+      (1) Spelling, grammar, and punctuation errors. (2) Punctuation style
+      consistency — Oxford comma, em-dash vs. en-dash, curly vs. straight
+      quotes. (3) Stray formatting artifacts — double spaces, broken
+      markdown, mismatched italics or bold. (4) Scene breaks correctly
+      marked. (5) Paragraph breaks appropriate — no walls of text, no
+      excessive fragmentation. Report specific passages with line references
+      where possible. Distinguish mechanical errors from stylistic choices.
+
+- name: voice-consistency-on-save
+  description: >-
+    When a chapter or prose file is saved, check voice and consistency —
+    tense stability, POV maintenance, character/place name spelling, and
+    technical or invented vocabulary usage.
+  event: file_edited
+  condition:
+    file_patterns:
+      - "**/chapters/**"
+      - "**/manuscript/**"
+      - "**/draft/**"
+      - "**/scenes/**"
+  action:
+    type: ask_agent
+    prompt: >-
+      A chapter file was just saved. Run the voice and consistency
+      checklist: (1) Is tense consistent throughout? Flag any unintended
+      shifts. (2) Is POV maintained — any head-hopping in a single-POV
+      chapter? (3) Are character names, place names, and proper nouns
+      spelled consistently? (4) Do technical terms or invented vocabulary
+      match usage in earlier chapters? (5) Is dialogue attribution
+      unambiguous — is it always clear who is speaking? Cite specific
+      passages for each issue found.
+
+- name: continuity-check-on-save
+  description: >-
+    When a chapter file is saved, check continuity against the project's
+    outline, character sheets, and earlier chapters — timeline, character
+    attributes, world-building rules, and chapter boundary alignment.
+  event: file_edited
+  condition:
+    file_patterns:
+      - "**/chapters/**"
+      - "**/manuscript/**"
+      - "**/draft/**"
+      - "**/scenes/**"
+  action:
+    type: ask_agent
+    prompt: >-
+      A chapter file was just saved. Run the continuity checklist:
+      (1) Does the timeline align with the outline and earlier chapters?
+      (2) Do character attributes (appearance, age, relationships, traits)
+      match established character sheets? (3) Are world-building rules
+      respected — no violations of established lore? (4) Is the chapter's
+      end state consistent with where the next chapter begins? Flag
+      discrepancies for the author's decision — do not silently fix lore
+      or continuity details.
+
+# --- Pre-Write Quality Gates ---
+
+- name: edit-preserves-style-gate
+  description: >-
+    Before the agent writes edits to a prose document, verify that
+    corrections distinguish mechanical errors (fix directly) from stylistic
+    choices (flag with a note), and that no lore or continuity details are
+    silently changed.
+  event: pre_tool_use
+  condition:
+    tool_types:
+      - write
+  action:
+    type: ask_agent
+    prompt: >-
+      Before writing these edits, verify: (1) Are mechanical errors
+      (spelling, grammar, punctuation) being corrected directly? (2) Are
+      stylistic choices being flagged with a note rather than silently
+      changed? (3) Are continuity or lore details left for the author's
+      decision rather than auto-corrected? (4) Is the author's voice
+      preserved — no over-editing that sands away personality? (5) Are
+      ambiguous cases (possible error vs. intentional choice) marked as
+      questions rather than corrections? Adjust the edits if any of these
+      principles are violated.
+
+# --- Document-Type-Specific Review Hooks ---
+
+- name: query-letter-review
+  description: >-
+    User-triggered hook to run the full query letter and synopsis checklist —
+    mechanical quality, pitch effectiveness, comp title currency, and
+    consistency with the manuscript.
+  event: user_triggered
+  action:
+    type: ask_agent
+    prompt: >-
+      Run the query letter / synopsis review checklist on the current
+      document: Mechanical (spelling, grammar, word count within submission
+      guidelines), Pitch Quality (hook in first sentence, protagonist/goal/
+      conflict/stakes all present, voice matches manuscript register, comp
+      titles current within 3-5 years and accurately comparable),
+      Consistency (character names match manuscript, plot summary reflects
+      actual events, stated genre/word count/age category match). Cite
+      specific passages for each issue.
+
+- name: outline-review
+  description: >-
+    User-triggered hook to run the outline and beat sheet checklist —
+    completeness of plot points, character arc tracking, timeline
+    plausibility, and formatting consistency.
+  event: user_triggered
+  action:
+    type: ask_agent
+    prompt: >-
+      Run the outline / beat sheet review checklist on the current document:
+      Completeness (all major plot points present, character arcs tracked
+      through each beat, each entry has a stated dramatic purpose),
+      Consistency (character motivations consistent beat to beat, timeline
+      plausible with no impossible travel or time compression, stakes
+      escalate toward climax), Formatting (consistent headings/numbering/
+      indentation, consistent chapter or scene labels, no orphaned beats
+      lacking context). Cite specific entries for each issue.
+
+- name: proposal-review
+  description: >-
+    User-triggered hook to run the book proposal checklist — required
+    sections present, market accuracy, comp title quality, audience
+    specificity, and internal consistency between overview and outline.
+  event: user_triggered
+  action:
+    type: ask_agent
+    prompt: >-
+      Run the book proposal review checklist on the current document:
+      Mechanical (spelling, grammar, all required sections present —
+      overview, audience, competitive analysis, TOC, author bio, sample
+      chapter), Market Accuracy (comp titles current and appropriately
+      scoped, audience definition specific and credible, market data recent
+      and sourced), Internal Consistency (chapter summaries align with TOC,
+      author bio claims verifiable, scope in overview matches detailed
+      outline). Flag any over-promising or unsupported claims.
+
+- name: character-sheet-review
+  description: >-
+    User-triggered hook to run the character sheet and world-building
+    document checklist — field completeness, internal contradictions,
+    reciprocal relationships, and consistency with the manuscript.
+  event: user_triggered
+  action:
+    type: ask_agent
+    prompt: >-
+      Run the character sheet / world-building review checklist on the
+      current document: Completeness (all required fields filled, gaps
+      flagged for the author), Internal Consistency (no contradictions —
+      age vs. birth year, unique details not duplicated across characters,
+      relationships reciprocal where expected), Manuscript Consistency
+      (details match what has appeared in chapters so far, discrepancies
+      flagged for the author to decide which is canonical). Do not silently
+      resolve conflicts — flag them.
+
+# --- Post-Review Summary ---
+
+- name: proofreading-report
+  description: >-
+    After a proofreading or review task completes, compile all findings
+    into a structured report organized by category — mechanical, voice,
+    continuity, clarity, and structure — with severity and specific
+    passage references.
+  event: post_task
+  action:
+    type: ask_agent
+    prompt: >-
+      The proofreading task is complete. Compile all findings into a
+      structured report: Mechanical Errors (spelling, grammar, punctuation,
+      formatting), Voice & Consistency Issues (tense shifts, POV breaks,
+      name inconsistencies), Continuity Flags (timeline, character
+      attributes, world-building violations), Clarity Concerns (ambiguous
+      pronouns, unclear transitions, attribution issues), and Structural
+      Notes (scene breaks, chapter hooks, paragraph balance). For each
+      item cite the specific passage, classify severity (error vs. concern
+      vs. question for the author), and note whether it was corrected or
+      flagged for review.

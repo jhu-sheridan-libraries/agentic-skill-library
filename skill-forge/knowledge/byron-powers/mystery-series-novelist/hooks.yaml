@@ -1,0 +1,180 @@
+# Canonical hooks for mystery-series-novelist
+# Events: file_edited, file_created, file_deleted,
+# agent_stop, prompt_submit, pre_tool_use, post_tool_use, pre_task, post_task, user_triggered
+#
+# THREE-PHASE WRITING DISCIPLINE (genre layer — complements Novelist's base discipline)
+# Phase 1 (pre_task): Load mystery-specific bibles and context
+# Phase 2 (pre_tool_use + file_edited): Validate against mystery rules
+# Phase 3 (post_task): Update mystery bibles, produce genre-specific summary
+
+# ============================================================
+# PHASE 1: PRE-TASK — Load mystery-specific context
+# ============================================================
+
+- name: mystery-context-loader
+  description: >-
+    Before a drafting task begins, load all mystery-specific context: the
+    clue bible state, suspect bible with current elimination status, the
+    revelation sequence position, the investigation beat sequence, and
+    fair-play calibration for the declared subgenre.
+  event: pre_task
+  action:
+    type: ask_agent
+    prompt: >-
+      A drafting task is about to begin. Load mystery-specific context:
+      (1) Clue bible — which clues should be planted in this chapter per
+      the revelation sequence? What visibility level? (2) Suspect bible —
+      which suspects are still active? What is each suspect's current
+      plausibility state (means, motive, opportunity)? (3) Investigation
+      sequence — what is the next investigative beat? What should the
+      protagonist learn or pursue? (4) Fair-play calibration — what
+      strictness level applies for the declared subgenre? (5) If series —
+      load the case registry and any returning suspect/witness profiles.
+      Summarize briefly. This supplements the Novelist power's general
+      context loading.
+
+# ============================================================
+# PHASE 2: DURING DRAFTING — Mystery-specific validation
+# ============================================================
+
+- name: fair-play-gate
+  description: >-
+    Before the agent writes a solution reveal or confrontation scene,
+    run the full fair-play validation.
+  event: pre_tool_use
+  condition:
+    tool_types:
+      - write
+  action:
+    type: ask_agent
+    prompt: >-
+      Before writing this content, check if it contains a solution reveal,
+      confrontation with the culprit, or gathering scene. If so, run
+      fair-play validation: (1) Is every solution element traceable to a
+      planted clue? (2) Has every clue appeared before this scene? (3) Is
+      every red herring resolved? (4) Is the solution the only conclusion
+      consistent with all genuine clues? (5) Is strictness appropriate to
+      the subgenre? Flag failures before writing.
+
+- name: clue-consistency-on-save
+  description: >-
+    When a manuscript file is saved, cross-reference clues and evidence
+    against the clue bible.
+  event: file_edited
+  condition:
+    file_patterns:
+      - "**/chapters/**"
+      - "**/manuscript/**"
+      - "**/draft/**"
+      - "**/scenes/**"
+  action:
+    type: ask_agent
+    prompt: >-
+      A manuscript file was just saved. Cross-reference clues against the
+      clue bible: (1) Does every clue match its bible entry? (2) Are red
+      herrings factually true? (3) Does any solution element appear without
+      prior planting? (4) Is the revelation sequence consistent? Flag
+      discrepancies with specific passages.
+
+- name: suspect-plausibility-on-save
+  description: >-
+    When a manuscript file is saved, verify active suspects remain
+    plausible.
+  event: file_edited
+  condition:
+    file_patterns:
+      - "**/chapters/**"
+      - "**/manuscript/**"
+      - "**/draft/**"
+      - "**/scenes/**"
+  action:
+    type: ask_agent
+    prompt: >-
+      A manuscript file was just saved. Check suspect plausibility: (1) Do
+      non-eliminated suspects still have intact means, motive, opportunity?
+      (2) Are eliminations based on evidence the reader has? (3) Is the
+      culprit's suspicion level appropriate? (4) Any suspect acting
+      inconsistently with their profile? Flag with specific passages.
+
+- name: mystery-series-continuity-on-save
+  description: >-
+    When a manuscript file is saved, check mystery-specific series
+    continuity. General continuity handled by Series Continuity power.
+  event: file_edited
+  condition:
+    file_patterns:
+      - "**/chapters/**"
+      - "**/manuscript/**"
+      - "**/draft/**"
+      - "**/scenes/**"
+  action:
+    type: ask_agent
+    prompt: >-
+      A manuscript file was just saved. Check mystery-specific series
+      continuity: (1) Are previous case references accurate per the case
+      registry? (2) Do returning suspects/witnesses behave consistently?
+      (3) Does the protagonist demonstrate investigative growth? (4) Are
+      series-level mystery clues still consistent? Flag mystery-specific
+      issues only.
+
+# ============================================================
+# PHASE 3: POST-TASK — Mystery-specific bookkeeping
+# ============================================================
+
+- name: mystery-session-bookkeeping
+  description: >-
+    After a drafting task completes, update the clue and suspect bibles,
+    advance the revelation sequence tracker, evaluate investigation
+    pacing, and produce a mystery-specific session summary.
+  event: post_task
+  action:
+    type: ask_agent
+    prompt: >-
+      The drafting task is complete. Perform mystery-specific bookkeeping:
+
+      UPDATE BIBLES: Review content written this session. Update the clue
+      bible with any clues planted (noting chapter, visibility, planting
+      method). Update the suspect bible with any eliminations, alibi
+      changes, or suspicion level shifts. Advance the revelation sequence
+      tracker to reflect the reader's current knowledge state.
+
+      INVESTIGATION PACING: Does every chapter written this session
+      advance the case with new information? Do tension beats alternate
+      appropriately? Are dead ends brief? Is the false-solution beat on
+      track for the midpoint?
+
+      GENRE SUMMARY: Note any fair-play issues flagged, any suspect
+      plausibility concerns, any clue bible discrepancies, and the current
+      position in the revelation sequence. If series, note any case
+      registry or returning character updates needed. This supplements
+      the Novelist power's general session bookkeeping.
+
+# ============================================================
+# USER-TRIGGERED — On-demand audits
+# ============================================================
+
+- name: full-fair-play-audit
+  description: >-
+    User-triggered complete fair-play validation across the full manuscript.
+  event: user_triggered
+  action:
+    type: ask_agent
+    prompt: >-
+      Run the complete fair-play audit. For each solution element, trace
+      to its planted clue. For each red herring, verify factual truth and
+      resolution. For each elimination, verify evidence basis. Verify
+      solution uniqueness. Apply subgenre-appropriate strictness. Compile
+      with specific chapter and passage references.
+
+- name: subgenre-contract-check
+  description: >-
+    User-triggered evaluation against the declared mystery subgenre's
+    reader contract.
+  event: user_triggered
+  action:
+    type: ask_agent
+    prompt: >-
+      Check the manuscript against the declared mystery subgenre's reader
+      contract. Verify core expectations, fair-play strictness, trope
+      handling, series conventions, and comp title alignment. Report with
+      specific passages.

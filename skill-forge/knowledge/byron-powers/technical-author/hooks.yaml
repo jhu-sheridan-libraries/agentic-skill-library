@@ -1,0 +1,177 @@
+# Canonical hooks for technical-author
+# Events: file_edited, file_created, file_deleted,
+# agent_stop, prompt_submit, pre_tool_use, post_tool_use, pre_task, post_task, user_triggered
+#
+# THREE-PHASE WRITING DISCIPLINE (technical book variant)
+# Phase 1 (pre_task): Load chapter brief, running example state, code strategy
+# Phase 2 (pre_tool_use + file_edited + file_created): Validate content quality
+# Phase 3 (post_task): Update tracking, produce session summary
+
+# ============================================================
+# PHASE 1: PRE-TASK — Load technical writing context
+# ============================================================
+
+- name: technical-context-loader
+  description: >-
+    Before a chapter drafting task begins, load the chapter brief, the
+    running example's current state, the code strategy, the dependency
+    graph showing what the reader knows at this point, and any review
+    feedback that applies to this chapter.
+  event: pre_task
+  action:
+    type: ask_agent
+    prompt: >-
+      A chapter drafting task is about to begin. Load technical context:
+      (1) Chapter brief — learning objectives, prerequisites, key concepts,
+      code examples needed, figures needed, section outline. (2) Running
+      example state — what has the reader built so far? What gets added in
+      this chapter? (3) Code strategy — language version, completeness
+      level, listing numbering sequence. (4) Dependency graph — what
+      concepts has the reader learned in previous chapters? What can be
+      assumed? (5) Review feedback — any outstanding feedback from
+      technical reviewers that applies to this chapter? Summarize briefly
+      so the author can confirm before drafting.
+
+# ============================================================
+# PHASE 2: DURING DRAFTING — Technical content validation
+# ============================================================
+
+- name: code-listing-validation-gate
+  description: >-
+    Before the agent writes content containing code listings, verify
+    listing standards: numbering, titles, callouts, length, imports,
+    and copy-paste runnability.
+  event: pre_tool_use
+  condition:
+    tool_types:
+      - write
+  action:
+    type: ask_agent
+    prompt: >-
+      Before writing this content, check any code listings: (1) Sequential
+      number and descriptive title? (2) Callout markers where needed?
+      (3) Under 30 lines — split if longer? (4) Necessary imports shown?
+      (5) Could a reader copy-paste and run it? Also check: does the
+      prose-code balance alternate appropriately? Is any explanation
+      longer than ~1000 words without a code example? Flag issues before
+      writing.
+
+- name: prose-code-balance-check
+  description: >-
+    After a chapter file is saved, scan for prose-code balance and
+    cross-reference integrity.
+  event: file_edited
+  condition:
+    file_patterns:
+      - "*.md"
+      - "*.adoc"
+      - "*.asciidoc"
+      - "**/chapters/**"
+      - "**/manuscript/**"
+  action:
+    type: ask_agent
+    prompt: >-
+      A chapter file was just saved. Check: (1) Prose-code balance — flag
+      stretches of ~1000+ words without code, or ~50+ lines of code
+      without prose explanation. (2) Cross-reference integrity — do
+      chapter, section, figure, and listing numbers match actual content?
+      Are forward/backward references accurate? (3) Terminology
+      consistency — are technical terms used the same way throughout?
+      Report imbalances and mismatches.
+
+- name: chapter-brief-scaffold
+  description: >-
+    When a new chapter file is created, offer a chapter brief template
+    and load the relevant outline and running example context.
+  event: file_created
+  condition:
+    file_patterns:
+      - "**/chapters/**"
+      - "**/manuscript/**"
+      - "**/draft/**"
+  action:
+    type: ask_agent
+    prompt: >-
+      A new chapter file was just created. Offer: (1) A chapter brief
+      template — Learning Objectives, Prerequisites, Key Concepts, Code
+      Examples Needed, Figures Needed, Section Outline, Running Example
+      Connection. (2) The relevant outline entry for this chapter position.
+      (3) The running example's current state. (4) The next listing
+      numbers in sequence.
+
+# ============================================================
+# PHASE 3: POST-TASK — Technical bookkeeping
+# ============================================================
+
+- name: technical-session-bookkeeping
+  description: >-
+    After a drafting task completes, update tracking documents, triage
+    any review feedback addressed, and produce a technical session summary
+    with next-session setup.
+  event: post_task
+  action:
+    type: ask_agent
+    prompt: >-
+      The drafting task is complete. Perform technical bookkeeping:
+
+      UPDATE TRACKING: Update the draft progress tracker with chapter
+      status, word count, code tested status, and figure count. Update
+      the running example state to reflect what was built in this chapter.
+      Update the listing registry with any new listings added.
+
+      SESSION SUMMARY: Total new words, chapters/sections completed, code
+      listings added (with numbers), figures still needed or placeholder,
+      TODO/CHECK markers remaining, and terminology decisions made.
+
+      NEXT SESSION SETUP: Which chapter is next? What does the reader
+      know at this point? What's the running example's state? Any
+      outstanding review feedback for the next chapter? Any code
+      dependencies that need testing before the next chapter can be
+      drafted?
+
+- name: review-feedback-triage
+  description: >-
+    After a technical review task completes, compile feedback into the
+    standard triage format.
+  event: post_task
+  action:
+    type: ask_agent
+    prompt: >-
+      The technical review task is complete. Compile feedback: Factual
+      Error (fix immediately), Code Bug (fix and retest), Confusing
+      Explanation (rewrite), Missing Content (evaluate scope), Style
+      Preference (consider), Scope Expansion (usually decline). Note
+      chapter, reviewer, issue, category, action. Highlight conflicts.
+
+# ============================================================
+# USER-TRIGGERED — On-demand audits
+# ============================================================
+
+- name: manuscript-delivery-checklist
+  description: >-
+    User-triggered full manuscript delivery checklist for production
+    handoff.
+  event: user_triggered
+  action:
+    type: ask_agent
+    prompt: >-
+      Run the manuscript delivery checklist: Structure (all chapters,
+      front/back matter, numbering), Text (no TODO/CHECK markers,
+      spelling, terminology), Code (all listings numbered/titled/tested,
+      repo URL), Figures (present, numbered, referenced, captioned),
+      Tables (formatted, accurate), URLs (verified, accessible). Report
+      status per category.
+
+- name: explanation-quality-spot-check
+  description: >-
+    User-triggered evaluation of explanation clarity, depth, and
+    progressive disclosure.
+  event: user_triggered
+  action:
+    type: ask_agent
+    prompt: >-
+      Spot-check explanations in the current file: (1) Clear on first
+      reading? (2) Depth appropriate for audience? (3) Analogies or
+      examples grounding abstract ideas? (4) Progressive disclosure —
+      simple first, then nuance? (5) Jargon defined? Flag weak
+      explanations with specific suggestions.

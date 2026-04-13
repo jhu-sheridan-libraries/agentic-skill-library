@@ -1,0 +1,12 @@
+{
+  "name": "technical-session-bookkeeping",
+  "version": "1.0.0",
+  "description": "After a drafting task completes, update tracking documents, triage any review feedback addressed, and produce a technical session summary with next-session setup.",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The drafting task is complete. Perform technical bookkeeping:\nUPDATE TRACKING: Update the draft progress tracker with chapter status, word count, code tested status, and figure count. Update the running example state to reflect what was built in this chapter. Update the listing registry with any new listings added.\nSESSION SUMMARY: Total new words, chapters/sections completed, code listings added (with numbers), figures still needed or placeholder, TODO/CHECK markers remaining, and terminology decisions made.\nNEXT SESSION SETUP: Which chapter is next? What does the reader know at this point? What's the running example's state? Any outstanding review feedback for the next chapter? Any code dependencies that need testing before the next chapter can be drafted?"
+  }
+}

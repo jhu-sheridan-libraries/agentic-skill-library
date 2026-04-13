@@ -1,0 +1,12 @@
+{
+  "name": "sf-session-bookkeeping",
+  "version": "1.0.0",
+  "description": "After a drafting task completes, update the technology and species bibles with new facts, note any violations discovered, and produce a genre-specific session summary.",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The drafting task is complete. Perform SF-specific bookkeeping:\nUPDATE BIBLES: Review content written this session. Update the technology bible with any new technology uses, constraint clarifications, or extrapolation chain extensions. Update the species bible with any new behavioral or cultural details.\nGENRE SUMMARY: Note any technology constraint violations flagged, any species behavior inconsistencies, any exposition density issues, and any new speculative elements introduced that need bible entries. This supplements the Novelist power's general session bookkeeping."
+  }
+}

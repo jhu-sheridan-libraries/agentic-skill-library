@@ -1,0 +1,12 @@
+{
+  "name": "full-fair-play-audit",
+  "version": "1.0.0",
+  "description": "User-triggered complete fair-play validation across the full manuscript.",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Run the complete fair-play audit. For each solution element, trace to its planted clue. For each red herring, verify factual truth and resolution. For each elimination, verify evidence basis. Verify solution uniqueness. Apply subgenre-appropriate strictness. Compile with specific chapter and passage references."
+  }
+}

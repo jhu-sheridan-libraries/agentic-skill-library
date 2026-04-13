@@ -1,0 +1,15 @@
+{
+  "name": "code-listing-validation-gate",
+  "version": "1.0.0",
+  "description": "Before the agent writes content containing code listings, verify listing standards: numbering, titles, callouts, length, imports, and copy-paste runnability.",
+  "when": {
+    "type": "preToolUse",
+    "toolTypes": [
+      "write"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Before writing this content, check any code listings: (1) Sequential number and descriptive title? (2) Callout markers where needed? (3) Under 30 lines — split if longer? (4) Necessary imports shown? (5) Could a reader copy-paste and run it? Also check: does the prose-code balance alternate appropriately? Is any explanation longer than ~1000 words without a code example? Flag issues before writing."
+  }
+}

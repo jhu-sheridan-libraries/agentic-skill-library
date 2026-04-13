@@ -1,0 +1,15 @@
+{
+  "name": "fair-play-gate",
+  "version": "1.0.0",
+  "description": "Before the agent writes a solution reveal or confrontation scene, run the full fair-play validation.",
+  "when": {
+    "type": "preToolUse",
+    "toolTypes": [
+      "write"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Before writing this content, check if it contains a solution reveal, confrontation with the culprit, or gathering scene. If so, run fair-play validation: (1) Is every solution element traceable to a planted clue? (2) Has every clue appeared before this scene? (3) Is every red herring resolved? (4) Is the solution the only conclusion consistent with all genuine clues? (5) Is strictness appropriate to the subgenre? Flag failures before writing."
+  }
+}
