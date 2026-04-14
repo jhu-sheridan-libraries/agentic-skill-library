@@ -1,5 +1,10 @@
 # Skill-forge & Context bazaar
 
+[![CI](https://img.shields.io/github/actions/workflow/status/jhu-sheridan-libraries/agentic-skill-forge/ci.yml?label=CI)](https://github.com/jhu-sheridan-libraries/agentic-skill-forge/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/codecov/c/github/jhu-sheridan-libraries/agentic-skill-forge?label=Coverage)](https://codecov.io/gh/jhu-sheridan-libraries/agentic-skill-forge)
+[![CodeQL](https://img.shields.io/github/actions/workflow/status/jhu-sheridan-libraries/agentic-skill-forge/codeql.yml?label=CodeQL)](https://github.com/jhu-sheridan-libraries/agentic-skill-forge/actions/workflows/codeql.yml)
+[![License](https://img.shields.io/github/license/jhu-sheridan-libraries/agentic-skill-forge?label=License)](LICENSE)
+
 Knowledge artifacts for AI coding assistants. Author once, compile to every harness.
 
 ## What is this?

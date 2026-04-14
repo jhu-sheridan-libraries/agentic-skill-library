@@ -8,8 +8,8 @@ on:
   push:
     branches: [main]
     paths:
-      - "package.json"
-      - "bun.lockb"
+      - "skill-forge/package.json"
+      - "skill-forge/bun.lock"
   workflow_dispatch:
 
 permissions:
@@ -21,6 +21,9 @@ jobs:
   dependency-audit:
     name: Dependency audit
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: skill-forge
     steps:
       - uses: actions/checkout@v6
 
@@ -43,7 +46,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: audit-results
-          path: audit-results.json
+          path: skill-forge/audit-results.json
           retention-days: 30
 
       - name: Fail on high or critical vulnerabilities
