@@ -201,4 +201,4 @@ Aim for:
 
 ## License
 
-Contributions are licensed under [Boost Software License 1.0](LICENSE). By submitting a pull request you confirm you have the right to contribute the content under these terms.
+Contributions are licensed under [MIT Software License](LICENSE). By submitting a pull request you confirm you have the right to contribute the content under these terms.
