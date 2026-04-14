@@ -3,7 +3,7 @@ name: Deploy Catalog to GitHub Pages
 on:
   push:
     branches:
-      - main
+      - jhu-main
     paths:
       - "skill-forge/knowledge/**"
       - "skill-forge/src/**"
