@@ -30,6 +30,17 @@ function makeHook(overrides: Partial<CanonicalHook> = {}): CanonicalHook {
 	};
 }
 
+function expectFileContent(
+	file: { content: string } | undefined,
+	relativePath: string,
+): string {
+	expect(file).toBeDefined();
+	if (!file) {
+		throw new Error(`Expected generated file ${relativePath}`);
+	}
+	return file.content;
+}
+
 // =============================================================================
 // Kiro Adapter Tests
 // =============================================================================
@@ -59,7 +70,9 @@ describe("kiroAdapter", () => {
 		expect(hookFile).toBeDefined();
 		expect(hookFile?.relativePath).toBe("lint-on-save.kiro.hook");
 
-		const hookJson = JSON.parse(hookFile!.content);
+		const hookJson = JSON.parse(
+			expectFileContent(hookFile, "lint-on-save.kiro.hook"),
+		);
 		expect(hookJson.name).toBe("Lint On Save");
 		expect(hookJson.version).toBe("1.0.0");
 		expect(hookJson.when).toEqual({
@@ -96,7 +109,9 @@ describe("kiroAdapter", () => {
 		);
 		expect(hookFile).toBeDefined();
 
-		const hookJson = JSON.parse(hookFile!.content);
+		const hookJson = JSON.parse(
+			expectFileContent(hookFile, "<generated>.kiro.hook"),
+		);
 		expect(hookJson.then).toEqual({
 			type: "askAgent",
 			prompt: "Review the code for best practices",
@@ -138,7 +153,9 @@ describe("kiroAdapter", () => {
 			);
 			expect(hookFile).toBeDefined();
 
-			const hookJson = JSON.parse(hookFile!.content);
+			const hookJson = JSON.parse(
+				expectFileContent(hookFile, "<generated>.kiro.hook"),
+			);
 			expect(hookJson.when.type).toBe(kiro);
 		}
 	});
@@ -178,7 +195,7 @@ describe("kiroAdapter", () => {
 		const mcpFile = result.files.find((f) => f.relativePath === "mcp.json");
 		expect(mcpFile).toBeDefined();
 
-		const mcpJson = JSON.parse(mcpFile!.content);
+		const mcpJson = JSON.parse(expectFileContent(mcpFile, "mcp.json"));
 		expect(mcpJson.mcpServers["my-server"]).toEqual({
 			command: "uvx",
 			args: ["my-server@latest"],
@@ -277,7 +294,9 @@ describe("kiroAdapter", () => {
 		);
 		expect(specHookFile).toBeDefined();
 
-		const hookJson = JSON.parse(specHookFile!.content);
+		const hookJson = JSON.parse(
+			expectFileContent(specHookFile, "pre-task-check.kiro.hook"),
+		);
 		expect(hookJson.name).toBe("Pre Task Check");
 		expect(hookJson.when.type).toBe("preTaskExecution");
 	});
@@ -302,7 +321,9 @@ describe("kiroAdapter", () => {
 		const hookFile = result.files.find((f) =>
 			f.relativePath.endsWith(".kiro.hook"),
 		);
-		const hookJson = JSON.parse(hookFile!.content);
+		const hookJson = JSON.parse(
+			expectFileContent(hookFile, "<generated>.kiro.hook"),
+		);
 		expect(hookJson.when.toolTypes).toEqual(["write", "shell"]);
 	});
 });
@@ -339,7 +360,9 @@ describe("claudeCodeAdapter", () => {
 		);
 		expect(settingsFile).toBeDefined();
 
-		const settings = JSON.parse(settingsFile!.content);
+		const settings = JSON.parse(
+			expectFileContent(settingsFile, ".claude/settings.json"),
+		);
 		expect(settings.hooks.stop).toHaveLength(2);
 		expect(settings.hooks.stop[0]).toEqual({
 			type: "command",
@@ -426,7 +449,7 @@ describe("claudeCodeAdapter", () => {
 		);
 		expect(mcpFile).toBeDefined();
 
-		const mcpJson = JSON.parse(mcpFile!.content);
+		const mcpJson = JSON.parse(expectFileContent(mcpFile, ".claude/mcp.json"));
 		expect(mcpJson.mcpServers["docs-server"]).toEqual({
 			command: "uvx",
 			args: ["docs-server@latest"],
@@ -476,7 +499,9 @@ describe("claudeCodeAdapter", () => {
 		const settingsFile = result.files.find(
 			(f) => f.relativePath === ".claude/settings.json",
 		);
-		const settings = JSON.parse(settingsFile!.content);
+		const settings = JSON.parse(
+			expectFileContent(settingsFile, ".claude/settings.json"),
+		);
 		expect(settings.hooks.stop[0].command).toBe(command);
 	});
 });

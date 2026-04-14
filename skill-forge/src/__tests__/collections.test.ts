@@ -340,7 +340,8 @@ describe("buildCollectionMembership", () => {
 			makeCatalogEntry({ name: "third", collections: ["col"] }),
 		];
 		const membership = buildCollectionMembership(entries);
-		const members = membership.get("col")!;
+		const members = membership.get("col");
+		expect(members).toBeDefined();
 		expect(members).toEqual(["first", "second", "third"]);
 	});
 

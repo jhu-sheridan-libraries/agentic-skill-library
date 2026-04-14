@@ -143,8 +143,11 @@ describe("Wizard per-harness format prompting", () => {
 			messageOf(c).includes("AI coding tools"),
 		);
 		expect(harnessCall).toBeDefined();
+		if (!harnessCall) {
+			throw new Error("Expected harness multiselect prompt call");
+		}
 
-		const options = optionsOf(harnessCall!) as {
+		const options = optionsOf(harnessCall) as {
 			value: string;
 			label: string;
 		}[];
@@ -319,8 +322,11 @@ describe("Wizard per-harness format prompting", () => {
 			messageOf(c).includes("Output format for kiro"),
 		);
 		expect(kiroFormatCall).toBeDefined();
+		if (!kiroFormatCall) {
+			throw new Error("Expected kiro format select prompt call");
+		}
 
-		const options = optionsOf(kiroFormatCall!) as {
+		const options = optionsOf(kiroFormatCall) as {
 			value: string;
 			label: string;
 			hint: string;

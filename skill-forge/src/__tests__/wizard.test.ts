@@ -631,12 +631,7 @@ describe("newCommand outro", () => {
 	test("outro lists written files and suggests forge build", async () => {
 		// We need to import newCommand with the mocked prompts
 		// Set up a temp directory for the scaffold
-		const {
-			mkdtemp,
-			rm,
-			cp,
-			exists: fsExists,
-		} = await import("node:fs/promises");
+		const { mkdtemp, rm, cp } = await import("node:fs/promises");
 		const { join, resolve } = await import("node:path");
 		const { tmpdir } = await import("node:os");
 

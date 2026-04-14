@@ -190,9 +190,12 @@ export async function runEvals(options: EvalOptions): Promise<EvalResult[]> {
 			let evalResult: Awaited<ReturnType<typeof promptfoo.evaluate>>;
 			let attempt = 0;
 			while (true) {
-				evalResult = await promptfoo.evaluate(resolved as any, {
-					maxConcurrency: 2,
-				});
+				evalResult = await promptfoo.evaluate(
+					resolved as Parameters<typeof promptfoo.evaluate>[0],
+					{
+						maxConcurrency: 2,
+					},
+				);
 
 				// Check if every result is an API error — likely transient
 				const allApiErrors =

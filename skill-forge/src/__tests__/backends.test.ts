@@ -238,20 +238,20 @@ describe("HttpBackend", () => {
 describe("GitHubBackend", () => {
 	test("fetchCatalog returns parsed catalog content", async () => {
 		const catalogData = JSON.stringify([makeCatalogEntry({ name: "one" })]);
-		const spawnSpy = spyOn(Bun, "spawnSync").mockImplementation(
-			((args: string[]) => {
-				// Write catalog to the --output path so Bun.file().text() can read it
-				const outputIdx = args.indexOf("--output");
-				if (outputIdx !== -1 && args[outputIdx + 1]) {
-					Bun.write(args[outputIdx + 1], catalogData);
-				}
-				return {
-					exitCode: 0,
-					stdout: new Uint8Array(),
-					stderr: new Uint8Array(),
-				} as ReturnType<typeof Bun.spawnSync>;
-			}) as typeof Bun.spawnSync,
-		);
+		const spawnSpy = spyOn(Bun, "spawnSync").mockImplementation(((
+			args: string[],
+		) => {
+			// Write catalog to the --output path so Bun.file().text() can read it
+			const outputIdx = args.indexOf("--output");
+			if (outputIdx !== -1 && args[outputIdx + 1]) {
+				Bun.write(args[outputIdx + 1], catalogData);
+			}
+			return {
+				exitCode: 0,
+				stdout: new Uint8Array(),
+				stderr: new Uint8Array(),
+			} as ReturnType<typeof Bun.spawnSync>;
+		}) as typeof Bun.spawnSync);
 
 		const backend = new GitHubBackend(
 			{ type: "github", repo: "org/repo" },
@@ -341,7 +341,9 @@ describe("S3Backend", () => {
 					),
 					stderr: new Uint8Array(),
 					args,
-				}) as ReturnType<typeof Bun.spawnSync>) as typeof Bun.spawnSync,
+				}) as unknown as ReturnType<
+					typeof Bun.spawnSync
+				>) as typeof Bun.spawnSync,
 		);
 
 		const backend = new S3Backend(
