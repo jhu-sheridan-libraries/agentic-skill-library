@@ -91,6 +91,10 @@ jobs:
         if: ${{ !inputs.skip-build }}
         run: bun run dev build
 
+      - name: Export static catalog
+        if: ${{ !inputs.skip-build }}
+        run: bun run dev catalog export --output /tmp/web-export
+
       - name: Verify dist is up to date
         if: ${{ !inputs.skip-build }}
         run: git diff --exit-code -- dist/

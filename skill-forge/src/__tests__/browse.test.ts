@@ -8,9 +8,14 @@ import {
 	spyOn,
 	test,
 } from "bun:test";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import {
 	escapeHtml,
+	exportCommand,
 	generateHtmlPage,
+	generateStaticHtmlPage,
 	handleRequest,
 	validatePort,
 } from "../browse";
@@ -403,5 +408,149 @@ describe("browse SPA format integration", () => {
 		);
 		expect(legacyEntry.formatByHarness).toBeUndefined();
 		expect(legacyEntry.harnesses).toEqual(["kiro"]);
+	});
+});
+
+describe("generateStaticHtmlPage", () => {
+	const staticEntries = [
+		makeCatalogEntry({
+			name: "static-skill",
+			displayName: "Static Skill",
+			description: "A skill for static export",
+			keywords: ["static"],
+			harnesses: ["kiro"],
+			path: "knowledge/static-skill",
+		}),
+	];
+	const staticContentMap: Record<string, string> = {
+		"static-skill": "---\nname: static-skill\n---\nHello world",
+	};
+
+	test("returns a string starting with <!DOCTYPE html>", () => {
+		const html = generateStaticHtmlPage(staticEntries, staticContentMap);
+		expect(html.startsWith("<!DOCTYPE html>")).toBe(true);
+	});
+
+	test("embeds __CATALOG_DATA__ inline script before </head>", () => {
+		const html = generateStaticHtmlPage(staticEntries, staticContentMap);
+		expect(html).toContain("window.__CATALOG_DATA__");
+		// The data script must appear before the closing </head>
+		const dataIdx = html.indexOf("__CATALOG_DATA__");
+		const headIdx = html.indexOf("</head>");
+		expect(dataIdx).toBeLessThan(headIdx);
+	});
+
+	test("embeds __ARTIFACT_CONTENT__ inline script before </head>", () => {
+		const html = generateStaticHtmlPage(staticEntries, staticContentMap);
+		expect(html).toContain("window.__ARTIFACT_CONTENT__");
+		const dataIdx = html.indexOf("__ARTIFACT_CONTENT__");
+		const headIdx = html.indexOf("</head>");
+		expect(dataIdx).toBeLessThan(headIdx);
+	});
+
+	test("catalog entries are serialized into the embedded data", () => {
+		const html = generateStaticHtmlPage(staticEntries, staticContentMap);
+		expect(html).toContain('"static-skill"');
+		expect(html).toContain('"Static Skill"');
+	});
+
+	test("artifact content is serialized into the embedded data", () => {
+		const html = generateStaticHtmlPage(staticEntries, staticContentMap);
+		expect(html).toContain("Hello world");
+	});
+
+	test("safely escapes </script> sequences in embedded JSON", () => {
+		const dangerous: Record<string, string> = {
+			"evil-artifact": "content with </script> in it",
+		};
+		const html = generateStaticHtmlPage([], dangerous);
+		// Should not contain a raw </script> inside the data script (only the real closing tag)
+		// The embedded JSON should have the sequence escaped as <\/script>
+		expect(html).toContain("<\\/script>");
+		// The HTML must still be valid — exactly two </script> occurrences expected:
+		// one closing the data script tag, one closing the main script tag
+		const rawClose = (html.match(/<\/script>/g) || []).length;
+		expect(rawClose).toBe(2);
+	});
+
+	test("safely escapes <!-- sequences in embedded JSON", () => {
+		const dangerous: Record<string, string> = {
+			"comment-artifact": "content with <!-- a comment",
+		};
+		const html = generateStaticHtmlPage([], dangerous);
+		expect(html).toContain("<\\!--");
+	});
+
+	test("static page still contains the catalog-browser JS (globals-check path)", () => {
+		const html = generateStaticHtmlPage(staticEntries, staticContentMap);
+		expect(html).toContain("window.__CATALOG_DATA__");
+		expect(html).toContain("window.__ARTIFACT_CONTENT__");
+		// The main SPA JS must still be present
+		expect(html).toContain("populateHarnessFilter");
+		expect(html).toContain("renderCards");
+	});
+
+	test("works with an empty catalog and empty content map", () => {
+		const html = generateStaticHtmlPage([], {});
+		expect(html).toContain("__CATALOG_DATA__ = []");
+		expect(html).toContain("__ARTIFACT_CONTENT__ = {}");
+	});
+});
+
+describe("exportCommand", () => {
+	let tmpDir: string;
+	let errorSpy: ReturnType<typeof spyOn>;
+
+	beforeAll(async () => {
+		tmpDir = await mkdtemp(join(tmpdir(), "forge-export-test-"));
+	});
+
+	afterAll(async () => {
+		await rm(tmpDir, { recursive: true, force: true });
+	});
+
+	beforeEach(() => {
+		errorSpy = spyOn(console, "error").mockImplementation(() => {});
+	});
+
+	afterEach(() => {
+		errorSpy.mockRestore();
+	});
+
+	test("creates index.html in the output directory", async () => {
+		const out = join(tmpDir, "html-test");
+		await exportCommand({ output: out });
+		const html = await readFile(join(out, "index.html"), "utf-8");
+		expect(html.startsWith("<!DOCTYPE html>")).toBe(true);
+	});
+
+	test("creates catalog.json in the output directory", async () => {
+		const out = join(tmpDir, "json-test");
+		await exportCommand({ output: out });
+		const raw = await readFile(join(out, "catalog.json"), "utf-8");
+		const data = JSON.parse(raw);
+		expect(Array.isArray(data)).toBe(true);
+	});
+
+	test("index.html embeds __CATALOG_DATA__", async () => {
+		const out = join(tmpDir, "embed-test");
+		await exportCommand({ output: out });
+		const html = await readFile(join(out, "index.html"), "utf-8");
+		expect(html).toContain("window.__CATALOG_DATA__");
+	});
+
+	test("creates output directory if it does not exist", async () => {
+		const out = join(tmpDir, "nested", "deep", "dir");
+		await exportCommand({ output: out });
+		const html = await readFile(join(out, "index.html"), "utf-8");
+		expect(html).toContain("<!DOCTYPE html>");
+	});
+
+	test("prints a success message to stderr", async () => {
+		const out = join(tmpDir, "msg-test");
+		await exportCommand({ output: out });
+		expect(errorSpy).toHaveBeenCalled();
+		const msg = (errorSpy.mock.calls[0] as string[])[0] as string;
+		expect(msg).toContain("Exported static catalog");
 	});
 });

@@ -1,0 +1,38 @@
+# Gitleaks configuration for agentic-skill-forge
+# https://github.com/gitleaks/gitleaks#configuration
+
+title = "agentic-skill-forge gitleaks config"
+
+[extend]
+# Extend the default ruleset (bundled with gitleaks)
+useDefault = true
+
+# ---------------------------------------------------------------------------
+# Global allowlist — patterns that are never real secrets in this repo
+# ---------------------------------------------------------------------------
+[allowlist]
+description = "Suppress false positives from placeholder/example values"
+
+# Placeholder API key patterns used in knowledge artifact examples and docs.
+# These strings look like secrets to entropy-based rules but are deliberately
+# instructional (e.g. "sk-abc123xyz", "your-actual-api-key-here", etc.).
+regexes = [
+  # Obvious placeholder suffixes / keywords
+  '''(?i)(placeholder|example|dummy|fake|sample|test|demo|your[_-]?(actual)?[_-]?api[_-]?key|api[_-]?key[_-]?here|abc123)''',
+  # sk-abc…xyz style fake OpenAI keys used in examples.
+  # The pattern matches exactly the 3+3+3 format used in the power-builder
+  # knowledge artifact ("sk-abc123xyz"); a real OpenAI key is 51 chars.
+  # We intentionally keep it narrow so we don't blanket-suppress all sk- keys.
+  '''sk-[a-zA-Z0-9]{3,8}[0-9]{3}[a-zA-Z0-9]{3,8}''',
+]
+
+# Allowlist specific paths that contain only documentation/example content.
+# dist/ is generated from knowledge/ so both inherit the same exclusion.
+paths = [
+  '''skill-forge/knowledge/''',
+  '''skill-forge/dist/''',
+  '''skill-forge/templates/''',
+  '''skill-forge/evals/''',
+  # Any detached-worktree artefacts that land in the root during CI
+  '''power-builder/''',
+]

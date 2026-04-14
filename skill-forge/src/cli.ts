@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import chalk from "chalk";
 import { Command } from "commander";
-import { browseCommand } from "./browse";
+import { browseCommand, exportCommand } from "./browse";
 import { buildCommand } from "./build";
 import { catalogCommand } from "./catalog";
 import {
@@ -200,6 +200,18 @@ if (import.meta.main !== false) {
 		.description("Browse the artifact catalog in your browser")
 		.option("--port <number>", "Port to serve on", "3131")
 		.action(browseCommand);
+
+	catalogCmd
+		.command("export")
+		.description(
+			"Export a self-contained static catalog site for GitHub Pages or any static host",
+		)
+		.option(
+			"--output <dir>",
+			"Output directory for index.html and catalog.json",
+			"dist/web",
+		)
+		.action(exportCommand);
 
 	const collectionCmd = program
 		.command("collection")

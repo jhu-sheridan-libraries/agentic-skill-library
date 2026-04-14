@@ -1,7 +1,7 @@
-import { exists } from "node:fs/promises";
+import { exists, mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import chalk from "chalk";
-import { generateCatalog } from "./catalog";
+import { generateCatalog, SOURCE_DIRS, serializeCatalog } from "./catalog";
 import type { CatalogEntry } from "./schemas";
 
 /**
@@ -679,29 +679,35 @@ export function generateHtmlPage(): string {
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-      fetch('/api/catalog')
-        .then(function(res) { return res.json(); })
-        .then(function(data) {
-          catalogData = data;
-          updateArtifactCount(catalogData.length);
-          populateHarnessFilter(catalogData);
-          populateFormatFilter(catalogData);
-          populateMaturityFilter(catalogData);
-          populateCollectionFilter(catalogData);
-          renderCards(catalogData, false);
+      function initCatalog(data) {
+        catalogData = data;
+        updateArtifactCount(catalogData.length);
+        populateHarnessFilter(catalogData);
+        populateFormatFilter(catalogData);
+        populateMaturityFilter(catalogData);
+        populateCollectionFilter(catalogData);
+        renderCards(catalogData, false);
 
-          // Wire up search and filter event listeners
-          document.getElementById('search-input').addEventListener('input', filterAndRender);
-          document.getElementById('harness-filter').addEventListener('change', filterAndRender);
-          document.getElementById('format-filter').addEventListener('change', filterAndRender);
-          document.getElementById('maturity-filter').addEventListener('change', filterAndRender);
-          document.getElementById('collection-filter').addEventListener('change', filterAndRender);
-        })
-        .catch(function(err) {
-          console.error('Failed to load catalog:', err);
-          var grid = document.getElementById('card-grid');
-          grid.innerHTML = '<div class="empty-state">Failed to load catalog data</div>';
-        });
+        // Wire up search and filter event listeners
+        document.getElementById('search-input').addEventListener('input', filterAndRender);
+        document.getElementById('harness-filter').addEventListener('change', filterAndRender);
+        document.getElementById('format-filter').addEventListener('change', filterAndRender);
+        document.getElementById('maturity-filter').addEventListener('change', filterAndRender);
+        document.getElementById('collection-filter').addEventListener('change', filterAndRender);
+      }
+
+      if (window.__CATALOG_DATA__) {
+        initCatalog(window.__CATALOG_DATA__);
+      } else {
+        fetch('/api/catalog')
+          .then(function(res) { return res.json(); })
+          .then(initCatalog)
+          .catch(function(err) {
+            console.error('Failed to load catalog:', err);
+            var grid = document.getElementById('card-grid');
+            grid.innerHTML = '<div class="empty-state">Failed to load catalog data</div>';
+          });
+      }
     });
 
     // --- Task 5.2: Search and filter functionality ---
@@ -887,23 +893,35 @@ export function generateHtmlPage(): string {
         hideDetailView();
       });
 
-      fetch('/api/artifact/' + encodeURIComponent(name) + '/content')
-        .then(function(res) {
-          if (!res.ok) throw new Error('HTTP ' + res.status);
-          return res.text();
-        })
-        .then(function(text) {
-          var contentEl = detailView.querySelector('.detail-content');
-          if (contentEl) {
-            contentEl.innerHTML = '<pre>' + escapeHtmlJs(text) + '</pre>';
-          }
-        })
-        .catch(function() {
-          var contentEl = detailView.querySelector('.detail-content');
-          if (contentEl) {
-            contentEl.innerHTML = '<div class="error-message">Failed to load content</div>';
-          }
-        });
+      var inlineContent = null;
+      if (window.__ARTIFACT_CONTENT__ &&
+          Object.prototype.hasOwnProperty.call(window.__ARTIFACT_CONTENT__, name)) {
+        inlineContent = window.__ARTIFACT_CONTENT__[name];
+      }
+      if (inlineContent !== null) {
+        var contentEl = detailView.querySelector('.detail-content');
+        if (contentEl) {
+          contentEl.innerHTML = '<pre>' + escapeHtmlJs(inlineContent) + '</pre>';
+        }
+      } else {
+        fetch('/api/artifact/' + encodeURIComponent(name) + '/content')
+          .then(function(res) {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.text();
+          })
+          .then(function(text) {
+            var contentEl = detailView.querySelector('.detail-content');
+            if (contentEl) {
+              contentEl.innerHTML = '<pre>' + escapeHtmlJs(text) + '</pre>';
+            }
+          })
+          .catch(function() {
+            var contentEl = detailView.querySelector('.detail-content');
+            if (contentEl) {
+              contentEl.innerHTML = '<div class="error-message">Failed to load content</div>';
+            }
+          });
+      }
     }
 
     function hideDetailView() {
@@ -919,6 +937,83 @@ export function generateHtmlPage(): string {
   </script>
 </body>
 </html>`;
+}
+
+/**
+ * Safely serializes a value to JSON for embedding in an HTML `<script>` block.
+ * Replaces `</script>` and `<!--` sequences that would confuse the HTML parser.
+ */
+function safeJsonEmbed(data: unknown): string {
+	return JSON.stringify(data)
+		.replace(/<\/script>/gi, "<\\/script>")
+		.replace(/<!--/g, "<\\!--");
+}
+
+/**
+ * Generates a fully self-contained static HTML page for the catalog browser.
+ *
+ * Catalog entries and artifact `knowledge.md` content are embedded as inline
+ * `window.__CATALOG_DATA__` and `window.__ARTIFACT_CONTENT__` variables so the
+ * page works without a backend server (e.g. GitHub Pages).  The client-side JS
+ * in `generateHtmlPage()` checks for those globals before falling back to the
+ * live `/api/*` endpoints, so local `forge catalog browse` continues to work
+ * from the same HTML template.
+ */
+export function generateStaticHtmlPage(
+	entries: CatalogEntry[],
+	contentMap: Record<string, string>,
+): string {
+	const dataScript = `<script>window.__CATALOG_DATA__ = ${safeJsonEmbed(entries)};
+window.__ARTIFACT_CONTENT__ = ${safeJsonEmbed(contentMap)};</script>`;
+	return generateHtmlPage().replace("</head>", `${dataScript}\n</head>`);
+}
+
+export interface ExportOptions {
+	output: string;
+}
+
+/**
+ * Entry point for `forge catalog export`.
+ *
+ * Generates a self-contained static `index.html` (and a companion
+ * `catalog.json`) suitable for hosting on GitHub Pages or any static file
+ * server.  All catalog data and `knowledge.md` content are embedded inline so
+ * no backend is required at runtime.
+ */
+export async function exportCommand(options: ExportOptions): Promise<void> {
+	const { output } = options;
+
+	const entries = await generateCatalog([...SOURCE_DIRS]);
+
+	// Build name → knowledge.md content map
+	const contentMap: Record<string, string> = {};
+	for (const entry of entries) {
+		const filePath = join(entry.path, "knowledge.md");
+		try {
+			const fileExists = await exists(filePath);
+			if (fileExists) {
+				contentMap[entry.name] = await Bun.file(filePath).text();
+			}
+		} catch {
+			// Skip unreadable artifacts — the browser falls back to the live API
+		}
+	}
+
+	const html = generateStaticHtmlPage(entries, contentMap);
+
+	await mkdir(output, { recursive: true });
+	await writeFile(join(output, "index.html"), html, "utf-8");
+	await writeFile(
+		join(output, "catalog.json"),
+		serializeCatalog(entries),
+		"utf-8",
+	);
+
+	console.error(
+		chalk.green(
+			`✓ Exported static catalog to ${output}/ (${entries.length} artifact${entries.length !== 1 ? "s" : ""})`,
+		),
+	);
 }
 
 /**
