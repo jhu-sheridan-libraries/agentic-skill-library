@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { GlobalCache } from "../global-cache";
-import type { Manifest } from "../manifest";
+import type { Manifest, ManifestEntry } from "../manifest";
 import { parseManifest, printManifest } from "../manifest";
 
 /**
@@ -60,6 +60,7 @@ async function simulateInit(
 	const newEntry = isCollection
 		? { collection: name, version: versionPin, mode }
 		: { name, version: versionPin, mode };
+	const typedNewEntry: ManifestEntry = newEntry;
 
 	// Check for existing entry and update or add (Req 4.10)
 	const existingIdx = manifest.artifacts.findIndex((entry) => {
@@ -73,9 +74,9 @@ async function simulateInit(
 	});
 
 	if (existingIdx >= 0) {
-		manifest.artifacts[existingIdx] = newEntry as any;
+		manifest.artifacts[existingIdx] = typedNewEntry;
 	} else {
-		manifest.artifacts.push(newEntry as any);
+		manifest.artifacts.push(typedNewEntry);
 	}
 
 	// Write manifest

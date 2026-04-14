@@ -107,11 +107,15 @@ describe("loadForgeConfig", () => {
 		const config = await loadForgeConfig();
 		expect(config.install?.backends).toBeDefined();
 		const backends = config.install?.backends;
-		expect(backends!["my-github"]).toMatchObject({
+		expect(backends).toBeDefined();
+		if (!backends) {
+			throw new Error("Expected install.backends to be defined");
+		}
+		expect(backends["my-github"]).toMatchObject({
 			type: "github",
 			repo: "my-org/skills",
 		});
-		expect(backends!["my-local"]).toMatchObject({
+		expect(backends["my-local"]).toMatchObject({
 			type: "local",
 			path: "/tmp/skills",
 		});
@@ -144,7 +148,11 @@ describe("resolveBackendConfigs", () => {
 		const config: ForgeConfig = {};
 		const backends = resolveBackendConfigs(config);
 		expect(backends.has("local")).toBe(true);
-		const local = backends.get("local")!;
+		const local = backends.get("local");
+		expect(local).toBeDefined();
+		if (!local) {
+			throw new Error("Expected 'local' backend to exist");
+		}
 		expect(local.type).toBe("local");
 		expect((local as { type: string; path: string }).path).toBe(".");
 	});

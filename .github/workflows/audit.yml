@@ -8,8 +8,8 @@ on:
   push:
     branches: [main]
     paths:
-      - "package.json"
-      - "bun.lockb"
+      - "skill-forge/package.json"
+      - "skill-forge/bun.lock"
   workflow_dispatch:
 
 permissions:
@@ -21,6 +21,9 @@ jobs:
   dependency-audit:
     name: Dependency audit
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: skill-forge
     steps:
       - uses: actions/checkout@v6
 
@@ -29,9 +32,11 @@ jobs:
           bun-version: latest
 
       - run: bun install
+        working-directory: skill-forge
 
       - name: Run bun audit
         id: audit
+        working-directory: skill-forge
         run: |
           bun audit --json > audit-results.json 2>&1 || true
           # Surface high/critical vulnerabilities as a failing step
@@ -43,7 +48,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: audit-results
-          path: audit-results.json
+          path: skill-forge/audit-results.json
           retention-days: 30
 
       - name: Fail on high or critical vulnerabilities
@@ -91,7 +96,11 @@ jobs:
         with:
           results_file: scorecard-results.sarif
           results_format: sarif
-          publish_results: true
+          # publish_results requires the workflow to run from the repository's
+          # default branch; setting it to false avoids the HTTP 400 "workflow
+          # verification failed" error while still generating the SARIF report
+          # for upload to the GitHub Security tab below.
+          publish_results: false
 
       - name: Upload Scorecard results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v4

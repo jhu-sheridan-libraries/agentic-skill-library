@@ -271,7 +271,8 @@ export async function validateArtifact(
 		const harnessConfig = mdResult.data.harnessConfig;
 		if (harnessConfig && typeof harnessConfig === "object") {
 			for (const key of Object.keys(harnessConfig)) {
-				if (!fm.harnesses.includes(key as any)) {
+				const harnessKey = key as (typeof fm.harnesses)[number];
+				if (!fm.harnesses.includes(harnessKey)) {
 					// This is a warning, not an error — but we track it as a non-fatal error
 					errors.push({
 						field: "harness-config",

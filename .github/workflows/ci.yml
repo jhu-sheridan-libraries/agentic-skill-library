@@ -91,6 +91,10 @@ jobs:
         if: ${{ !inputs.skip-build }}
         run: bun run dev build
 
+      - name: Export static catalog
+        if: ${{ !inputs.skip-build }}
+        run: bun run dev catalog export --output /tmp/web-export
+
       - name: Verify dist is up to date
         if: ${{ !inputs.skip-build }}
         run: git diff --exit-code -- dist/
@@ -101,12 +105,7 @@ jobs:
     defaults:
       run:
         working-directory: skill-forge
-    if: >
-      !inputs.skip-eval &&
-      (github.event_name == 'workflow_dispatch' ||
-      contains(github.event.pull_request.changed_files_names || '', 'skill-forge/knowledge/') ||
-      contains(github.event.pull_request.changed_files_names || '', 'skill-forge/templates/') ||
-      contains(github.event.pull_request.changed_files_names || '', 'skill-forge/evals/'))
+    if: ${{ !inputs.skip-eval }}
     env:
       OPENAI_API_KEY: ${{ secrets.GITHUB_TOKEN }}
       OPENAI_BASE_URL: https://models.github.ai/inference

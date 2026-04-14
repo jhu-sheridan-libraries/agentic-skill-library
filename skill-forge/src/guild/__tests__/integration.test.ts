@@ -34,6 +34,15 @@ let originalCwd: string;
 
 const emptyBackends = new Map<string, BackendConfig>();
 
+function expectDefined<T>(value: T | null | undefined, message: string): T {
+	expect(value).toBeDefined();
+	expect(value).not.toBeNull();
+	if (value == null) {
+		throw new Error(message);
+	}
+	return value;
+}
+
 async function pathExists(p: string): Promise<boolean> {
 	try {
 		await access(p);
@@ -613,10 +622,14 @@ describe("integration: collection expansion end-to-end with mock catalog", () =>
 		// Should have 2 resolved: shared-skill (individual) + only-in-collection (from collection)
 		expect(result.resolved).toHaveLength(2);
 
-		const sharedEntry = result.resolved.find((r) => r.name === "shared-skill")!;
-		const collectionOnly = result.resolved.find(
-			(r) => r.name === "only-in-collection",
-		)!;
+		const sharedEntry = expectDefined(
+			result.resolved.find((r) => r.name === "shared-skill"),
+			"Expected resolved shared-skill entry",
+		);
+		const collectionOnly = expectDefined(
+			result.resolved.find((r) => r.name === "only-in-collection"),
+			"Expected resolved only-in-collection entry",
+		);
 
 		// Individual entry wins: version 1.0.0, mode required, no source
 		expect(sharedEntry.version).toBe("1.0.0");
@@ -814,7 +827,12 @@ describe("integration: auto-update throttle behavior and sync pipeline", () => {
 		// Throttle state should have been updated to a recent timestamp (Req 6.3)
 		const throttleState = await cache.readThrottleState();
 		expect(throttleState).not.toBeNull();
-		const elapsedSinceUpdate = Date.now() - throttleState!.getTime();
+		const elapsedSinceUpdate =
+			Date.now() -
+			expectDefined(
+				throttleState,
+				"Expected throttle state after autoUpdate",
+			).getTime();
 		// Should have been written within the last few seconds
 		expect(elapsedSinceUpdate).toBeLessThan(10_000);
 	});
@@ -982,7 +1000,12 @@ describe("integration: auto-update throttle behavior and sync pipeline", () => {
 		const stateAfterSkip = await cache.readThrottleState();
 		expect(stateAfterSkip).not.toBeNull();
 		// The timestamp should still be approximately 5 minutes ago
-		const elapsedAfterSkip = Date.now() - stateAfterSkip!.getTime();
+		const elapsedAfterSkip =
+			Date.now() -
+			expectDefined(
+				stateAfterSkip,
+				"Expected throttle state after skipped check",
+			).getTime();
 		expect(elapsedAfterSkip).toBeGreaterThan(4 * 60 * 1000);
 
 		// With 3-minute throttle, 5 minutes elapsed → should proceed
@@ -998,7 +1021,12 @@ describe("integration: auto-update throttle behavior and sync pipeline", () => {
 		// Throttle state should have been updated (check proceeded)
 		const stateAfterProceed = await cache.readThrottleState();
 		expect(stateAfterProceed).not.toBeNull();
-		const elapsedAfterProceed = Date.now() - stateAfterProceed!.getTime();
+		const elapsedAfterProceed =
+			Date.now() -
+			expectDefined(
+				stateAfterProceed,
+				"Expected throttle state after throttle interval elapsed",
+			).getTime();
 		expect(elapsedAfterProceed).toBeLessThan(10_000);
 	});
 
@@ -1168,11 +1196,17 @@ describe("integration: offline sync (cache-only, no network)", () => {
 		expect(result.resolved).toHaveLength(2);
 
 		// ^1.0.0 should pick 1.3.0 (highest in 1.x range)
-		const alpha = result.resolved.find((r) => r.name === "alpha-skill")!;
+		const alpha = expectDefined(
+			result.resolved.find((r) => r.name === "alpha-skill"),
+			"Expected resolved alpha-skill entry",
+		);
 		expect(alpha.version).toBe("1.3.0");
 
 		// ~0.5.0 should pick 0.5.0 (0.9.0 is outside ~0.5.0 range)
-		const beta = result.resolved.find((r) => r.name === "beta-skill")!;
+		const beta = expectDefined(
+			result.resolved.find((r) => r.name === "beta-skill"),
+			"Expected resolved beta-skill entry",
+		);
 		expect(beta.version).toBe("0.5.0");
 
 		// Verify correct versions materialized
