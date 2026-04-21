@@ -38,20 +38,21 @@ jobs:
         id: audit
         working-directory: skill-forge
         run: |
-          bun audit --json > audit-results.json 2>&1 || true
-          # Count high/critical vulnerabilities excluding known dev-dependency transitive issues
-          # promptfoo (devDependency, eval-only) pulls in vulnerable transitive deps
-          # that are not shipped in the compiled binary
-          AUDIT_OUTPUT=$(bun audit 2>&1 || true)
-          # Filter out known promptfoo transitive dep advisories
-          FILTERED=$(echo "$AUDIT_OUTPUT" | grep -c "high\|critical" || true)
-          KNOWN_EXCEPTIONS=$(echo "$AUDIT_OUTPUT" | grep -c "promptfoo" || true)
-          # If all high/critical vulns are from promptfoo transitive deps, don't fail
-          if [ "$FILTERED" -gt 0 ] && [ "$KNOWN_EXCEPTIONS" -ge "$FILTERED" ]; then
+          bun audit --json > audit-results.json 2>/dev/null || true
+
+          # Parse JSON to count high/critical vulnerabilities precisely
+          TOTAL_HIGH=$(jq '[to_entries[].value[] | select(.severity == "high" or .severity == "critical")] | length' audit-results.json 2>/dev/null || echo 0)
+
+          # Check if all high/critical vulns are from promptfoo transitive deps
+          # (dev-only eval framework, never shipped in compiled binary)
+          PROMPTFOO_PATHS=$(bun audit 2>&1 | grep -c "promptfoo" || true)
+
+          if [ "$TOTAL_HIGH" -gt 0 ] && [ "$PROMPTFOO_PATHS" -ge "$TOTAL_HIGH" ]; then
             echo "high_count=0" >> "$GITHUB_OUTPUT"
-            echo "::warning::Found vulnerabilities in dev-only transitive deps (promptfoo). Not blocking release."
+            echo "::warning::Found $TOTAL_HIGH high/critical vulnerabilities in dev-only transitive deps (promptfoo). Not blocking."
           else
-            ACTIONABLE=$((FILTERED - KNOWN_EXCEPTIONS))
+            ACTIONABLE=$((TOTAL_HIGH - PROMPTFOO_PATHS))
+            if [ "$ACTIONABLE" -lt 0 ]; then ACTIONABLE=0; fi
             echo "high_count=$ACTIONABLE" >> "$GITHUB_OUTPUT"
           fi
 
