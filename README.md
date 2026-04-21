@@ -1,7 +1,7 @@
 # Skill-forge & Context bazaar
 
 [![CI](https://img.shields.io/github/actions/workflow/status/jhu-sheridan-libraries/agentic-skill-forge/ci.yml?label=CI)](https://github.com/jhu-sheridan-libraries/agentic-skill-forge/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/codecov/c/github/jhu-sheridan-libraries/agentic-skill-forge?label=Coverage)](https://codecov.io/gh/jhu-sheridan-libraries/agentic-skill-forge)
+[![codecov](https://codecov.io/gh/thinkingsage/context-bazaar/graph/badge.svg?token=D6AVIGVORS)](https://codecov.io/gh/thinkingsage/context-bazaar)
 [![CodeQL](https://img.shields.io/github/actions/workflow/status/jhu-sheridan-libraries/agentic-skill-forge/codeql.yml?label=CodeQL)](https://github.com/jhu-sheridan-libraries/agentic-skill-forge/actions/workflows/codeql.yml)
 [![Security Audit](https://github.com/jhu-sheridan-libraries/agentic-skill-forge/actions/workflows/audit.yml/badge.svg)](https://github.com/jhu-sheridan-libraries/agentic-skill-forge/actions/workflows/audit.yml)
 [![License](https://img.shields.io/github/license/jhu-sheridan-libraries/agentic-skill-forge?label=License)](LICENSE)
