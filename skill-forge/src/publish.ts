@@ -314,9 +314,9 @@ async function publishToS3(
 async function resolveVersion(): Promise<string> {
 	try {
 		const pkg = (await Bun.file("package.json").json()) as { version?: string };
-		return `v${pkg.version ?? "0.1.0"}`;
+		return `v${pkg.version ?? "0.2.0"}`;
 	} catch {
-		return "v0.1.0";
+		return "v0.2.0";
 	}
 }
 

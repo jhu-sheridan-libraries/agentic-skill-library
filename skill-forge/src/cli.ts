@@ -332,7 +332,7 @@ if (import.meta.main !== false) {
 	// Custom version option using renderVersion
 	program.option("-V, --version", "Output version information");
 	program.on("option:version", () => {
-		console.log(renderVersion("0.1.0", { useColor }));
+		console.log(renderVersion("0.2.0", { useColor }));
 		process.exit(0);
 	});
 

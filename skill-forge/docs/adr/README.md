@@ -32,6 +32,9 @@ ADRs document significant architectural decisions made during the project's deve
 | [020](0020-mcp-bridge-as-claude-code-plugin-integration-layer.md) | MCP bridge as the Claude Code plugin integration layer | Proposed | 2026-04-12 |
 | [021](0021-integrated-static-security-validation.md) | Integrated static security validation in `forge validate --security` | Proposed | 2026-04-12 |
 | [022](0022-two-layer-artifact-security-review.md) | Two-layer artifact security review — static + LLM adversarial eval | Proposed | 2026-04-12 |
+| [023](0023-manifest-driven-artifact-distribution-with-global-cache.md) | Manifest-driven artifact distribution with global cache | Proposed | 2026-04-13 |
+| [024](0024-browse-server-admin-crud-with-mutable-state.md) | Browse server admin CRUD with mutable state and modular admin layers | Proposed | 2026-04-20 |
+| [025](0025-browse-ui-module-extraction.md) | Extract browse UI template into dedicated module | Proposed | 2026-04-20 |
 
 ## Creating a New ADR
 

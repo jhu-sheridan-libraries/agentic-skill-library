@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "ADR + Spec Context Check",
+  "description": "Before starting a spec task, checks if the task introduces new architectural patterns not covered by existing ADRs. If so, creates the ADR immediately before proceeding.",
+  "version": "2.0.0",
+  "when": {
+    "type": "preTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Before starting this task, do the following:\n\n1. Read the active spec's design.md and identify the key architectural decisions relevant to THIS task.\n2. Scan the ADR index at skill-forge/docs/adr/README.md to check if those decisions are already documented.\n3. If this task introduces a NEW architectural pattern, module structure, data flow, or integration approach that is NOT covered by an existing ADR:\n   a. Create the ADR immediately (next sequential number) at skill-forge/docs/adr/NNNN-short-title.md\n   b. Update the README.md index table\n   c. Create a changelog fragment in skill-forge/changes/\n   d. Then proceed with the task implementation.\n4. If all architectural decisions are already covered by existing ADRs, proceed with the task — no action needed.\n\nDo NOT just acknowledge this reminder. Either create the ADR or confirm that existing ADRs cover the decisions."
+  }
+}

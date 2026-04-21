@@ -1,0 +1,1 @@
+Added collection management to `forge catalog browse` — list, view, create, edit, and delete collection YAML files via REST API (`GET/POST/PUT/DELETE /api/collections`) with trust-level and tag filtering in the UI
