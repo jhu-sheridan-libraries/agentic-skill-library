@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-04-21
+
+### Added
+- Added manifest entry management to `forge catalog browse` — view manifest entries with sync status indicators, add/edit/remove entries via REST API (`GET/POST/PUT/DELETE /api/manifest/entries`), and display synced/outdated/missing status from sync-lock comparison
+- Added 4 property-based tests for collection admin correctness (Properties 10–12, 16) — YAML round-trip, unknown key preservation, validation consistency, and filtering correctness.
+- Added unit tests for `manifest-admin.ts` — 9 tests covering `readManifest`, `readSyncLock`, `computeSyncStatus` (synced/outdated/missing), and error paths for `addManifestEntry`, `editManifestEntry`, `removeManifestEntry`.
+- Added collection management to `forge catalog browse` — list, view, create, edit, and delete collection YAML files via REST API (`GET/POST/PUT/DELETE /api/collections`) with trust-level and tag filtering in the UI
+- Added 9 property-based tests for artifact admin correctness (Properties 1–9) — frontmatter serialization round-trip, validation consistency, kebab-case enforcement, file structure verification, update preservation, delete removal, catalog consistency, toKebabCase output, and comma-separated parsing.
+- Added unit tests for `admin.ts` — 20 tests covering `serializeFrontmatter`, `validateArtifactInput`, `toKebabCase`, and error paths for `createArtifact`, `updateArtifact`, `deleteArtifact`.
+- Added unit tests for `collection-admin.ts` — 15 tests covering `parseCollectionFile`, `serializeCollection`, `validateCollectionInput`, `getCollection` member resolution, and error paths for CRUD operations.
+- Documented browse UI module extraction architecture (ADR-0025).
+- Added 30 integration tests for browse server mutation endpoints — artifact/collection/manifest CRUD round-trips, sync status verification, Content-Type validation, and structured error responses (400/404/409).
+- Added tab navigation (Artifacts | Collections | Manifest) to `forge catalog browse` with a shared UI design system including design tokens, reusable card/form/badge/toast/modal components, and context-aware create buttons
+- Added full CRUD capabilities to `forge catalog browse` for knowledge artifacts — create, edit, and delete artifacts directly from the browser UI via `POST /api/artifact`, `PUT /api/artifact/:name`, and `DELETE /api/artifact/:name` endpoints with validation, conflict detection, and automatic catalog refresh
+- Added 3 property-based tests for manifest admin correctness (Properties 13–15) — sync status computation, entry validation delegation, and top-level field preservation during mutations.
+- Extract browse UI template (`generateHtmlPage`, `generateStaticHtmlPage`, `escapeHtml`) into dedicated `browse-ui.ts` module, reducing `browse.ts` from ~2950 to ~500 lines (ADR-0025).
+- Documented browse server admin CRUD architecture with mutable state wrapper and modular admin layers (ADR-0024)
+
+### Fixed
+- Fix GitHub Pages workflow to deploy from `jhu-main` instead of `main` so the catalog browser shows all knowledge artifacts
+
+
 ## [0.1.1] - 2026-04-13
 
 ### Added
