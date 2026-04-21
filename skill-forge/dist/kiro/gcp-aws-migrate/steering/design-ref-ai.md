@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # AI/ML Services Design Rubric
 
 **Applies to:** Vertex AI (traditional ML), Cloud Vision API, Cloud ML Engine (deprecated — now part of Vertex AI)

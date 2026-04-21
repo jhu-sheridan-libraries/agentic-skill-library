@@ -1,12 +1,51 @@
 import { resolveFormat } from "../format-registry";
 import { renderTemplate } from "../template-engine";
+import type { HarnessCapabilityName } from "./capabilities";
+import { applyDegradation } from "./degradation";
 import type { AdapterWarning, HarnessAdapter, OutputFile } from "./types";
 
 const SUPPORTED_CLAUDE_EVENTS = new Set(["agent_stop"]);
 
-export const claudeCodeAdapter: HarnessAdapter = (artifact, templateEnv) => {
+export const claudeCodeAdapter: HarnessAdapter = (
+	artifact,
+	templateEnv,
+	context?,
+) => {
 	const files: OutputFile[] = [];
 	const warnings: AdapterWarning[] = [];
+
+	// Capability degradation checks
+	if (context) {
+		const checks: Array<{
+			capability: HarnessCapabilityName;
+			hasFeature: boolean;
+		}> = [
+			{ capability: "hooks", hasFeature: artifact.hooks.length > 0 },
+			{ capability: "mcp", hasFeature: artifact.mcpServers.length > 0 },
+			{ capability: "workflows", hasFeature: artifact.workflows.length > 0 },
+		];
+		for (const { capability, hasFeature } of checks) {
+			if (!hasFeature) continue;
+			const entry = context.capabilities[capability];
+			if (entry.support === "full") continue;
+			if (context.strict) {
+				warnings.push({
+					artifactName: artifact.name,
+					harnessName: "claude-code",
+					message: `Strict mode: capability ${capability} not supported by harness claude-code`,
+				});
+				return { files, warnings };
+			}
+			const degradation = applyDegradation(
+				entry.degradation!,
+				capability,
+				artifact,
+				"claude-code",
+			);
+			warnings.push(...degradation.warnings);
+		}
+	}
+
 	const harnessConfig = (artifact.frontmatter as Record<string, unknown>)[
 		"harness-config"
 	] as Record<string, unknown> | undefined;

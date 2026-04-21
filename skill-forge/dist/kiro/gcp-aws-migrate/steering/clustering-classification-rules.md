@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Terraform Clustering: Classification Rules
 
 Hardcoded lists for classifying GCP resources as PRIMARY or SECONDARY.

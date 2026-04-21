@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import chalk from "chalk";
 import { Command } from "commander";
-import { browseCommand } from "./browse";
+import { browseCommand, exportCommand } from "./browse";
 import { buildCommand } from "./build";
 import { catalogCommand } from "./catalog";
 import {
@@ -19,12 +19,24 @@ import {
 	renderVersion,
 } from "./help/renderer";
 import { suggestCommand } from "./help/typo-suggester";
-import { importCommand } from "./import";
+import { importCommand as kiroImportCommand } from "./import";
+import { importCommand as multiHarnessImportCommand } from "./importers/index";
 import { installCommand } from "./install";
 import { newCommand } from "./new";
 import { publishCommand } from "./publish";
+import type { HarnessName } from "./schemas";
+import { SUPPORTED_HARNESSES } from "./schemas";
+import {
+	formatComparisonOutput,
+	formatJsonOutput,
+	formatTerminalOutput,
+	renderComparison,
+	renderTemper,
+	startTemperServer,
+} from "./temper";
 import { tutorialCommand } from "./tutorial";
 import { validateCommand } from "./validate";
+import { upgradeCommand } from "./versioning";
 
 // Banner lines — stored without trailing padding; printBanner normalises widths.
 const bannerLines = [
@@ -160,6 +172,7 @@ if (import.meta.main !== false) {
 		.option("--from-release <tag>", "Download from GitHub release")
 		.option("--backend <name>", "Named backend from forge.config.yaml")
 		.option("--global", "Install artifact into the global cache")
+		.option("--project <name>", "Install into a specific workspace project")
 		.action(installCommand);
 
 	program
@@ -201,6 +214,18 @@ if (import.meta.main !== false) {
 		.option("--port <number>", "Port to serve on", "3131")
 		.action(browseCommand);
 
+	catalogCmd
+		.command("export")
+		.description(
+			"Export a self-contained static catalog site for GitHub Pages or any static host",
+		)
+		.option(
+			"--output <dir>",
+			"Output directory for index.html and catalog.json",
+			"dist/web",
+		)
+		.action(exportCommand);
+
 	const collectionCmd = program
 		.command("collection")
 		.description("Manage knowledge collections")
@@ -219,15 +244,17 @@ if (import.meta.main !== false) {
 		.action(collectionBuildCommand);
 
 	program
-		.command("import <path>")
+		.command("import [path]")
 		.description(
-			"Import knowledge artifacts from an external source (Kiro powers, skills)",
+			"Import knowledge artifacts from an external source (Kiro powers, skills, or harness-native files)",
 		)
 		.option("--all", "Import all artifact subdirectories within <path>")
 		.option(
 			"--format <format>",
 			"Source format: kiro-power, kiro-skill (default: auto-detect)",
 		)
+		.option("--harness <name>", "Scan for and import harness-native files")
+		.option("--force", "Overwrite existing artifacts without confirmation")
 		.option("--dry-run", "Show what would be imported without writing files")
 		.option(
 			"--collections <names>",
@@ -237,7 +264,20 @@ if (import.meta.main !== false) {
 			"--knowledge-dir <dir>",
 			"Target knowledge directory (default: knowledge)",
 		)
-		.action(importCommand);
+		.action(async (path, options) => {
+			// If --harness is provided or no path argument, use multi-harness import
+			if (options.harness || !path) {
+				await multiHarnessImportCommand({
+					harness: options.harness as HarnessName | undefined,
+					force: options.force,
+					dryRun: options.dryRun,
+					knowledgeDir: options.knowledgeDir,
+				});
+			} else {
+				// Delegate to existing Kiro import (path-based)
+				await kiroImportCommand(path, options);
+			}
+		});
 
 	program
 		.command("publish")
@@ -267,6 +307,92 @@ if (import.meta.main !== false) {
 		.option("--no-context", "Skip harness context wrapping")
 		.option("--init <artifact>", "Scaffold eval suite for an artifact")
 		.action(evalCommand);
+
+	program
+		.command("upgrade")
+		.description("Upgrade installed artifacts to their latest versions")
+		.option("--force", "Upgrade without confirmation prompts")
+		.option("--dry-run", "Show what would be upgraded without modifying files")
+		.option(
+			"--project <name>",
+			"Upgrade only within a specific workspace project",
+		)
+		.action(async (options) => {
+			try {
+				await upgradeCommand({
+					force: options.force,
+					dryRun: options.dryRun,
+					project: options.project,
+				});
+			} catch (err: unknown) {
+				const msg = err instanceof Error ? err.message : String(err);
+				console.error(chalk.red(`Error: ${msg}`));
+				console.error(
+					chalk.dim(
+						"  Run `forge install` to install artifacts first, then retry.",
+					),
+				);
+				process.exit(1);
+			}
+		});
+
+	program
+		.command("temper <artifact>")
+		.description(
+			"Preview the compiled AI experience for an artifact-harness pair",
+		)
+		.option("--harness <name>", "Target harness (default: kiro)")
+		.option("--compare", "Compare artifact across all targeted harnesses")
+		.option("--web", "Open interactive web preview in browser")
+		.option("--json", "Output as JSON conforming to TemperOutputSchema")
+		.option("--no-color", "Disable color output for deterministic results")
+		.action(async (artifact, options) => {
+			const harness = (options.harness ?? "kiro") as HarnessName;
+
+			if (!SUPPORTED_HARNESSES.includes(harness)) {
+				console.error(chalk.red(`Error: Unknown harness "${harness}".`));
+				console.error(
+					chalk.dim(`  Supported harnesses: ${SUPPORTED_HARNESSES.join(", ")}`),
+				);
+				process.exit(1);
+			}
+
+			try {
+				if (options.compare) {
+					const result = await renderComparison({
+						artifactName: artifact,
+						harnesses: [...SUPPORTED_HARNESSES],
+					});
+					console.log(formatComparisonOutput(result, !options.color));
+				} else if (options.web) {
+					const output = await renderTemper({
+						artifactName: artifact,
+						harness,
+					});
+					await startTemperServer(output);
+				} else {
+					const output = await renderTemper({
+						artifactName: artifact,
+						harness,
+						noColor: !options.color,
+					});
+					if (options.json) {
+						console.log(formatJsonOutput(output));
+					} else {
+						console.log(formatTerminalOutput(output, !options.color));
+					}
+				}
+			} catch (err: unknown) {
+				const msg = err instanceof Error ? err.message : String(err);
+				console.error(chalk.red(`Error: ${msg}`));
+				console.error(
+					chalk.dim(
+						"  Run `forge catalog generate` to see available artifacts.",
+					),
+				);
+				process.exit(1);
+			}
+		});
 
 	// Register guild commands
 	registerGuildCommands(program);
@@ -320,7 +446,7 @@ if (import.meta.main !== false) {
 	// Custom version option using renderVersion
 	program.option("-V, --version", "Output version information");
 	program.on("option:version", () => {
-		console.log(renderVersion("0.1.0", { useColor }));
+		console.log(renderVersion("0.2.0", { useColor }));
 		process.exit(0);
 	});
 

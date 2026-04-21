@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # AWS Pricing Cache
 
 **Last updated:** 2026-03-07

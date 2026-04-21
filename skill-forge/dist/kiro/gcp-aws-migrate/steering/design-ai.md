@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Design Phase: AI Workloads (Bedrock)
 
 > Loaded by `design.md` when `ai-workload-profile.json` exists.

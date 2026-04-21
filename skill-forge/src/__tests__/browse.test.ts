@@ -8,9 +8,15 @@ import {
 	spyOn,
 	test,
 } from "bun:test";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import {
+	type BrowseState,
 	escapeHtml,
+	exportCommand,
 	generateHtmlPage,
+	generateStaticHtmlPage,
 	handleRequest,
 	validatePort,
 } from "../browse";
@@ -403,5 +409,850 @@ describe("browse SPA format integration", () => {
 		);
 		expect(legacyEntry.formatByHarness).toBeUndefined();
 		expect(legacyEntry.harnesses).toEqual(["kiro"]);
+	});
+});
+
+describe("generateStaticHtmlPage", () => {
+	const staticEntries = [
+		makeCatalogEntry({
+			name: "static-skill",
+			displayName: "Static Skill",
+			description: "A skill for static export",
+			keywords: ["static"],
+			harnesses: ["kiro"],
+			path: "knowledge/static-skill",
+		}),
+	];
+	const staticContentMap: Record<string, string> = {
+		"static-skill": "---\nname: static-skill\n---\nHello world",
+	};
+
+	test("returns a string starting with <!DOCTYPE html>", () => {
+		const html = generateStaticHtmlPage(staticEntries, staticContentMap);
+		expect(html.startsWith("<!DOCTYPE html>")).toBe(true);
+	});
+
+	test("embeds __CATALOG_DATA__ inline script before </head>", () => {
+		const html = generateStaticHtmlPage(staticEntries, staticContentMap);
+		expect(html).toContain("window.__CATALOG_DATA__");
+		// The data script must appear before the closing </head>
+		const dataIdx = html.indexOf("__CATALOG_DATA__");
+		const headIdx = html.indexOf("</head>");
+		expect(dataIdx).toBeLessThan(headIdx);
+	});
+
+	test("embeds __ARTIFACT_CONTENT__ inline script before </head>", () => {
+		const html = generateStaticHtmlPage(staticEntries, staticContentMap);
+		expect(html).toContain("window.__ARTIFACT_CONTENT__");
+		const dataIdx = html.indexOf("__ARTIFACT_CONTENT__");
+		const headIdx = html.indexOf("</head>");
+		expect(dataIdx).toBeLessThan(headIdx);
+	});
+
+	test("catalog entries are serialized into the embedded data", () => {
+		const html = generateStaticHtmlPage(staticEntries, staticContentMap);
+		expect(html).toContain('"static-skill"');
+		expect(html).toContain('"Static Skill"');
+	});
+
+	test("artifact content is serialized into the embedded data", () => {
+		const html = generateStaticHtmlPage(staticEntries, staticContentMap);
+		expect(html).toContain("Hello world");
+	});
+
+	test("safely escapes </script> sequences in embedded JSON", () => {
+		const dangerous: Record<string, string> = {
+			"evil-artifact": "content with </script> in it",
+		};
+		const html = generateStaticHtmlPage([], dangerous);
+		// Should not contain a raw </script> inside the data script (only the real closing tag)
+		// The embedded JSON should have the sequence escaped as <\/script>
+		expect(html).toContain("<\\/script>");
+		// The HTML must still be valid — exactly two </script> occurrences expected:
+		// one closing the data script tag, one closing the main script tag
+		const rawClose = (html.match(/<\/script>/g) || []).length;
+		expect(rawClose).toBe(2);
+	});
+
+	test("safely escapes <!-- sequences in embedded JSON", () => {
+		const dangerous: Record<string, string> = {
+			"comment-artifact": "content with <!-- a comment",
+		};
+		const html = generateStaticHtmlPage([], dangerous);
+		expect(html).toContain("<\\!--");
+	});
+
+	test("static page still contains the catalog-browser JS (globals-check path)", () => {
+		const html = generateStaticHtmlPage(staticEntries, staticContentMap);
+		expect(html).toContain("window.__CATALOG_DATA__");
+		expect(html).toContain("window.__ARTIFACT_CONTENT__");
+		// The main SPA JS must still be present
+		expect(html).toContain("populateHarnessFilter");
+		expect(html).toContain("renderCards");
+	});
+
+	test("works with an empty catalog and empty content map", () => {
+		const html = generateStaticHtmlPage([], {});
+		expect(html).toContain("__CATALOG_DATA__ = []");
+		expect(html).toContain("__ARTIFACT_CONTENT__ = {}");
+	});
+
+	test("preserves dollar-sign sequences in content without String.replace corruption", () => {
+		const tricky: Record<string, string> = {
+			"dollar-artifact": "match `^[a-z]+$` here and $50 cost",
+		};
+		const html = generateStaticHtmlPage([], tricky);
+		// The embedded JSON must contain the literal $ characters, not
+		// String.replace $` / $' / $& expansions.
+		expect(html).toContain("^[a-z]+$");
+		expect(html).toContain("$50");
+		expect(html).not.toContain("<!DOCTYPE html><!DOCTYPE html>");
+	});
+});
+
+describe("exportCommand", () => {
+	let tmpDir: string;
+	let errorSpy: ReturnType<typeof spyOn>;
+
+	beforeAll(async () => {
+		tmpDir = await mkdtemp(join(tmpdir(), "forge-export-test-"));
+	});
+
+	afterAll(async () => {
+		await rm(tmpDir, { recursive: true, force: true });
+	});
+
+	beforeEach(() => {
+		errorSpy = spyOn(console, "error").mockImplementation(() => {});
+	});
+
+	afterEach(() => {
+		errorSpy.mockRestore();
+	});
+
+	test("creates index.html in the output directory", async () => {
+		const out = join(tmpDir, "html-test");
+		await exportCommand({ output: out });
+		const html = await readFile(join(out, "index.html"), "utf-8");
+		expect(html.startsWith("<!DOCTYPE html>")).toBe(true);
+	});
+
+	test("creates catalog.json in the output directory", async () => {
+		const out = join(tmpDir, "json-test");
+		await exportCommand({ output: out });
+		const raw = await readFile(join(out, "catalog.json"), "utf-8");
+		const data = JSON.parse(raw);
+		expect(Array.isArray(data)).toBe(true);
+	});
+
+	test("index.html embeds __CATALOG_DATA__", async () => {
+		const out = join(tmpDir, "embed-test");
+		await exportCommand({ output: out });
+		const html = await readFile(join(out, "index.html"), "utf-8");
+		expect(html).toContain("window.__CATALOG_DATA__");
+	});
+
+	test("creates output directory if it does not exist", async () => {
+		const out = join(tmpDir, "nested", "deep", "dir");
+		await exportCommand({ output: out });
+		const html = await readFile(join(out, "index.html"), "utf-8");
+		expect(html).toContain("<!DOCTYPE html>");
+	});
+
+	test("prints a success message to stderr", async () => {
+		const out = join(tmpDir, "msg-test");
+		await exportCommand({ output: out });
+		expect(errorSpy).toHaveBeenCalled();
+		const msg = (errorSpy.mock.calls[0] as string[])[0] as string;
+		expect(msg).toContain("Exported static catalog");
+	});
+});
+
+// ---------------------------------------------------------------------------
+// Integration tests for mutation endpoints (task 5.5)
+// ---------------------------------------------------------------------------
+
+describe("artifact mutation integration", () => {
+	let server: ReturnType<typeof Bun.serve>;
+	let baseUrl: string;
+	let tmpKnowledge: string;
+	let tmpCollections: string;
+	let tmpForge: string;
+	let state: BrowseState;
+
+	const validArtifact = {
+		name: "test-artifact",
+		description: "A test artifact",
+		keywords: ["test"],
+		author: "tester",
+		version: "0.1.0",
+		harnesses: ["kiro"],
+		type: "skill",
+		categories: [],
+		ecosystem: [],
+		depends: [],
+		enhances: [],
+		body: "# Test\n\nHello world",
+	};
+
+	beforeAll(async () => {
+		tmpKnowledge = await mkdtemp(join(tmpdir(), "browse-mut-know-"));
+		tmpCollections = await mkdtemp(join(tmpdir(), "browse-mut-coll-"));
+		tmpForge = await mkdtemp(join(tmpdir(), "browse-mut-forge-"));
+		state = {
+			catalogEntries: [],
+			collectionsDir: tmpCollections,
+			forgeDir: tmpForge,
+			knowledgeDir: tmpKnowledge,
+			buildHistory: [],
+		};
+		server = Bun.serve({
+			hostname: "localhost",
+			port: 0,
+			fetch(req) {
+				return handleRequest(req, state, "<html></html>");
+			},
+		});
+		baseUrl = `http://localhost:${server.port}`;
+	});
+
+	afterAll(async () => {
+		server.stop();
+		await rm(tmpKnowledge, { recursive: true, force: true });
+		await rm(tmpCollections, { recursive: true, force: true });
+		await rm(tmpForge, { recursive: true, force: true });
+	});
+
+	test("POST → GET → verify artifact CRUD round-trip", async () => {
+		// CREATE
+		const createRes = await fetch(`${baseUrl}/api/artifact`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(validArtifact),
+		});
+		expect(createRes.status).toBe(201);
+		const createBody = await createRes.json();
+		expect(createBody.entry).toBeDefined();
+		expect(createBody.entry.name).toBe("test-artifact");
+
+		// GET catalog and verify it's there
+		const catalogRes = await fetch(`${baseUrl}/api/catalog`);
+		const catalog = await catalogRes.json();
+		const found = catalog.find((e: any) => e.name === "test-artifact");
+		expect(found).toBeDefined();
+		expect(found.description).toBe("A test artifact");
+	});
+
+	test("PUT → GET → verify artifact update round-trip", async () => {
+		const updated = {
+			...validArtifact,
+			description: "Updated description",
+			body: "# Updated\n\nNew content",
+		};
+		const putRes = await fetch(`${baseUrl}/api/artifact/test-artifact`, {
+			method: "PUT",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(updated),
+		});
+		expect(putRes.status).toBe(200);
+		const putBody = await putRes.json();
+		expect(putBody.entry.description).toBe("Updated description");
+
+		// GET catalog and verify update
+		const catalogRes = await fetch(`${baseUrl}/api/catalog`);
+		const catalog = await catalogRes.json();
+		const found = catalog.find((e: any) => e.name === "test-artifact");
+		expect(found.description).toBe("Updated description");
+	});
+
+	test("DELETE → GET → verify artifact deletion round-trip", async () => {
+		const delRes = await fetch(`${baseUrl}/api/artifact/test-artifact`, {
+			method: "DELETE",
+		});
+		expect(delRes.status).toBe(204);
+
+		// GET catalog and verify it's gone
+		const catalogRes = await fetch(`${baseUrl}/api/catalog`);
+		const catalog = await catalogRes.json();
+		const found = catalog.find((e: any) => e.name === "test-artifact");
+		expect(found).toBeUndefined();
+	});
+
+	test("POST artifact with conflict returns 409", async () => {
+		// Create first
+		await fetch(`${baseUrl}/api/artifact`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ ...validArtifact, name: "conflict-art" }),
+		});
+		// Create again — conflict
+		const res = await fetch(`${baseUrl}/api/artifact`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ ...validArtifact, name: "conflict-art" }),
+		});
+		expect(res.status).toBe(409);
+		const body = await res.json();
+		expect(body.error).toBeDefined();
+		expect(typeof body.error).toBe("string");
+	});
+
+	test("PUT artifact not-found returns 404", async () => {
+		const res = await fetch(`${baseUrl}/api/artifact/nonexistent-art`, {
+			method: "PUT",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(validArtifact),
+		});
+		expect(res.status).toBe(404);
+		const body = await res.json();
+		expect(body.error).toBeDefined();
+	});
+
+	test("DELETE artifact not-found returns 404", async () => {
+		const res = await fetch(`${baseUrl}/api/artifact/nonexistent-art`, {
+			method: "DELETE",
+		});
+		expect(res.status).toBe(404);
+		const body = await res.json();
+		expect(body.error).toBeDefined();
+	});
+
+	test("POST artifact validation error returns 400 with details", async () => {
+		const res = await fetch(`${baseUrl}/api/artifact`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ ...validArtifact, name: "INVALID NAME" }),
+		});
+		expect(res.status).toBe(400);
+		const body = await res.json();
+		expect(body.error).toBe("Validation failed");
+		expect(Array.isArray(body.details)).toBe(true);
+		expect(body.details.length).toBeGreaterThan(0);
+		expect(body.details[0]).toHaveProperty("field");
+		expect(body.details[0]).toHaveProperty("message");
+	});
+});
+
+describe("collection mutation integration", () => {
+	let server: ReturnType<typeof Bun.serve>;
+	let baseUrl: string;
+	let tmpKnowledge: string;
+	let tmpCollections: string;
+	let tmpForge: string;
+	let state: BrowseState;
+
+	const validCollection = {
+		name: "test-collection",
+		displayName: "Test Collection",
+		description: "A test collection",
+		version: "0.1.0",
+		trust: "community",
+		tags: ["testing"],
+	};
+
+	beforeAll(async () => {
+		tmpKnowledge = await mkdtemp(join(tmpdir(), "browse-coll-know-"));
+		tmpCollections = await mkdtemp(join(tmpdir(), "browse-coll-dir-"));
+		tmpForge = await mkdtemp(join(tmpdir(), "browse-coll-forge-"));
+		state = {
+			catalogEntries: [],
+			collectionsDir: tmpCollections,
+			forgeDir: tmpForge,
+			knowledgeDir: tmpKnowledge,
+			buildHistory: [],
+		};
+		server = Bun.serve({
+			hostname: "localhost",
+			port: 0,
+			fetch(req) {
+				return handleRequest(req, state, "<html></html>");
+			},
+		});
+		baseUrl = `http://localhost:${server.port}`;
+	});
+
+	afterAll(async () => {
+		server.stop();
+		await rm(tmpKnowledge, { recursive: true, force: true });
+		await rm(tmpCollections, { recursive: true, force: true });
+		await rm(tmpForge, { recursive: true, force: true });
+	});
+
+	test("POST → GET list → GET single → verify collection CRUD round-trip", async () => {
+		// CREATE
+		const createRes = await fetch(`${baseUrl}/api/collections`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(validCollection),
+		});
+		expect(createRes.status).toBe(201);
+		const createBody = await createRes.json();
+		expect(createBody.collection).toBeDefined();
+		expect(createBody.collection.name).toBe("test-collection");
+
+		// GET list
+		const listRes = await fetch(`${baseUrl}/api/collections`);
+		expect(listRes.status).toBe(200);
+		const list = await listRes.json();
+		expect(Array.isArray(list)).toBe(true);
+		const found = list.find((c: any) => c.name === "test-collection");
+		expect(found).toBeDefined();
+
+		// GET single
+		const getRes = await fetch(`${baseUrl}/api/collections/test-collection`);
+		expect(getRes.status).toBe(200);
+		const getBody = await getRes.json();
+		expect(getBody.collection.name).toBe("test-collection");
+		expect(getBody.collection.displayName).toBe("Test Collection");
+		expect(Array.isArray(getBody.members)).toBe(true);
+	});
+
+	test("PUT → GET → verify collection update round-trip", async () => {
+		const updated = {
+			...validCollection,
+			displayName: "Updated Collection",
+			description: "Updated description",
+		};
+		const putRes = await fetch(`${baseUrl}/api/collections/test-collection`, {
+			method: "PUT",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(updated),
+		});
+		expect(putRes.status).toBe(200);
+		const putBody = await putRes.json();
+		expect(putBody.collection.displayName).toBe("Updated Collection");
+
+		// GET and verify
+		const getRes = await fetch(`${baseUrl}/api/collections/test-collection`);
+		const getBody = await getRes.json();
+		expect(getBody.collection.description).toBe("Updated description");
+	});
+
+	test("DELETE → GET → verify collection deletion round-trip", async () => {
+		const delRes = await fetch(`${baseUrl}/api/collections/test-collection`, {
+			method: "DELETE",
+		});
+		expect(delRes.status).toBe(204);
+
+		// GET should 404
+		const getRes = await fetch(`${baseUrl}/api/collections/test-collection`);
+		expect(getRes.status).toBe(404);
+	});
+
+	test("POST collection with conflict returns 409", async () => {
+		await fetch(`${baseUrl}/api/collections`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ ...validCollection, name: "conflict-coll" }),
+		});
+		const res = await fetch(`${baseUrl}/api/collections`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ ...validCollection, name: "conflict-coll" }),
+		});
+		expect(res.status).toBe(409);
+		const body = await res.json();
+		expect(body.error).toBeDefined();
+		expect(typeof body.error).toBe("string");
+	});
+
+	test("PUT collection not-found returns 404", async () => {
+		const res = await fetch(`${baseUrl}/api/collections/nonexistent-coll`, {
+			method: "PUT",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(validCollection),
+		});
+		expect(res.status).toBe(404);
+		const body = await res.json();
+		expect(body.error).toBeDefined();
+	});
+
+	test("DELETE collection not-found returns 404", async () => {
+		const res = await fetch(`${baseUrl}/api/collections/nonexistent-coll`, {
+			method: "DELETE",
+		});
+		expect(res.status).toBe(404);
+		const body = await res.json();
+		expect(body.error).toBeDefined();
+	});
+
+	test("POST collection validation error returns 400 with details", async () => {
+		const res = await fetch(`${baseUrl}/api/collections`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ ...validCollection, name: "INVALID NAME" }),
+		});
+		expect(res.status).toBe(400);
+		const body = await res.json();
+		expect(body.error).toBe("Validation failed");
+		expect(Array.isArray(body.details)).toBe(true);
+	});
+});
+
+describe("manifest mutation integration", () => {
+	let server: ReturnType<typeof Bun.serve>;
+	let baseUrl: string;
+	let tmpKnowledge: string;
+	let tmpCollections: string;
+	let tmpForge: string;
+	let state: BrowseState;
+
+	const validManifestEntry = {
+		name: "test-entry",
+		version: "1.0.0",
+		mode: "required",
+	};
+
+	beforeAll(async () => {
+		tmpKnowledge = await mkdtemp(join(tmpdir(), "browse-man-know-"));
+		tmpCollections = await mkdtemp(join(tmpdir(), "browse-man-coll-"));
+		tmpForge = await mkdtemp(join(tmpdir(), "browse-man-forge-"));
+		state = {
+			catalogEntries: [],
+			collectionsDir: tmpCollections,
+			forgeDir: tmpForge,
+			knowledgeDir: tmpKnowledge,
+			buildHistory: [],
+		};
+		server = Bun.serve({
+			hostname: "localhost",
+			port: 0,
+			fetch(req) {
+				return handleRequest(req, state, "<html></html>");
+			},
+		});
+		baseUrl = `http://localhost:${server.port}`;
+	});
+
+	afterAll(async () => {
+		server.stop();
+		await rm(tmpKnowledge, { recursive: true, force: true });
+		await rm(tmpCollections, { recursive: true, force: true });
+		await rm(tmpForge, { recursive: true, force: true });
+	});
+
+	test("GET /api/manifest returns empty manifest when no file exists", async () => {
+		const res = await fetch(`${baseUrl}/api/manifest`);
+		expect(res.status).toBe(200);
+		const body = await res.json();
+		expect(body.artifacts).toEqual([]);
+	});
+
+	test("POST → GET → verify manifest entry CRUD round-trip", async () => {
+		// ADD entry
+		const addRes = await fetch(`${baseUrl}/api/manifest/entries`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(validManifestEntry),
+		});
+		expect(addRes.status).toBe(201);
+		const addBody = await addRes.json();
+		expect(addBody.manifest).toBeDefined();
+		expect(addBody.manifest.artifacts.length).toBe(1);
+		expect(addBody.manifest.artifacts[0].name).toBe("test-entry");
+
+		// GET manifest and verify
+		const getRes = await fetch(`${baseUrl}/api/manifest`);
+		const getBody = await getRes.json();
+		expect(getBody.artifacts.length).toBe(1);
+		expect(getBody.artifacts[0].name).toBe("test-entry");
+	});
+
+	test("PUT → GET → verify manifest entry update round-trip", async () => {
+		const putRes = await fetch(`${baseUrl}/api/manifest/entries/test-entry`, {
+			method: "PUT",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ version: "2.0.0", mode: "optional" }),
+		});
+		expect(putRes.status).toBe(200);
+		const putBody = await putRes.json();
+		expect(putBody.manifest.artifacts[0].version).toBe("2.0.0");
+		expect(putBody.manifest.artifacts[0].mode).toBe("optional");
+
+		// GET and verify
+		const getRes = await fetch(`${baseUrl}/api/manifest`);
+		const getBody = await getRes.json();
+		expect(getBody.artifacts[0].version).toBe("2.0.0");
+	});
+
+	test("DELETE → GET → verify manifest entry removal round-trip", async () => {
+		const delRes = await fetch(`${baseUrl}/api/manifest/entries/test-entry`, {
+			method: "DELETE",
+		});
+		expect(delRes.status).toBe(204);
+
+		// GET and verify empty
+		const getRes = await fetch(`${baseUrl}/api/manifest`);
+		const getBody = await getRes.json();
+		expect(getBody.artifacts.length).toBe(0);
+	});
+
+	test("POST manifest entry with conflict returns 409", async () => {
+		await fetch(`${baseUrl}/api/manifest/entries`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				name: "dup-entry",
+				version: "1.0.0",
+				mode: "required",
+			}),
+		});
+		const res = await fetch(`${baseUrl}/api/manifest/entries`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				name: "dup-entry",
+				version: "1.0.0",
+				mode: "required",
+			}),
+		});
+		expect(res.status).toBe(409);
+		const body = await res.json();
+		expect(body.error).toBeDefined();
+		expect(typeof body.error).toBe("string");
+	});
+
+	test("PUT manifest entry not-found returns 404", async () => {
+		const res = await fetch(`${baseUrl}/api/manifest/entries/nonexistent`, {
+			method: "PUT",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ version: "2.0.0" }),
+		});
+		expect(res.status).toBe(404);
+		const body = await res.json();
+		expect(body.error).toBeDefined();
+	});
+
+	test("DELETE manifest entry not-found returns 404", async () => {
+		const res = await fetch(`${baseUrl}/api/manifest/entries/nonexistent`, {
+			method: "DELETE",
+		});
+		expect(res.status).toBe(404);
+		const body = await res.json();
+		expect(body.error).toBeDefined();
+	});
+
+	test("POST manifest entry validation error returns 400", async () => {
+		// Both name and collection set — invalid
+		const res = await fetch(`${baseUrl}/api/manifest/entries`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				name: "x",
+				collection: "y",
+				version: "1.0.0",
+				mode: "required",
+			}),
+		});
+		expect(res.status).toBe(400);
+		const body = await res.json();
+		expect(body.error).toBeDefined();
+	});
+});
+
+describe("manifest status integration", () => {
+	let server: ReturnType<typeof Bun.serve>;
+	let baseUrl: string;
+	let tmpKnowledge: string;
+	let tmpCollections: string;
+	let tmpForge: string;
+	let state: BrowseState;
+
+	beforeAll(async () => {
+		tmpKnowledge = await mkdtemp(join(tmpdir(), "browse-stat-know-"));
+		tmpCollections = await mkdtemp(join(tmpdir(), "browse-stat-coll-"));
+		tmpForge = await mkdtemp(join(tmpdir(), "browse-stat-forge-"));
+		state = {
+			catalogEntries: [],
+			collectionsDir: tmpCollections,
+			forgeDir: tmpForge,
+			knowledgeDir: tmpKnowledge,
+			buildHistory: [],
+		};
+		server = Bun.serve({
+			hostname: "localhost",
+			port: 0,
+			fetch(req) {
+				return handleRequest(req, state, "<html></html>");
+			},
+		});
+		baseUrl = `http://localhost:${server.port}`;
+	});
+
+	afterAll(async () => {
+		server.stop();
+		await rm(tmpKnowledge, { recursive: true, force: true });
+		await rm(tmpCollections, { recursive: true, force: true });
+		await rm(tmpForge, { recursive: true, force: true });
+	});
+
+	test("GET /api/manifest/status returns correct sync status indicators", async () => {
+		const { writeFile } = await import("node:fs/promises");
+
+		// Write a manifest with two entries
+		const manifestYaml = `artifacts:\n  - name: synced-art\n    version: "1.0.0"\n    mode: required\n  - name: outdated-art\n    version: "2.0.0"\n    mode: optional\n  - name: missing-art\n    version: "1.0.0"\n    mode: required\n`;
+		await writeFile(join(tmpForge, "manifest.yaml"), manifestYaml, "utf-8");
+
+		// Write a sync-lock with matching and mismatched versions
+		const syncLock = {
+			syncedAt: "2025-01-15T10:30:00Z",
+			entries: [
+				{
+					name: "synced-art",
+					version: "1.0.0",
+					harnesses: ["kiro"],
+					backend: "github",
+				},
+				{
+					name: "outdated-art",
+					version: "1.0.0",
+					harnesses: ["kiro"],
+					backend: "github",
+				},
+			],
+		};
+		await writeFile(
+			join(tmpForge, "sync-lock.json"),
+			JSON.stringify(syncLock),
+			"utf-8",
+		);
+
+		const res = await fetch(`${baseUrl}/api/manifest/status`);
+		expect(res.status).toBe(200);
+		const body = await res.json();
+		expect(body.syncedAt).toBe("2025-01-15T10:30:00Z");
+		expect(body.entries.length).toBe(3);
+
+		const synced = body.entries.find((e: any) => e.identifier === "synced-art");
+		expect(synced.status).toBe("synced");
+		expect(synced.syncedVersion).toBe("1.0.0");
+
+		const outdated = body.entries.find(
+			(e: any) => e.identifier === "outdated-art",
+		);
+		expect(outdated.status).toBe("outdated");
+		expect(outdated.syncedVersion).toBe("1.0.0");
+
+		const missing = body.entries.find(
+			(e: any) => e.identifier === "missing-art",
+		);
+		expect(missing.status).toBe("missing");
+		expect(missing.syncedVersion).toBeNull();
+	});
+
+	test("GET /api/manifest/status with no sync-lock marks all as missing", async () => {
+		const { writeFile, unlink } = await import("node:fs/promises");
+
+		// Ensure manifest exists
+		const manifestYaml = `artifacts:\n  - name: some-art\n    version: "1.0.0"\n    mode: required\n`;
+		await writeFile(join(tmpForge, "manifest.yaml"), manifestYaml, "utf-8");
+
+		// Remove sync-lock if it exists
+		try {
+			await unlink(join(tmpForge, "sync-lock.json"));
+		} catch {}
+
+		const res = await fetch(`${baseUrl}/api/manifest/status`);
+		expect(res.status).toBe(200);
+		const body = await res.json();
+		expect(body.syncedAt).toBeNull();
+		expect(body.entries[0].status).toBe("missing");
+	});
+});
+
+describe("content-type validation on mutation endpoints", () => {
+	let server: ReturnType<typeof Bun.serve>;
+	let baseUrl: string;
+	let tmpKnowledge: string;
+	let tmpCollections: string;
+	let tmpForge: string;
+	let state: BrowseState;
+
+	beforeAll(async () => {
+		tmpKnowledge = await mkdtemp(join(tmpdir(), "browse-ct-know-"));
+		tmpCollections = await mkdtemp(join(tmpdir(), "browse-ct-coll-"));
+		tmpForge = await mkdtemp(join(tmpdir(), "browse-ct-forge-"));
+		state = {
+			catalogEntries: [],
+			collectionsDir: tmpCollections,
+			forgeDir: tmpForge,
+			knowledgeDir: tmpKnowledge,
+			buildHistory: [],
+		};
+		server = Bun.serve({
+			hostname: "localhost",
+			port: 0,
+			fetch(req) {
+				return handleRequest(req, state, "<html></html>");
+			},
+		});
+		baseUrl = `http://localhost:${server.port}`;
+	});
+
+	afterAll(async () => {
+		server.stop();
+		await rm(tmpKnowledge, { recursive: true, force: true });
+		await rm(tmpCollections, { recursive: true, force: true });
+		await rm(tmpForge, { recursive: true, force: true });
+	});
+
+	test("POST /api/artifact without Content-Type returns 400", async () => {
+		const res = await fetch(`${baseUrl}/api/artifact`, {
+			method: "POST",
+			body: "{}",
+		});
+		expect(res.status).toBe(400);
+		const body = await res.json();
+		expect(body.error).toContain("Content-Type");
+	});
+
+	test("PUT /api/artifact/:name without Content-Type returns 400", async () => {
+		const res = await fetch(`${baseUrl}/api/artifact/some-name`, {
+			method: "PUT",
+			body: "{}",
+		});
+		expect(res.status).toBe(400);
+		const body = await res.json();
+		expect(body.error).toContain("Content-Type");
+	});
+
+	test("POST /api/collections without Content-Type returns 400", async () => {
+		const res = await fetch(`${baseUrl}/api/collections`, {
+			method: "POST",
+			body: "{}",
+		});
+		expect(res.status).toBe(400);
+		const body = await res.json();
+		expect(body.error).toContain("Content-Type");
+	});
+
+	test("PUT /api/collections/:name without Content-Type returns 400", async () => {
+		const res = await fetch(`${baseUrl}/api/collections/some-name`, {
+			method: "PUT",
+			body: "{}",
+		});
+		expect(res.status).toBe(400);
+		const body = await res.json();
+		expect(body.error).toContain("Content-Type");
+	});
+
+	test("POST /api/manifest/entries without Content-Type returns 400", async () => {
+		const res = await fetch(`${baseUrl}/api/manifest/entries`, {
+			method: "POST",
+			body: "{}",
+		});
+		expect(res.status).toBe(400);
+		const body = await res.json();
+		expect(body.error).toContain("Content-Type");
+	});
+
+	test("PUT /api/manifest/entries/:id without Content-Type returns 400", async () => {
+		const res = await fetch(`${baseUrl}/api/manifest/entries/some-id`, {
+			method: "PUT",
+			body: "{}",
+		});
+		expect(res.status).toBe(400);
+		const body = await res.json();
+		expect(body.error).toContain("Content-Type");
 	});
 });

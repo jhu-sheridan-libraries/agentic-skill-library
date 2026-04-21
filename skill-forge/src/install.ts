@@ -6,15 +6,22 @@ import {
 	readFile,
 	writeFile,
 } from "node:fs/promises";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import * as p from "@clack/prompts";
 import chalk from "chalk";
 import { resolveBackend } from "./backends/index";
 import { generateCatalog } from "./catalog";
 import { loadForgeConfig, resolveBackendConfigs } from "./config";
 import { GlobalCache } from "./guild/global-cache";
-import type { CatalogEntry, HarnessName } from "./schemas";
+import type {
+	CatalogEntry,
+	HarnessName,
+	VersionManifest,
+	WorkspaceProject,
+} from "./schemas";
 import { SUPPORTED_HARNESSES } from "./schemas";
+import { serializeManifest } from "./versioning";
+import { loadWorkspaceConfig } from "./workspace";
 
 export interface InstallOptions {
 	artifactName?: string;
@@ -26,6 +33,12 @@ export interface InstallOptions {
 	fromRelease?: string;
 	/** Named backend from forge.config.yaml, e.g. "internal" for S3 */
 	backend?: string;
+	/** Artifact version (semver) to record in the version manifest */
+	version?: string;
+	/** Path to the source knowledge artifact directory */
+	sourcePath?: string;
+	/** Install only for a specific workspace project */
+	project?: string;
 }
 
 /** Written alongside installed files to record install provenance. */
@@ -106,6 +119,7 @@ export async function install(options: InstallOptions): Promise<void> {
 
 		const files = await collectFiles(srcDir);
 		const installBase = HARNESS_INSTALL_PATHS[h];
+		const installedFiles: string[] = [];
 
 		if (dryRun) {
 			console.error(
@@ -134,8 +148,26 @@ export async function install(options: InstallOptions): Promise<void> {
 				await mkdir(destDir, { recursive: true });
 				await copyFile(src, dest);
 				console.error(`  ${chalk.green("✓")} ${dest}`);
+				installedFiles.push(file);
 			}
 			totalFiles++;
+		}
+
+		// Write version manifest alongside installed files
+		if (!dryRun && installedFiles.length > 0) {
+			const version =
+				options.version ??
+				(await extractVersionFromFiles(srcDir, files)) ??
+				"0.1.0";
+			const sourcePath = options.sourcePath ?? srcDir;
+			await writeVersionManifest(
+				artifactName,
+				version,
+				h,
+				sourcePath,
+				installedFiles,
+				installBase,
+			);
 		}
 	}
 
@@ -432,6 +464,23 @@ export async function installCommand(
 		return;
 	}
 
+	// --- Workspace-aware install path ---
+	const projectFilter = opts.project as string | undefined;
+	const wsRoot = process.cwd();
+	const wsResult = await loadWorkspaceConfig(wsRoot);
+
+	if (wsResult) {
+		await installWithWorkspace(wsResult.config, wsRoot, artifact, {
+			harness: opts.harness as HarnessName | undefined,
+			all: opts.all as boolean | undefined,
+			force: opts.force as boolean | undefined,
+			dryRun: opts.dryRun as boolean | undefined,
+			source: opts.source as string | undefined,
+			project: projectFilter,
+		});
+		return;
+	}
+
 	await install({
 		artifactName: artifact,
 		harness: opts.harness as HarnessName | undefined,
@@ -443,16 +492,210 @@ export async function installCommand(
 	});
 }
 
+/**
+ * Workspace-aware install: install artifacts into each project's root directory.
+ * Supports --project flag for single-project install.
+ * Writes per-project-harness-artifact version manifests.
+ * Prints summary grouped by project.
+ */
+async function installWithWorkspace(
+	wsConfig: import("./schemas").WorkspaceConfig,
+	wsRoot: string,
+	artifactName: string,
+	options: {
+		harness?: HarnessName;
+		all?: boolean;
+		force?: boolean;
+		dryRun?: boolean;
+		source?: string;
+		project?: string;
+	},
+): Promise<void> {
+	const {
+		harness,
+		all,
+		force,
+		dryRun,
+		source,
+		project: projectFilter,
+	} = options;
+	const distDir = source ? join(source, "dist") : "dist";
+
+	// Filter projects if --project is specified
+	let targetProjects = wsConfig.projects;
+	if (projectFilter) {
+		targetProjects = wsConfig.projects.filter((p) => p.name === projectFilter);
+		if (targetProjects.length === 0) {
+			const available = wsConfig.projects.map((p) => p.name).join(", ");
+			console.error(
+				chalk.red(
+					`Error: Unknown project "${projectFilter}". Available projects: ${available}`,
+				),
+			);
+			process.exit(1);
+		}
+	}
+
+	// Track summary per project
+	const summary: Array<{ project: string; harness: string; files: number }> =
+		[];
+
+	for (const proj of targetProjects) {
+		// Determine which harnesses to install for this project
+		let projectHarnesses: HarnessName[];
+		if (all) {
+			projectHarnesses = proj.harnesses.filter((h) =>
+				existsSync(join(distDir, h, artifactName)),
+			);
+		} else if (harness) {
+			projectHarnesses = proj.harnesses.includes(harness) ? [harness] : [];
+		} else {
+			// Default: install for all harnesses configured for this project
+			projectHarnesses = proj.harnesses.filter((h) =>
+				existsSync(join(distDir, h, artifactName)),
+			);
+		}
+
+		if (projectHarnesses.length === 0) continue;
+
+		// Check artifact include/exclude filters
+		const artifactNames = [artifactName];
+		const filteredNames = filterArtifactsForWorkspaceProject(
+			artifactNames,
+			proj,
+		);
+		if (filteredNames.length === 0) continue;
+
+		const projectRoot = resolve(wsRoot, proj.root);
+
+		for (const h of projectHarnesses) {
+			const srcDir = join(distDir, h, artifactName);
+			if (!(await exists(srcDir))) {
+				console.error(
+					chalk.yellow(
+						`  Skipping ${artifactName}/${h} for project "${proj.name}" — not built. Run \`forge build --harness ${h}\` first.`,
+					),
+				);
+				continue;
+			}
+
+			const files = await collectFiles(srcDir);
+			const installBase = join(projectRoot, HARNESS_INSTALL_PATHS[h]);
+			const installedFiles: string[] = [];
+
+			if (dryRun) {
+				console.error(
+					chalk.cyan(
+						`[dry-run] Would install ${files.length} files for ${h} in project "${proj.name}":`,
+					),
+				);
+			}
+
+			for (const file of files) {
+				const src = join(srcDir, file);
+				const dest = join(installBase, file);
+				const destExists = await exists(dest);
+
+				if (destExists && !force && !dryRun) {
+					console.error(
+						chalk.yellow(
+							`  Skipping ${dest} (already exists, use --force to overwrite)`,
+						),
+					);
+					continue;
+				}
+
+				if (dryRun) {
+					console.error(
+						`  ${src} → ${dest}${destExists ? " (overwrite)" : ""}`,
+					);
+				} else {
+					const destDir = dest.substring(0, dest.lastIndexOf("/"));
+					await mkdir(destDir, { recursive: true });
+					await copyFile(src, dest);
+					console.error(`  ${chalk.green("✓")} ${dest}`);
+					installedFiles.push(file);
+				}
+			}
+
+			// Write per-project-harness-artifact version manifest
+			if (!dryRun && installedFiles.length > 0) {
+				const version =
+					(await extractVersionFromFiles(srcDir, files)) ?? "0.1.0";
+				const sourcePath = srcDir;
+				await writeVersionManifest(
+					artifactName,
+					version,
+					h,
+					sourcePath,
+					installedFiles,
+					installBase,
+				);
+			}
+
+			summary.push({
+				project: proj.name,
+				harness: h,
+				files: dryRun ? files.length : installedFiles.length,
+			});
+		}
+	}
+
+	// Print summary grouped by project
+	if (summary.length > 0) {
+		console.error("");
+		console.error(chalk.green("✓ Workspace install summary:"));
+		const grouped = new Map<
+			string,
+			Array<{ harness: string; files: number }>
+		>();
+		for (const entry of summary) {
+			const existing = grouped.get(entry.project) ?? [];
+			existing.push({ harness: entry.harness, files: entry.files });
+			grouped.set(entry.project, existing);
+		}
+		for (const [projectName, entries] of grouped) {
+			const totalFiles = entries.reduce((sum, e) => sum + e.files, 0);
+			const harnessNames = entries.map((e) => e.harness).join(", ");
+			console.error(
+				`  ${chalk.bold(projectName)}: ${totalFiles} file(s) for ${harnessNames}`,
+			);
+		}
+	} else {
+		console.error(chalk.yellow("No files installed for any project."));
+	}
+}
+
+/**
+ * Filter artifacts based on a workspace project's include/exclude configuration.
+ */
+function filterArtifactsForWorkspaceProject(
+	allArtifactNames: string[],
+	project: WorkspaceProject,
+): string[] {
+	let names = [...allArtifactNames];
+
+	if (project.artifacts?.include) {
+		const includeSet = new Set(project.artifacts.include);
+		names = names.filter((n) => includeSet.has(n));
+	}
+
+	if (project.artifacts?.exclude) {
+		const excludeSet = new Set(project.artifacts.exclude);
+		names = names.filter((n) => !excludeSet.has(n));
+	}
+
+	return names;
+}
+
 async function writeForgeManifest(
 	name: string,
 	harness: HarnessName,
 	version: string,
 	backendLabel: string,
 ): Promise<void> {
-	const manifestPath = join(
-		HARNESS_INSTALL_PATHS[harness],
-		".forge-manifest.json",
-	);
+	const installBase = HARNESS_INSTALL_PATHS[harness];
+	const manifestPath = join(installBase, ".forge-manifest.json");
 	let existing: ForgeManifestEntry[] = [];
 
 	if (await exists(manifestPath)) {
@@ -483,5 +726,54 @@ async function writeForgeManifest(
 		existing.push(entry);
 	}
 
+	await mkdir(installBase, { recursive: true });
 	await writeFile(manifestPath, JSON.stringify(existing, null, 2), "utf-8");
+}
+
+/**
+ * Write a `.forge-manifest.json` alongside installed files using the VersionManifest schema.
+ * Records artifact name, version, harness, source path, timestamp, and file list.
+ */
+async function writeVersionManifest(
+	artifactName: string,
+	version: string,
+	harnessName: HarnessName,
+	sourcePath: string,
+	files: string[],
+	installBase: string,
+): Promise<void> {
+	const manifest: VersionManifest = {
+		artifactName,
+		version,
+		harnessName,
+		sourcePath,
+		installedAt: new Date().toISOString(),
+		files,
+	};
+
+	const manifestPath = join(installBase, ".forge-manifest.json");
+	await mkdir(installBase, { recursive: true });
+	await writeFile(manifestPath, serializeManifest(manifest), "utf-8");
+}
+
+/**
+ * Attempt to extract a version string from compiled files by looking for
+ * the `<!-- forge:version X.Y.Z -->` comment in markdown files.
+ */
+async function extractVersionFromFiles(
+	srcDir: string,
+	files: string[],
+): Promise<string | undefined> {
+	for (const file of files) {
+		if (file.endsWith(".md")) {
+			try {
+				const content = await readFile(join(srcDir, file), "utf-8");
+				const match = content.match(/<!-- forge:version (\d+\.\d+\.\d+) -->/);
+				if (match) return match[1];
+			} catch {
+				// Skip unreadable files
+			}
+		}
+	}
+	return undefined;
 }

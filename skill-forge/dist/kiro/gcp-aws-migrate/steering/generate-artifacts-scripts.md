@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Generate Phase: Migration Script Generation
 
 > Loaded by generate.md after generate-artifacts-infra.md completes (terraform files generated).

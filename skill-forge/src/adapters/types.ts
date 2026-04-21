@@ -1,5 +1,6 @@
 import type nunjucks from "nunjucks";
-import type { KnowledgeArtifact } from "../schemas";
+import type { CapabilityEntry, KnowledgeArtifact } from "../schemas";
+import type { HarnessCapabilityName } from "./capabilities";
 
 export interface OutputFile {
 	relativePath: string;
@@ -18,7 +19,13 @@ export interface AdapterResult {
 	warnings: AdapterWarning[];
 }
 
+export interface AdapterContext {
+	capabilities: Record<HarnessCapabilityName, CapabilityEntry>;
+	strict: boolean;
+}
+
 export type HarnessAdapter = (
 	artifact: KnowledgeArtifact,
 	templateEnv: nunjucks.Environment,
+	context?: AdapterContext,
 ) => AdapterResult;

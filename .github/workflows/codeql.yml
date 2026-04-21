@@ -29,16 +29,23 @@ jobs:
           languages: ${{ matrix.language }}
           # Focus on the CLI source and MCP bridge; exclude generated dist and node_modules
           paths-ignore: |
-            dist
-            node_modules
-            build
+            skill-forge/dist
+            skill-forge/node_modules
+            skill-forge/build
           queries: +security-extended
+          # Focus on source; exclude generated and dependency directories
+          config: |
+            paths-ignore:
+              - "skill-forge/dist/**"
+              - "skill-forge/node_modules/**"
+              - "skill-forge/build/**"
 
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
       - run: bun install
+        working-directory: skill-forge
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@v4

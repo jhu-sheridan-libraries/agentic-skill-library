@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Discover Phase: IaC (Terraform) Discovery
 
 > Self-contained IaC discovery sub-file. Scans for IaC files, extracts Terraform resources, classifies, builds dependency graphs, clusters, and generates output files.

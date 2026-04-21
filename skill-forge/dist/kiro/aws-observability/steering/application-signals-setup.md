@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Application Signals Setup and Enablement Guide
 
 This steering file provides comprehensive guidance for setting up AWS Application Signals using the power's enablement guide feature.

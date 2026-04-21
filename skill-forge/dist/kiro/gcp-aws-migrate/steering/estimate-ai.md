@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Estimate Phase: AI Workload Cost Analysis
 
 > Loaded by estimate.md when aws-design-ai.json exists.

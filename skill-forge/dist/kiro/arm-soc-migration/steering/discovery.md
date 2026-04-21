@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Workflow 1: Discovery and Analysis
 
 **Goal:** Identify platform-specific code and architecture differences between source and target Arm SoCs.

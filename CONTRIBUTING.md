@@ -1,10 +1,10 @@
-# Contributing to context-bazaar
+# Contributing to Context Bazaar
 
 ## What to contribute
 
 The most valuable contributions are knowledge artifacts — well-written, focused guidance that an AI coding assistant can apply immediately. If you have deep knowledge in a domain that isn't covered, that's the right place to start.
 
-Also welcome: bug fixes to the forge tool, new harness adapters, improvements to the catalog browser, and collection proposals.
+Also welcome: bug fixes to the forge tool, new harness adapters, improvements to the catalog browser, eval suites, and collection proposals.
 
 ## Prerequisites
 
@@ -30,6 +30,11 @@ Valid types: `skill` `power` `rule` `workflow` `agent` `prompt` `template` `refe
 
 This creates `knowledge/my-artifact/` with `knowledge.md`, `hooks.yaml`, and `mcp-servers.yaml`.
 
+If this is your first artifact, try the guided walkthrough first:
+```bash
+bun run dev tutorial
+```
+
 ### 2. Edit the frontmatter
 
 Open `knowledge/my-artifact/knowledge.md`. The required fields:
@@ -40,6 +45,7 @@ displayName: My Artifact   # human-readable
 description: One sentence. # shown in catalog cards
 keywords: [tag1, tag2]
 author: Your Name
+version: 0.1.0             # semver — bump on substantive changes
 type: skill                # see types above
 inclusion: always          # always | fileMatch | manual
 categories: [debugging]   # testing security code-style devops documentation
@@ -72,12 +78,21 @@ To create a new collection: `bun run dev collection new my-collection`
 
 ```bash
 bun run dev validate
+bun run dev validate --security   # checks for prompt injection, dangerous hooks, obfuscation
 bun run dev build
 ```
 
 Fix any errors before opening a PR. Warnings are acceptable but should be understood.
 
-### 6. Browse locally
+### 6. Add eval tests (recommended)
+
+```bash
+bun run dev eval --init my-artifact
+```
+
+This scaffolds an eval suite in `knowledge/my-artifact/evals/`. Eval tests verify that the artifact actually improves assistant output. See existing evals for examples.
+
+### 7. Browse locally
 
 ```bash
 bun run dev catalog browse
@@ -98,7 +113,7 @@ Supports Kiro power format (`POWER.md` + `steering/`) and skill format (`SKILL.m
 
 ## Configuration and credentials
 
-`forge.config.yaml` (per-repo, at the repo root) declares backend names, S3 bucket names, GitHub repo slugs, and governance allowlists. **It may be committed** — it should contain no secrets.
+`forge.config.yaml` (per-repo, at the skill-forge root) declares backend names, S3 bucket names, GitHub repo slugs, and governance allowlists. **It may be committed** — it should contain no secrets.
 
 `~/.forge/config.yaml` (user-global, in your home directory) holds credentials, bearer tokens, and personal overrides. **It must never be committed.** It is not tracked by git and will not appear in `git status` — this is by design.
 
@@ -125,7 +140,7 @@ cd skill-forge
 bun test
 ```
 
-All 333 tests must pass. Do not submit a PR with failing tests.
+All tests must pass. Do not submit a PR with failing tests.
 
 ### Type checking
 
@@ -154,16 +169,25 @@ Valid types: `added` `changed` `deprecated` `removed` `fixed` `security`
 
 Fragments are compiled into `CHANGELOG.md` at release time. One fragment per logical change — don't bundle unrelated changes into a single fragment.
 
+### MCP bridge
+
+If you modify `src/mcp-bridge.ts`, rebuild the bridge:
+
+```bash
+bun run build:bridge
+```
+
+The bridge is compiled as CJS for Node.js compatibility and lives at `bridge/mcp-server.cjs`.
+
 ## Architecture decisions
 
-Significant architectural choices are documented as ADRs in `skill-forge/docs/adr/`. Before making a structural change to the tool, check whether an existing ADR covers it. If you're making a decision with real trade-offs, add an ADR.
+Significant architectural choices are documented as ADRs in `skill-forge/docs/adr/` (30 and counting). Before making a structural change to the tool, check whether an existing ADR covers it. If you're making a decision with real trade-offs, add an ADR:
 
+```bash
+cp skill-forge/docs/adr/template.md skill-forge/docs/adr/NNNN-short-title.md
 ```
-skill-forge/docs/adr/
-  README.md         ← index
-  0001-*.md         ← oldest
-  0020-*.md         ← newest
-```
+
+Update the index table in `skill-forge/docs/adr/README.md` when adding a new ADR.
 
 ## Harness targets
 
@@ -175,15 +199,33 @@ By default, artifacts compile to all seven harnesses. Restrict where it makes se
 | `claude-code` only | CLAUDE.md-specific guidance, slash command skills |
 | All | General skills, prompts, and reference packs |
 
+Each harness has a capability matrix declaring support levels for features like hooks, MCP, path scoping, and workflows. The build pipeline applies degradation strategies (inline, comment, omit) for unsupported features automatically. Use `--strict` to treat unsupported capabilities as errors.
+
+## Team distribution with Guild
+
+For team workflows, the Guild system manages artifact distribution via a shared manifest:
+
+```bash
+bun run dev guild init my-artifact    # add to manifest
+bun run dev guild sync                # resolve and install
+bun run dev guild status              # check sync state
+```
+
+See `skill-forge/.forge/manifest.yaml` for the manifest format.
+
 ## Pull request checklist
 
-- [ ] `bun test` passes (333/333)
+- [ ] `bun test` passes
 - [ ] `bun run dev validate` passes with no errors
 - [ ] `bun run dev build` completes without errors
+- [ ] `bun run lint` clean
+- [ ] No new TypeScript errors (`bun x tsc --noEmit`)
 - [ ] Changelog fragment added for each logical change
-- [ ] Frontmatter is complete (name, displayName, description, keywords, author, type, categories)
+- [ ] Frontmatter is complete (name, displayName, description, keywords, author, version, type, categories)
 - [ ] Body is substantive — not a placeholder
 - [ ] If the artifact is a `reference-pack`, `inclusion: manual` is set
+- [ ] ADR created or updated if an architectural decision was made
+- [ ] `catalog.json` regenerated (`forge catalog generate`) if artifacts changed
 
 ## Artifact quality bar
 

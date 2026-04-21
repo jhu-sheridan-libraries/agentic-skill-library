@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Discover Phase: Billing Discovery
 
 > Self-contained billing discovery sub-file. Scans for billing CSV/JSON files, parses billing data, builds service usage profiles, flags AI signals, and generates `billing-profile.json`.

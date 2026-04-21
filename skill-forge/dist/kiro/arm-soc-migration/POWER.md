@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 ---
 name: arm-soc-migration
 displayName: Perform Migration between Arm SoC

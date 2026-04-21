@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Gemini to Bedrock — Model Selection Guide
 
 **Applies to:** Vertex AI Generative AI (Gemini models) → Amazon Bedrock

@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Category D — Database Model (If Database Resources Present)
 
 _Fire when:_ Database resources present (Cloud SQL, Spanner, Memorystore).

@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Advanced Usage Guide - Checkout.com Developer Experience MCP
 
 This guide covers advanced techniques and patterns for maximizing the value of the Checkout.com Developer Experience MCP in complex integration scenarios.

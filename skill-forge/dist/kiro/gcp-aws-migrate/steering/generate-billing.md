@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Generate Phase: Billing-Only Migration Plan
 
 > Loaded by generate.md when estimation-billing.json exists.

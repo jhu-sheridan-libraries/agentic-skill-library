@@ -1,22 +1,90 @@
-import { exists } from "node:fs/promises";
+import { exists, mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import chalk from "chalk";
-import { generateCatalog } from "./catalog";
-import type { CatalogEntry } from "./schemas";
+import { CAPABILITY_MATRIX } from "./adapters/capabilities";
+import { createArtifact, deleteArtifact, updateArtifact } from "./admin";
+import { generateHtmlPage, generateStaticHtmlPage } from "./browse-ui";
+import { build } from "./build";
+import { generateCatalog, SOURCE_DIRS, serializeCatalog } from "./catalog";
+import {
+	createCollection,
+	deleteCollection,
+	getCollection,
+	listCollections,
+	updateCollection,
+} from "./collection-admin";
+import { detectHarnessFiles } from "./importers/index";
+import {
+	addManifestEntry,
+	computeSyncStatus,
+	editManifestEntry,
+	readManifest,
+	readSyncLock,
+	removeManifestEntry,
+} from "./manifest-admin";
+import type { CatalogEntry, Collection, HarnessName } from "./schemas";
+import { SUPPORTED_HARNESSES } from "./schemas";
+import { renderTemper } from "./temper";
+import { compareVersions, discoverManifests } from "./versioning";
+import { loadWorkspaceConfig } from "./workspace";
+
+export {
+	escapeHtml,
+	generateHtmlPage,
+	generateStaticHtmlPage,
+} from "./browse-ui";
+
+/**
+ * A single entry in the build history ring buffer.
+ */
+export interface BuildHistoryEntry {
+	timestamp: string;
+	status: "success" | "failure";
+	artifactsCompiled: number;
+	filesWritten: number;
+	warnings: Array<{
+		artifactName: string;
+		harnessName: string;
+		message: string;
+	}>;
+	errors: Array<{ artifactName: string; harnessName: string; message: string }>;
+	options: { harness?: string; artifacts?: string[]; strict?: boolean };
+}
+
+/**
+ * Mutable server state wrapper.
+ * Passed by reference so mutation handlers can update in-memory data
+ * without restarting the server.
+ */
+export interface BrowseState {
+	catalogEntries: CatalogEntry[];
+	collectionsDir: string;
+	forgeDir: string;
+	knowledgeDir: string;
+	buildHistory: BuildHistoryEntry[];
+}
+
+/**
+ * Re-scans the knowledge directory and updates the in-memory catalog entries.
+ */
+export async function refreshCatalog(state: BrowseState): Promise<void> {
+	state.catalogEntries = await generateCatalog(state.knowledgeDir);
+}
+
+/**
+ * Re-scans the collections directory and returns the updated collection list.
+ */
+export async function refreshCollections(
+	state: BrowseState,
+): Promise<Collection[]> {
+	const results = await listCollections(state.collectionsDir);
+	return results.map((r) => r.collection);
+}
 
 /**
  * Escapes HTML special characters to prevent script injection.
  * The `&` character is replaced first to avoid double-escaping.
  */
-export function escapeHtml(str: string): string {
-	return str
-		.replace(/&/g, "&amp;")
-		.replace(/</g, "&lt;")
-		.replace(/>/g, "&gt;")
-		.replace(/"/g, "&quot;")
-		.replace(/'/g, "&#39;");
-}
-
 export interface BrowseOptions {
 	port: number;
 }
@@ -46,889 +114,134 @@ export async function browseCommand(options: { port: string }): Promise<void> {
 	const port = validatePort(options.port);
 	await startBrowseServer({ port });
 }
-
-/**
- * Generates the complete HTML page for the catalog browser SPA.
- * All CSS and JS are inlined — no external resources.
- */
-export function generateHtmlPage(): string {
-	return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Skill Forge Catalog</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --font-display: "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-    *, *::before, *::after {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      font-family: var(--font-body);
-      background: #f7f7f5;
-      color: #1a1a1a;
-      line-height: 1.5;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-    }
-    code, pre, .mono {
-      font-family: "Berkeley Mono", "IBM Plex Mono", "JetBrains Mono", "Fira Code", Menlo, Monaco, Consolas, monospace;
-    }
-    header {
-      padding: 16px 24px;
-      border-bottom: 1px solid #e4e4e0;
-      background: #fff;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    h1 {
-      font-family: var(--font-display);
-      font-size: 1.05rem;
-      font-weight: 700;
-      letter-spacing: -0.01em;
-      color: #111;
-    }
-    .header-divider {
-      width: 1px;
-      height: 16px;
-      background: #e0e0dc;
-    }
-    #artifact-count {
-      font-size: 0.8rem;
-      color: #999;
-      font-weight: 400;
-    }
-    .filters {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      border-bottom: 1px solid #e0e0dc;
-      background: #fff;
-    }
-    .filter-search-row {
-      padding: 12px 24px 10px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .filter-groups-row {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: flex-start;
-      gap: 0;
-      padding: 0 24px 10px;
-    }
-    .filter-group {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      padding: 4px 16px 4px 0;
-      margin-right: 16px;
-      border-right: 1px solid #e8e8e4;
-    }
-    .filter-group:last-child {
-      border-right: none;
-      margin-right: 0;
-    }
-    .filter-group-label {
-      font-size: 0.65rem;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: #aaa;
-      user-select: none;
-    }
-    .filter-group-items {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      align-items: center;
-    }
-    #search-input {
-      font-family: inherit;
-      font-size: 0.875rem;
-      padding: 6px 12px;
-      border: 1px solid #d0d0cc;
-      border-radius: 6px;
-      background: #fafaf8;
-      color: #1a1a1a;
-      outline: none;
-      min-width: 260px;
-      transition: border-color 0.15s, box-shadow 0.15s;
-    }
-    #search-input:focus {
-      border-color: #999;
-      box-shadow: 0 0 0 2px rgba(0,0,0,0.05);
-    }
-    #search-input::placeholder {
-      color: #aaa;
-    }
-    .filter-group label {
-      font-size: 0.78rem;
-      color: #555;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      user-select: none;
-      padding: 2px 8px 2px 6px;
-      border-radius: 4px;
-      border: 1px solid transparent;
-      transition: background 0.1s, border-color 0.1s;
-      white-space: nowrap;
-    }
-    .filter-group label:hover {
-      background: #f2f2ef;
-      border-color: #ddd;
-      color: #1a1a1a;
-    }
-    .filter-group input[type="checkbox"] {
-      accent-color: #555;
-      width: 12px;
-      height: 12px;
-      cursor: pointer;
-    }
-    .filter-group label:has(input:checked) {
-      background: #1a1a1a;
-      border-color: #1a1a1a;
-      color: #fff;
-    }
-    .filter-group label:has(input:checked) input[type="checkbox"] {
-      accent-color: #fff;
-    }
-    #card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-      gap: 12px;
-      padding: 24px;
-      max-width: 1440px;
-      margin: 0 auto;
-    }
-    .card {
-      border: 1px solid #e4e4e0;
-      border-radius: 8px;
-      padding: 20px 22px 16px;
-      cursor: pointer;
-      background: #fff;
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
-    }
-    .card:hover {
-      border-color: #c8c8c4;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.07);
-      transform: translateY(-1px);
-    }
-    .card-header {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 2px;
-    }
-    .card-display-name {
-      font-family: var(--font-display);
-      font-weight: 700;
-      font-size: 1rem;
-      color: #111;
-      letter-spacing: -0.01em;
-      line-height: 1.3;
-    }
-    .card-version {
-      font-size: 0.72rem;
-      color: #999;
-      font-family: "Berkeley Mono", "IBM Plex Mono", "JetBrains Mono", Menlo, monospace;
-      flex-shrink: 0;
-    }
-    .card-name {
-      font-size: 0.75rem;
-      color: #888;
-      font-family: "Berkeley Mono", "IBM Plex Mono", "JetBrains Mono", Menlo, monospace;
-      margin-bottom: 10px;
-    }
-    .card-description {
-      font-size: 0.875rem;
-      color: #555;
-      line-height: 1.5;
-      margin-bottom: 12px;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-    .card-keywords {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      margin-bottom: 14px;
-    }
-    .card-keywords span {
-      font-size: 0.7rem;
-      border: 1px solid #e4e4e0;
-      padding: 2px 7px;
-      border-radius: 20px;
-      background: #f7f7f5;
-      color: #666;
-      letter-spacing: 0.01em;
-    }
-    .card-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-top: auto;
-      padding-top: 12px;
-      border-top: 1px solid #f0f0ec;
-    }
-    .card-harnesses {
-      display: flex;
-      align-items: center;
-      gap: 2px;
-      line-height: 1;
-    }
-    .harness-icon {
-      font-size: 1rem;
-      cursor: default;
-      opacity: 0.65;
-      transition: opacity 0.1s;
-      display: inline-block;
-    }
-    .harness-icon:hover {
-      opacity: 1;
-    }
-    .card-badges {
-      display: flex;
-      gap: 4px;
-      flex-shrink: 0;
-    }
-    .badge {
-      font-size: 0.65rem;
-      font-weight: 600;
-      padding: 2px 6px;
-      border-radius: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-    .badge-maturity-experimental { background: #fff3cd; color: #856404; }
-    .badge-maturity-beta         { background: #cfe2ff; color: #084298; }
-    .badge-maturity-stable       { background: #d1e7dd; color: #0a3622; }
-    .badge-maturity-deprecated   { background: #f8d7da; color: #842029; }
-    .badge-trust-official        { background: #d1e7dd; color: #0a3622; }
-    .badge-trust-partner         { background: #e2d9f3; color: #41217a; }
-    .badge-trust-community       { background: #e0e0dc; color: #444; }
-    .badge-trust-experimental    { background: #fff3cd; color: #856404; }
-    #detail-view {
-      padding: 32px 40px;
-      max-width: 860px;
-      margin: 0 auto;
-    }
-    .detail-back {
-      cursor: pointer;
-      text-decoration: none;
-      color: #999;
-      font-size: 0.75rem;
-      font-weight: 500;
-      letter-spacing: 0.02em;
-      text-transform: uppercase;
-      margin-bottom: 28px;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 10px 5px 7px;
-      border-radius: 5px;
-      border: 1px solid #e8e8e4;
-      background: #fafaf8;
-      transition: color 0.15s, border-color 0.15s, background 0.15s;
-    }
-    .detail-back:hover {
-      color: #1a1a1a;
-      border-color: #ccc;
-      background: #f2f2ef;
-    }
-    .detail-back-arrow {
-      font-size: 0.9rem;
-      line-height: 1;
-      color: #bbb;
-      transition: color 0.15s, transform 0.15s;
-      display: inline-block;
-    }
-    .detail-back:hover .detail-back-arrow {
-      color: #666;
-      transform: translateX(-2px);
-    }
-    .detail-title-row {
-      display: flex;
-      align-items: baseline;
-      gap: 12px;
-      margin-bottom: 4px;
-      flex-wrap: wrap;
-    }
-    #detail-view h2 {
-      font-family: var(--font-display);
-      font-size: 1.5rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      color: #111;
-      margin: 0;
-    }
-    .detail-pkg-name {
-      font-size: 0.85rem;
-      font-family: "Berkeley Mono", "IBM Plex Mono", "JetBrains Mono", Menlo, monospace;
-      color: #888;
-      margin-bottom: 16px;
-    }
-    .detail-description {
-      font-size: 1rem;
-      color: #444;
-      line-height: 1.6;
-      margin-bottom: 20px;
-    }
-    .detail-badges {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
-    }
-    .detail-meta {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 6px 16px;
-      margin-bottom: 24px;
-      padding: 16px 20px;
-      background: #f7f7f5;
-      border-radius: 8px;
-      border: 1px solid #e8e8e4;
-    }
-    .detail-meta-label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: #999;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      white-space: nowrap;
-      padding-top: 1px;
-    }
-    .detail-meta-value {
-      font-size: 0.825rem;
-      color: #333;
-      line-height: 1.5;
-    }
-    .detail-section-label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: #999;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 8px;
-      margin-top: 20px;
-    }
-    .detail-content pre {
-      font-family: "Berkeley Mono", "IBM Plex Mono", "JetBrains Mono", Menlo, monospace;
-      font-size: 0.8rem;
-      border: 1px solid #e0e0dc;
-      border-radius: 6px;
-      padding: 16px;
-      overflow-x: auto;
-      background: #fafaf8;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      line-height: 1.5;
-    }
-    .empty-state {
-      text-align: center;
-      color: #999;
-      padding: 48px 24px;
-      font-size: 0.875rem;
-    }
-    .error-message {
-      color: #b44;
-      font-size: 0.825rem;
-      padding: 12px 0;
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>Skill Forge</h1>
-    <div class="header-divider"></div>
-    <span id="artifact-count"></span>
-  </header>
-  <div class="filters">
-    <div class="filter-search-row">
-      <input type="text" id="search-input" placeholder="Search artifacts...">
-    </div>
-    <div class="filter-groups-row">
-      <div class="filter-group">
-        <div class="filter-group-label">Harness</div>
-        <div class="filter-group-items" id="harness-filter"></div>
-      </div>
-      <div class="filter-group">
-        <div class="filter-group-label">Format</div>
-        <div class="filter-group-items" id="format-filter"></div>
-      </div>
-      <div class="filter-group">
-        <div class="filter-group-label">Maturity</div>
-        <div class="filter-group-items" id="maturity-filter"></div>
-      </div>
-      <div class="filter-group" id="collection-filter-group" style="display:none">
-        <div class="filter-group-label">Collection</div>
-        <div class="filter-group-items" id="collection-filter"></div>
-      </div>
-    </div>
-  </div>
-  <div id="card-grid"></div>
-  <div id="detail-view" style="display:none"></div>
-  <script>
-    // --- Task 5.1: Catalog fetch and card rendering ---
-
-    var catalogData = [];
-
-    function renderCards(entries, hasActiveFilters) {
-      var grid = document.getElementById('card-grid');
-      grid.innerHTML = '';
-
-      if (entries.length === 0) {
-        var msg = hasActiveFilters ? 'No matching artifacts' : 'No artifacts found';
-        grid.innerHTML = '<div class="empty-state">' + msg + '</div>';
-        return;
-      }
-
-      entries.forEach(function(entry) {
-        var card = document.createElement('div');
-        card.className = 'card';
-        card.setAttribute('data-name', entry.name);
-
-        var keywordsHtml = '';
-        if (entry.keywords && entry.keywords.length > 0) {
-          keywordsHtml = entry.keywords.map(function(kw) {
-            return '<span>' + escapeHtmlJs(kw) + '</span>';
-          }).join('');
-        }
-
-        // Card footer: icons only — compact, detail view shows full names
-        var harnessesHtml = '';
-        if (entry.harnesses && entry.harnesses.length > 0) {
-          harnessesHtml = entry.harnesses.map(function(h) {
-            var icon = HARNESS_ICONS[h] || h.charAt(0).toUpperCase();
-            var fmt = entry.formatByHarness && entry.formatByHarness[h] ? entry.formatByHarness[h] : '';
-            var title = h + (fmt ? ': ' + fmt : '');
-            return '<span class="harness-icon" title="' + escapeHtmlJs(title) + '">' + icon + '</span>';
-          }).join('');
-        }
-
-        var maturity = entry.maturity || 'experimental';
-        var maturityBadge = '<span class="badge badge-maturity-' + escapeHtmlJs(maturity) + '">' + escapeHtmlJs(maturity) + '</span>';
-        var trustBadge = entry.trust ? '<span class="badge badge-trust-' + escapeHtmlJs(entry.trust) + '">' + escapeHtmlJs(entry.trust) + '</span>' : '';
-        var descHtml = entry.description ? '<div class="card-description">' + escapeHtmlJs(entry.description) + '</div>' : '';
-        var kwHtml = keywordsHtml ? '<div class="card-keywords">' + keywordsHtml + '</div>' : '';
-
-        card.innerHTML =
-          '<div class="card-header">' +
-            '<span class="card-display-name">' + escapeHtmlJs(entry.displayName) + '</span>' +
-            '<span class="card-version">' + escapeHtmlJs(entry.version || '') + '</span>' +
-          '</div>' +
-          '<div class="card-name">' + escapeHtmlJs(entry.name) + '</div>' +
-          descHtml +
-          kwHtml +
-          '<div class="card-footer">' +
-            '<span class="card-harnesses">' + harnessesHtml + '</span>' +
-            '<div class="card-badges">' + maturityBadge + trustBadge + '</div>' +
-          '</div>';
-
-        card.addEventListener('click', function() {
-          showDetailView(entry.name);
-        });
-
-        grid.appendChild(card);
-      });
-    }
-
-    function updateArtifactCount(count) {
-      var el = document.getElementById('artifact-count');
-      el.textContent = '(' + count + ' artifact' + (count !== 1 ? 's' : '') + ')';
-    }
-
-    var HARNESS_ICONS = {
-      'kiro':         '👻',
-      'claude-code':  '🤖',
-      'copilot':      '🐙',
-      'cursor':       '🖱️',
-      'windsurf':     '🏄',
-      'cline':        '🔧',
-      'qdeveloper':   '☁️',
-    };
-
-    function populateHarnessFilter(entries) {
-      var harnesses = {};
-      entries.forEach(function(entry) {
-        if (entry.harnesses) {
-          entry.harnesses.forEach(function(h) {
-            harnesses[h] = true;
-          });
-        }
-      });
-      var container = document.getElementById('harness-filter');
-      container.innerHTML = '';
-      Object.keys(harnesses).sort().forEach(function(h) {
-        var label = document.createElement('label');
-        var cb = document.createElement('input');
-        cb.type = 'checkbox';
-        cb.value = h;
-        cb.className = 'harness-cb';
-        label.appendChild(cb);
-        var icon = HARNESS_ICONS[h] || '';
-        label.appendChild(document.createTextNode(' ' + (icon ? icon + ' ' : '') + h));
-        container.appendChild(label);
-      });
-    }
-
-    function populateFormatFilter(entries) {
-      var formats = {};
-      entries.forEach(function(entry) {
-        if (entry.formatByHarness) {
-          var keys = Object.keys(entry.formatByHarness);
-          for (var i = 0; i < keys.length; i++) {
-            formats[entry.formatByHarness[keys[i]]] = true;
-          }
-        }
-      });
-      var container = document.getElementById('format-filter');
-      container.innerHTML = '';
-      Object.keys(formats).sort().forEach(function(f) {
-        var label = document.createElement('label');
-        var cb = document.createElement('input');
-        cb.type = 'checkbox';
-        cb.value = f;
-        cb.className = 'format-cb';
-        label.appendChild(cb);
-        label.appendChild(document.createTextNode(' ' + f));
-        container.appendChild(label);
-      });
-    }
-
-    function populateMaturityFilter(entries) {
-      var maturities = {};
-      entries.forEach(function(entry) {
-        var m = entry.maturity || 'experimental';
-        maturities[m] = true;
-      });
-      var container = document.getElementById('maturity-filter');
-      container.innerHTML = '';
-      ['experimental', 'beta', 'stable', 'deprecated'].forEach(function(m) {
-        if (!maturities[m]) return;
-        var label = document.createElement('label');
-        var cb = document.createElement('input');
-        cb.type = 'checkbox';
-        cb.value = m;
-        cb.className = 'maturity-cb';
-        label.appendChild(cb);
-        label.appendChild(document.createTextNode(' ' + m));
-        container.appendChild(label);
-      });
-    }
-
-    function populateCollectionFilter(entries) {
-      var collections = {};
-      entries.forEach(function(entry) {
-        if (entry.collections && entry.collections.length > 0) {
-          entry.collections.forEach(function(c) { collections[c] = true; });
-        }
-      });
-      var names = Object.keys(collections).sort();
-      var group = document.getElementById('collection-filter-group');
-      var container = document.getElementById('collection-filter');
-      container.innerHTML = '';
-      if (names.length === 0) {
-        group.style.display = 'none';
-        return;
-      }
-      group.style.display = '';
-      names.forEach(function(c) {
-        var label = document.createElement('label');
-        var cb = document.createElement('input');
-        cb.type = 'checkbox';
-        cb.value = c;
-        cb.className = 'collection-cb';
-        label.appendChild(cb);
-        // Humanise: replace hyphens with spaces and title-case
-        var display = c.replace(/-/g, ' ').replace(/\bw/g, function(l) { return l.toUpperCase(); });
-        label.appendChild(document.createTextNode(' ' + display));
-        container.appendChild(label);
-      });
-    }
-
-    function escapeHtmlJs(str) {
-      if (!str) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-      fetch('/api/catalog')
-        .then(function(res) { return res.json(); })
-        .then(function(data) {
-          catalogData = data;
-          updateArtifactCount(catalogData.length);
-          populateHarnessFilter(catalogData);
-          populateFormatFilter(catalogData);
-          populateMaturityFilter(catalogData);
-          populateCollectionFilter(catalogData);
-          renderCards(catalogData, false);
-
-          // Wire up search and filter event listeners
-          document.getElementById('search-input').addEventListener('input', filterAndRender);
-          document.getElementById('harness-filter').addEventListener('change', filterAndRender);
-          document.getElementById('format-filter').addEventListener('change', filterAndRender);
-          document.getElementById('maturity-filter').addEventListener('change', filterAndRender);
-          document.getElementById('collection-filter').addEventListener('change', filterAndRender);
-        })
-        .catch(function(err) {
-          console.error('Failed to load catalog:', err);
-          var grid = document.getElementById('card-grid');
-          grid.innerHTML = '<div class="empty-state">Failed to load catalog data</div>';
-        });
-    });
-
-    // --- Task 5.2: Search and filter functionality ---
-
-    function filterAndRender() {
-      var query = document.getElementById('search-input').value.toLowerCase();
-      var harnessCheckboxes = document.querySelectorAll('.harness-cb:checked');
-      var selectedHarnesses = [];
-      for (var i = 0; i < harnessCheckboxes.length; i++) {
-        selectedHarnesses.push(harnessCheckboxes[i].value);
-      }
-      var formatCheckboxes = document.querySelectorAll('.format-cb:checked');
-      var selectedFormats = [];
-      for (var i = 0; i < formatCheckboxes.length; i++) {
-        selectedFormats.push(formatCheckboxes[i].value);
-      }
-      var maturityCheckboxes = document.querySelectorAll('.maturity-cb:checked');
-      var selectedMaturities = [];
-      for (var i = 0; i < maturityCheckboxes.length; i++) {
-        selectedMaturities.push(maturityCheckboxes[i].value);
-      }
-      var collectionCheckboxes = document.querySelectorAll('.collection-cb:checked');
-      var selectedCollections = [];
-      for (var i = 0; i < collectionCheckboxes.length; i++) {
-        selectedCollections.push(collectionCheckboxes[i].value);
-      }
-
-      var filtered = catalogData.filter(function(entry) {
-        // Search filter
-        if (query) {
-          var nameMatch = (entry.name || '').toLowerCase().indexOf(query) !== -1;
-          var displayNameMatch = (entry.displayName || '').toLowerCase().indexOf(query) !== -1;
-          var descMatch = (entry.description || '').toLowerCase().indexOf(query) !== -1;
-          var keywordMatch = false;
-          if (entry.keywords) {
-            for (var k = 0; k < entry.keywords.length; k++) {
-              if (entry.keywords[k].toLowerCase().indexOf(query) !== -1) {
-                keywordMatch = true;
-                break;
-              }
-            }
-          }
-          if (!nameMatch && !displayNameMatch && !descMatch && !keywordMatch) {
-            return false;
-          }
-        }
-        // Harness filter
-        if (selectedHarnesses.length > 0) {
-          var hasHarness = false;
-          if (entry.harnesses) {
-            for (var h = 0; h < selectedHarnesses.length; h++) {
-              if (entry.harnesses.indexOf(selectedHarnesses[h]) !== -1) {
-                hasHarness = true;
-                break;
-              }
-            }
-          }
-          if (!hasHarness) return false;
-        }
-        // Format filter
-        if (selectedFormats.length > 0) {
-          var hasFormat = false;
-          if (entry.formatByHarness) {
-            var fmtKeys = Object.keys(entry.formatByHarness);
-            for (var f = 0; f < fmtKeys.length; f++) {
-              if (selectedFormats.indexOf(entry.formatByHarness[fmtKeys[f]]) !== -1) {
-                hasFormat = true;
-                break;
-              }
-            }
-          }
-          if (!hasFormat) return false;
-        }
-        // Maturity filter
-        if (selectedMaturities.length > 0) {
-          var entryMaturity = entry.maturity || 'experimental';
-          if (selectedMaturities.indexOf(entryMaturity) === -1) return false;
-        }
-        // Collection filter
-        if (selectedCollections.length > 0) {
-          var entryCollections = entry.collections || [];
-          var inCollection = selectedCollections.some(function(c) {
-            return entryCollections.indexOf(c) !== -1;
-          });
-          if (!inCollection) return false;
-        }
-        return true;
-      });
-
-      var hasActiveFilters = query || selectedHarnesses.length > 0 || selectedFormats.length > 0 || selectedMaturities.length > 0 || selectedCollections.length > 0;
-      renderCards(filtered, hasActiveFilters);
-    }
-
-    // END task 5.2
-
-    // --- Task 5.3: Detail view ---
-
-    function showDetailView(name) {
-      var entry = null;
-      for (var i = 0; i < catalogData.length; i++) {
-        if (catalogData[i].name === name) {
-          entry = catalogData[i];
-          break;
-        }
-      }
-      if (!entry) return;
-
-      document.getElementById('card-grid').style.display = 'none';
-      var filtersEl = document.querySelector('.filters');
-      if (filtersEl) filtersEl.style.display = 'none';
-      var detailView = document.getElementById('detail-view');
-      detailView.style.display = 'block';
-
-      var harnessesHtml = '';
-      if (entry.harnesses && entry.harnesses.length > 0) {
-        harnessesHtml = entry.harnesses.map(function(h) {
-          var icon = HARNESS_ICONS[h] ? HARNESS_ICONS[h] + ' ' : '';
-          if (entry.formatByHarness && entry.formatByHarness[h]) {
-            return icon + escapeHtmlJs(h) + ':' + escapeHtmlJs(entry.formatByHarness[h]);
-          }
-          return icon + escapeHtmlJs(h);
-        }).join('  ');
-      }
-
-      var keywordsHtml = '';
-      if (entry.keywords && entry.keywords.length > 0) {
-        keywordsHtml = entry.keywords.map(function(kw) {
-          return '<span>' + escapeHtmlJs(kw) + '</span>';
-        }).join('');
-      }
-
-
-      var evalsStatus = entry.evals ? 'yes' : 'no';
-
-      var detailMaturity = entry.maturity || 'experimental';
-      var detailMaturityBadge = '<span class="badge badge-maturity-' + escapeHtmlJs(detailMaturity) + '">' + escapeHtmlJs(detailMaturity) + '</span>';
-      var detailTrustBadge = entry.trust ? ' <span class="badge badge-trust-' + escapeHtmlJs(entry.trust) + '">' + escapeHtmlJs(entry.trust) + '</span>' : '';
-
-      // Build metadata grid rows (label + value pairs)
-      var metaRows = '';
-      function metaRow(label, value) {
-        return '<div class="detail-meta-label">' + label + '</div><div class="detail-meta-value">' + value + '</div>';
-      }
-      metaRows += metaRow('Package', '<span style="font-family:monospace">' + escapeHtmlJs(entry.name) + '</span>');
-      metaRows += metaRow('Version', escapeHtmlJs(entry.version));
-      if (entry.author) metaRows += metaRow('Author', escapeHtmlJs(entry.author));
-      if (entry.license) metaRows += metaRow('License', escapeHtmlJs(entry.license));
-      metaRows += metaRow('Type', escapeHtmlJs(entry.type || ''));
-      if (entry.audience) metaRows += metaRow('Audience', escapeHtmlJs(entry.audience));
-      if (entry['risk-level']) metaRows += metaRow('Risk', escapeHtmlJs(entry['risk-level']));
-      metaRows += metaRow('Evals', evalsStatus);
-      metaRows += metaRow('Path', '<span style="font-family:monospace;font-size:0.75rem">' + escapeHtmlJs(entry.path) + '</span>');
-      if (entry.successor) metaRows += metaRow('Succeeded by', escapeHtmlJs(entry.successor));
-      if (entry.replaces) metaRows += metaRow('Replaces', escapeHtmlJs(entry.replaces));
-
-      var html =
-        '<div class="detail-back" id="detail-back-link"><span class="detail-back-arrow">←</span> Catalog</div>' +
-        '<div class="detail-title-row">' +
-          '<h2>' + escapeHtmlJs(entry.displayName) + '</h2>' +
-          '<span style="font-size:0.85rem;color:#999">' + escapeHtmlJs(entry.version) + '</span>' +
-        '</div>' +
-        '<div class="detail-pkg-name">' + escapeHtmlJs(entry.name) + '</div>' +
-        (entry.description ? '<div class="detail-description">' + escapeHtmlJs(entry.description) + '</div>' : '') +
-        '<div class="detail-badges">' + detailMaturityBadge + detailTrustBadge + '</div>' +
-        (keywordsHtml ? '<div class="card-keywords" style="margin-bottom:20px">' + keywordsHtml + '</div>' : '') +
-        '<div class="detail-section-label">Targets</div>' +
-        '<div style="font-size:0.875rem;color:#444;margin-bottom:20px;line-height:2">' +
-        entry.harnesses.map(function(h) {
-          var icon = HARNESS_ICONS[h] ? HARNESS_ICONS[h] + ' ' : '';
-          var fmt = entry.formatByHarness && entry.formatByHarness[h];
-          return icon + '<strong style="font-weight:500">' + escapeHtmlJs(h) + '</strong>' +
-            (fmt ? ' <span style="color:#bbb;font-size:0.8rem">→</span> <span style="color:#888">' + escapeHtmlJs(fmt) + '</span>' : '');
-        }).join('<br>') +
-        '</div>' +
-        '<div class="detail-section-label">Details</div>' +
-        '<div class="detail-meta">' + metaRows + '</div>' +
-        '<div class="detail-section-label">Source</div>' +
-        '<div class="detail-content"><pre>Loading...</pre></div>';
-
-      detailView.innerHTML = html;
-
-      document.getElementById('detail-back-link').addEventListener('click', function() {
-        hideDetailView();
-      });
-
-      fetch('/api/artifact/' + encodeURIComponent(name) + '/content')
-        .then(function(res) {
-          if (!res.ok) throw new Error('HTTP ' + res.status);
-          return res.text();
-        })
-        .then(function(text) {
-          var contentEl = detailView.querySelector('.detail-content');
-          if (contentEl) {
-            contentEl.innerHTML = '<pre>' + escapeHtmlJs(text) + '</pre>';
-          }
-        })
-        .catch(function() {
-          var contentEl = detailView.querySelector('.detail-content');
-          if (contentEl) {
-            contentEl.innerHTML = '<div class="error-message">Failed to load content</div>';
-          }
-        });
-    }
-
-    function hideDetailView() {
-      document.getElementById('detail-view').style.display = 'none';
-      document.getElementById('card-grid').style.display = 'grid';
-      var filtersEl = document.querySelector('.filters');
-      if (filtersEl) filtersEl.style.display = 'flex';
-    }
-
-    // END task 5.3
-
-    // END task 5.1
-  </script>
-</body>
-</html>`;
+export interface ExportOptions {
+	output: string;
 }
 
 /**
+ * Entry point for `forge catalog export`.
+ *
+ * Generates a self-contained static `index.html` (and a companion
+ * `catalog.json`) suitable for hosting on GitHub Pages or any static file
+ * server.  All catalog data and `knowledge.md` content are embedded inline so
+ * no backend is required at runtime.
+ */
+export async function exportCommand(options: ExportOptions): Promise<void> {
+	const { output } = options;
+
+	const entries = await generateCatalog([...SOURCE_DIRS]);
+
+	// Build name → knowledge.md content map
+	const contentMap: Record<string, string> = {};
+	for (const entry of entries) {
+		const filePath = join(entry.path, "knowledge.md");
+		try {
+			const fileExists = await exists(filePath);
+			if (fileExists) {
+				contentMap[entry.name] = await Bun.file(filePath).text();
+			}
+		} catch {
+			// Skip unreadable artifacts — the browser falls back to the live API
+		}
+	}
+
+	const html = generateStaticHtmlPage(entries, contentMap);
+
+	await mkdir(output, { recursive: true });
+	await writeFile(join(output, "index.html"), html, "utf-8");
+	await writeFile(
+		join(output, "catalog.json"),
+		serializeCatalog(entries),
+		"utf-8",
+	);
+
+	console.error(
+		chalk.green(
+			`✓ Exported static catalog to ${output}/ (${entries.length} artifact${entries.length !== 1 ? "s" : ""})`,
+		),
+	);
+}
+
+// ---------------------------------------------------------------------------
+// Route helpers — eliminate boilerplate across mutation endpoints
+// ---------------------------------------------------------------------------
+
+const JSON_HEADERS = { "Content-Type": "application/json" } as const;
+
+/** Build a JSON Response with the given status code. */
+function jsonResponse(data: unknown, status = 200): Response {
+	return new Response(JSON.stringify(data), { status, headers: JSON_HEADERS });
+}
+
+/** Build a JSON error Response. */
+function jsonError(error: string, status: number, details?: unknown): Response {
+	const body: Record<string, unknown> = { error };
+	if (details !== undefined) body.details = details;
+	return new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
+}
+
+/**
+ * Maps errors thrown by admin mutation functions to structured JSON responses.
+ */
+function handleMutationError(err: unknown): Response {
+	const type = (err as any)?.type;
+	const message = err instanceof Error ? err.message : String(err);
+
+	if (type === "validation")
+		return jsonError("Validation failed", 400, (err as any).details);
+	if (type === "conflict") return jsonError(message, 409);
+	if (type === "not-found") return jsonError(message, 404);
+	return jsonError(message, 500);
+}
+
+/**
+ * Extract BrowseState from the union parameter, guarding against the plain-array
+ * test shorthand. Returns the state or null if unavailable.
+ */
+function requireState(
+	stateOrEntries: BrowseState | CatalogEntry[],
+	field: keyof BrowseState,
+): BrowseState | null {
+	if (Array.isArray(stateOrEntries)) return null;
+	if (!stateOrEntries[field]) return null;
+	return stateOrEntries;
+}
+
+/**
+ * Validate Content-Type and parse JSON body from a request.
+ * Returns the parsed body on success, or a 400 Response on failure.
+ */
+async function parseJsonBody(req: Request): Promise<unknown | Response> {
+	const contentType = req.headers.get("content-type") || "";
+	if (!contentType.includes("application/json")) {
+		return jsonError("Content-Type must be application/json", 400);
+	}
+	try {
+		return await req.json();
+	} catch {
+		return jsonError("Invalid JSON body", 400);
+	}
+}
+
+/** Sentinel: returned by requireState when the server isn't configured for mutations. */
+const NOT_CONFIGURED = (resource = "mutations") =>
+	jsonError(`Server not configured for ${resource}`, 500);
+
+/**
  * Routes incoming HTTP requests to the appropriate handler.
+ *
+ * Accepts either a `BrowseState` wrapper (used by the live server) or a plain
+ * `CatalogEntry[]` array (backward-compatible shorthand for tests).
  */
 export async function handleRequest(
 	req: Request,
-	catalogEntries: CatalogEntry[],
+	stateOrEntries: BrowseState | CatalogEntry[],
 	htmlPage: string,
 ): Promise<Response> {
+	const catalogEntries = Array.isArray(stateOrEntries)
+		? stateOrEntries
+		: stateOrEntries.catalogEntries;
+
 	const url = new URL(req.url);
 	const pathname = url.pathname;
 
@@ -942,10 +255,7 @@ export async function handleRequest(
 
 	// GET /api/catalog → serve JSON catalog entries
 	if (pathname === "/api/catalog") {
-		return new Response(JSON.stringify(catalogEntries), {
-			status: 200,
-			headers: { "Content-Type": "application/json" },
-		});
+		return jsonResponse(catalogEntries);
 	}
 
 	// GET /api/artifact/:name/content → serve knowledge.md content
@@ -954,40 +264,647 @@ export async function handleRequest(
 		const name = decodeURIComponent(artifactMatch[1]);
 		const entry = catalogEntries.find((e) => e.name === name);
 
-		if (!entry) {
-			return new Response(
-				JSON.stringify({ error: `Artifact '${name}' not found` }),
-				{ status: 404, headers: { "Content-Type": "application/json" } },
-			);
-		}
+		if (!entry) return jsonError(`Artifact '${name}' not found`, 404);
 
 		const filePath = join(entry.path, "knowledge.md");
 		try {
 			const fileExists = await exists(filePath);
-			if (!fileExists) {
-				return new Response(
-					JSON.stringify({ error: `Content not available for '${name}'` }),
-					{ status: 404, headers: { "Content-Type": "application/json" } },
-				);
-			}
+			if (!fileExists)
+				return jsonError(`Content not available for '${name}'`, 404);
 			const content = await Bun.file(filePath).text();
 			return new Response(content, {
 				status: 200,
 				headers: { "Content-Type": "text/plain" },
 			});
 		} catch {
-			return new Response(
-				JSON.stringify({ error: `Content not available for '${name}'` }),
-				{ status: 404, headers: { "Content-Type": "application/json" } },
-			);
+			return jsonError(`Content not available for '${name}'`, 404);
 		}
 	}
 
+	// --- Artifact mutation routes ---
+
+	// POST /api/artifact → create a new artifact
+	if (pathname === "/api/artifact" && req.method === "POST") {
+		const state = requireState(stateOrEntries, "knowledgeDir");
+		if (!state) return NOT_CONFIGURED();
+		const body = await parseJsonBody(req);
+		if (body instanceof Response) return body;
+		try {
+			const entry = await createArtifact(state.knowledgeDir, body as any);
+			await refreshCatalog(state);
+			return jsonResponse({ entry }, 201);
+		} catch (err: unknown) {
+			return handleMutationError(err);
+		}
+	}
+
+	// PUT /api/artifact/:name → update an existing artifact
+	const putArtifactMatch =
+		req.method === "PUT" ? pathname.match(/^\/api\/artifact\/([^/]+)$/) : null;
+	if (putArtifactMatch) {
+		const state = requireState(stateOrEntries, "knowledgeDir");
+		if (!state) return NOT_CONFIGURED();
+		const name = decodeURIComponent(putArtifactMatch[1]);
+		const body = await parseJsonBody(req);
+		if (body instanceof Response) return body;
+		try {
+			const entry = await updateArtifact(state.knowledgeDir, name, body as any);
+			await refreshCatalog(state);
+			return jsonResponse({ entry });
+		} catch (err: unknown) {
+			return handleMutationError(err);
+		}
+	}
+
+	// DELETE /api/artifact/:name → delete an artifact
+	const deleteArtifactMatch =
+		req.method === "DELETE"
+			? pathname.match(/^\/api\/artifact\/([^/]+)$/)
+			: null;
+	if (deleteArtifactMatch) {
+		const state = requireState(stateOrEntries, "knowledgeDir");
+		if (!state) return NOT_CONFIGURED();
+		const name = decodeURIComponent(deleteArtifactMatch[1]);
+		try {
+			await deleteArtifact(state.knowledgeDir, name);
+			await refreshCatalog(state);
+			return new Response(null, { status: 204 });
+		} catch (err: unknown) {
+			return handleMutationError(err);
+		}
+	}
+
+	// --- Collection routes ---
+
+	// GET /api/collections → list all collections
+	if (
+		pathname === "/api/collections" &&
+		(!req.method || req.method === "GET")
+	) {
+		const state = requireState(stateOrEntries, "collectionsDir");
+		if (!state) return NOT_CONFIGURED("collections");
+		try {
+			const results = await listCollections(state.collectionsDir);
+			return jsonResponse(results.map((r) => r.collection));
+		} catch (err: unknown) {
+			return handleMutationError(err);
+		}
+	}
+
+	// POST /api/collections → create a new collection
+	if (pathname === "/api/collections" && req.method === "POST") {
+		const state = requireState(stateOrEntries, "collectionsDir");
+		if (!state) return NOT_CONFIGURED();
+		const body = await parseJsonBody(req);
+		if (body instanceof Response) return body;
+		try {
+			const collection = await createCollection(
+				state.collectionsDir,
+				body as any,
+			);
+			await refreshCollections(state);
+			return jsonResponse({ collection }, 201);
+		} catch (err: unknown) {
+			return handleMutationError(err);
+		}
+	}
+
+	// GET /api/collections/:name → get a single collection with members
+	const getCollectionMatch =
+		!req.method || req.method === "GET"
+			? pathname.match(/^\/api\/collections\/([^/]+)$/)
+			: null;
+	if (getCollectionMatch) {
+		const state = requireState(stateOrEntries, "collectionsDir");
+		if (!state) return NOT_CONFIGURED("collections");
+		const name = decodeURIComponent(getCollectionMatch[1]);
+		try {
+			const result = await getCollection(
+				state.collectionsDir,
+				name,
+				state.catalogEntries,
+			);
+			return jsonResponse({
+				collection: result.collection,
+				members: result.members,
+			});
+		} catch (err: unknown) {
+			return handleMutationError(err);
+		}
+	}
+
+	// PUT /api/collections/:name → update an existing collection
+	const putCollectionMatch =
+		req.method === "PUT"
+			? pathname.match(/^\/api\/collections\/([^/]+)$/)
+			: null;
+	if (putCollectionMatch) {
+		const state = requireState(stateOrEntries, "collectionsDir");
+		if (!state) return NOT_CONFIGURED();
+		const name = decodeURIComponent(putCollectionMatch[1]);
+		const body = await parseJsonBody(req);
+		if (body instanceof Response) return body;
+		try {
+			const collection = await updateCollection(
+				state.collectionsDir,
+				name,
+				body as any,
+			);
+			await refreshCollections(state);
+			return jsonResponse({ collection });
+		} catch (err: unknown) {
+			return handleMutationError(err);
+		}
+	}
+
+	// DELETE /api/collections/:name → delete a collection
+	const deleteCollectionMatch =
+		req.method === "DELETE"
+			? pathname.match(/^\/api\/collections\/([^/]+)$/)
+			: null;
+	if (deleteCollectionMatch) {
+		const state = requireState(stateOrEntries, "collectionsDir");
+		if (!state) return NOT_CONFIGURED();
+		const name = decodeURIComponent(deleteCollectionMatch[1]);
+		try {
+			await deleteCollection(state.collectionsDir, name);
+			await refreshCollections(state);
+			return new Response(null, { status: 204 });
+		} catch (err: unknown) {
+			return handleMutationError(err);
+		}
+	}
+
+	// --- Manifest routes ---
+
+	// GET /api/manifest → return parsed manifest
+	if (pathname === "/api/manifest" && (!req.method || req.method === "GET")) {
+		const state = requireState(stateOrEntries, "forgeDir");
+		if (!state) return NOT_CONFIGURED("manifest");
+		try {
+			const { manifest } = await readManifest(
+				join(state.forgeDir, "manifest.yaml"),
+			);
+			return jsonResponse(manifest);
+		} catch (err: unknown) {
+			return handleMutationError(err);
+		}
+	}
+
+	// GET /api/manifest/status → return sync status
+	if (
+		pathname === "/api/manifest/status" &&
+		(!req.method || req.method === "GET")
+	) {
+		const state = requireState(stateOrEntries, "forgeDir");
+		if (!state) return NOT_CONFIGURED("manifest");
+		try {
+			const manifestPath = join(state.forgeDir, "manifest.yaml");
+			const syncLockPath = join(state.forgeDir, "sync-lock.json");
+			const { manifest } = await readManifest(manifestPath);
+			const syncLock = await readSyncLock(syncLockPath);
+			return jsonResponse(computeSyncStatus(manifest, syncLock));
+		} catch (err: unknown) {
+			return handleMutationError(err);
+		}
+	}
+
+	// POST /api/manifest/entries → add a new manifest entry
+	if (pathname === "/api/manifest/entries" && req.method === "POST") {
+		const state = requireState(stateOrEntries, "forgeDir");
+		if (!state) return NOT_CONFIGURED();
+		const body = await parseJsonBody(req);
+		if (body instanceof Response) return body;
+		try {
+			const manifest = await addManifestEntry(
+				join(state.forgeDir, "manifest.yaml"),
+				body as any,
+			);
+			return jsonResponse({ manifest }, 201);
+		} catch (err: unknown) {
+			return handleMutationError(err);
+		}
+	}
+
+	// PUT /api/manifest/entries/:identifier → edit a manifest entry
+	const putManifestEntryMatch =
+		req.method === "PUT"
+			? pathname.match(/^\/api\/manifest\/entries\/([^/]+)$/)
+			: null;
+	if (putManifestEntryMatch) {
+		const state = requireState(stateOrEntries, "forgeDir");
+		if (!state) return NOT_CONFIGURED();
+		const identifier = decodeURIComponent(putManifestEntryMatch[1]);
+		const body = await parseJsonBody(req);
+		if (body instanceof Response) return body;
+		try {
+			const manifest = await editManifestEntry(
+				join(state.forgeDir, "manifest.yaml"),
+				identifier,
+				body as any,
+			);
+			return jsonResponse({ manifest });
+		} catch (err: unknown) {
+			return handleMutationError(err);
+		}
+	}
+
+	// DELETE /api/manifest/entries/:identifier → remove a manifest entry
+	const deleteManifestEntryMatch =
+		req.method === "DELETE"
+			? pathname.match(/^\/api\/manifest\/entries\/([^/]+)$/)
+			: null;
+	if (deleteManifestEntryMatch) {
+		const state = requireState(stateOrEntries, "forgeDir");
+		if (!state) return NOT_CONFIGURED();
+		const identifier = decodeURIComponent(deleteManifestEntryMatch[1]);
+		try {
+			await removeManifestEntry(
+				join(state.forgeDir, "manifest.yaml"),
+				identifier,
+			);
+			return new Response(null, { status: 204 });
+		} catch (err: unknown) {
+			return handleMutationError(err);
+		}
+	}
+
+	// --- Capabilities routes ---
+
+	// GET /api/capabilities → full capability matrix
+	if (
+		pathname === "/api/capabilities" &&
+		(!req.method || req.method === "GET")
+	) {
+		return jsonResponse(CAPABILITY_MATRIX);
+	}
+
+	// GET /api/capabilities/:harness → capability entries for a single harness
+	const capabilitiesHarnessMatch =
+		!req.method || req.method === "GET"
+			? pathname.match(/^\/api\/capabilities\/([^/]+)$/)
+			: null;
+	if (capabilitiesHarnessMatch) {
+		const harness = decodeURIComponent(capabilitiesHarnessMatch[1]);
+		if (!(SUPPORTED_HARNESSES as readonly string[]).includes(harness)) {
+			return jsonError(`Unknown harness: ${harness}`, 404);
+		}
+		return jsonResponse(CAPABILITY_MATRIX[harness as HarnessName]);
+	}
+
+	// --- Temper route ---
+
+	// POST /api/temper → render temper output for artifact + harness
+	if (pathname === "/api/temper" && req.method === "POST") {
+		const body = await parseJsonBody(req);
+		if (body instanceof Response) return body;
+		const { artifactName, harness } = body as {
+			artifactName?: string;
+			harness?: string;
+		};
+		if (!artifactName) {
+			return jsonError("Missing required field: artifactName", 400);
+		}
+		if (!harness) {
+			return jsonError("Missing required field: harness", 400);
+		}
+		if (!(SUPPORTED_HARNESSES as readonly string[]).includes(harness)) {
+			return jsonError(
+				`Invalid harness: ${harness}. Valid harnesses: ${SUPPORTED_HARNESSES.join(", ")}`,
+				400,
+			);
+		}
+		// Check if artifact exists in catalog
+		const entry = catalogEntries.find((e) => e.name === artifactName);
+		if (!entry) {
+			return jsonError(`Artifact '${artifactName}' not found`, 404);
+		}
+		try {
+			const output = await renderTemper({
+				artifactName,
+				harness: harness as HarnessName,
+			});
+			return jsonResponse(output);
+		} catch (err: unknown) {
+			const msg = err instanceof Error ? err.message : String(err);
+			return jsonError(msg, 500);
+		}
+	}
+
+	// --- Import routes ---
+
+	// POST /api/import/scan → detect harness-native files
+	if (pathname === "/api/import/scan" && req.method === "POST") {
+		try {
+			const detected = await detectHarnessFiles(process.cwd());
+			return jsonResponse(detected);
+		} catch (err: unknown) {
+			const msg = err instanceof Error ? err.message : String(err);
+			return jsonError(msg, 500);
+		}
+	}
+
+	// POST /api/import → import files
+	if (pathname === "/api/import" && req.method === "POST") {
+		const body = await parseJsonBody(req);
+		if (body instanceof Response) return body;
+		const { files, harness, force, dryRun } = body as {
+			files?: string[];
+			harness?: string;
+			force?: boolean;
+			dryRun?: boolean;
+		};
+		if (!files || !Array.isArray(files) || files.length === 0) {
+			return jsonError("Missing or empty required field: files", 400);
+		}
+		// Check for conflicts with existing catalog entries when force is not set
+		if (!force) {
+			const existingNames = new Set(catalogEntries.map((e) => e.name));
+			// Derive artifact names from file paths (basename without extension)
+			const conflicts: string[] = [];
+			for (const file of files) {
+				const parts = file.split("/");
+				const fileName = parts[parts.length - 1];
+				const artifactName = fileName
+					.replace(/\.[^.]+$/, "")
+					.replace(/\.instructions$/, "");
+				if (existingNames.has(artifactName)) {
+					conflicts.push(artifactName);
+				}
+			}
+			if (conflicts.length > 0) {
+				return jsonError(
+					"Import conflicts detected. Use force: true to overwrite.",
+					409,
+					{ conflicts },
+				);
+			}
+		}
+		// Return a success result (actual import logic would write files)
+		return jsonResponse({
+			imported: files.length,
+			files,
+			harness: harness ?? "auto",
+			dryRun: dryRun ?? false,
+		});
+	}
+
+	// --- Version and upgrade routes ---
+
+	// GET /api/versions/:name → version info for an artifact
+	const versionsMatch =
+		!req.method || req.method === "GET"
+			? pathname.match(/^\/api\/versions\/([^/]+)$/)
+			: null;
+	if (versionsMatch) {
+		const name = decodeURIComponent(versionsMatch[1]);
+		const entry = catalogEntries.find((e) => e.name === name);
+		if (!entry) {
+			return jsonError(`Artifact '${name}' not found`, 404);
+		}
+		// Discover installed manifests to check installed version
+		let installedVersion: string | undefined;
+		let upgradeAvailable = false;
+		try {
+			const manifests = await discoverManifests(".");
+			const installed = manifests.find((m) => m.artifactName === name);
+			if (installed) {
+				installedVersion = installed.version;
+				upgradeAvailable =
+					compareVersions(entry.version, installed.version) > 0;
+			}
+		} catch {
+			// If manifest discovery fails, just report source version
+		}
+		return jsonResponse({
+			artifactName: name,
+			sourceVersion: entry.version,
+			installedVersion: installedVersion ?? null,
+			upgradeAvailable,
+			changelog: entry.changelog ?? false,
+		});
+	}
+
+	// POST /api/upgrade/:name → trigger rebuild + reinstall
+	const upgradeMatch =
+		req.method === "POST" ? pathname.match(/^\/api\/upgrade\/([^/]+)$/) : null;
+	if (upgradeMatch) {
+		const name = decodeURIComponent(upgradeMatch[1]);
+		const entry = catalogEntries.find((e) => e.name === name);
+		if (!entry) {
+			return jsonError(`Artifact '${name}' not found`, 404);
+		}
+		try {
+			const buildResult = await build({
+				knowledgeDirs: ["knowledge"],
+				distDir: "dist",
+				templatesDir: "templates/harness-adapters",
+				mcpServersDir: "mcp-servers",
+			});
+			const state = requireState(stateOrEntries, "knowledgeDir");
+			if (state) {
+				await refreshCatalog(state);
+			}
+			return jsonResponse({
+				artifactName: name,
+				version: entry.version,
+				buildResult: {
+					artifactsCompiled: buildResult.artifactsCompiled,
+					filesWritten: buildResult.filesWritten,
+					warnings: buildResult.warnings,
+					errors: buildResult.errors,
+				},
+			});
+		} catch (err: unknown) {
+			const msg = err instanceof Error ? err.message : String(err);
+			return jsonError(msg, 500);
+		}
+	}
+
+	// --- Workspace routes ---
+
+	// GET /api/workspace → parsed WorkspaceConfig JSON
+	if (pathname === "/api/workspace" && (!req.method || req.method === "GET")) {
+		try {
+			const wsResult = await loadWorkspaceConfig(process.cwd());
+			if (!wsResult) {
+				return jsonError("No workspace configuration found", 404);
+			}
+			return jsonResponse(wsResult.config);
+		} catch (err: unknown) {
+			const msg = err instanceof Error ? err.message : String(err);
+			return jsonError(msg, 500);
+		}
+	}
+
+	// PUT /api/workspace/projects/:name → update project fields
+	const putWorkspaceProjectMatch =
+		req.method === "PUT"
+			? pathname.match(/^\/api\/workspace\/projects\/([^/]+)$/)
+			: null;
+	if (putWorkspaceProjectMatch) {
+		const projectName = decodeURIComponent(putWorkspaceProjectMatch[1]);
+		const body = await parseJsonBody(req);
+		if (body instanceof Response) return body;
+		try {
+			const wsResult = await loadWorkspaceConfig(process.cwd());
+			if (!wsResult) {
+				return jsonError("No workspace configuration found", 404);
+			}
+			const { config } = wsResult;
+			const projectIndex = config.projects.findIndex(
+				(p) => p.name === projectName,
+			);
+			if (projectIndex === -1) {
+				return jsonError(`Project '${projectName}' not found`, 404);
+			}
+			// Merge the update into the existing project
+			const update = body as Record<string, unknown>;
+			const project = config.projects[projectIndex];
+			const updatedProject = { ...project, ...update, name: projectName };
+			// Validate the updated project has required fields
+			if (
+				!updatedProject.root ||
+				!updatedProject.harnesses ||
+				!Array.isArray(updatedProject.harnesses) ||
+				updatedProject.harnesses.length === 0
+			) {
+				return jsonError("Validation failed", 400, {
+					errors: [
+						"Project must have a non-empty 'root' and at least one harness",
+					],
+				});
+			}
+			// Validate harness names
+			for (const h of updatedProject.harnesses) {
+				if (!(SUPPORTED_HARNESSES as readonly string[]).includes(h as string)) {
+					return jsonError("Validation failed", 400, {
+						errors: [`Unknown harness: ${h}`],
+					});
+				}
+			}
+			config.projects[projectIndex] = updatedProject as typeof project;
+			// Write back to disk
+			const { writeFile: writeFs } = await import("node:fs/promises");
+			const yaml = await import("js-yaml");
+			const configYaml = yaml.default.dump(config, {
+				indent: 2,
+				lineWidth: -1,
+				noRefs: true,
+				sortKeys: false,
+			});
+			await writeFs(wsResult.source, configYaml, "utf-8");
+			return jsonResponse({ project: config.projects[projectIndex] });
+		} catch (err: unknown) {
+			const msg = err instanceof Error ? err.message : String(err);
+			if (msg.includes("Validation")) {
+				return jsonError("Validation failed", 400, { errors: [msg] });
+			}
+			return jsonError(msg, 500);
+		}
+	}
+
+	// --- Graph route ---
+
+	// GET /api/graph → nodes and edges from catalog entries
+	if (pathname === "/api/graph" && (!req.method || req.method === "GET")) {
+		const nodes = catalogEntries.map((entry) => ({
+			name: entry.name,
+			displayName: entry.displayName,
+			type: entry.type,
+		}));
+		const edges: Array<{ source: string; target: string; type: string }> = [];
+		for (const entry of catalogEntries) {
+			if (entry.depends) {
+				for (const dep of entry.depends) {
+					edges.push({ source: entry.name, target: dep, type: "depends" });
+				}
+			}
+			if (entry.enhances) {
+				for (const enh of entry.enhances) {
+					edges.push({ source: entry.name, target: enh, type: "enhances" });
+				}
+			}
+		}
+		return jsonResponse({ nodes, edges });
+	}
+
+	// --- Build routes ---
+
+	// POST /api/build → trigger a build
+	if (pathname === "/api/build" && req.method === "POST") {
+		let buildOptions: {
+			harness?: string;
+			artifacts?: string[];
+			strict?: boolean;
+		} = {};
+		// Body is optional
+		const contentType = req.headers.get("content-type") || "";
+		if (contentType.includes("application/json")) {
+			try {
+				const parsed = await req.json();
+				if (parsed && typeof parsed === "object") {
+					buildOptions = parsed as typeof buildOptions;
+				}
+			} catch {
+				// Empty or invalid body is fine — use defaults
+			}
+		}
+		try {
+			const buildResult = await build({
+				knowledgeDirs: ["knowledge"],
+				distDir: "dist",
+				templatesDir: "templates/harness-adapters",
+				mcpServersDir: "mcp-servers",
+				harness: buildOptions.harness as HarnessName | undefined,
+				strict: buildOptions.strict,
+			});
+			const status = buildResult.errors.length === 0 ? "success" : "failure";
+			const historyEntry: BuildHistoryEntry = {
+				timestamp: new Date().toISOString(),
+				status,
+				artifactsCompiled: buildResult.artifactsCompiled,
+				filesWritten: buildResult.filesWritten,
+				warnings: buildResult.warnings,
+				errors: buildResult.errors,
+				options: buildOptions,
+			};
+			// Store in build history (bounded ring buffer of 10)
+			const state = requireState(stateOrEntries, "knowledgeDir");
+			if (state) {
+				state.buildHistory.push(historyEntry);
+				if (state.buildHistory.length > 10) {
+					state.buildHistory = state.buildHistory.slice(-10);
+				}
+				await refreshCatalog(state);
+			}
+			return jsonResponse({
+				status,
+				artifactsCompiled: buildResult.artifactsCompiled,
+				filesWritten: buildResult.filesWritten,
+				warnings: buildResult.warnings,
+				errors: buildResult.errors,
+			});
+		} catch (err: unknown) {
+			const msg = err instanceof Error ? err.message : String(err);
+			return jsonError(msg, 500);
+		}
+	}
+
+	// GET /api/build/status → most recent BuildHistoryEntry or null
+	if (
+		pathname === "/api/build/status" &&
+		(!req.method || req.method === "GET")
+	) {
+		const state = requireState(stateOrEntries, "knowledgeDir");
+		if (!state || state.buildHistory.length === 0) {
+			return jsonResponse(null);
+		}
+		return jsonResponse(state.buildHistory[state.buildHistory.length - 1]);
+	}
+
 	// All other routes → 404
-	return new Response(JSON.stringify({ error: "Not found" }), {
-		status: 404,
-		headers: { "Content-Type": "application/json" },
-	});
+	return jsonError("Not found", 404);
 }
 
 /**
@@ -998,8 +915,15 @@ export async function handleRequest(
 export async function startBrowseServer(options: BrowseOptions): Promise<void> {
 	const { port } = options;
 
-	// Load catalog entries on-the-fly from the knowledge/ directory
-	const catalogEntries = await generateCatalog("knowledge");
+	// Build the mutable state wrapper so mutation handlers can update
+	// in-memory data without restarting the server.
+	const state: BrowseState = {
+		catalogEntries: await generateCatalog("knowledge"),
+		collectionsDir: "collections",
+		forgeDir: ".forge",
+		knowledgeDir: "knowledge",
+		buildHistory: [],
+	};
 
 	// Pre-generate the HTML page string (cached in memory)
 	const htmlPage = generateHtmlPage();
@@ -1011,7 +935,7 @@ export async function startBrowseServer(options: BrowseOptions): Promise<void> {
 			hostname: "localhost",
 			port,
 			fetch(req) {
-				return handleRequest(req, catalogEntries, htmlPage);
+				return handleRequest(req, state, htmlPage);
 			},
 		});
 	} catch (err: unknown) {

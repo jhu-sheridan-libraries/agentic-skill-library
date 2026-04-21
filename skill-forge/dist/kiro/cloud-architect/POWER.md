@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 ---
 name: cloud-architect
 displayName: Build infrastructure on AWS

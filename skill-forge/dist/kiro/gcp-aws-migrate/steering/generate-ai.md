@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Generate Phase: AI Migration Plan
 
 > Loaded by generate.md when estimation-ai.json exists.

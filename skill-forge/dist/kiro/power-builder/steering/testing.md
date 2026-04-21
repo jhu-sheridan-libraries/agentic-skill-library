@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Testing Your Kiro Power
 
 This guide shows you how to test powers you're building before sharing them.

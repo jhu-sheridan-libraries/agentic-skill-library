@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Terraform Clustering: Depth Calculation
 
 Assigns topological depth to every resource via Kahn's algorithm (longest path variant).

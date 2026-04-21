@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # SOP: ECR Pull-Through Cache and Container Registry Maps
 
 ## Purpose

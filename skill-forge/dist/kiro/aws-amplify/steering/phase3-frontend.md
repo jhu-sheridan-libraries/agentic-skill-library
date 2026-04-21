@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Phase 3: Frontend Integration & Testing
 
 Connect the frontend application to the Amplify Gen 2 backend and verify everything works.

@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # CloudFormation Guidelines for Serverless Applications
 
 This guide provides best practices for base CloudFormation templates.

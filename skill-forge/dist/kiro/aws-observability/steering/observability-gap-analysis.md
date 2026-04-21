@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Codebase Observability Gap Analysis Steering
 
 ## Purpose

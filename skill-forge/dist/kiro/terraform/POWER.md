@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 ---
 name: terraform
 displayName: Deploy infrastructure with Terraform

@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Amplify Workflow
 
 Orchestrated workflow for AWS Amplify Gen 2 development.

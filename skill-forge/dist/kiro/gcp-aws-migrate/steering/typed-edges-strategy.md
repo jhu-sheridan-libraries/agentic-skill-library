@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Terraform Clustering: Typed Edge Strategy
 
 Infers edge types from HCL context to classify relationships between resources.

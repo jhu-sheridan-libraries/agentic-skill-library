@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Design Phase: Billing-Only Service Mapping
 
 > Loaded by `design.md` when `billing-profile.json` exists and `gcp-resource-inventory.json` does NOT exist.

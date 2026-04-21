@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Phase 1: Discover GCP Resources
 
 Lightweight orchestrator that delegates to domain-specific discoverers. Each sub-discovery file is self-contained — it scans for its own input, processes what it finds, and exits cleanly if nothing is relevant.

@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # .phase-status.json
 
 Lightweight phase tracking. This is the SINGLE source of truth for the `.phase-status.json` schema. All steering files reference this definition.

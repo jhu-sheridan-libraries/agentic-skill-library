@@ -1,0 +1,1 @@
+Added MCP bridge compilation smoke test to CI (`bun run build:bridge` + `node bridge/mcp-server.cjs --version`)

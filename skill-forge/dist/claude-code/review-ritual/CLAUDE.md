@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 
 Code review is a collaboration, not an audit. The goal is a better codebase, not a lower diff count.
 

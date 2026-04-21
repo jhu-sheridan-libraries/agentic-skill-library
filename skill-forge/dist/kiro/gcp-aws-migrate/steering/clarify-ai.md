@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Category F — AI/Bedrock (If `ai-workload-profile.json` Exists)
 
 _Fire when:_ `ai-workload-profile.json` exists in `$MIGRATION_DIR/`.

@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # AI Discovery Schema
 
 Schema for `ai-workload-profile.json`, produced by `discover-app-code.md` when AI confidence >= 70%.

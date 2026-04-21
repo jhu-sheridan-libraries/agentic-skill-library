@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # GCP Service → Design Reference Mapping
 
 ## Compute Services

@@ -1,0 +1,525 @@
+# Implementation Plan: Skill Forge 10-Star Features
+
+## Overview
+
+This plan implements five major features for Skill Forge: (1) Harness Capability Matrix + Graceful Degradation, (2) Bidirectional Sync / `forge import`, (3) Artifact Versioning + Migration, (4) Multi-Repo / Monorepo Workspace Support, and (5) Interactive Temper / Preview. Tasks are ordered so each builds on the previous, ending with CLI wiring and cross-cutting integration. Property-based tests use `fast-check` (already a dev dependency). All code is TypeScript running on Bun.
+
+## Tasks
+
+- [x] 1. Extend schemas and define new Zod types
+  - [x] 1.1 Add capability matrix schemas to `src/schemas.ts`
+    - Add `SupportLevelSchema`, `DegradationStrategySchema`, `CapabilityEntrySchema` Zod schemas
+    - Export `SupportLevel`, `DegradationStrategy`, `CapabilityEntry` types
+    - _Requirements: 26.1_
+  - [x] 1.2 Add version manifest schema to `src/schemas.ts`
+    - Add `VersionManifestSchema` with fields: `artifactName`, `version` (semver regex), `harnessName`, `sourcePath`, `installedAt` (ISO 8601 datetime), `files` (string array)
+    - Export `VersionManifest` type
+    - _Requirements: 10.3, 26.1_
+  - [x] 1.3 Add workspace config schemas to `src/schemas.ts`
+    - Add `WorkspaceProjectSchema` with `name`, `root`, `harnesses`, `artifacts` (include/exclude), `overrides`
+    - Add `WorkspaceConfigSchema` with `knowledgeSources`, `sharedMcpServers`, `defaults`, `projects`
+    - Export `WorkspaceProject`, `WorkspaceConfig` types
+    - _Requirements: 15.2, 15.3, 26.1_
+  - [x] 1.4 Add temper output schemas to `src/schemas.ts`
+    - Add `TemperSectionSchema` with `title`, `content`, `type` enum
+    - Add `TemperOutputSchema` with `artifactName`, `harnessName`, `sections`, `degradations`, `fileCount`, `hooksTranslated`, `hooksDegraded`, `mcpServers`
+    - _Requirements: 26.1_
+  - [x] 1.5 Extend existing schemas
+    - Extend `FrontmatterSchema` with optional `migrations` boolean field
+    - Validate `version` field as semver string
+    - Extend `CatalogEntrySchema` with `changelog` (boolean) and `migrations` (boolean) fields
+    - _Requirements: 26.2, 26.3_
+  - [ ]*  1.6 Write property test for new schema round-trips
+    - **Property 28: New Zod schema round-trips**
+    - Generate random valid instances of `VersionManifestSchema`, `WorkspaceConfigSchema`, `WorkspaceProjectSchema`, `CapabilityEntrySchema`, `TemperOutputSchema`; parse → serialize to JSON → parse again; assert deep equality
+    - **Validates: Requirements 26.4**
+
+- [x] 2. Implement Capability Matrix and Degradation Engine
+  - [x] 2.1 Create `src/adapters/capabilities.ts`
+    - Define `HARNESS_CAPABILITIES` constant array (8 capabilities)
+    - Define `CAPABILITY_MATRIX` typed constant mapping each of the 7 harnesses to their capability entries
+    - Implement `getCapabilities()`, `isSupported()`, `getDegradation()`, `validateMatrixSync()` functions
+    - Validate matrix with Zod at module load time
+    - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 4.1, 4.2, 4.3_
+  - [ ]* 2.2 Write property test for capability matrix completeness
+    - **Property 1: Capability matrix completeness**
+    - For every harness in `SUPPORTED_HARNESSES`, verify the matrix has an entry with all 8 capabilities, each with a valid `support` level
+    - **Validates: Requirements 1.1, 1.2, 1.4**
+  - [ ]* 2.3 Write property test for matrix-registry synchronization
+    - **Property 2: Matrix-registry synchronization**
+    - Verify the set of keys in `CAPABILITY_MATRIX` exactly equals the set of keys in `adapterRegistry`
+    - **Validates: Requirements 1.6**
+  - [ ]* 2.4 Write property test for degradation strategy presence
+    - **Property 3: Degradation strategy presence**
+    - For every harness/capability where support is `"none"` or `"partial"`, verify a degradation strategy is defined
+    - **Validates: Requirements 2.1**
+  - [x] 2.5 Create `src/adapters/degradation.ts`
+    - Implement `degradeHooksInline()` — renders hooks as prose with `<!-- forge:degraded hooks (inline) -->` delimiter
+    - Implement `applyDegradation()` — dispatches `inline`, `comment`, `omit` strategies
+    - Each strategy emits an `AdapterWarning` identifying artifact, harness, capability, and strategy
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
+  - [ ]* 2.6 Write property test for degradation output and warnings
+    - **Property 4: Degradation produces correct output and warnings**
+    - Generate random `KnowledgeArtifact` with hooks, apply degradation for a harness with non-full support; verify `AdapterResult` contains at least one warning with artifact name, harness name, capability, and strategy
+    - **Validates: Requirements 2.3, 2.5**
+  - [ ]* 2.7 Write property test for inline degradation section
+    - **Property 5: Inline degradation appends delimited section**
+    - Generate random hooks, apply inline degradation; verify output contains `<!-- forge:degraded hooks (inline) -->` marker and each hook's trigger/action as prose
+    - **Validates: Requirements 2.4**
+  - [x] 2.8 Extend adapter interface in `src/adapters/types.ts`
+    - Add `AdapterContext` interface with `capabilities` and `strict` fields
+    - Update `HarnessAdapter` type signature to accept optional `AdapterContext` parameter (backward compatible)
+    - _Requirements: 2.3, 2.6_
+  - [x] 2.9 Update existing adapters to use capability matrix
+    - Update each adapter in `src/adapters/` (kiro, claude-code, copilot, cursor, windsurf, cline, qdeveloper) to accept `AdapterContext`, apply degradation via `applyDegradation()` when capabilities are not `"full"`
+    - When `strict: true`, return a `BuildError` instead of degrading
+    - _Requirements: 2.3, 2.6_
+  - [ ]* 2.10 Write property test for strict mode failure
+    - **Property 6: Strict mode fails on degradation**
+    - Generate random artifact requiring degradation, build with `strict: true`; verify non-empty errors array
+    - **Validates: Requirements 2.6**
+  - [x] 2.11 Update `src/build.ts` to pass capability context
+    - Load capability matrix, create `AdapterContext` with `strict` flag from CLI options
+    - Pass context to each adapter call
+    - Add `--strict` option support
+    - _Requirements: 2.3, 2.6, 25.4_
+  - [ ]* 2.12 Write property test for build idempotency
+    - **Property 7: Build idempotency**
+    - Generate random artifacts, run `build()` twice without modifying sources; compare output byte-for-byte
+    - **Validates: Requirements 3.1, 3.2**
+  - [x] 2.13 Extend `src/validate.ts` for capability matrix validation
+    - Add validation that checks matrix harnesses match adapter registry harnesses
+    - Report `ValidationError` for missing or extra entries
+    - _Requirements: 4.1, 4.2, 4.3_
+
+- [x] 3. Checkpoint — Capability Matrix + Degradation
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 4. Implement Bidirectional Sync / `forge import`
+  - [x] 4.1 Create `src/importers/types.ts`
+    - Define `ImportedFile`, `ImportResult`, `ImportParser` interfaces
+    - Define `importerRegistry` type mapping `HarnessName` to `{ nativePaths: string[]; parse: ImportParser }`
+    - _Requirements: 5.1, 5.2_
+  - [x] 4.2 Create `src/importers/index.ts` with auto-detection and registry
+    - Implement `importerRegistry` with native path mappings for all 7 harnesses
+    - Implement `detectHarnessFiles()` — scans cwd for all known harness-native file paths
+    - Implement `importCommand()` — orchestrates import with `--harness`, `--force`, `--dry-run` flags
+    - Handle auto-detection when no `--harness` flag: present summary, prompt for confirmation
+    - Handle no files detected: print message suggesting `forge new`
+    - _Requirements: 5.1, 5.2, 5.4, 5.5, 5.6, 8.1, 8.2, 8.3, 8.4, 27.1_
+  - [x] 4.3 Create per-harness import parsers
+    - Create `src/importers/kiro.ts` — parse `.kiro/steering/*.md` (frontmatter + body) and `.kiro/hooks/*.kiro.hook` (JSON → CanonicalHook)
+    - Create `src/importers/claude-code.ts` — parse `CLAUDE.md`, `.claude/settings.json` (command entries → agent_stop hooks), `.claude/mcp.json`
+    - Create `src/importers/copilot.ts` — parse `.github/copilot-instructions.md`, `.github/instructions/*.instructions.md`
+    - Create `src/importers/cursor.ts` — parse `.cursor/rules/*.md`, `.cursorrules`
+    - Create `src/importers/windsurf.ts` — parse `.windsurfrules`, `.windsurf/rules/*.md`
+    - Create `src/importers/cline.ts` — parse `.clinerules/*.md`
+    - Create `src/importers/qdeveloper.ts` — parse `.q/rules/*.md`, `.amazonq/rules/*.md`
+    - Each parser extracts frontmatter, body, hooks, MCP servers; preserves unmapped content in `extraFields`
+    - _Requirements: 5.2, 5.3, 6.1, 6.2, 6.3, 6.4, 6.5_
+  - [ ]* 4.4 Write property test for markdown frontmatter and body extraction
+    - **Property 8: Import parser — markdown frontmatter and body extraction**
+    - Generate random YAML frontmatter + markdown body strings; parse via import parser; verify frontmatter fields and body are preserved without data loss
+    - **Validates: Requirements 6.1**
+  - [ ]* 4.5 Write property test for JSON field mapping
+    - **Property 9: Import parser — JSON field mapping**
+    - Generate random valid hook JSON objects conforming to Kiro native schema; parse via import parser; verify `CanonicalHook` has correctly mapped `event` and `action` fields
+    - **Validates: Requirements 6.2**
+  - [ ]* 4.6 Write property test for unmapped content preservation
+    - **Property 10: Import parser — unmapped content preservation**
+    - Generate random objects with known canonical fields + unknown extra fields; parse via import parser; verify extra fields appear in `extraFields` and a warning is emitted
+    - **Validates: Requirements 6.5**
+  - [ ]* 4.7 Write property test for markdown import-build round-trip
+    - **Property 11: Markdown import-build round-trip**
+    - Generate random valid harness-native markdown; import then build for the same harness; verify output body is semantically equivalent to original
+    - **Validates: Requirements 7.1**
+  - [ ]* 4.8 Write property test for hook import-build round-trip
+    - **Property 12: Hook import-build round-trip**
+    - Generate random valid Kiro `.kiro.hook` JSON; import then build for Kiro; verify output JSON has equivalent `when` and `then` fields
+    - **Validates: Requirements 6.3, 7.2**
+  - [ ]* 4.9 Write property test for MCP config import-build round-trip
+    - **Property 13: MCP config import-build round-trip**
+    - Generate random valid MCP server JSON; import then build for the same harness; verify output has equivalent server entries
+    - **Validates: Requirements 7.3**
+
+- [x] 5. Checkpoint — Import Feature
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 6. Implement Artifact Versioning + Migration
+  - [x] 6.1 Create `src/versioning.ts`
+    - Implement `serializeManifest()` — pretty-print JSON with 2-space indentation
+    - Implement `parseManifest()` — parse JSON and validate against `VersionManifestSchema`
+    - Implement `compareVersions()` — semver comparison
+    - Implement `resolveMigrationChain()` — discover and order migration scripts for a version range
+    - Implement `discoverManifests()` — scan directory for `.forge-manifest.json` files
+    - Implement `upgradeArtifact()` — execute upgrade with migration chain, `--force`, `--dry-run` support
+    - _Requirements: 9.1, 9.2, 9.3, 9.5, 10.1, 10.2, 10.3, 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 12.1, 12.2, 12.3, 12.4, 12.5_
+  - [x] 6.2 Update `src/build.ts` to embed version in compiled output
+    - After compiling, embed `<!-- forge:version X.Y.Z -->` in markdown files and `"_forgeVersion": "X.Y.Z"` in JSON files
+    - Default to `0.1.0` with warning if no version in frontmatter
+    - _Requirements: 9.2, 9.5_
+  - [x] 6.3 Update `src/install.ts` to write version manifests
+    - After installing files, write `.forge-manifest.json` alongside installed files with artifact name, version, harness, source path, timestamp, and file list
+    - _Requirements: 9.3, 10.2, 10.3_
+  - [x] 6.4 Update `src/catalog.ts` to include version, changelog, and migrations fields
+    - Add `changelog` boolean (true when `CHANGELOG.md` exists in artifact dir)
+    - Add `migrations` boolean (true when `migrations/` dir exists)
+    - Include `version` field (already present but ensure it's populated)
+    - _Requirements: 9.4, 13.3, 13.4_
+  - [x] 6.5 Implement `upgradeCommand()` in `src/versioning.ts`
+    - Scan for manifests, compare versions, display changelog entries, prompt for confirmation
+    - Support `--force`, `--dry-run`, `--project` flags
+    - Handle missing migration scripts (warn + clean reinstall fallback)
+    - Handle migration script errors (abort upgrade for that artifact, leave files unchanged)
+    - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 12.3, 12.4, 12.5, 13.1, 13.2, 27.2_
+  - [ ]* 6.6 Write property test for version embedding
+    - **Property 14: Version embedding in compiled output**
+    - Generate random semver strings, build artifacts; verify compiled output contains `<!-- forge:version X.Y.Z -->` in markdown or `"_forgeVersion": "X.Y.Z"` in JSON
+    - **Validates: Requirements 9.2**
+  - [ ]* 6.7 Write property test for version manifest round-trip
+    - **Property 15: Version manifest serialization round-trip**
+    - Generate random `VersionManifest` objects; `serializeManifest()` → `parseManifest()`; assert deep equality
+    - **Validates: Requirements 10.1**
+  - [ ]* 6.8 Write property test for migration script ordering
+    - **Property 16: Migration script sequential execution**
+    - Generate random version sequences with migration scripts; verify `resolveMigrationChain()` returns them in ascending version order
+    - **Validates: Requirements 12.3**
+  - [ ]* 6.9 Write property test for upgrade idempotency
+    - **Property 17: Upgrade idempotency**
+    - Generate manifest at latest version; run `upgradeArtifact()`; verify `{ updated: false }` and no file changes
+    - **Validates: Requirements 14.1, 14.2**
+
+- [x] 7. Checkpoint — Versioning + Migration
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 8. Implement Multi-Repo / Monorepo Workspace Support
+  - [x] 8.1 Create `src/workspace.ts`
+    - Implement `loadWorkspaceConfig()` — load from `forge.config.ts` or `forge.config.yaml`, prefer `.ts` with warning if both exist
+    - Implement `validateWorkspaceConfig()` — verify `root` paths exist, artifact names reference known artifacts, harness names are valid
+    - Implement `mergeKnowledgeSources()` — merge artifacts from multiple sources, detect name conflicts
+    - Implement `serializeWorkspaceConfig()` — serialize to YAML
+    - Implement `parseWorkspaceConfigYaml()` — parse YAML string to `WorkspaceConfig`
+    - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5, 16.2, 16.3, 18.1, 18.2, 18.3, 18.4, 18.5, 19.1, 19.2, 19.3_
+  - [x] 8.2 Update `src/build.ts` for workspace-aware builds
+    - When `WorkspaceConfig` is present, compile artifacts per project according to `harnesses` and `artifacts` config
+    - Resolve `knowledgeSources` relative to workspace root
+    - Apply project `overrides` (project overrides take precedence over artifact `harness-config`)
+    - Fall back to existing single-directory behavior when no workspace config
+    - _Requirements: 16.1, 16.2, 16.3, 16.4, 16.5_
+  - [x] 8.3 Update `src/install.ts` for workspace-aware installs
+    - When `WorkspaceConfig` is present, install into each project's `root` directory
+    - Support `--project <name>` flag for single-project install
+    - Write per-project-harness-artifact version manifests
+    - Print summary grouped by project
+    - _Requirements: 17.1, 17.2, 17.3, 17.4, 17.5_
+  - [x] 8.4 Update `src/validate.ts` for workspace config validation
+    - When workspace config exists, validate it alongside artifact validation
+    - Report workspace config errors with clear source identification
+    - _Requirements: 18.1, 18.5_
+  - [ ]* 8.5 Write property test for workspace config validation
+    - **Property 18: Workspace config validation catches invalid fields**
+    - Generate configs with non-existent `root` paths, unknown artifact names, unrecognized harness names; verify `validateWorkspaceConfig()` returns `ValidationError`s
+    - **Validates: Requirements 15.4, 18.2, 18.3, 18.4**
+  - [ ]* 8.6 Write property test for knowledge source merging (unique names)
+    - **Property 19: Knowledge source merging — unique names**
+    - Generate sets of unique artifact names across sources; verify `mergeKnowledgeSources()` returns all artifacts with no conflicts
+    - **Validates: Requirements 16.2**
+  - [ ]* 8.7 Write property test for knowledge source conflict detection
+    - **Property 20: Knowledge source conflict detection**
+    - Generate two sources with overlapping artifact names; verify `mergeKnowledgeSources()` returns non-empty `conflicts` array
+    - **Validates: Requirements 16.3**
+  - [ ]* 8.8 Write property test for override merging precedence
+    - **Property 21: Override merging precedence**
+    - Generate artifact `harness-config` and project `overrides` with overlapping keys; verify merged config has project override values for overlapping keys and all non-overlapping keys from both
+    - **Validates: Requirements 16.4**
+  - [ ]* 8.9 Write property test for workspace config YAML round-trip
+    - **Property 22: Workspace config YAML round-trip**
+    - Generate random valid `WorkspaceConfig` objects; `serializeWorkspaceConfig()` → `parseWorkspaceConfigYaml()`; assert deep equality
+    - **Validates: Requirements 19.1**
+
+- [x] 9. Checkpoint — Workspace Support
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 10. Implement Interactive Temper / Preview
+  - [x] 10.1 Create `src/temper.ts`
+    - Implement `renderTemper()` — compile artifact for harness, produce `TemperOutput` with sections: system-prompt, steering, hooks, mcp-servers, and degradation-report (when applicable)
+    - Use `templates/eval-contexts/` Nunjucks templates for system prompt wrapping
+    - _Requirements: 20.1, 20.2, 20.3, 21.1, 21.2, 21.3_
+  - [x] 10.2 Implement terminal output formatting
+    - Implement `formatTerminalOutput()` — use `chalk` for syntax highlighting and section delimiters
+    - Support `--no-color` flag for deterministic output (no timestamps, no random values, no terminal-width-dependent formatting)
+    - _Requirements: 20.4, 24.1, 24.2_
+  - [x] 10.3 Implement JSON output mode
+    - Implement `formatJsonOutput()` — serialize `TemperOutput` as valid JSON conforming to `TemperOutputSchema`
+    - _Requirements: 24.3_
+  - [x] 10.4 Implement side-by-side comparison
+    - Implement `renderComparison()` — compile artifact for multiple harnesses, display summary with file count, hooks translated/degraded, MCP servers, degradation strategies per harness
+    - Support `--compare` and `--compare --harness <h1> --harness <h2>` syntax
+    - _Requirements: 22.1, 22.2, 22.3_
+  - [x] 10.5 Implement web preview mode
+    - Implement `generateTemperHtml()` — generate HTML with syntax-highlighted code blocks, collapsible sections, harness selector dropdown
+    - Implement `startTemperServer()` — start local HTTP server, open browser, print URL to stderr
+    - Use only bundled assets (no external CDN dependencies)
+    - _Requirements: 23.1, 23.2, 23.3, 23.4, 23.5_
+  - [x] 10.6 Implement temper error handling
+    - Return error listing available artifacts when artifact not found
+    - Return error when harness not in artifact's `harnesses` list
+    - _Requirements: 20.5, 20.6, 27.3_
+  - [ ]* 10.7 Write property test for temper section completeness
+    - **Property 23: Temper section completeness**
+    - Generate artifacts with hooks and MCP servers; verify `TemperOutput` contains sections of type `"system-prompt"`, `"steering"`, `"hooks"`, `"mcp-servers"`
+    - **Validates: Requirements 20.2**
+  - [ ]* 10.8 Write property test for temper degradation report
+    - **Property 24: Temper degradation report**
+    - Generate artifact-harness pairs where at least one capability requires degradation; verify output contains `"degradation-report"` section
+    - **Validates: Requirements 21.1**
+  - [ ]* 10.9 Write property test for comparison summary completeness
+    - **Property 25: Temper comparison summary completeness**
+    - Generate artifact compiled for multiple harnesses; verify comparison output includes file count, hooks translated/degraded, MCP servers, degradation strategies per harness
+    - **Validates: Requirements 22.2**
+  - [ ]* 10.10 Write property test for temper output determinism
+    - **Property 26: Temper output determinism**
+    - Generate artifact-harness pair; call `renderTemper()` twice with `{ noColor: true }`; assert identical `TemperOutput` objects
+    - **Validates: Requirements 24.1**
+  - [ ]* 10.11 Write property test for temper JSON output validity
+    - **Property 27: Temper JSON output validity**
+    - Generate artifact-harness pair; call `formatJsonOutput(renderTemper(...))`; verify result is valid JSON that parses to an object conforming to `TemperOutputSchema`
+    - **Validates: Requirements 24.3**
+
+- [x] 11. Checkpoint — Temper
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 12. CLI Registration and Cross-Cutting Integration
+  - [x] 12.1 Register new CLI commands in `src/cli.ts`
+    - Register `forge import` with `--harness <name>`, `--force`, `--dry-run` options
+    - Register `forge upgrade` with `--force`, `--dry-run`, `--project <name>` options
+    - Register `forge temper <artifact>` with `--harness <name>`, `--compare`, `--web`, `--json`, `--no-color` options
+    - Add `--strict` flag to existing `forge build` command
+    - Add `--project <name>` flag to existing `forge install` command
+    - Wire all commands to their respective handler functions
+    - _Requirements: 25.1, 25.2, 25.3, 25.4, 25.5, 25.6_
+  - [x] 12.2 Update help metadata for new commands
+    - Add entries to `commandMetaRegistry` for `import`, `upgrade`, `temper`
+    - Ensure new commands appear in `forge --help` and `forge help <command>` output
+    - _Requirements: 25.1, 25.2, 25.3_
+  - [x] 12.3 Implement cross-cutting error handling
+    - Ensure all new commands follow existing conventions: diagnostics to stderr, machine-readable output to stdout, non-zero exit on error
+    - All error messages include actionable suggestions
+    - _Requirements: 25.6, 27.1, 27.2, 27.3, 27.4, 27.5_
+  - [ ]* 12.4 Write unit tests for CLI command registration
+    - Verify all new commands appear in help output with correct options
+    - Verify error messages include actionable suggestions
+    - _Requirements: 25.1, 25.2, 25.3, 27.5_
+
+- [x] 13. Final checkpoint — Full integration
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 14. Implement Admin API Endpoints for Capabilities and Temper
+  - [x] 14.1 Add capabilities API routes to `src/browse.ts`
+    - Add `GET /api/capabilities` route returning full `CAPABILITY_MATRIX` as JSON
+    - Add `GET /api/capabilities/:harness` route returning capability entries for a single harness, or 404 for unknown harness
+    - Follow existing `handleRequest()` routing pattern with `jsonResponse()` and `jsonError()`
+    - _Requirements: 28.4, 28.5_
+  - [x] 14.2 Add temper API route to `src/browse.ts`
+    - Add `POST /api/temper` route accepting `{ artifactName: string, harness: string }`
+    - Delegate to `renderTemper()` from `src/temper.ts`
+    - Return `TemperOutput` JSON conforming to `TemperOutputSchema`
+    - Return 404 for unknown artifact, 400 for invalid harness
+    - _Requirements: 29.4_
+  - [x] 14.3 Add import scan and import API routes to `src/browse.ts`
+    - Add `POST /api/import/scan` route that scans workspace for harness-native files using `HARNESS_NATIVE_PATHS`, returns detected files grouped by harness
+    - Add `POST /api/import` route accepting `{ files: string[], harness?: string, force?: boolean, dryRun?: boolean }`, delegates to import logic
+    - Return 409 on conflict when `force` is not set, listing conflicting artifact names
+    - _Requirements: 30.3, 30.4, 30.6_
+  - [x] 14.4 Add version and upgrade API routes to `src/browse.ts`
+    - Add `GET /api/versions/:name` route returning `{ artifactName, sourceVersion, installedVersion?, upgradeAvailable, changelog? }`
+    - Add `POST /api/upgrade/:name` route triggering rebuild + reinstall + manifest update
+    - Return 404 for unknown artifact name
+    - _Requirements: 31.3, 31.5_
+  - [x] 14.5 Add workspace API routes to `src/browse.ts`
+    - Add `GET /api/workspace` route returning parsed `WorkspaceConfig` JSON, or 404 if no workspace config exists
+    - Add `PUT /api/workspace/projects/:name` route accepting updated project fields, writing modified config back to disk
+    - Return 400 with validation errors for invalid project configuration
+    - _Requirements: 32.4, 32.5_
+  - [ ]* 14.6 Write property test for capabilities endpoint per-harness correctness
+    - **Property 30: Capabilities endpoint per-harness correctness**
+    - For every harness in `SUPPORTED_HARNESSES`, verify `GET /api/capabilities/:harness` returns exactly 8 capability entries matching `CAPABILITY_MATRIX`; for random non-harness strings, verify 404
+    - **Validates: Requirements 28.4, 28.5**
+  - [ ]* 14.7 Write property test for temper API valid output
+    - **Property 31: Temper API returns valid TemperOutput**
+    - For valid artifact-harness pairs from catalog, verify `POST /api/temper` returns response conforming to `TemperOutputSchema` with non-empty `sections` array
+    - **Validates: Requirements 29.3, 29.4**
+  - [ ]* 14.8 Write property test for import conflict detection via API
+    - **Property 32: Import conflict detection via API**
+    - For artifact names already in catalog, verify `POST /api/import` with `force: false` returns 409 listing conflicting artifact name
+    - **Validates: Requirements 30.6**
+  - [ ]* 14.9 Write unit tests for capabilities, temper, import, versions, and workspace API endpoints
+    - Create `src/__tests__/browse-capabilities.test.ts` — full matrix response, single harness response, unknown harness 404
+    - Create `src/__tests__/browse-temper.test.ts` — valid TemperOutput, missing artifact 404, invalid harness 400
+    - Create `src/__tests__/browse-import.test.ts` — scan detects files, import creates artifacts, conflict 409, force overwrites, dry-run writes nothing
+    - Create `src/__tests__/browse-versions.test.ts` — version info response, upgrade available detection, upgrade trigger
+    - Create `src/__tests__/browse-workspace.test.ts` — config response, project update, missing config 404, invalid update 400
+    - _Requirements: 28.4, 28.5, 29.4, 30.3, 30.4, 30.6, 31.3, 31.5, 32.4, 32.5_
+
+- [x] 15. Implement Dependency Graph API and Build Dashboard API
+  - [x] 15.1 Add graph API route to `src/browse.ts`
+    - Add `GET /api/graph` route computing nodes and edges from `catalogEntries`
+    - Nodes: `{ name, displayName, type }` per catalog entry
+    - Edges: one entry per `depends` and `enhances` relationship with `{ source, target, type }`
+    - Return `{ nodes: [], edges: [] }` for empty catalog (graceful empty state)
+    - _Requirements: 33.5_
+  - [x] 15.2 Extend `BrowseState` with build history
+    - Add `buildHistory: BuildHistoryEntry[]` field to `BrowseState` interface
+    - Implement bounded ring buffer logic: retain at most 10 entries, evict oldest on overflow
+    - Define `BuildHistoryEntry` type with `timestamp`, `status`, `artifactsCompiled`, `filesWritten`, `warnings`, `errors`, `options`
+    - _Requirements: 37.3_
+  - [x] 15.3 Add build API routes to `src/browse.ts`
+    - Add `POST /api/build` route accepting optional `{ harness?, artifacts?, strict? }`, delegating to `build()` from `src/build.ts`
+    - Store result in `BrowseState.buildHistory` (push + trim to 10)
+    - Return build result with `status`, `artifactsCompiled`, `filesWritten`, `warnings`, `errors`
+    - Add `GET /api/build/status` route returning most recent `BuildHistoryEntry` or null
+    - _Requirements: 36.3, 36.4, 37.1, 37.3_
+  - [ ]* 15.4 Write property test for graph data completeness
+    - **Property 33: Graph data completeness**
+    - Generate random catalog entries with `depends`/`enhances` arrays; verify `GET /api/graph` returns nodes matching entry count and edges matching total depends + enhances count
+    - **Validates: Requirements 33.2, 33.4, 33.5**
+  - [ ]* 15.5 Write property test for build history bounded buffer
+    - **Property 35: Build history bounded buffer**
+    - Generate sequences of 1–20 build operations; verify `buildHistory` length ≤ 10 and entries are the most recent in chronological order
+    - **Validates: Requirements 37.3**
+  - [ ]* 15.6 Write property test for build API result schema completeness
+    - **Property 36: Build API result schema completeness**
+    - Trigger builds via `POST /api/build` with random parameters; verify response contains all required fields: `status`, `artifactsCompiled`, `filesWritten`, `warnings` (array with artifactName, harnessName, message), `errors` (array with artifactName, harnessName, message)
+    - **Validates: Requirements 36.4**
+  - [ ]* 15.7 Write unit tests for graph and build API endpoints
+    - Create `src/__tests__/browse-graph.test.ts` — nodes/edges from catalog, empty catalog returns empty graph, edges match depends/enhances fields
+    - Create `src/__tests__/browse-build.test.ts` — POST triggers build and returns result, GET returns last result, history bounded to 10, strict mode returns failure on degradation
+    - _Requirements: 33.5, 36.3, 36.4, 37.1, 37.3_
+
+- [x] 16. Checkpoint — Admin API Endpoints
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [ ] 17. Implement Admin UI Components for Capabilities, Temper, Import, Versions, and Workspace
+  - [x] 17.1 Add capability badges and matrix grid to `src/browse-ui.ts`
+    - Render "Harness Capabilities" section in artifact detail view
+    - Display color-coded badges: green (`.badge-green`) for full, yellow (`.badge-yellow`) for partial, red (`.badge-red`) for none
+    - Show degradation strategy as tooltip/secondary label on partial/none badges
+    - Render as matrix grid (harnesses as columns, capabilities as rows) when artifact targets ≥ 3 harnesses; stacked cards for < 3
+    - Fetch data from `GET /api/capabilities`
+    - _Requirements: 28.1, 28.2, 28.3, 28.6_
+  - [x] 17.2 Add inline temper panel to `src/browse-ui.ts`
+    - Add "Preview" button to artifact detail view
+    - Render inline panel with harness selector dropdown (from artifact's `harnesses` list)
+    - Display sections: steering content with syntax highlighting (`pre > code`), hooks (translated vs degraded), MCP servers, degradation report with color-coded strategy labels
+    - Fetch data from `POST /api/temper`
+    - Panel renders within existing detail view layout (no new tab/window)
+    - _Requirements: 29.1, 29.2, 29.3, 29.5, 29.6_
+  - [x] 17.3 Add import modal to `src/browse-ui.ts`
+    - Add "Import" button in Artifacts tab toolbar
+    - On click: call `POST /api/import/scan`, display modal with detected files grouped by harness with checkboxes
+    - Include "Dry Run" toggle and "Force" checkbox
+    - On confirm: call `POST /api/import` with selected files
+    - On conflict (409): show confirmation dialog, retry with `force: true`
+    - On success: refresh catalog, show toast notification
+    - _Requirements: 30.1, 30.2, 30.5, 30.6, 30.7_
+  - [x] 17.4 Add version display and upgrade button to `src/browse-ui.ts`
+    - Display artifact version prominently in detail view (from frontmatter `version` field)
+    - Show "Changelog" section when `CHANGELOG.md` exists (most recent version expanded)
+    - Show "Upgrade Available" badge + "Upgrade" button when installed version < source version
+    - On upgrade click: call `POST /api/upgrade/:name`, show progress indicator, refresh version display
+    - Show "Not installed" when no Version_Manifest exists
+    - Fetch data from `GET /api/versions/:name`
+    - _Requirements: 31.1, 31.2, 31.4, 31.6, 31.7_
+  - [x] 17.5 Add workspace tab to `src/browse-ui.ts`
+    - Add "Workspace" tab in top-level navigation (alongside Artifacts, Collections, Manifest)
+    - Display project list: name, root path, target harnesses, artifact count
+    - Project detail view: artifact include/exclude list, per-harness overrides, resolved artifact set
+    - Edit project config inline, call `PUT /api/workspace/projects/:name` on save
+    - Show validation errors inline for invalid config
+    - Hide tab entirely when no Workspace_Config with `projects` exists
+    - Fetch data from `GET /api/workspace`
+    - _Requirements: 32.1, 32.2, 32.3, 32.6, 32.7, 32.8_
+  - [ ]* 17.6 Write property test for capability badge correctness
+    - **Property 29: Capability badge correctness**
+    - Generate random artifacts with varying harness lists; for each harness-capability pair, verify badge renders correct support level color and includes degradation strategy text when support is not "full"
+    - **Validates: Requirements 28.2, 28.3**
+  - [ ] 17.7 Write unit tests for browse-ui capability badges and workspace tab
+    - Add tests to `src/__tests__/browse-ui.test.ts`:
+      - Capability badges: matrix grid rendered for ≥ 3 harnesses, stacked cards for < 3, correct CSS classes per support level
+      - Workspace tab: shown when workspace config has projects, hidden otherwise
+    - _Requirements: 28.2, 28.6, 32.1, 32.7_
+
+- [ ] 18. Implement Dependency Graph Visualization UI
+  - [x] 18.1 Add dependency graph SVG renderer to `src/browse-ui.ts`
+    - Add "Dependencies" view accessible from a tab/navigation element in Artifacts section
+    - Render artifacts as SVG `<circle>` nodes colored by artifact type
+    - Render `depends` edges as solid lines (stroke: `#6366f1`) with arrowhead markers
+    - Render `enhances` edges as dashed lines (stroke: `#10b981`) with arrowhead markers
+    - Label each node with `displayName` via `<text>` element
+    - Implement force-directed layout algorithm in inline JavaScript (no external dependencies)
+    - Fetch data from `GET /api/graph`
+    - _Requirements: 33.1, 33.2, 33.3, 33.4, 33.6_
+  - [x] 18.2 Add dependency graph interactions to `src/browse-ui.ts`
+    - Click node → navigate to artifact detail (`window.location.hash`)
+    - Hover node → highlight connected edges, dim unrelated nodes (CSS class toggle)
+    - Mouse drag → pan (translate SVG viewBox)
+    - Scroll → zoom (scale SVG viewBox)
+    - Type filter dropdown → show/hide nodes by artifact type
+    - Display "no dependencies" message when graph has no edges
+    - _Requirements: 34.1, 34.2, 34.3, 34.4, 34.5_
+  - [x] 18.3 Add artifact-scoped dependency section to `src/browse-ui.ts`
+    - In artifact detail view, display "Dependencies" section showing direct dependencies and direct dependents
+    - Separate `depends` and `enhances` relationships with clear labels
+    - Click dependency/dependent name → navigate to that artifact's detail view
+    - Display warning indicator for dependencies referencing non-existent catalog entries
+    - _Requirements: 35.1, 35.2, 35.3, 35.4_
+  - [ ]* 18.4 Write property test for missing dependency warnings
+    - **Property 34: Artifact dependency section shows missing dependency warnings**
+    - Generate artifacts with `depends`/`enhances` containing names not in catalog; verify detail view dependency section includes warning indicator for missing dependencies
+    - **Validates: Requirements 35.1, 35.4**
+  - [ ] 18.5 Write unit tests for dependency graph UI
+    - Add tests to `src/__tests__/browse-graph.test.ts` and `src/__tests__/browse-ui.test.ts`:
+      - Graph renders correct node count and edge count from catalog data
+      - Empty state message displayed when no dependencies exist
+      - Missing dependency warning indicator present for non-existent references
+    - _Requirements: 33.2, 34.5, 35.4_
+
+- [ ] 19. Implement Build Dashboard UI
+  - [x] 19.1 Add build dashboard panel to `src/browse-ui.ts`
+    - Add "Build" button in top-level navigation/toolbar
+    - Build configuration panel: harness checkboxes (all `SUPPORTED_HARNESSES`, default all checked), artifact multi-select (searchable, from catalog), strict mode toggle
+    - On "Build" click: call `POST /api/build` with config, display progress panel
+    - Display result: summary banner (green success / red failure), expandable warnings/errors sections
+    - Degradation warnings display artifact name, harness, capability, strategy with color coding
+    - _Requirements: 36.1, 36.2, 36.5, 36.6, 38.1, 38.2, 38.3_
+  - [x] 19.2 Add build status indicator and history to `src/browse-ui.ts`
+    - Display compact build status in navigation bar: green checkmark (success), red X (failure), gray dash (no build)
+    - Build history list in Build panel: up to 10 entries with timestamp, status badge, artifact count, warning/error counts
+    - Click history entry → expand to show full warnings and errors
+    - Fetch status from `GET /api/build/status`
+    - _Requirements: 37.1, 37.2, 37.4, 37.5_
+  - [x] 19.3 Add build config localStorage persistence to `src/browse-ui.ts`
+    - Save last build configuration (harness filter, artifact filter, strict mode) to `localStorage` on each build trigger
+    - Load from `localStorage` on page init to pre-fill config panel
+    - _Requirements: 38.4_
+  - [ ] 19.4 Write unit tests for build dashboard UI
+    - Add tests to `src/__tests__/browse-ui.test.ts`:
+      - Build config saved to localStorage on build
+      - Build config loaded from localStorage on page init
+      - Build history displays correct entry count
+    - Add tests to `src/__tests__/browse-build.test.ts`:
+      - Build result displays summary banner with correct status
+      - Degradation warnings rendered with correct color coding
+    - _Requirements: 36.5, 36.6, 37.4, 38.4_
+
+- [ ] 20. Final checkpoint — Features 6, 7, 8 complete
+  - Ensure all tests pass, ask the user if questions arise.
+
+## Notes
+
+- Tasks marked with `*` are optional and can be skipped for faster MVP
+- Each task references specific requirements for traceability
+- Checkpoints ensure incremental validation after each major feature
+- Property tests validate the 36 universal correctness properties from the design using `fast-check`
+- Unit tests validate specific scenarios, edge cases, and error conditions
+- The project uses Bun for runtime and testing (`bun test`), TypeScript, Commander.js for CLI, Zod for validation, and Nunjucks for templates

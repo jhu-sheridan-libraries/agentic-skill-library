@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Billing Discovery Schema
 
 Schema for `billing-profile.json`, produced by `discover-billing.md`.

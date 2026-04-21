@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # SOP: WDL Workflow Migration to AWS HealthOmics
 
 ## Purpose

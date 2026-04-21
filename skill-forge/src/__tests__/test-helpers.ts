@@ -80,6 +80,8 @@ export function makeCatalogEntry(
 		maturity: "experimental",
 		"model-assumptions": [],
 		collections: [],
+		changelog: false,
+		migrations: false,
 		...overrides,
 	};
 }

@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 
 Every commit message is a letter to the next engineer — often yourself six months later.
 

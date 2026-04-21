@@ -34,7 +34,7 @@ async function loadCatalog() {
 }
 
 const server = new Server(
-	{ name: "context-bazaar", version: "0.1.0" },
+	{ name: "context-bazaar", version: "0.2.0" },
 	{ capabilities: { tools: {} } },
 );
 

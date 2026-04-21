@@ -1,44 +1,49 @@
-- name: ADR Reminder
+- name: ADR Enforcement on Session End
   description: >-
-    When an agent session ends, analyzes git diff for architectural changes
-    (filtering out tests/specs), shows only relevant spec design decisions
-    from specs whose files were touched, and cross-references against recent
-    ADRs. Exits silently if only non-architectural files changed.
+    When an agent session ends, directs the agent to check git diff for
+    architectural changes, cross-reference against existing ADRs, and CREATE
+    any missing ADRs before the session closes. Uses askAgent (not runCommand)
+    so the agent can actually write files.
   event: agent_stop
   action:
-    type: run_command
-    command: >-
-      bash -c 'DIFF=$(git diff --stat HEAD 2>/dev/null);
-      if [ -z "$DIFF" ]; then exit 0; fi;
-      ARCH_FILES=$(echo "$DIFF" | grep -iE "src/|lib/|commands/|modules/" | grep -viE "test|spec|__test|__spec|\.test\.|\.spec\." || true);
-      ARCH_COUNT=$(echo "$ARCH_FILES" | grep -c . 2>/dev/null || true);
-      if [ "$ARCH_COUNT" -lt 1 ]; then exit 0; fi;
-      echo "ADR reminder: $ARCH_COUNT architectural file(s) changed.";
-      echo "$ARCH_FILES" | sed "s/^/  /" | head -15;
-      echo; echo "Recent ADRs:";
-      for d in docs/adr docs/decisions docs/architecture/decisions; do
-      if [ -d "$d" ]; then ls "$d"/0*.md 2>/dev/null | tail -5 |
-      while read f; do head -1 "$f" | sed "s/^# //"; done; break; fi; done;
-      echo; CHANGED_DIRS=$(echo "$DIFF" | sed "s|^[[:space:]]*||" | cut -d/ -f1-3 | sort -u);
-      for d in .kiro/specs/*/design.md; do if [ -f "$d" ]; then
-      SPEC=$(dirname "$d" | xargs basename); SPEC_KEBAB=$(echo "$SPEC" | tr "_" "-");
-      if echo "$CHANGED_DIRS" | grep -qi "$SPEC_KEBAB"; then
-      echo "--- $SPEC ---";
-      grep -iE "(key design decision|design decision|trade.?off|rationale)" "$d" 2>/dev/null | head -8;
-      fi; fi; done;
-      echo; echo "Cross-reference against existing ADRs. Flag undocumented choices."; '
+    type: ask_agent
+    prompt: >-
+      Before this session ends, check if any architectural decisions from this
+      session are undocumented:
+
+      1. Run: git diff --stat HEAD to see what changed.
+      2. Filter for architectural files (src/, lib/, commands/, modules/ — excluding tests).
+      3. If architectural files changed, scan the ADR index for existing ADRs.
+      4. Read the design.md of any active spec whose files were touched.
+      5. If you find NEW architectural patterns, module structures, or integration
+         approaches NOT covered by existing ADRs:
+         a. Create the ADR(s) immediately
+         b. Update the README.md index table
+         c. Create changelog fragments if the project uses them
+      6. If all changes are covered, report: 'All architectural decisions documented.'
+
+      Do NOT just list what changed. Either create missing ADRs or confirm coverage.
 
 - name: ADR + Spec Context Check
   description: >-
-    Before starting a spec task, reminds the agent to review existing ADRs
-    and the current spec's design decisions so architectural context is
-    front-of-mind during implementation.
+    Before starting a spec task, directs the agent to check if the task
+    introduces new architectural decisions not covered by existing ADRs.
+    If so, the agent must CREATE the ADR before proceeding with the task.
   event: pre_task
   action:
     type: ask_agent
     prompt: >-
-      Before starting this task, review the active spec's design.md for key
-      design decisions and cross-reference them against existing ADRs in the
-      project's ADR directory. Keep these architectural constraints in mind
-      during implementation. If the task introduces new architectural choices
-      not covered by an existing ADR, flag it for the user.
+      Before starting this task, do the following:
+
+      1. Read the active spec's design.md and identify key architectural decisions
+         relevant to THIS task.
+      2. Scan the ADR index to check if those decisions are already documented.
+      3. If this task introduces a NEW architectural pattern, module structure,
+         data flow, or integration approach NOT covered by an existing ADR:
+         a. Create the ADR immediately (next sequential number)
+         b. Update the README.md index table
+         c. Create a changelog fragment if the project uses them
+         d. Then proceed with the task implementation.
+      4. If all decisions are already covered by existing ADRs, proceed — no action needed.
+
+      Do NOT just acknowledge this reminder. Either create the ADR or confirm coverage.
