@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Terraform Clustering: Deterministic Algorithm
 
 Groups resources into named clusters using priority-ordered rules.

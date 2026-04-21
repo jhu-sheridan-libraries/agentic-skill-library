@@ -1,3 +1,4 @@
+<!-- forge:version 0.2.0 -->
 # ADR Health Check
 
 Cross-reference ADRs against codebase. Produce actionable report. Do not auto-fix.

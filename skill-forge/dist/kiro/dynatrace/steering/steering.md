@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Dynatrace Observability & Production Impact Assessment
 
 ## Dynatrace MCP Server Capabilities

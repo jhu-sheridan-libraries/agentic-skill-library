@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Workflow 3: Implementation Guidance
 
 **Goal:** Execute migration with proper platform abstraction, HAL design, and build system updates.

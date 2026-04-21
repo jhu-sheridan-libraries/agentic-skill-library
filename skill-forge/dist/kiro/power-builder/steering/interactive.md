@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Interactive Power Creation Guide
 
 This steering file guides you through creating a Kiro Power interactively using tools and step-by-step questions.

@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 ---
 name: aws-agentcore
 displayName: Build an agent with Amazon Bedrock AgentCore

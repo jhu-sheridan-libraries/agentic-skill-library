@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 ---
 name: karpathy-mode
 displayName: Karpathy Mode

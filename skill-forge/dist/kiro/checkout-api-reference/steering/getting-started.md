@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Getting Started with Checkout.com Developer Experience MCP
 
 This guide will help you quickly start using the Checkout.com Developer Experience MCP to explore and understand Checkout.com's payment processing APIs.

@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Phase 2: Clarify Requirements
 
 **Phase 2 of 5** — Ask adaptive questions before design begins, then interpret answers into ready-to-apply design constraints.

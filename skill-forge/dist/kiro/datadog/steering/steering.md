@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Datadog MCP Server Steering Guide
 
 This steering file provides comprehensive guidance for using the Datadog MCP (Model Context Protocol) server to query observability data including logs, metrics, traces, RUM events, incidents, and more.

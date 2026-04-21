@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Generate Phase: AI Artifact Generation
 
 > Loaded by generate.md when generation-ai.json and aws-design-ai.json exist.

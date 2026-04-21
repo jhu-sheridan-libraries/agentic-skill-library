@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 ---
 name: aws-devops-agent
 displayName: AWS DevOps Agent

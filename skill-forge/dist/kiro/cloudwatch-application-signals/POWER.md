@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 ---
 name: cloudwatch-application-signals
 displayName: [DEPRECATED] Amazon CloudWatch Application Signals

@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Estimate Phase: Infrastructure Cost Analysis
 
 > Loaded by estimate.md when aws-design.json exists.

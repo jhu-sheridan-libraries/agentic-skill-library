@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Generate Phase: Infrastructure Artifact Generation
 
 > Loaded by generate.md when generation-infra.json and aws-design.json exist.

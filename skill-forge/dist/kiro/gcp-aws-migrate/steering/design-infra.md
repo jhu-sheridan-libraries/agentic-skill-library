@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Design Phase: Infrastructure Mapping
 
 > Loaded by `design.md` when `gcp-resource-inventory.json` and `gcp-resource-clusters.json` exist.

@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Phase 6: Feedback (Optional)
 
 Builds an anonymized usage trace and directs the user to the Pulse survey form.

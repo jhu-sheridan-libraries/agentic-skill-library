@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 ---
 name: checkout-api-reference
 displayName: Checkout.com Global Payments

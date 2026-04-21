@@ -1,12 +1,12 @@
 {
   "name": "ADR + Spec Context Check",
   "version": "1.0.0",
-  "description": "Before starting a spec task, reminds the agent to review existing ADRs and the current spec's design decisions so architectural context is front-of-mind during implementation.",
+  "description": "Before starting a spec task, directs the agent to check if the task introduces new architectural decisions not covered by existing ADRs. If so, the agent must CREATE the ADR before proceeding with the task.",
   "when": {
     "type": "preTaskExecution"
   },
   "then": {
     "type": "askAgent",
-    "prompt": "Before starting this task, review the active spec's design.md for key design decisions and cross-reference them against existing ADRs in the project's ADR directory. Keep these architectural constraints in mind during implementation. If the task introduces new architectural choices not covered by an existing ADR, flag it for the user."
+    "prompt": "Before starting this task, do the following:\n1. Read the active spec's design.md and identify key architectural decisions\n   relevant to THIS task.\n2. Scan the ADR index to check if those decisions are already documented. 3. If this task introduces a NEW architectural pattern, module structure,\n   data flow, or integration approach NOT covered by an existing ADR:\n   a. Create the ADR immediately (next sequential number)\n   b. Update the README.md index table\n   c. Create a changelog fragment if the project uses them\n   d. Then proceed with the task implementation.\n4. If all decisions are already covered by existing ADRs, proceed — no action needed.\nDo NOT just acknowledge this reminder. Either create the ADR or confirm coverage."
   }
 }

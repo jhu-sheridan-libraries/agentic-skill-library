@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Application Signals Steering Guide
 
 ## When to Use Application Signals Tools

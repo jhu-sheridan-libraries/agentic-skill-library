@@ -1,0 +1,12 @@
+{
+  "name": "ADR Enforcement on Session End",
+  "version": "1.0.0",
+  "description": "When an agent session ends, directs the agent to check git diff for architectural changes, cross-reference against existing ADRs, and CREATE any missing ADRs before the session closes. Uses askAgent (not runCommand) so the agent can actually write files.",
+  "when": {
+    "type": "agentStop"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Before this session ends, check if any architectural decisions from this session are undocumented:\n1. Run: git diff --stat HEAD to see what changed. 2. Filter for architectural files (src/, lib/, commands/, modules/ — excluding tests). 3. If architectural files changed, scan the ADR index for existing ADRs. 4. Read the design.md of any active spec whose files were touched. 5. If you find NEW architectural patterns, module structures, or integration\n   approaches NOT covered by existing ADRs:\n   a. Create the ADR(s) immediately\n   b. Update the README.md index table\n   c. Create changelog fragments if the project uses them\n6. If all changes are covered, report: 'All architectural decisions documented.'\nDo NOT just list what changed. Either create missing ADRs or confirm coverage."
+  }
+}

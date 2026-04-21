@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Terraform MCP Server Usage Instructions
 
 Guidelines for using the Terraform MCP server to generate high-quality Terraform code.

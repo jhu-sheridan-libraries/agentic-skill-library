@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Category A — Global/Strategic (Always Fires)
 
 These foundational constraints gate everything downstream — region selection, service catalog, data residency, credits eligibility, compute platform, availability topology, and migration strategy.

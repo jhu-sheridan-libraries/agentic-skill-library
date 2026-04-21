@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # IaC Discovery Schemas
 
 Schemas for `gcp-resource-inventory.json` and `gcp-resource-clusters.json`, produced by `discover-iac.md`.

@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Stripe Integration Best Practices
 
 ## Integration Approach

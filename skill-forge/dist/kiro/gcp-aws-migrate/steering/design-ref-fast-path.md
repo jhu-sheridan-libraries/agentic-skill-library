@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Fast Path: Unconditional Mappings
 
 > This file contains deterministic resource mappings that skip the evaluation rubric entirely. Use as a lookup table in Pass 1 of Design phase.

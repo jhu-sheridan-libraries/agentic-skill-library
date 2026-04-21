@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 
 TypeScript's value is proportional to how seriously you take it. These rules keep the type system useful rather than decorative.
 

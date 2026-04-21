@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # OpenAI to Bedrock — Model Selection Guide
 
 **Applies to:** OpenAI SDK usage detected in GCP-hosted applications → Amazon Bedrock

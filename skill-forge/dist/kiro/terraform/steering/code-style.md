@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Terraform Code Style Guidelines
 
 HashiCorp's official Terraform style guide for consistent, maintainable infrastructure-as-code.

@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Terraform Best Practices
 
 Auto-loaded when editing .tf files.

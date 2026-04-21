@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # CloudWatch Logs Insights Analysis Steering
 
 ## Purpose

@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Generate Phase: Documentation Generation
 
 > Loaded by generate.md LAST, after all other artifact generation sub-files complete.

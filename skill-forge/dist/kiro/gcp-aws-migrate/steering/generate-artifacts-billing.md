@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Generate Phase: Billing Skeleton Artifact Generation
 
 > Loaded by generate.md when generation-billing.json and aws-design-billing.json exist.

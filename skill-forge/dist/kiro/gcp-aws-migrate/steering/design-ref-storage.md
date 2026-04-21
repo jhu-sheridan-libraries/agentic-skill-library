@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Storage Services Design Rubric
 
 **Applies to:** Cloud Storage (GCS), Filestore

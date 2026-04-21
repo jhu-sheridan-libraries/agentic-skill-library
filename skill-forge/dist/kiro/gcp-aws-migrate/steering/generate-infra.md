@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Generate Phase: Infrastructure Migration Plan
 
 > Loaded by generate.md when estimation-infra.json exists.

@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Phase 4: Production Deployment
 
 Deploy the Amplify Gen 2 application to production.

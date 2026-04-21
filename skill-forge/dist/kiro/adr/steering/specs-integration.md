@@ -1,14 +1,17 @@
+<!-- forge:version 0.2.0 -->
 # ADR ↔ Specs Integration
 
 Uses shared rules from POWER.md (git context, duplicate check, index, cross-referencing, changelog).
 
 ## When to Create ADRs
 
-**Design phase**: technology choices, architectural patterns, integration decisions, trade-offs → suggest ADR.
+**Design phase**: technology choices, architectural patterns, integration decisions, trade-offs → create ADR immediately.
 
-**Pre-task**: extract architectural nouns from task + design doc → search existing ADRs. Match → reference. No match + significant decision → suggest creating.
+**Pre-task**: extract architectural nouns from task + design doc → search existing ADRs. Match → reference. No match + significant decision → create ADR before starting the task.
 
-**Post-task**: per POWER.md post-task hook. New modules/deps/patterns → suggest ADR.
+**Post-task / session end**: per POWER.md agentStop hook. New modules/deps/patterns → create ADR before session closes.
+
+> **Key principle:** Hooks must be *directive*, not *advisory*. "Suggest ADR" gets ignored during autonomous sessions. "Create ADR immediately" gets executed. See the Hook Design Anti-Patterns table in POWER.md.
 
 ## Linking
 

@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Phase 4: Estimate AWS Costs (Orchestrator)
 
 **Execute ALL steps in order. Do not skip or optimize.**

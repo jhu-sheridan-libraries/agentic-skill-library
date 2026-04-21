@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Infrastructure Estimate Schema
 
 Schema for `estimation-infra.json`, produced by `estimate-infra.md`.

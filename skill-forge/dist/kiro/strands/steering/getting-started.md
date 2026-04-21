@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Building Agents with Strands Agents SDK
 
 Quick reference for building agents with Strands SDK. Use the Strands Agents Documentation server for detailed documentation.

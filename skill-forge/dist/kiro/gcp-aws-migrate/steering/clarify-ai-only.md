@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # AI-Only Migration — Clarify Requirements
 
 **Standalone flow** — Used when ONLY `ai-workload-profile.json` exists (no infrastructure or billing artifacts). Infrastructure stays on GCP; only AI/LLM calls move to AWS Bedrock.

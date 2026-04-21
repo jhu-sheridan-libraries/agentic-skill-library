@@ -1,3 +1,4 @@
+<!-- forge:version 0.1.0 -->
 # Workflow 2: Migration Planning
 
 **Goal:** Create a detailed migration strategy and timeline with risk assessment.
