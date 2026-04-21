@@ -9,7 +9,7 @@ keywords:
   - architecture
   - decision-log
 author: Steven J. Miklovic
-version: 0.1.0
+version: 0.2.0
 harnesses:
   - kiro
 type: power
@@ -99,25 +99,27 @@ See `workflow` steering, section 5.
 
 ## Hooks
 
-> **Important:** Use `runCommand` instead of `askAgent` for `preTaskExecution` and `postTaskExecution` hooks. `askAgent` prompts are injected verbatim into the conversation as `<HOOK_INSTRUCTION>` blocks, leaking raw instructions to the user. `runCommand` outputs are consumed by the agent without being displayed as instructions.
+> **Design principle — directive, not advisory.** Hook prompts must tell the agent to **do** something (create the ADR, confirm coverage) rather than "keep in mind" or "flag for the user." Advisory prompts are ignored during long autonomous sessions like "run all tasks." Every hook prompt should end with a concrete action the agent must take before proceeding.
+
+> **`askAgent` vs `runCommand` for task hooks.** Use `askAgent` when the hook needs the agent to **take action** (create files, make decisions). Use `runCommand` only for diagnostic output that doesn't require agent action. Note: `askAgent` prompts appear as `<HOOK_INSTRUCTION>` blocks in the conversation — write them as clear directives, not internal notes.
 
 > **Path discovery:** ADR directories may live in subdirectories (e.g. monorepos). Hooks search both the workspace root and common subdirectory prefixes. The search pattern iterates `for base in . */; do` to cover both layouts.
 
-### agentStop — ADR Reminder
-Smarter diff analysis: filters out test/spec files, only shows design decisions from specs whose source files were actually touched, and lists the changed architectural files for actionable cross-referencing. Exits silently if only non-architectural files changed.
+### agentStop — ADR Enforcement
+Uses `askAgent` (not `runCommand`) so the agent can actually create missing ADRs before the session closes. A `runCommand` hook can only print diagnostics — it cannot trigger file creation.
 ```json
-{"name":"ADR Reminder","version":"1.1.0","when":{"type":"agentStop"},"then":{"type":"runCommand","command":"bash -c 'DIFF=$(git diff --stat HEAD 2>/dev/null); if [ -z \"$DIFF\" ]; then exit 0; fi; ARCH_FILES=$(echo \"$DIFF\" | grep -iE \"src/|lib/|commands/|modules/\" | grep -viE \"test|spec|__test|__spec|\\\\.test\\\\.|\\\\.spec\\\\.\" || true); ARCH_COUNT=$(echo \"$ARCH_FILES\" | grep -c . 2>/dev/null || true); if [ \"$ARCH_COUNT\" -lt 1 ]; then exit 0; fi; echo \"ADR reminder: $ARCH_COUNT architectural file(s) changed this session.\"; echo; echo \"Changed architectural files:\"; echo \"$ARCH_FILES\" | sed \"s/^/  /\" | head -15; echo; echo \"Recent ADRs:\"; for base in . */; do for d in \"${base}docs/adr\" \"${base}docs/decisions\" \"${base}docs/architecture/decisions\"; do if [ -d \"$d\" ]; then ls \"$d\"/0*.md 2>/dev/null | tail -5 | while read f; do head -1 \"$f\" | sed \"s/^# //\"; done; break 2; fi; done; done; echo; CHANGED_DIRS=$(echo \"$DIFF\" | sed \"s|^[[:space:]]*||\" | cut -d/ -f1-3 | sort -u); MATCHED=0; for d in .kiro/specs/*/design.md; do if [ -f \"$d\" ]; then SPEC=$(dirname \"$d\" | xargs basename); SPEC_KEBAB=$(echo \"$SPEC\" | tr \"_\" \"-\"); if echo \"$CHANGED_DIRS\" | grep -qi \"$SPEC_KEBAB\"; then echo \"--- $SPEC (active) ---\"; grep -iE \"(key design decision|design decision|trade.?off|chose|instead of|alternative|rationale)\" \"$d\" 2>/dev/null | head -8; MATCHED=1; fi; fi; done; if [ \"$MATCHED\" -eq 0 ]; then echo \"No spec design decisions matched the changed files.\"; fi; echo; echo \"Cross-reference the changed files and design decisions against existing ADRs. Flag any undocumented architectural choices.\"; '"}}
+{"name":"ADR Enforcement on Session End","version":"2.0.0","when":{"type":"agentStop"},"then":{"type":"askAgent","prompt":"Before this session ends, check if any architectural decisions from this session are undocumented:\n\n1. Run: git diff --stat HEAD (or git -C <subdir> diff --stat HEAD) to see what changed.\n2. Filter for architectural files (src/, lib/, commands/, modules/ — excluding tests).\n3. If architectural files changed, scan the ADR index (e.g. docs/adr/README.md) for existing ADRs.\n4. Read the design.md of any active spec whose files were touched.\n5. If you find NEW architectural patterns, module structures, or integration approaches that are NOT covered by existing ADRs:\n   a. Create the ADR(s) immediately at docs/adr/NNNN-short-title.md\n   b. Update the README.md index table\n   c. Create changelog fragments if the project uses them\n6. If all changes are covered by existing ADRs, report: 'All architectural decisions documented — no new ADRs needed.'\n\nDo NOT just list what changed. Either create missing ADRs or confirm coverage."}}
 ```
 
 ### preTaskExecution — ADR + Spec Context Check
-Lightweight `askAgent` prompt that reminds the agent to review the active spec's design decisions and cross-reference against existing ADRs before starting work. No shell command overhead on every task.
+Directive `askAgent` prompt that checks for undocumented architectural decisions and creates ADRs **before** the task starts. The prompt explicitly requires action (create or confirm), not just acknowledgment.
 ```json
-{"name":"ADR + Spec Context Check","version":"1.0.0","when":{"type":"preTaskExecution"},"then":{"type":"askAgent","prompt":"Before starting this task, review the active spec's design.md for key design decisions and cross-reference them against existing ADRs in the project's ADR directory. Keep these architectural constraints in mind during implementation. If the task introduces new architectural choices not covered by an existing ADR, flag it for the user."}}
+{"name":"ADR + Spec Context Check","version":"2.0.0","when":{"type":"preTaskExecution"},"then":{"type":"askAgent","prompt":"Before starting this task, do the following:\n\n1. Read the active spec's design.md and identify the key architectural decisions relevant to THIS task.\n2. Scan the ADR index (e.g. docs/adr/README.md) to check if those decisions are already documented.\n3. If this task introduces a NEW architectural pattern, module structure, data flow, or integration approach that is NOT covered by an existing ADR:\n   a. Create the ADR immediately (next sequential number)\n   b. Update the README.md index table\n   c. Create a changelog fragment if the project uses them\n   d. Then proceed with the task implementation.\n4. If all architectural decisions are already covered by existing ADRs, proceed with the task — no action needed.\n\nDo NOT just acknowledge this reminder. Either create the ADR or confirm that existing ADRs cover the decisions."}}
 ```
 
 ### fileCreated — New Module Check (optional)
 ```json
-{"name":"ADR New Module Check","version":"1.0.0","when":{"type":"fileCreated","patterns":["**/modules/**/*.tf","**/src/**/commands/*.py","**/src/**/__init__.py"]},"then":{"type":"askAgent","prompt":"New architectural file created. Suggest ADR if new module/component. Say nothing if standard addition."}}
+{"name":"ADR New Module Check","version":"1.0.0","when":{"type":"fileCreated","patterns":["**/modules/**/*.tf","**/src/**/commands/*.py","**/src/**/__init__.py"]},"then":{"type":"askAgent","prompt":"New architectural file created. Check if this introduces a new module, component, or integration pattern not covered by existing ADRs. If it does, create the ADR immediately. If it's a standard addition to an existing pattern, proceed without action."}}
 ```
 
 ### userTriggered — Generate from Diff / Health Check / Team Review
@@ -144,3 +146,15 @@ inclusion: fileMatch
 fileMatchPattern: ".kiro/specs/**"
 ---
 ```
+
+### Hook Design Anti-Patterns
+
+These patterns cause hooks to be ignored during autonomous sessions:
+
+| Anti-pattern | Why it fails | Fix |
+|---|---|---|
+| "Keep in mind" / "flag for the user" | Agent treats it as advisory context, not an action | "Create the ADR immediately" / "Do NOT just acknowledge" |
+| `runCommand` for agentStop | Shell script can only print text — cannot trigger file creation | Use `askAgent` so the agent can create files |
+| "Suggest ADR if needed" | Agent interprets "suggest" as optional | "Check if covered. If not, create the ADR." |
+| No explicit termination condition | Agent doesn't know when the hook is satisfied | End with "Either create missing ADRs or confirm coverage" |
+| Passive voice ("ADRs should be reviewed") | No clear actor or action | Active imperative ("Review ADRs. Create if missing.") |
