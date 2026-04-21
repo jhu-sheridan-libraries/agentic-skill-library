@@ -1,4 +1,8 @@
-import type { CanonicalHook, HarnessName, McpServerDefinition } from "../schemas";
+import type {
+	CanonicalHook,
+	HarnessName,
+	McpServerDefinition,
+} from "../schemas";
 
 /**
  * Represents a single file parsed from a harness-native format.

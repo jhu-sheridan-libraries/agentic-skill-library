@@ -156,7 +156,7 @@ export async function getCollection(
 	let content: string;
 	try {
 		content = await readFile(filePath, "utf-8");
-	} catch (err) {
+	} catch (_err) {
 		const error = new Error(`Collection '${name}' not found`);
 		(error as any).type = "not-found";
 		throw error;
@@ -234,7 +234,7 @@ export async function updateCollection(
 		const content = await readFile(filePath, "utf-8");
 		const parsed = parseCollectionFile(content);
 		existingRaw = parsed.raw;
-	} catch (err) {
+	} catch (_err) {
 		const error = new Error(`Collection '${name}' not found`);
 		(error as any).type = "not-found";
 		throw error;

@@ -160,7 +160,10 @@ export const FrontmatterSchema = z
 		author: z.string().default(""),
 		version: z
 			.string()
-			.regex(/^\d+\.\d+\.\d+$/, "Version must be a valid semver string (e.g. 1.2.3)")
+			.regex(
+				/^\d+\.\d+\.\d+$/,
+				"Version must be a valid semver string (e.g. 1.2.3)",
+			)
 			.default("0.1.0"),
 		migrations: z.boolean().optional(),
 		harnesses: z.array(HarnessNameSchema).default([...SUPPORTED_HARNESSES]),

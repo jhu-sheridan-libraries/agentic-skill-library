@@ -1,12 +1,5 @@
-import {
-	afterEach,
-	beforeEach,
-	describe,
-	expect,
-	spyOn,
-	test,
-} from "bun:test";
-import { exists, mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
+import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
+import { exists, mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { evalCommand, scaffoldEvals } from "../eval";
@@ -121,7 +114,9 @@ describe("evalCommand", () => {
 
 		// Verify it logged the "no configs" message
 		const calls = consoleErrorSpy.mock.calls.flat().map(String);
-		const noConfigMsg = calls.some((msg) => msg.includes("No eval configs"));
+		const noConfigMsg = calls.some((msg: string) =>
+			msg.includes("No eval configs"),
+		);
 		expect(noConfigMsg).toBe(true);
 	});
 });

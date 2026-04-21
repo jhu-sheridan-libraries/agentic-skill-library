@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { basename } from "node:path";
 import matter from "gray-matter";
-import type { ImportParser, ImportedFile } from "./types";
+import type { ImportedFile, ImportParser } from "./types";
 
 /**
  * Derives a kebab-case artifact name from a file path.
@@ -11,7 +11,10 @@ function deriveArtifactName(filePath: string): string {
 	// Handle .windsurfrules (no extension to strip, use as-is)
 	if (base === ".windsurfrules") return "windsurfrules";
 	const name = base.replace(/\.md$/, "");
-	return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+	return name
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, "-")
+		.replace(/^-|-$/g, "");
 }
 
 /**
@@ -19,7 +22,9 @@ function deriveArtifactName(filePath: string): string {
  * Handles .windsurfrules and .windsurf/rules/*.md.
  * All files are treated as markdown with optional YAML frontmatter.
  */
-export const parseWindsurf: ImportParser = async (filePath: string): Promise<ImportedFile> => {
+export const parseWindsurf: ImportParser = async (
+	filePath: string,
+): Promise<ImportedFile> => {
 	const raw = await readFile(filePath, "utf-8");
 	const parsed = matter(raw);
 

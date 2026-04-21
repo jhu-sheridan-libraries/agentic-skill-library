@@ -1,12 +1,11 @@
-import { exists, readFile, readdir } from "node:fs/promises";
+import { exists, readdir, readFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import yaml from "js-yaml";
 import {
-	type WorkspaceConfig,
-	type WorkspaceProject,
-	WorkspaceConfigSchema,
-	type ValidationError,
 	SUPPORTED_HARNESSES,
+	type ValidationError,
+	type WorkspaceConfig,
+	WorkspaceConfigSchema,
 } from "./schemas";
 
 /**
@@ -54,8 +53,10 @@ export async function loadWorkspaceConfig(
 
 	// Extract workspace-specific fields from the full config
 	const workspaceFields: Record<string, unknown> = {};
-	if ("knowledgeSources" in parsed) workspaceFields.knowledgeSources = parsed.knowledgeSources;
-	if ("sharedMcpServers" in parsed) workspaceFields.sharedMcpServers = parsed.sharedMcpServers;
+	if ("knowledgeSources" in parsed)
+		workspaceFields.knowledgeSources = parsed.knowledgeSources;
+	if ("sharedMcpServers" in parsed)
+		workspaceFields.sharedMcpServers = parsed.sharedMcpServers;
 	if ("defaults" in parsed) workspaceFields.defaults = parsed.defaults;
 	if ("projects" in parsed) workspaceFields.projects = parsed.projects;
 
@@ -72,7 +73,6 @@ export async function loadWorkspaceConfig(
 	}
 	return { config: result.data, source: yamlPath };
 }
-
 
 /**
  * Validate workspace config against filesystem and known artifacts.

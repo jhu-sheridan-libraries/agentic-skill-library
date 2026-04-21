@@ -1,12 +1,10 @@
 import { z } from "zod";
-import type { HarnessName } from "../schemas";
-import {
-	SUPPORTED_HARNESSES,
-	SupportLevelSchema,
-	DegradationStrategySchema,
-	CapabilityEntrySchema,
+import type {
+	CapabilityEntry,
+	DegradationStrategy,
+	HarnessName,
 } from "../schemas";
-import type { SupportLevel, DegradationStrategy, CapabilityEntry } from "../schemas";
+import { CapabilityEntrySchema, SUPPORTED_HARNESSES } from "../schemas";
 
 // --- Capability Names ---
 

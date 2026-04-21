@@ -1,14 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import {
-	HARNESS_CAPABILITIES,
 	CAPABILITY_MATRIX,
 	getCapabilities,
-	isSupported,
 	getDegradation,
+	HARNESS_CAPABILITIES,
+	isSupported,
 	validateMatrixSync,
 } from "../adapters/capabilities";
 import { SUPPORTED_HARNESSES } from "../schemas";
-import type { HarnessName } from "../schemas";
 
 describe("Capability Matrix", () => {
 	test("HARNESS_CAPABILITIES has exactly 8 entries", () => {

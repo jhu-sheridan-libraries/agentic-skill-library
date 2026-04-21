@@ -1,25 +1,33 @@
 import { describe, expect, test } from "bun:test";
-import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
+import { join } from "node:path";
+import type { TemperOutput } from "../schemas";
+import { TemperOutputSchema } from "../schemas";
 import {
-	formatTerminalOutput,
-	formatJsonOutput,
-	renderComparison,
 	formatComparisonOutput,
+	formatJsonOutput,
+	formatTerminalOutput,
 	generateTemperHtml,
+	renderComparison,
 	renderTemper,
 } from "../temper";
-import { TemperOutputSchema } from "../schemas";
-import type { TemperOutput } from "../schemas";
 
 function makeTemperOutput(overrides: Partial<TemperOutput> = {}): TemperOutput {
 	return {
 		artifactName: "test-artifact",
 		harnessName: "kiro",
 		sections: [
-			{ title: "System Prompt", content: "You are a helpful assistant.", type: "system-prompt" },
-			{ title: "Steering", content: "# Rules\n\nFollow these rules.", type: "steering" },
+			{
+				title: "System Prompt",
+				content: "You are a helpful assistant.",
+				type: "system-prompt",
+			},
+			{
+				title: "Steering",
+				content: "# Rules\n\nFollow these rules.",
+				type: "steering",
+			},
 		],
 		degradations: [],
 		fileCount: 2,
@@ -39,7 +47,13 @@ async function createTestArtifact(
 	await mkdir(artifactDir, { recursive: true });
 
 	const harnesses = opts.harnesses ?? [
-		"kiro", "claude-code", "copilot", "cursor", "windsurf", "cline", "qdeveloper",
+		"kiro",
+		"claude-code",
+		"copilot",
+		"cursor",
+		"windsurf",
+		"cline",
+		"qdeveloper",
 	];
 
 	const frontmatter = [
@@ -68,7 +82,11 @@ async function createTestArtifact(
 				action: { type: "run_command", command: "bun run lint" },
 			},
 		];
-		await writeFile(join(artifactDir, "hooks.yaml"), yaml.default.dump(hooks), "utf-8");
+		await writeFile(
+			join(artifactDir, "hooks.yaml"),
+			yaml.default.dump(hooks),
+			"utf-8",
+		);
 	}
 }
 
@@ -85,6 +103,7 @@ describe("formatTerminalOutput", () => {
 		expect(result).toContain("--- System Prompt (system-prompt) ---");
 		expect(result).toContain("--- Steering (steering) ---");
 		// No ANSI escape codes
+		// biome-ignore lint/suspicious/noControlCharactersInRegex: intentional ANSI escape check
 		expect(result).not.toMatch(/\x1b\[/);
 	});
 
@@ -95,7 +114,7 @@ describe("formatTerminalOutput", () => {
 		// Should contain the artifact name regardless of color support
 		expect(result).toContain("test-artifact");
 		// The output should differ from the noColor version (either has ANSI or different formatting)
-		const plainResult = formatTerminalOutput(output, true);
+		const _plainResult = formatTerminalOutput(output, true);
 		// With color enabled, chalk may or may not emit ANSI depending on environment,
 		// but the structure should still be present
 		expect(result).toContain("Temper:");
@@ -113,7 +132,11 @@ describe("formatTerminalOutput", () => {
 			hooksDegraded: 2,
 			degradations: ["hooks: inline"],
 			sections: [
-				{ title: "Degradation Report", content: "- hooks: inline", type: "degradation-report" },
+				{
+					title: "Degradation Report",
+					content: "- hooks: inline",
+					type: "degradation-report",
+				},
 			],
 		});
 		const result = formatTerminalOutput(output, true);
@@ -214,6 +237,7 @@ describe("renderComparison", () => {
 		expect(text).toContain("=== Comparison: my-skill ===");
 		expect(text).toContain("kiro");
 		expect(text).toContain("cursor");
+		// biome-ignore lint/suspicious/noControlCharactersInRegex: intentional ANSI escape check
 		expect(text).not.toMatch(/\x1b\[/);
 	});
 });
@@ -266,7 +290,11 @@ describe("generateTemperHtml", () => {
 	test("escapes HTML in content", () => {
 		const output = makeTemperOutput({
 			sections: [
-				{ title: "Test", content: '<script>alert("xss")</script>', type: "steering" },
+				{
+					title: "Test",
+					content: '<script>alert("xss")</script>',
+					type: "steering",
+				},
 			],
 		});
 		const html = generateTemperHtml(output);
@@ -297,7 +325,9 @@ describe("temper error handling", () => {
 
 	test("returns error when harness not in artifact's harnesses list", async () => {
 		const tmpDir = await mkdtemp(join(tmpdir(), "temper-err-"));
-		await createTestArtifact(tmpDir, "my-skill", { harnesses: ["kiro", "cursor"] });
+		await createTestArtifact(tmpDir, "my-skill", {
+			harnesses: ["kiro", "cursor"],
+		});
 
 		const result = await renderTemper({
 			artifactName: "my-skill",
@@ -315,7 +345,9 @@ describe("temper error handling", () => {
 
 	test("error messages include actionable suggestions", async () => {
 		const tmpDir = await mkdtemp(join(tmpdir(), "temper-err-"));
-		await createTestArtifact(tmpDir, "my-skill", { harnesses: ["kiro", "cursor"] });
+		await createTestArtifact(tmpDir, "my-skill", {
+			harnesses: ["kiro", "cursor"],
+		});
 
 		// Artifact not found — should list available artifacts
 		const result1 = await renderTemper({

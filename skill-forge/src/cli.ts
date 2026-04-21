@@ -24,19 +24,19 @@ import { importCommand as multiHarnessImportCommand } from "./importers/index";
 import { installCommand } from "./install";
 import { newCommand } from "./new";
 import { publishCommand } from "./publish";
+import type { HarnessName } from "./schemas";
+import { SUPPORTED_HARNESSES } from "./schemas";
 import {
-	renderTemper,
-	formatTerminalOutput,
-	formatJsonOutput,
-	renderComparison,
 	formatComparisonOutput,
+	formatJsonOutput,
+	formatTerminalOutput,
+	renderComparison,
+	renderTemper,
 	startTemperServer,
 } from "./temper";
 import { tutorialCommand } from "./tutorial";
 import { validateCommand } from "./validate";
 import { upgradeCommand } from "./versioning";
-import { SUPPORTED_HARNESSES } from "./schemas";
-import type { HarnessName } from "./schemas";
 
 // Banner lines — stored without trailing padding; printBanner normalises widths.
 const bannerLines = [
@@ -313,7 +313,10 @@ if (import.meta.main !== false) {
 		.description("Upgrade installed artifacts to their latest versions")
 		.option("--force", "Upgrade without confirmation prompts")
 		.option("--dry-run", "Show what would be upgraded without modifying files")
-		.option("--project <name>", "Upgrade only within a specific workspace project")
+		.option(
+			"--project <name>",
+			"Upgrade only within a specific workspace project",
+		)
 		.action(async (options) => {
 			try {
 				await upgradeCommand({
@@ -324,14 +327,20 @@ if (import.meta.main !== false) {
 			} catch (err: unknown) {
 				const msg = err instanceof Error ? err.message : String(err);
 				console.error(chalk.red(`Error: ${msg}`));
-				console.error(chalk.dim("  Run `forge install` to install artifacts first, then retry."));
+				console.error(
+					chalk.dim(
+						"  Run `forge install` to install artifacts first, then retry.",
+					),
+				);
 				process.exit(1);
 			}
 		});
 
 	program
 		.command("temper <artifact>")
-		.description("Preview the compiled AI experience for an artifact-harness pair")
+		.description(
+			"Preview the compiled AI experience for an artifact-harness pair",
+		)
 		.option("--harness <name>", "Target harness (default: kiro)")
 		.option("--compare", "Compare artifact across all targeted harnesses")
 		.option("--web", "Open interactive web preview in browser")
@@ -342,7 +351,9 @@ if (import.meta.main !== false) {
 
 			if (!SUPPORTED_HARNESSES.includes(harness)) {
 				console.error(chalk.red(`Error: Unknown harness "${harness}".`));
-				console.error(chalk.dim(`  Supported harnesses: ${SUPPORTED_HARNESSES.join(", ")}`));
+				console.error(
+					chalk.dim(`  Supported harnesses: ${SUPPORTED_HARNESSES.join(", ")}`),
+				);
 				process.exit(1);
 			}
 
@@ -354,10 +365,17 @@ if (import.meta.main !== false) {
 					});
 					console.log(formatComparisonOutput(result, !options.color));
 				} else if (options.web) {
-					const output = await renderTemper({ artifactName: artifact, harness });
+					const output = await renderTemper({
+						artifactName: artifact,
+						harness,
+					});
 					await startTemperServer(output);
 				} else {
-					const output = await renderTemper({ artifactName: artifact, harness, noColor: !options.color });
+					const output = await renderTemper({
+						artifactName: artifact,
+						harness,
+						noColor: !options.color,
+					});
 					if (options.json) {
 						console.log(formatJsonOutput(output));
 					} else {
@@ -367,7 +385,11 @@ if (import.meta.main !== false) {
 			} catch (err: unknown) {
 				const msg = err instanceof Error ? err.message : String(err);
 				console.error(chalk.red(`Error: ${msg}`));
-				console.error(chalk.dim("  Run `forge catalog generate` to see available artifacts."));
+				console.error(
+					chalk.dim(
+						"  Run `forge catalog generate` to see available artifacts.",
+					),
+				);
 				process.exit(1);
 			}
 		});

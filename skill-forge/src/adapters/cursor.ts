@@ -1,9 +1,9 @@
 import { resolveFormat } from "../format-registry";
 import type { InclusionMode } from "../schemas";
 import { renderTemplate } from "../template-engine";
-import type { AdapterContext, AdapterWarning, HarnessAdapter, OutputFile } from "./types";
-import { applyDegradation } from "./degradation";
 import type { HarnessCapabilityName } from "./capabilities";
+import { applyDegradation } from "./degradation";
+import type { AdapterWarning, HarnessAdapter, OutputFile } from "./types";
 
 const CURSOR_INCLUSION_MAP: Record<InclusionMode, string> = {
 	always: "always",
@@ -11,13 +11,20 @@ const CURSOR_INCLUSION_MAP: Record<InclusionMode, string> = {
 	manual: "agent-requested",
 };
 
-export const cursorAdapter: HarnessAdapter = (artifact, templateEnv, context?) => {
+export const cursorAdapter: HarnessAdapter = (
+	artifact,
+	templateEnv,
+	context?,
+) => {
 	const files: OutputFile[] = [];
 	const warnings: AdapterWarning[] = [];
 
 	// Capability degradation checks
 	if (context) {
-		const checks: Array<{ capability: HarnessCapabilityName; hasFeature: boolean }> = [
+		const checks: Array<{
+			capability: HarnessCapabilityName;
+			hasFeature: boolean;
+		}> = [
 			{ capability: "hooks", hasFeature: artifact.hooks.length > 0 },
 			{ capability: "mcp", hasFeature: artifact.mcpServers.length > 0 },
 			{ capability: "workflows", hasFeature: artifact.workflows.length > 0 },
@@ -34,7 +41,12 @@ export const cursorAdapter: HarnessAdapter = (artifact, templateEnv, context?) =
 				});
 				return { files, warnings };
 			}
-			const degradation = applyDegradation(entry.degradation!, capability, artifact, "cursor");
+			const degradation = applyDegradation(
+				entry.degradation!,
+				capability,
+				artifact,
+				"cursor",
+			);
 			warnings.push(...degradation.warnings);
 		}
 	}

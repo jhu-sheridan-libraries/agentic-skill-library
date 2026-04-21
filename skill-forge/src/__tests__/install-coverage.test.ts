@@ -1,12 +1,12 @@
+import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
 import {
-	afterEach,
-	beforeEach,
-	describe,
-	expect,
-	spyOn,
-	test,
-} from "bun:test";
-import { exists, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+	exists,
+	mkdir,
+	mkdtemp,
+	readFile,
+	rm,
+	writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { install } from "../install";
@@ -70,7 +70,7 @@ describe("install() coverage", () => {
 
 		// Console output should mention dry-run
 		const calls = consoleErrorSpy.mock.calls.flat().map(String);
-		const dryRunMsg = calls.some((msg) => msg.includes("dry-run"));
+		const dryRunMsg = calls.some((msg: string) => msg.includes("dry-run"));
 		expect(dryRunMsg).toBe(true);
 	});
 
@@ -158,7 +158,7 @@ describe("install() coverage", () => {
 
 		// Should have logged a skip message
 		const calls = consoleErrorSpy.mock.calls.flat().map(String);
-		const skipMsg = calls.some((msg) => msg.includes("Skipping"));
+		const skipMsg = calls.some((msg: string) => msg.includes("Skipping"));
 		expect(skipMsg).toBe(true);
 	});
 

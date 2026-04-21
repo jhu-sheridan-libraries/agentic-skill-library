@@ -1,8 +1,12 @@
 import { exists, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import chalk from "chalk";
-import { getCapabilities, getDegradation, HARNESS_CAPABILITIES } from "./adapters/capabilities";
 import type { HarnessCapabilityName } from "./adapters/capabilities";
+import {
+	getCapabilities,
+	getDegradation,
+	HARNESS_CAPABILITIES,
+} from "./adapters/capabilities";
 import { adapterRegistry } from "./adapters/index";
 import type { AdapterContext } from "./adapters/types";
 import { generateCatalog, SOURCE_DIRS } from "./catalog";
@@ -118,7 +122,9 @@ function renderSystemPrompt(
  * - mcp-servers: MCP server definitions
  * - degradation-report: when any capabilities were degraded
  */
-export async function renderTemper(options: TemperOptions): Promise<TemperOutput> {
+export async function renderTemper(
+	options: TemperOptions,
+): Promise<TemperOutput> {
 	const {
 		artifactName,
 		harness,
@@ -219,7 +225,11 @@ export async function renderTemper(options: TemperOptions): Promise<TemperOutput
 		.join("\n\n");
 
 	// System prompt section — use eval-contexts template
-	const systemPromptContent = renderSystemPrompt(harness, steeringContent, templatesDir);
+	const systemPromptContent = renderSystemPrompt(
+		harness,
+		steeringContent,
+		templatesDir,
+	);
 	sections.push({
 		title: "System Prompt",
 		content: systemPromptContent,
@@ -259,9 +269,10 @@ export async function renderTemper(options: TemperOptions): Promise<TemperOutput
 		const mcpContent = artifact.mcpServers
 			.map((server) => {
 				const args = server.args.length > 0 ? ` ${server.args.join(" ")}` : "";
-				const envStr = Object.keys(server.env).length > 0
-					? `\n    env: ${JSON.stringify(server.env)}`
-					: "";
+				const envStr =
+					Object.keys(server.env).length > 0
+						? `\n    env: ${JSON.stringify(server.env)}`
+						: "";
 				return `- ${server.name}: ${server.command}${args}${envStr}`;
 			})
 			.join("\n");
@@ -274,9 +285,7 @@ export async function renderTemper(options: TemperOptions): Promise<TemperOutput
 
 	// Degradation report section (only when applicable)
 	if (degradations.length > 0) {
-		const reportContent = degradations
-			.map((d) => `- ${d}`)
-			.join("\n");
+		const reportContent = degradations.map((d) => `- ${d}`).join("\n");
 		sections.push({
 			title: "Degradation Report",
 			content: reportContent,
@@ -330,7 +339,6 @@ function isCapabilityUsed(
 	}
 }
 
-
 // --- Task 10.2: Terminal Output Formatting ---
 
 export interface ComparisonResult {
@@ -349,14 +357,21 @@ export interface ComparisonResult {
  * Format TemperOutput as terminal text with chalk syntax highlighting.
  * When noColor is true, strips all ANSI codes for deterministic output.
  */
-export function formatTerminalOutput(output: TemperOutput, noColor?: boolean): string {
+export function formatTerminalOutput(
+	output: TemperOutput,
+	noColor?: boolean,
+): string {
 	const lines: string[] = [];
 
 	if (noColor) {
 		// Deterministic plain-text output
-		lines.push(`=== Temper: ${output.artifactName} @ ${output.harnessName} ===`);
+		lines.push(
+			`=== Temper: ${output.artifactName} @ ${output.harnessName} ===`,
+		);
 		lines.push("");
-		lines.push(`Files: ${output.fileCount} | Hooks translated: ${output.hooksTranslated} | Hooks degraded: ${output.hooksDegraded} | MCP servers: ${output.mcpServers.length}`);
+		lines.push(
+			`Files: ${output.fileCount} | Hooks translated: ${output.hooksTranslated} | Hooks degraded: ${output.hooksDegraded} | MCP servers: ${output.mcpServers.length}`,
+		);
 		lines.push("");
 
 		for (const section of output.sections) {
@@ -369,7 +384,11 @@ export function formatTerminalOutput(output: TemperOutput, noColor?: boolean): s
 	}
 
 	// Colorized terminal output
-	lines.push(chalk.bold.cyan(`=== Temper: ${output.artifactName} @ ${output.harnessName} ===`));
+	lines.push(
+		chalk.bold.cyan(
+			`=== Temper: ${output.artifactName} @ ${output.harnessName} ===`,
+		),
+	);
 	lines.push("");
 
 	const stats = [
@@ -383,7 +402,9 @@ export function formatTerminalOutput(output: TemperOutput, noColor?: boolean): s
 
 	for (const section of output.sections) {
 		const typeColor = getSectionColor(section.type);
-		lines.push(chalk.bold(typeColor(`--- ${section.title} (${section.type}) ---`)));
+		lines.push(
+			chalk.bold(typeColor(`--- ${section.title} (${section.type}) ---`)),
+		);
 		lines.push(section.content);
 		lines.push("");
 	}
@@ -429,7 +450,9 @@ export interface RenderComparisonOptions {
 /**
  * Compile artifact for multiple harnesses and produce a comparison summary.
  */
-export async function renderComparison(options: RenderComparisonOptions): Promise<ComparisonResult> {
+export async function renderComparison(
+	options: RenderComparisonOptions,
+): Promise<ComparisonResult> {
 	const {
 		artifactName,
 		harnesses,
@@ -466,7 +489,10 @@ export async function renderComparison(options: RenderComparisonOptions): Promis
 /**
  * Format a ComparisonResult as a terminal-friendly table string.
  */
-export function formatComparisonOutput(result: ComparisonResult, noColor?: boolean): string {
+export function formatComparisonOutput(
+	result: ComparisonResult,
+	noColor?: boolean,
+): string {
 	const lines: string[] = [];
 
 	if (noColor) {
@@ -474,7 +500,14 @@ export function formatComparisonOutput(result: ComparisonResult, noColor?: boole
 		lines.push("");
 
 		// Header
-		const headers = ["Harness", "Files", "Hooks OK", "Hooks Degraded", "MCP Servers", "Degradations"];
+		const headers = [
+			"Harness",
+			"Files",
+			"Hooks OK",
+			"Hooks Degraded",
+			"MCP Servers",
+			"Degradations",
+		];
 		lines.push(headers.join(" | "));
 		lines.push(headers.map((h) => "-".repeat(h.length)).join("-+-"));
 
@@ -485,7 +518,7 @@ export function formatComparisonOutput(result: ComparisonResult, noColor?: boole
 				String(h.hooksTranslated).padEnd(headers[2].length),
 				String(h.hooksDegraded).padEnd(headers[3].length),
 				String(h.mcpServers.length).padEnd(headers[4].length),
-				(h.degradations.length > 0 ? h.degradations.join("; ") : "none"),
+				h.degradations.length > 0 ? h.degradations.join("; ") : "none",
 			];
 			lines.push(row.join(" | "));
 		}
@@ -496,11 +529,19 @@ export function formatComparisonOutput(result: ComparisonResult, noColor?: boole
 		for (const h of result.harnesses) {
 			lines.push(chalk.bold.white(`  ${h.harnessName}`));
 			lines.push(`    ${chalk.dim("Files:")} ${h.fileCount}`);
-			lines.push(`    ${chalk.dim("Hooks translated:")} ${chalk.green(String(h.hooksTranslated))}`);
-			lines.push(`    ${chalk.dim("Hooks degraded:")} ${h.hooksDegraded > 0 ? chalk.yellow(String(h.hooksDegraded)) : "0"}`);
-			lines.push(`    ${chalk.dim("MCP servers:")} ${h.mcpServers.join(", ") || "none"}`);
+			lines.push(
+				`    ${chalk.dim("Hooks translated:")} ${chalk.green(String(h.hooksTranslated))}`,
+			);
+			lines.push(
+				`    ${chalk.dim("Hooks degraded:")} ${h.hooksDegraded > 0 ? chalk.yellow(String(h.hooksDegraded)) : "0"}`,
+			);
+			lines.push(
+				`    ${chalk.dim("MCP servers:")} ${h.mcpServers.join(", ") || "none"}`,
+			);
 			if (h.degradations.length > 0) {
-				lines.push(`    ${chalk.dim("Degradations:")} ${chalk.yellow(h.degradations.join(", "))}`);
+				lines.push(
+					`    ${chalk.dim("Degradations:")} ${chalk.yellow(h.degradations.join(", "))}`,
+				);
 			}
 			lines.push("");
 		}
@@ -517,8 +558,8 @@ export function formatComparisonOutput(result: ComparisonResult, noColor?: boole
  */
 export function generateTemperHtml(output: TemperOutput): string {
 	const allHarnesses = [...SUPPORTED_HARNESSES];
-	const sectionsJson = JSON.stringify(output.sections);
-	const outputJson = JSON.stringify(output);
+	const _sectionsJson = JSON.stringify(output.sections);
+	const _outputJson = JSON.stringify(output);
 
 	return `<!DOCTYPE html>
 <html lang="en">
@@ -625,7 +666,10 @@ function escapeHtml(str: string): string {
  * Start a local HTTP server serving the temper HTML preview.
  * Opens the browser and prints the URL to stderr.
  */
-export async function startTemperServer(output: TemperOutput, port = 4400): Promise<void> {
+export async function startTemperServer(
+	output: TemperOutput,
+	port = 4400,
+): Promise<void> {
 	const temperOptions: TemperOptions = {
 		artifactName: output.artifactName,
 		harness: output.harnessName as HarnessName,
@@ -639,7 +683,11 @@ export async function startTemperServer(output: TemperOutput, port = 4400): Prom
 			const harness = url.searchParams.get("harness") as HarnessName | null;
 
 			let currentOutput = output;
-			if (harness && harness !== output.harnessName && SUPPORTED_HARNESSES.includes(harness as HarnessName)) {
+			if (
+				harness &&
+				harness !== output.harnessName &&
+				SUPPORTED_HARNESSES.includes(harness as HarnessName)
+			) {
 				currentOutput = await renderTemper({
 					...temperOptions,
 					harness: harness as HarnessName,
@@ -654,12 +702,19 @@ export async function startTemperServer(output: TemperOutput, port = 4400): Prom
 	});
 
 	const serverUrl = `http://localhost:${port}`;
-	console.error(chalk.green(`Temper preview running at ${chalk.bold(serverUrl)}`));
+	console.error(
+		chalk.green(`Temper preview running at ${chalk.bold(serverUrl)}`),
+	);
 
 	// Attempt to open browser (best-effort)
 	try {
 		const platform = process.platform;
-		const cmd = platform === "darwin" ? "open" : platform === "win32" ? "start" : "xdg-open";
+		const cmd =
+			platform === "darwin"
+				? "open"
+				: platform === "win32"
+					? "start"
+					: "xdg-open";
 		Bun.spawn([cmd, serverUrl], { stdout: "ignore", stderr: "ignore" });
 	} catch {
 		// Silently ignore

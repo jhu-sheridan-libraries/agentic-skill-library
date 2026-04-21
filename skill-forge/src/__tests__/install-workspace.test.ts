@@ -10,7 +10,6 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import yaml from "js-yaml";
-import { install } from "../install";
 import type { HarnessName, WorkspaceConfig } from "../schemas";
 
 let tempDir: string;
@@ -79,7 +78,8 @@ describe("Workspace-aware install", () => {
 			"steering/my-skill.md": "<!-- forge:version 1.2.3 -->\n# Kiro steering",
 		});
 		await seedDist("cursor", "my-skill", {
-			".cursor/rules/my-skill.md": "<!-- forge:version 1.2.3 -->\n# Cursor rule",
+			".cursor/rules/my-skill.md":
+				"<!-- forge:version 1.2.3 -->\n# Cursor rule",
 		});
 
 		// Import and call installCommand
@@ -99,7 +99,10 @@ describe("Workspace-aware install", () => {
 		expect(cursorContent).toContain("# Cursor rule");
 
 		// Verify version manifests written per project
-		const kiroManifest = join(tempDir, "packages/api/.kiro/.forge-manifest.json");
+		const kiroManifest = join(
+			tempDir,
+			"packages/api/.kiro/.forge-manifest.json",
+		);
 		expect(await exists(kiroManifest)).toBe(true);
 		const kiroManifestData = JSON.parse(await readFile(kiroManifest, "utf-8"));
 		expect(kiroManifestData.artifactName).toBe("my-skill");
@@ -108,7 +111,9 @@ describe("Workspace-aware install", () => {
 
 		const cursorManifest = join(tempDir, "packages/web/.forge-manifest.json");
 		expect(await exists(cursorManifest)).toBe(true);
-		const cursorManifestData = JSON.parse(await readFile(cursorManifest, "utf-8"));
+		const cursorManifestData = JSON.parse(
+			await readFile(cursorManifest, "utf-8"),
+		);
 		expect(cursorManifestData.artifactName).toBe("my-skill");
 		expect(cursorManifestData.harnessName).toBe("cursor");
 	});
@@ -191,9 +196,7 @@ describe("Workspace-aware install", () => {
 
 		await writeWorkspaceConfig({
 			knowledgeSources: ["knowledge"],
-			projects: [
-				{ name: "api", root: "packages/api", harnesses: ["kiro"] },
-			],
+			projects: [{ name: "api", root: "packages/api", harnesses: ["kiro"] }],
 		});
 
 		await seedDist("kiro", "my-skill", {

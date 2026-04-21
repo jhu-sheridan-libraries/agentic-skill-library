@@ -220,7 +220,8 @@ function applyProjectOverrides(
 	if (!project.overrides?.[harnessName]) return;
 
 	const fm = artifact.frontmatter as Record<string, unknown>;
-	const harnessConfig = (fm["harness-config"] as Record<string, Record<string, unknown>>) ?? {};
+	const harnessConfig =
+		(fm["harness-config"] as Record<string, Record<string, unknown>>) ?? {};
 	const existingHarnessConf = harnessConfig[harnessName] ?? {};
 
 	// Merge: project overrides take precedence
@@ -246,10 +247,15 @@ async function buildWithWorkspace(
 	let artifactsCompiled = 0;
 
 	// Resolve knowledgeSources relative to workspace root
-	const resolvedSources = wsConfig.knowledgeSources.map((s) => resolve(wsRoot, s));
+	const resolvedSources = wsConfig.knowledgeSources.map((s) =>
+		resolve(wsRoot, s),
+	);
 
 	// Merge artifacts from all knowledge sources
-	const mergeResult = await mergeKnowledgeSources(wsConfig.knowledgeSources, wsRoot);
+	const mergeResult = await mergeKnowledgeSources(
+		wsConfig.knowledgeSources,
+		wsRoot,
+	);
 
 	// If conflicts detected, return errors
 	if (mergeResult.conflicts.length > 0) {
@@ -264,9 +270,7 @@ async function buildWithWorkspace(
 	}
 
 	// Load shared MCP servers
-	const sharedMcp = await loadSharedMcpServers(
-		resolve(wsRoot, mcpServersDir),
-	);
+	const sharedMcp = await loadSharedMcpServers(resolve(wsRoot, mcpServersDir));
 
 	// Create template environment
 	const templateEnv = createTemplateEnv(templatesDir);
@@ -311,11 +315,16 @@ async function buildWithWorkspace(
 	// For each project, compile only matching artifacts for the project's harnesses
 	for (const project of wsConfig.projects) {
 		const allArtifactNames = [...loadedArtifacts.keys()];
-		const projectArtifactNames = filterArtifactsForProject(allArtifactNames, project);
+		const projectArtifactNames = filterArtifactsForProject(
+			allArtifactNames,
+			project,
+		);
 
 		// Determine target harnesses for this project
 		const projectHarnesses = harness
-			? project.harnesses.includes(harness) ? [harness] : []
+			? project.harnesses.includes(harness)
+				? [harness]
+				: []
 			: project.harnesses;
 
 		if (projectHarnesses.length === 0) continue;
@@ -333,7 +342,9 @@ async function buildWithWorkspace(
 			};
 
 			// Merge shared MCP servers (artifact-local takes precedence)
-			const localMcpNames = new Set(projectArtifact.mcpServers.map((s) => s.name));
+			const localMcpNames = new Set(
+				projectArtifact.mcpServers.map((s) => s.name),
+			);
 			for (const [name, server] of sharedMcp) {
 				if (!localMcpNames.has(name)) {
 					projectArtifact.mcpServers.push({ name, ...server });
@@ -411,7 +422,12 @@ async function buildWithWorkspace(
 							content = embedVersion(content, artifactVersion, "json");
 						}
 
-						const outPath = join(distDir, h, projectArtifact.name, file.relativePath);
+						const outPath = join(
+							distDir,
+							h,
+							projectArtifact.name,
+							file.relativePath,
+						);
 						const outDir = outPath.substring(0, outPath.lastIndexOf("/"));
 						await mkdir(outDir, { recursive: true });
 						await writeFile(outPath, content, "utf-8");
@@ -427,7 +443,9 @@ async function buildWithWorkspace(
 						harnessName: h,
 						message: msg,
 					});
-					console.error(chalk.red(`Error: ${projectArtifact.name}/${h}: ${msg}`));
+					console.error(
+						chalk.red(`Error: ${projectArtifact.name}/${h}: ${msg}`),
+					);
 				}
 			}
 		}
@@ -445,7 +463,14 @@ export async function build(options: BuildOptions): Promise<BuildResult> {
 				? [options.knowledgeDir]
 				: ["knowledge"];
 
-	const { distDir, templatesDir, mcpServersDir, harness, strict, workspaceRoot } = options;
+	const {
+		distDir,
+		templatesDir,
+		mcpServersDir,
+		harness,
+		strict,
+		workspaceRoot,
+	} = options;
 
 	// Check for workspace config — if present, delegate to workspace-aware build
 	const wsRoot = workspaceRoot ?? process.cwd();

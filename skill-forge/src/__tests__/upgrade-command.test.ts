@@ -1,7 +1,7 @@
-import { describe, expect, test, mock, beforeEach, afterEach } from "bun:test";
-import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
-import { join } from "node:path";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 // Mock @clack/prompts to prevent interactive prompts during tests
 mock.module("@clack/prompts", () => ({
@@ -11,8 +11,8 @@ mock.module("@clack/prompts", () => ({
 	outro: () => {},
 }));
 
-import { upgradeCommand } from "../versioning";
 import type { VersionManifest } from "../schemas";
+import { upgradeCommand } from "../versioning";
 
 const sampleManifest: VersionManifest = {
 	artifactName: "test-artifact",

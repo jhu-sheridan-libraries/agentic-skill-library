@@ -604,6 +604,7 @@ describe("artifact mutation integration", () => {
 			collectionsDir: tmpCollections,
 			forgeDir: tmpForge,
 			knowledgeDir: tmpKnowledge,
+			buildHistory: [],
 		};
 		server = Bun.serve({
 			hostname: "localhost",
@@ -758,6 +759,7 @@ describe("collection mutation integration", () => {
 			collectionsDir: tmpCollections,
 			forgeDir: tmpForge,
 			knowledgeDir: tmpKnowledge,
+			buildHistory: [],
 		};
 		server = Bun.serve({
 			hostname: "localhost",
@@ -910,6 +912,7 @@ describe("manifest mutation integration", () => {
 			collectionsDir: tmpCollections,
 			forgeDir: tmpForge,
 			knowledgeDir: tmpKnowledge,
+			buildHistory: [],
 		};
 		server = Bun.serve({
 			hostname: "localhost",
@@ -1064,6 +1067,7 @@ describe("manifest status integration", () => {
 			collectionsDir: tmpCollections,
 			forgeDir: tmpForge,
 			knowledgeDir: tmpKnowledge,
+			buildHistory: [],
 		};
 		server = Bun.serve({
 			hostname: "localhost",
@@ -1173,6 +1177,7 @@ describe("content-type validation on mutation endpoints", () => {
 			collectionsDir: tmpCollections,
 			forgeDir: tmpForge,
 			knowledgeDir: tmpKnowledge,
+			buildHistory: [],
 		};
 		server = Bun.serve({
 			hostname: "localhost",

@@ -1,18 +1,18 @@
 import { describe, expect, test } from "bun:test";
-import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
-import { join } from "node:path";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
+import { join } from "node:path";
+import type { VersionManifest } from "../schemas";
 import {
-	serializeManifest,
-	parseManifest,
 	compareVersions,
-	resolveMigrationChain,
 	discoverManifests,
-	upgradeArtifact,
 	embedVersion,
 	type MigrationScript,
+	parseManifest,
+	resolveMigrationChain,
+	serializeManifest,
+	upgradeArtifact,
 } from "../versioning";
-import type { VersionManifest } from "../schemas";
 
 const sampleManifest: VersionManifest = {
 	artifactName: "test-artifact",
@@ -40,7 +40,10 @@ describe("serializeManifest", () => {
 		expect(parsed.harnessName).toBe("kiro");
 		expect(parsed.sourcePath).toBe("knowledge/test-artifact");
 		expect(parsed.installedAt).toBe("2026-01-15T10:30:00Z");
-		expect(parsed.files).toEqual(["steering/test-artifact.md", "hooks/test.kiro.hook"]);
+		expect(parsed.files).toEqual([
+			"steering/test-artifact.md",
+			"hooks/test.kiro.hook",
+		]);
 	});
 });
 
@@ -56,7 +59,9 @@ describe("parseManifest", () => {
 	});
 
 	test("throws on missing required fields", () => {
-		expect(() => parseManifest(JSON.stringify({ artifactName: "x" }))).toThrow();
+		expect(() =>
+			parseManifest(JSON.stringify({ artifactName: "x" })),
+		).toThrow();
 	});
 
 	test("throws on invalid version format", () => {

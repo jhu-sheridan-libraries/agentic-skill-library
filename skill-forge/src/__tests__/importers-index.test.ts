@@ -1,13 +1,13 @@
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { SUPPORTED_HARNESSES } from "../schemas";
 import {
-	HARNESS_NATIVE_PATHS,
 	detectHarnessFiles,
+	HARNESS_NATIVE_PATHS,
 	importerRegistry,
 } from "../importers/index";
+import { SUPPORTED_HARNESSES } from "../schemas";
 
 let tempDir: string;
 
@@ -59,7 +59,9 @@ describe("importerRegistry", () => {
 			const parser = importerRegistry[harness].parse;
 			expect(typeof parser).toBe("function");
 			// Real parsers will throw file-not-found errors (not "not yet implemented")
-			await expect(parser("/fake/path")).rejects.not.toThrow("not yet implemented");
+			await expect(parser("/fake/path")).rejects.not.toThrow(
+				"not yet implemented",
+			);
 		}
 	});
 });
@@ -92,20 +94,14 @@ describe("detectHarnessFiles", () => {
 
 	test("detects .cursor/rules/*.md for cursor", async () => {
 		await mkdir(join(tempDir, ".cursor", "rules"), { recursive: true });
-		await writeFile(
-			join(tempDir, ".cursor", "rules", "my-rule.md"),
-			"# Rule",
-		);
+		await writeFile(join(tempDir, ".cursor", "rules", "my-rule.md"), "# Rule");
 		const result = await detectHarnessFiles(tempDir);
 		expect(result.cursor).toContain(".cursor/rules/my-rule.md");
 	});
 
 	test("detects .kiro/steering/*.md for kiro", async () => {
 		await mkdir(join(tempDir, ".kiro", "steering"), { recursive: true });
-		await writeFile(
-			join(tempDir, ".kiro", "steering", "guide.md"),
-			"# Guide",
-		);
+		await writeFile(join(tempDir, ".kiro", "steering", "guide.md"), "# Guide");
 		const result = await detectHarnessFiles(tempDir);
 		expect(result.kiro).toContain(".kiro/steering/guide.md");
 	});

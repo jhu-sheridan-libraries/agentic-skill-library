@@ -1,8 +1,8 @@
 import { readFile } from "node:fs/promises";
-import { basename, extname } from "node:path";
+import { basename } from "node:path";
 import matter from "gray-matter";
 import type { CanonicalHook } from "../schemas";
-import type { ImportParser, ImportedFile } from "./types";
+import type { ImportedFile, ImportParser } from "./types";
 
 /**
  * Derives a kebab-case artifact name from a file path.
@@ -11,8 +11,12 @@ import type { ImportParser, ImportedFile } from "./types";
 function deriveArtifactName(filePath: string): string {
 	const base = basename(filePath);
 	// Remove all extensions (e.g., ".kiro.hook" → base without extensions)
-	const name = base.replace(/\.kiro\.hook$/, "") || base.replace(/\.[^.]+$/, "");
-	return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+	const name =
+		base.replace(/\.kiro\.hook$/, "") || base.replace(/\.[^.]+$/, "");
+	return name
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, "-")
+		.replace(/^-|-$/g, "");
 }
 
 /**
@@ -64,9 +68,15 @@ async function parseHookFile(filePath: string): Promise<ImportedFile> {
 		if (data.action || data.then) {
 			const rawAction = data.action || data.then;
 			if (rawAction?.type === "run_command" || rawAction?.command) {
-				hook.action = { type: "run_command", command: rawAction.command || rawAction.prompt || "" };
+				hook.action = {
+					type: "run_command",
+					command: rawAction.command || rawAction.prompt || "",
+				};
 			} else if (rawAction?.type === "ask_agent" || rawAction?.prompt) {
-				hook.action = { type: "ask_agent", prompt: rawAction.prompt || rawAction.command || "" };
+				hook.action = {
+					type: "ask_agent",
+					prompt: rawAction.prompt || rawAction.command || "",
+				};
 			}
 		}
 
@@ -77,10 +87,17 @@ async function parseHookFile(filePath: string): Promise<ImportedFile> {
 		// Map condition
 		if (data.condition || data.when?.filePatterns || data.when?.toolTypes) {
 			hook.condition = {};
-			const filePatterns = data.condition?.file_patterns || data.when?.filePatterns;
+			const filePatterns =
+				data.condition?.file_patterns || data.when?.filePatterns;
 			const toolTypes = data.condition?.tool_types || data.when?.toolTypes;
-			if (filePatterns) hook.condition.file_patterns = Array.isArray(filePatterns) ? filePatterns : [filePatterns];
-			if (toolTypes) hook.condition.tool_types = Array.isArray(toolTypes) ? toolTypes : [toolTypes];
+			if (filePatterns)
+				hook.condition.file_patterns = Array.isArray(filePatterns)
+					? filePatterns
+					: [filePatterns];
+			if (toolTypes)
+				hook.condition.tool_types = Array.isArray(toolTypes)
+					? toolTypes
+					: [toolTypes];
 		}
 
 		if (hook.event && hook.action && hook.name) {
@@ -88,7 +105,16 @@ async function parseHookFile(filePath: string): Promise<ImportedFile> {
 		}
 
 		// Preserve unmapped fields
-		const knownFields = new Set(["event", "when", "action", "then", "name", "id", "description", "condition"]);
+		const knownFields = new Set([
+			"event",
+			"when",
+			"action",
+			"then",
+			"name",
+			"id",
+			"description",
+			"condition",
+		]);
 		for (const [key, value] of Object.entries(data)) {
 			if (!knownFields.has(key)) {
 				extraFields[key] = value;
@@ -107,7 +133,7 @@ async function parseHookFile(filePath: string): Promise<ImportedFile> {
 	};
 }
 
-function mapKiroEvent(rawEvent: string): string {
+function mapKiroEvent(rawEvent: string): import("../schemas").CanonicalEvent {
 	const eventMap: Record<string, string> = {
 		fileEdited: "file_edited",
 		fileCreated: "file_created",
@@ -131,14 +157,17 @@ function mapKiroEvent(rawEvent: string): string {
 		post_task: "post_task",
 		user_triggered: "user_triggered",
 	};
-	return eventMap[rawEvent] || rawEvent;
+	return (eventMap[rawEvent] ||
+		rawEvent) as import("../schemas").CanonicalEvent;
 }
 
 /**
  * Kiro import parser.
  * Handles .kiro/steering/*.md (frontmatter + body) and .kiro/hooks/*.kiro.hook (JSON → CanonicalHook).
  */
-export const parseKiro: ImportParser = async (filePath: string): Promise<ImportedFile> => {
+export const parseKiro: ImportParser = async (
+	filePath: string,
+): Promise<ImportedFile> => {
 	if (filePath.endsWith(".kiro.hook")) {
 		return parseHookFile(filePath);
 	}

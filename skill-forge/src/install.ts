@@ -13,7 +13,12 @@ import { resolveBackend } from "./backends/index";
 import { generateCatalog } from "./catalog";
 import { loadForgeConfig, resolveBackendConfigs } from "./config";
 import { GlobalCache } from "./guild/global-cache";
-import type { CatalogEntry, HarnessName, VersionManifest, WorkspaceProject } from "./schemas";
+import type {
+	CatalogEntry,
+	HarnessName,
+	VersionManifest,
+	WorkspaceProject,
+} from "./schemas";
 import { SUPPORTED_HARNESSES } from "./schemas";
 import { serializeManifest } from "./versioning";
 import { loadWorkspaceConfig } from "./workspace";
@@ -150,9 +155,19 @@ export async function install(options: InstallOptions): Promise<void> {
 
 		// Write version manifest alongside installed files
 		if (!dryRun && installedFiles.length > 0) {
-			const version = options.version ?? (await extractVersionFromFiles(srcDir, files)) ?? "0.1.0";
+			const version =
+				options.version ??
+				(await extractVersionFromFiles(srcDir, files)) ??
+				"0.1.0";
 			const sourcePath = options.sourcePath ?? srcDir;
-			await writeVersionManifest(artifactName, version, h, sourcePath, installedFiles, installBase);
+			await writeVersionManifest(
+				artifactName,
+				version,
+				h,
+				sourcePath,
+				installedFiles,
+				installBase,
+			);
 		}
 	}
 
@@ -455,19 +470,14 @@ export async function installCommand(
 	const wsResult = await loadWorkspaceConfig(wsRoot);
 
 	if (wsResult) {
-		await installWithWorkspace(
-			wsResult.config,
-			wsRoot,
-			artifact,
-			{
-				harness: opts.harness as HarnessName | undefined,
-				all: opts.all as boolean | undefined,
-				force: opts.force as boolean | undefined,
-				dryRun: opts.dryRun as boolean | undefined,
-				source: opts.source as string | undefined,
-				project: projectFilter,
-			},
-		);
+		await installWithWorkspace(wsResult.config, wsRoot, artifact, {
+			harness: opts.harness as HarnessName | undefined,
+			all: opts.all as boolean | undefined,
+			force: opts.force as boolean | undefined,
+			dryRun: opts.dryRun as boolean | undefined,
+			source: opts.source as string | undefined,
+			project: projectFilter,
+		});
 		return;
 	}
 
@@ -501,7 +511,14 @@ async function installWithWorkspace(
 		project?: string;
 	},
 ): Promise<void> {
-	const { harness, all, force, dryRun, source, project: projectFilter } = options;
+	const {
+		harness,
+		all,
+		force,
+		dryRun,
+		source,
+		project: projectFilter,
+	} = options;
 	const distDir = source ? join(source, "dist") : "dist";
 
 	// Filter projects if --project is specified
@@ -520,7 +537,8 @@ async function installWithWorkspace(
 	}
 
 	// Track summary per project
-	const summary: Array<{ project: string; harness: string; files: number }> = [];
+	const summary: Array<{ project: string; harness: string; files: number }> =
+		[];
 
 	for (const proj of targetProjects) {
 		// Determine which harnesses to install for this project
@@ -542,7 +560,10 @@ async function installWithWorkspace(
 
 		// Check artifact include/exclude filters
 		const artifactNames = [artifactName];
-		const filteredNames = filterArtifactsForWorkspaceProject(artifactNames, proj);
+		const filteredNames = filterArtifactsForWorkspaceProject(
+			artifactNames,
+			proj,
+		);
 		if (filteredNames.length === 0) continue;
 
 		const projectRoot = resolve(wsRoot, proj.root);
@@ -585,7 +606,9 @@ async function installWithWorkspace(
 				}
 
 				if (dryRun) {
-					console.error(`  ${src} → ${dest}${destExists ? " (overwrite)" : ""}`);
+					console.error(
+						`  ${src} → ${dest}${destExists ? " (overwrite)" : ""}`,
+					);
 				} else {
 					const destDir = dest.substring(0, dest.lastIndexOf("/"));
 					await mkdir(destDir, { recursive: true });
@@ -597,9 +620,17 @@ async function installWithWorkspace(
 
 			// Write per-project-harness-artifact version manifest
 			if (!dryRun && installedFiles.length > 0) {
-				const version = await extractVersionFromFiles(srcDir, files) ?? "0.1.0";
+				const version =
+					(await extractVersionFromFiles(srcDir, files)) ?? "0.1.0";
 				const sourcePath = srcDir;
-				await writeVersionManifest(artifactName, version, h, sourcePath, installedFiles, installBase);
+				await writeVersionManifest(
+					artifactName,
+					version,
+					h,
+					sourcePath,
+					installedFiles,
+					installBase,
+				);
 			}
 
 			summary.push({
@@ -614,7 +645,10 @@ async function installWithWorkspace(
 	if (summary.length > 0) {
 		console.error("");
 		console.error(chalk.green("✓ Workspace install summary:"));
-		const grouped = new Map<string, Array<{ harness: string; files: number }>>();
+		const grouped = new Map<
+			string,
+			Array<{ harness: string; files: number }>
+		>();
 		for (const entry of summary) {
 			const existing = grouped.get(entry.project) ?? [];
 			existing.push({ harness: entry.harness, files: entry.files });

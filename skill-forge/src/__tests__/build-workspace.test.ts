@@ -1,12 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import {
-	mkdir,
-	mkdtemp,
-	readdir,
-	readFile,
-	rm,
-	writeFile,
-} from "node:fs/promises";
+import { mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { type BuildOptions, build } from "../build";
@@ -96,7 +89,9 @@ describe("Workspace-aware build", () => {
 		await mkdir(join(tempDir, "mcp-servers"), { recursive: true });
 
 		// Write workspace config
-		await writeWorkspaceConfig(tempDir, `
+		await writeWorkspaceConfig(
+			tempDir,
+			`
 knowledgeSources:
   - knowledge
 projects:
@@ -109,7 +104,8 @@ projects:
     root: packages/web
     harnesses:
       - copilot
-`);
+`,
+		);
 
 		const result = await build(makeBuildOptions());
 
@@ -136,7 +132,9 @@ projects:
 		await mkdir(join(tempDir, "packages/api"), { recursive: true });
 		await mkdir(join(tempDir, "mcp-servers"), { recursive: true });
 
-		await writeWorkspaceConfig(tempDir, `
+		await writeWorkspaceConfig(
+			tempDir,
+			`
 knowledgeSources:
   - libs/shared-knowledge
 projects:
@@ -144,7 +142,8 @@ projects:
     root: packages/api
     harnesses:
       - kiro
-`);
+`,
+		);
 
 		const result = await build(makeBuildOptions());
 
@@ -157,13 +156,21 @@ projects:
 		// Create two sources with same artifact name
 		const sourceA = join(tempDir, "source-a");
 		const sourceB = join(tempDir, "source-b");
-		await writeArtifact(sourceA, { name: "conflicting-skill", harnesses: ["kiro"] });
-		await writeArtifact(sourceB, { name: "conflicting-skill", harnesses: ["kiro"] });
+		await writeArtifact(sourceA, {
+			name: "conflicting-skill",
+			harnesses: ["kiro"],
+		});
+		await writeArtifact(sourceB, {
+			name: "conflicting-skill",
+			harnesses: ["kiro"],
+		});
 
 		await mkdir(join(tempDir, "packages/api"), { recursive: true });
 		await mkdir(join(tempDir, "mcp-servers"), { recursive: true });
 
-		await writeWorkspaceConfig(tempDir, `
+		await writeWorkspaceConfig(
+			tempDir,
+			`
 knowledgeSources:
   - source-a
   - source-b
@@ -172,7 +179,8 @@ projects:
     root: packages/api
     harnesses:
       - kiro
-`);
+`,
+		);
 
 		const result = await build(makeBuildOptions());
 
@@ -187,7 +195,7 @@ projects:
 		await writeArtifact(knowledgeDir, {
 			name: "format-skill",
 			harnesses: ["kiro"],
-			harnessConfig: 'harness-config:\n  kiro:\n    format: steering',
+			harnessConfig: "harness-config:\n  kiro:\n    format: steering",
 			body: "Format test.",
 		});
 
@@ -195,7 +203,9 @@ projects:
 		await mkdir(join(tempDir, "mcp-servers"), { recursive: true });
 
 		// Project overrides the format to "power"
-		await writeWorkspaceConfig(tempDir, `
+		await writeWorkspaceConfig(
+			tempDir,
+			`
 knowledgeSources:
   - knowledge
 projects:
@@ -206,7 +216,8 @@ projects:
     overrides:
       kiro:
         format: power
-`);
+`,
+		);
 
 		const result = await build(makeBuildOptions());
 
@@ -221,13 +232,21 @@ projects:
 
 	test("respects project artifacts include filter", async () => {
 		const knowledgeDir = join(tempDir, "knowledge");
-		await writeArtifact(knowledgeDir, { name: "included-skill", harnesses: ["kiro"] });
-		await writeArtifact(knowledgeDir, { name: "excluded-skill", harnesses: ["kiro"] });
+		await writeArtifact(knowledgeDir, {
+			name: "included-skill",
+			harnesses: ["kiro"],
+		});
+		await writeArtifact(knowledgeDir, {
+			name: "excluded-skill",
+			harnesses: ["kiro"],
+		});
 
 		await mkdir(join(tempDir, "packages/api"), { recursive: true });
 		await mkdir(join(tempDir, "mcp-servers"), { recursive: true });
 
-		await writeWorkspaceConfig(tempDir, `
+		await writeWorkspaceConfig(
+			tempDir,
+			`
 knowledgeSources:
   - knowledge
 projects:
@@ -238,7 +257,8 @@ projects:
     artifacts:
       include:
         - included-skill
-`);
+`,
+		);
 
 		const result = await build(makeBuildOptions());
 
@@ -253,13 +273,21 @@ projects:
 
 	test("respects project artifacts exclude filter", async () => {
 		const knowledgeDir = join(tempDir, "knowledge");
-		await writeArtifact(knowledgeDir, { name: "keep-skill", harnesses: ["kiro"] });
-		await writeArtifact(knowledgeDir, { name: "drop-skill", harnesses: ["kiro"] });
+		await writeArtifact(knowledgeDir, {
+			name: "keep-skill",
+			harnesses: ["kiro"],
+		});
+		await writeArtifact(knowledgeDir, {
+			name: "drop-skill",
+			harnesses: ["kiro"],
+		});
 
 		await mkdir(join(tempDir, "packages/api"), { recursive: true });
 		await mkdir(join(tempDir, "mcp-servers"), { recursive: true });
 
-		await writeWorkspaceConfig(tempDir, `
+		await writeWorkspaceConfig(
+			tempDir,
+			`
 knowledgeSources:
   - knowledge
 projects:
@@ -270,7 +298,8 @@ projects:
     artifacts:
       exclude:
         - drop-skill
-`);
+`,
+		);
 
 		const result = await build(makeBuildOptions());
 
@@ -285,7 +314,10 @@ projects:
 
 	test("falls back to single-directory behavior when no workspace config", async () => {
 		const knowledgeDir = join(tempDir, "knowledge");
-		await writeArtifact(knowledgeDir, { name: "solo-skill", harnesses: ["kiro"] });
+		await writeArtifact(knowledgeDir, {
+			name: "solo-skill",
+			harnesses: ["kiro"],
+		});
 		await mkdir(join(tempDir, "mcp-servers"), { recursive: true });
 
 		// No forge.config.yaml — should use fallback
@@ -312,7 +344,9 @@ projects:
 		await mkdir(join(tempDir, "packages/api"), { recursive: true });
 		await mkdir(join(tempDir, "mcp-servers"), { recursive: true });
 
-		await writeWorkspaceConfig(tempDir, `
+		await writeWorkspaceConfig(
+			tempDir,
+			`
 knowledgeSources:
   - knowledge
 projects:
@@ -322,7 +356,8 @@ projects:
       - kiro
       - cursor
       - copilot
-`);
+`,
+		);
 
 		const result = await build(makeBuildOptions({ harness: "cursor" }));
 

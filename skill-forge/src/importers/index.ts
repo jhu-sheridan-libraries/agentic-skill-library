@@ -1,17 +1,17 @@
-import { exists, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
-import { basename, dirname, join, relative } from "node:path";
+import { exists, mkdir, readdir, writeFile } from "node:fs/promises";
+import { join, relative } from "node:path";
 import * as p from "@clack/prompts";
 import chalk from "chalk";
 import yaml from "js-yaml";
 import type { HarnessName } from "../schemas";
 import { SUPPORTED_HARNESSES } from "../schemas";
-import type { ImportedFile, ImporterRegistry } from "./types";
-import { parseCline } from "./cline";
 import { parseClaudeCode } from "./claude-code";
+import { parseCline } from "./cline";
 import { parseCopilot } from "./copilot";
 import { parseCursor } from "./cursor";
 import { parseKiro } from "./kiro";
 import { parseQDeveloper } from "./qdeveloper";
+import type { ImportedFile, ImporterRegistry } from "./types";
 import { parseWindsurf } from "./windsurf";
 
 // ── Harness-native file path mappings ─────────────────────────────────────────
@@ -68,7 +68,6 @@ export const importerRegistry: ImporterRegistry = {
 		parse: parseQDeveloper,
 	},
 };
-
 
 // ── Glob matching utility ─────────────────────────────────────────────────────
 
@@ -194,7 +193,9 @@ export interface ImportCommandOptions {
  * - Supports --force (overwrite without confirmation) and --dry-run
  * - If no files detected, suggests `forge new`
  */
-export async function importCommand(options: ImportCommandOptions): Promise<void> {
+export async function importCommand(
+	options: ImportCommandOptions,
+): Promise<void> {
 	const cwd = process.cwd();
 	const knowledgeDir = options.knowledgeDir ?? "knowledge";
 	const dryRun = options.dryRun ?? false;
@@ -249,7 +250,7 @@ export async function importCommand(options: ImportCommandOptions): Promise<void
 		const files = detected[harness];
 		if (files.length === 0) continue;
 		console.error(
-			`  ${chalk.cyan(harness)} ${chalk.dim(`(${files.length} file${files.length !== 1 ? "s" : ""})`)}`
+			`  ${chalk.cyan(harness)} ${chalk.dim(`(${files.length} file${files.length !== 1 ? "s" : ""})`)}`,
 		);
 		for (const file of files) {
 			console.error(`    ${chalk.dim("•")} ${file}`);
@@ -287,8 +288,7 @@ export async function importCommand(options: ImportCommandOptions): Promise<void
 			try {
 				parsed = await parser(fullPath);
 			} catch (err) {
-				const msg =
-					err instanceof Error ? err.message : String(err);
+				const msg = err instanceof Error ? err.message : String(err);
 				warnings.push(`${filePath}: ${msg}`);
 				skipped++;
 				continue;
@@ -340,11 +340,7 @@ export async function importCommand(options: ImportCommandOptions): Promise<void
 						"utf-8",
 					);
 				} else {
-					await writeFile(
-						join(targetDir, "mcp-servers.yaml"),
-						"[]\n",
-						"utf-8",
-					);
+					await writeFile(join(targetDir, "mcp-servers.yaml"), "[]\n", "utf-8");
 				}
 			}
 
@@ -365,9 +361,8 @@ export async function importCommand(options: ImportCommandOptions): Promise<void
 	console.error("");
 	const verb = dryRun ? "would import" : "imported";
 	console.error(
-		chalk.green(
-			`  ${imported} artifact${imported !== 1 ? "s" : ""} ${verb}`,
-		) + (skipped > 0 ? chalk.yellow(`, ${skipped} skipped`) : ""),
+		chalk.green(`  ${imported} artifact${imported !== 1 ? "s" : ""} ${verb}`) +
+			(skipped > 0 ? chalk.yellow(`, ${skipped} skipped`) : ""),
 	);
 
 	if (!dryRun && imported > 0) {

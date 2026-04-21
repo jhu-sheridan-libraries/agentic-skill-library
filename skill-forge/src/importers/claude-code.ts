@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { basename } from "node:path";
 import matter from "gray-matter";
 import type { CanonicalHook, McpServerDefinition } from "../schemas";
-import type { ImportParser, ImportedFile } from "./types";
+import type { ImportedFile, ImportParser } from "./types";
 
 /**
  * Derives a kebab-case artifact name from a file path.
@@ -10,7 +10,10 @@ import type { ImportParser, ImportedFile } from "./types";
 function deriveArtifactName(filePath: string): string {
 	const base = basename(filePath);
 	const name = base.replace(/\.[^.]+$/, "");
-	return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+	return name
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, "-")
+		.replace(/^-|-$/g, "");
 }
 
 /**
@@ -53,7 +56,9 @@ async function parseSettingsJson(filePath: string): Promise<ImportedFile> {
 				});
 			} else if (cmd && typeof cmd === "object" && cmd.command) {
 				hooks.push({
-					name: cmd.name || `agent-stop-${cmd.command.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`,
+					name:
+						cmd.name ||
+						`agent-stop-${cmd.command.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`,
 					description: cmd.description,
 					event: "agent_stop",
 					action: { type: "run_command", command: cmd.command },
@@ -131,7 +136,9 @@ async function parseMcpJson(filePath: string): Promise<ImportedFile> {
  * Claude Code import parser.
  * Handles CLAUDE.md, .claude/settings.json, and .claude/mcp.json.
  */
-export const parseClaudeCode: ImportParser = async (filePath: string): Promise<ImportedFile> => {
+export const parseClaudeCode: ImportParser = async (
+	filePath: string,
+): Promise<ImportedFile> => {
 	if (filePath.endsWith("settings.json")) {
 		return parseSettingsJson(filePath);
 	}

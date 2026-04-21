@@ -1,16 +1,16 @@
+import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
 import {
-	afterEach,
-	beforeEach,
-	describe,
-	expect,
-	spyOn,
-	test,
-} from "bun:test";
-import { exists, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+	exists,
+	mkdir,
+	mkdtemp,
+	readFile,
+	rm,
+	writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { install } from "../install";
-import type { HarnessName, VersionManifest } from "../schemas";
+import type { HarnessName } from "../schemas";
 import { parseManifest } from "../versioning";
 
 let tempDir: string;
@@ -73,7 +73,8 @@ describe("install() version manifest writing", () => {
 
 	test("extracts version from markdown forge:version comment", async () => {
 		await seedDist("cursor", "versioned-skill", {
-			".cursor/rules/versioned-skill.md": "<!-- forge:version 2.0.1 -->\n# Versioned",
+			".cursor/rules/versioned-skill.md":
+				"<!-- forge:version 2.0.1 -->\n# Versioned",
 		});
 
 		await install({

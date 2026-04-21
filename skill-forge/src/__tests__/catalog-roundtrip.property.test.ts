@@ -76,6 +76,8 @@ const catalogEntryArb: fc.Arbitrary<CatalogEntry> = fc.record({
 	maturity: maturityArb,
 	"model-assumptions": fc.array(safeString(), { maxLength: 3 }),
 	collections: fc.array(kebabCaseString(), { maxLength: 3 }),
+	changelog: fc.boolean(),
+	migrations: fc.boolean(),
 });
 
 const catalogArb = fc.array(catalogEntryArb, { minLength: 0, maxLength: 10 });

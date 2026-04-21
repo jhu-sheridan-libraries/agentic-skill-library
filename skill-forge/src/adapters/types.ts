@@ -1,5 +1,5 @@
 import type nunjucks from "nunjucks";
-import type { KnowledgeArtifact, CapabilityEntry } from "../schemas";
+import type { CapabilityEntry, KnowledgeArtifact } from "../schemas";
 import type { HarnessCapabilityName } from "./capabilities";
 
 export interface OutputFile {

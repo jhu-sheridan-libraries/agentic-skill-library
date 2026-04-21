@@ -1,11 +1,4 @@
-import {
-	afterEach,
-	beforeEach,
-	describe,
-	expect,
-	spyOn,
-	test,
-} from "bun:test";
+import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -121,7 +114,9 @@ describe("buildCommand() coverage — error paths", () => {
 
 		// Should have logged an error about unknown harness
 		const calls = consoleErrorSpy.mock.calls.flat().map(String);
-		const unknownMsg = calls.some((msg) => msg.includes("Unknown harness"));
+		const unknownMsg = calls.some((msg: string) =>
+			msg.includes("Unknown harness"),
+		);
 		expect(unknownMsg).toBe(true);
 	});
 
@@ -142,7 +137,8 @@ describe("buildCommand() coverage — error paths", () => {
 
 		const calls = consoleErrorSpy.mock.calls.flat().map(String);
 		const noSourceMsg = calls.some(
-			(msg) => msg.includes("No knowledge/") || msg.includes("packages/"),
+			(msg: string) =>
+				msg.includes("No knowledge/") || msg.includes("packages/"),
 		);
 		expect(noSourceMsg).toBe(true);
 	});

@@ -349,7 +349,11 @@ describe("Catalog generation", () => {
 	test("catalog entry sets changelog to true when CHANGELOG.md exists", async () => {
 		await writeArtifact(knowledgeDir, { name: "versioned-skill" });
 		const artifactDir = join(knowledgeDir, "versioned-skill");
-		await writeFile(join(artifactDir, "CHANGELOG.md"), "# Changelog\n\n## 0.1.0\n- Initial release\n", "utf-8");
+		await writeFile(
+			join(artifactDir, "CHANGELOG.md"),
+			"# Changelog\n\n## 0.1.0\n- Initial release\n",
+			"utf-8",
+		);
 
 		const entries = await generateCatalog(knowledgeDir);
 

@@ -1,6 +1,10 @@
-import type { CanonicalHook, KnowledgeArtifact, DegradationStrategy } from "../schemas";
-import type { AdapterWarning } from "./types";
+import type {
+	CanonicalHook,
+	DegradationStrategy,
+	KnowledgeArtifact,
+} from "../schemas";
 import type { HarnessCapabilityName } from "./capabilities";
+import type { AdapterWarning } from "./types";
 
 export interface DegradationResult {
 	inlineText: string;

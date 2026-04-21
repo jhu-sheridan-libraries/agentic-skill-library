@@ -1,15 +1,15 @@
-import { describe, expect, test, beforeEach, afterEach } from "bun:test";
-import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
-import { join } from "node:path";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
+import { join } from "node:path";
+import type { WorkspaceConfig } from "../schemas";
 import {
 	loadWorkspaceConfig,
-	validateWorkspaceConfig,
 	mergeKnowledgeSources,
-	serializeWorkspaceConfig,
 	parseWorkspaceConfigYaml,
+	serializeWorkspaceConfig,
+	validateWorkspaceConfig,
 } from "../workspace";
-import type { WorkspaceConfig } from "../schemas";
 
 describe("loadWorkspaceConfig", () => {
 	let tempDir: string;
@@ -50,10 +50,10 @@ projects:
 		await writeFile(join(tempDir, "forge.config.yaml"), yamlContent);
 		const result = await loadWorkspaceConfig(tempDir);
 		expect(result).not.toBeNull();
-		expect(result!.config.knowledgeSources).toEqual(["knowledge"]);
-		expect(result!.config.projects).toHaveLength(1);
-		expect(result!.config.projects[0].name).toBe("api");
-		expect(result!.source).toContain("forge.config.yaml");
+		expect(result?.config.knowledgeSources).toEqual(["knowledge"]);
+		expect(result?.config.projects).toHaveLength(1);
+		expect(result?.config.projects[0].name).toBe("api");
+		expect(result?.source).toContain("forge.config.yaml");
 	});
 
 	test("prefers forge.config.ts over forge.config.yaml when both exist", async () => {
@@ -76,8 +76,8 @@ projects:
 
 		const result = await loadWorkspaceConfig(tempDir);
 		expect(result).not.toBeNull();
-		expect(result!.config.projects[0].name).toBe("ts-project");
-		expect(result!.source).toContain("forge.config.ts");
+		expect(result?.config.projects[0].name).toBe("ts-project");
+		expect(result?.source).toContain("forge.config.ts");
 	});
 
 	test("throws on invalid workspace config in YAML", async () => {
@@ -107,13 +107,15 @@ describe("validateWorkspaceConfig", () => {
 
 		const config: WorkspaceConfig = {
 			knowledgeSources: ["knowledge"],
-			projects: [
-				{ name: "api", root: "packages/api", harnesses: ["kiro"] },
-			],
+			projects: [{ name: "api", root: "packages/api", harnesses: ["kiro"] }],
 		};
 
 		const knownArtifacts = new Set(["my-skill"]);
-		const errors = await validateWorkspaceConfig(config, tempDir, knownArtifacts);
+		const errors = await validateWorkspaceConfig(
+			config,
+			tempDir,
+			knownArtifacts,
+		);
 		expect(errors).toHaveLength(0);
 	});
 
@@ -140,13 +142,19 @@ describe("validateWorkspaceConfig", () => {
 		const config: WorkspaceConfig = {
 			knowledgeSources: ["knowledge"],
 			projects: [
-				{ name: "api", root: "packages/api", harnesses: ["kiro", "unknown-harness" as any] },
+				{
+					name: "api",
+					root: "packages/api",
+					harnesses: ["kiro", "unknown-harness" as any],
+				},
 			],
 		};
 
 		const errors = await validateWorkspaceConfig(config, tempDir, new Set());
 		expect(errors.length).toBeGreaterThan(0);
-		expect(errors.some((e) => e.message.includes("Unknown harness"))).toBe(true);
+		expect(errors.some((e) => e.message.includes("Unknown harness"))).toBe(
+			true,
+		);
 	});
 
 	test("reports error for unknown artifact in include list", async () => {
@@ -166,9 +174,15 @@ describe("validateWorkspaceConfig", () => {
 		};
 
 		const knownArtifacts = new Set(["my-skill"]);
-		const errors = await validateWorkspaceConfig(config, tempDir, knownArtifacts);
+		const errors = await validateWorkspaceConfig(
+			config,
+			tempDir,
+			knownArtifacts,
+		);
 		expect(errors.length).toBeGreaterThan(0);
-		expect(errors.some((e) => e.message.includes("Unknown artifact"))).toBe(true);
+		expect(errors.some((e) => e.message.includes("Unknown artifact"))).toBe(
+			true,
+		);
 	});
 
 	test("reports error for non-existent knowledge source", async () => {
@@ -176,9 +190,7 @@ describe("validateWorkspaceConfig", () => {
 
 		const config: WorkspaceConfig = {
 			knowledgeSources: ["nonexistent-dir"],
-			projects: [
-				{ name: "api", root: "packages/api", harnesses: ["kiro"] },
-			],
+			projects: [{ name: "api", root: "packages/api", harnesses: ["kiro"] }],
 		};
 
 		const errors = await validateWorkspaceConfig(config, tempDir, new Set());
@@ -192,16 +204,13 @@ describe("validateWorkspaceConfig", () => {
 		const config: WorkspaceConfig = {
 			knowledgeSources: ["knowledge"],
 			defaults: { harnesses: ["kiro", "bad-harness" as any] },
-			projects: [
-				{ name: "api", root: "packages/api", harnesses: ["kiro"] },
-			],
+			projects: [{ name: "api", root: "packages/api", harnesses: ["kiro"] }],
 		};
 
 		const errors = await validateWorkspaceConfig(config, tempDir, new Set());
 		expect(errors.some((e) => e.field === "defaults.harnesses")).toBe(true);
 	});
 });
-
 
 describe("mergeKnowledgeSources", () => {
 	let tempDir: string;
@@ -217,11 +226,20 @@ describe("mergeKnowledgeSources", () => {
 	test("merges artifacts from multiple sources with no conflicts", async () => {
 		// Create two knowledge sources with different artifacts
 		await mkdir(join(tempDir, "source-a/skill-one"), { recursive: true });
-		await writeFile(join(tempDir, "source-a/skill-one/knowledge.md"), "---\nname: skill-one\n---\n");
+		await writeFile(
+			join(tempDir, "source-a/skill-one/knowledge.md"),
+			"---\nname: skill-one\n---\n",
+		);
 		await mkdir(join(tempDir, "source-b/skill-two"), { recursive: true });
-		await writeFile(join(tempDir, "source-b/skill-two/knowledge.md"), "---\nname: skill-two\n---\n");
+		await writeFile(
+			join(tempDir, "source-b/skill-two/knowledge.md"),
+			"---\nname: skill-two\n---\n",
+		);
 
-		const result = await mergeKnowledgeSources(["source-a", "source-b"], tempDir);
+		const result = await mergeKnowledgeSources(
+			["source-a", "source-b"],
+			tempDir,
+		);
 		expect(result.artifacts.size).toBe(2);
 		expect(result.artifacts.has("skill-one")).toBe(true);
 		expect(result.artifacts.has("skill-two")).toBe(true);
@@ -230,11 +248,20 @@ describe("mergeKnowledgeSources", () => {
 
 	test("detects name conflicts across sources", async () => {
 		await mkdir(join(tempDir, "source-a/shared-skill"), { recursive: true });
-		await writeFile(join(tempDir, "source-a/shared-skill/knowledge.md"), "---\nname: shared-skill\n---\n");
+		await writeFile(
+			join(tempDir, "source-a/shared-skill/knowledge.md"),
+			"---\nname: shared-skill\n---\n",
+		);
 		await mkdir(join(tempDir, "source-b/shared-skill"), { recursive: true });
-		await writeFile(join(tempDir, "source-b/shared-skill/knowledge.md"), "---\nname: shared-skill\n---\n");
+		await writeFile(
+			join(tempDir, "source-b/shared-skill/knowledge.md"),
+			"---\nname: shared-skill\n---\n",
+		);
 
-		const result = await mergeKnowledgeSources(["source-a", "source-b"], tempDir);
+		const result = await mergeKnowledgeSources(
+			["source-a", "source-b"],
+			tempDir,
+		);
 		expect(result.conflicts).toHaveLength(1);
 		expect(result.conflicts[0].name).toBe("shared-skill");
 		expect(result.conflicts[0].sources).toEqual(["source-a", "source-b"]);
@@ -242,7 +269,10 @@ describe("mergeKnowledgeSources", () => {
 
 	test("skips directories without knowledge.md", async () => {
 		await mkdir(join(tempDir, "source-a/valid-skill"), { recursive: true });
-		await writeFile(join(tempDir, "source-a/valid-skill/knowledge.md"), "---\nname: valid-skill\n---\n");
+		await writeFile(
+			join(tempDir, "source-a/valid-skill/knowledge.md"),
+			"---\nname: valid-skill\n---\n",
+		);
 		await mkdir(join(tempDir, "source-a/not-a-skill"), { recursive: true });
 		// No knowledge.md in not-a-skill
 
@@ -254,7 +284,10 @@ describe("mergeKnowledgeSources", () => {
 
 	test("skips hidden directories", async () => {
 		await mkdir(join(tempDir, "source-a/.hidden"), { recursive: true });
-		await writeFile(join(tempDir, "source-a/.hidden/knowledge.md"), "---\nname: hidden\n---\n");
+		await writeFile(
+			join(tempDir, "source-a/.hidden/knowledge.md"),
+			"---\nname: hidden\n---\n",
+		);
 
 		const result = await mergeKnowledgeSources(["source-a"], tempDir);
 		expect(result.artifacts.size).toBe(0);

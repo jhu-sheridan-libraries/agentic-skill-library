@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { renderTemper } from "../temper";
 
 async function createTestArtifact(
@@ -198,7 +198,10 @@ describe("renderTemper", () => {
 
 	test("fileCount reflects number of compiled output files", async () => {
 		const tmpDir = await mkdtemp(join(tmpdir(), "temper-test-"));
-		await createTestArtifact(tmpDir, "my-skill", { hooks: true, mcpServers: true });
+		await createTestArtifact(tmpDir, "my-skill", {
+			hooks: true,
+			mcpServers: true,
+		});
 
 		const result = await renderTemper({
 			artifactName: "my-skill",

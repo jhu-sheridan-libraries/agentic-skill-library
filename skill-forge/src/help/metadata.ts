@@ -117,7 +117,8 @@ export const commandMetaRegistry: Record<string, CommandHelpMeta> = {
 				invocation: "forge validate knowledge/my-artifact",
 			},
 			{
-				comment: "Run security checks (prompt injection, dangerous hooks, obfuscation)",
+				comment:
+					"Run security checks (prompt injection, dangerous hooks, obfuscation)",
 				invocation: "forge validate --security",
 			},
 		],
@@ -296,7 +297,8 @@ export const commandMetaRegistry: Record<string, CommandHelpMeta> = {
 		examples: [
 			{
 				comment: "Typical workflow: add artifact, sync, check status",
-				invocation: "forge guild init adr && forge guild sync && forge guild status",
+				invocation:
+					"forge guild init adr && forge guild sync && forge guild status",
 			},
 		],
 	},
@@ -308,11 +310,13 @@ export const commandMetaRegistry: Record<string, CommandHelpMeta> = {
 			},
 			{
 				comment: "Add a collection from a named backend",
-				invocation: "forge guild init neon-caravan --collection --backend github",
+				invocation:
+					"forge guild init neon-caravan --collection --backend github",
 			},
 			{
 				comment: "Pin a specific version as optional",
-				invocation: "forge guild init my-artifact --version 0.1.0 --mode optional",
+				invocation:
+					"forge guild init my-artifact --version 0.1.0 --mode optional",
 			},
 		],
 		optionGroups: [

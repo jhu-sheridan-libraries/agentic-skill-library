@@ -1,18 +1,25 @@
 import { resolveFormat } from "../format-registry";
 import { renderTemplate } from "../template-engine";
-import type { AdapterContext, AdapterWarning, HarnessAdapter, OutputFile } from "./types";
-import { applyDegradation } from "./degradation";
 import type { HarnessCapabilityName } from "./capabilities";
+import { applyDegradation } from "./degradation";
+import type { AdapterWarning, HarnessAdapter, OutputFile } from "./types";
 
 const SUPPORTED_CLAUDE_EVENTS = new Set(["agent_stop"]);
 
-export const claudeCodeAdapter: HarnessAdapter = (artifact, templateEnv, context?) => {
+export const claudeCodeAdapter: HarnessAdapter = (
+	artifact,
+	templateEnv,
+	context?,
+) => {
 	const files: OutputFile[] = [];
 	const warnings: AdapterWarning[] = [];
 
 	// Capability degradation checks
 	if (context) {
-		const checks: Array<{ capability: HarnessCapabilityName; hasFeature: boolean }> = [
+		const checks: Array<{
+			capability: HarnessCapabilityName;
+			hasFeature: boolean;
+		}> = [
 			{ capability: "hooks", hasFeature: artifact.hooks.length > 0 },
 			{ capability: "mcp", hasFeature: artifact.mcpServers.length > 0 },
 			{ capability: "workflows", hasFeature: artifact.workflows.length > 0 },
@@ -29,7 +36,12 @@ export const claudeCodeAdapter: HarnessAdapter = (artifact, templateEnv, context
 				});
 				return { files, warnings };
 			}
-			const degradation = applyDegradation(entry.degradation!, capability, artifact, "claude-code");
+			const degradation = applyDegradation(
+				entry.degradation!,
+				capability,
+				artifact,
+				"claude-code",
+			);
 			warnings.push(...degradation.warnings);
 		}
 	}

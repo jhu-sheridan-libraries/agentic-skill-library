@@ -1,18 +1,10 @@
 import { exists, mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import chalk from "chalk";
+import { CAPABILITY_MATRIX } from "./adapters/capabilities";
 import { createArtifact, deleteArtifact, updateArtifact } from "./admin";
-import {
-	CAPABILITY_MATRIX,
-	HARNESS_CAPABILITIES,
-} from "./adapters/capabilities";
-import {
-	escapeHtml,
-	generateHtmlPage,
-	generateStaticHtmlPage,
-} from "./browse-ui";
+import { generateHtmlPage, generateStaticHtmlPage } from "./browse-ui";
 import { build } from "./build";
-import type { BuildResult } from "./build";
 import { generateCatalog, SOURCE_DIRS, serializeCatalog } from "./catalog";
 import {
 	createCollection,
@@ -21,13 +13,11 @@ import {
 	listCollections,
 	updateCollection,
 } from "./collection-admin";
-import { detectHarnessFiles, HARNESS_NATIVE_PATHS } from "./importers/index";
-import type { ImportCommandOptions } from "./importers/index";
+import { detectHarnessFiles } from "./importers/index";
 import {
 	addManifestEntry,
 	computeSyncStatus,
 	editManifestEntry,
-	ManifestAdminError,
 	readManifest,
 	readSyncLock,
 	removeManifestEntry,
@@ -36,11 +26,7 @@ import type { CatalogEntry, Collection, HarnessName } from "./schemas";
 import { SUPPORTED_HARNESSES } from "./schemas";
 import { renderTemper } from "./temper";
 import { compareVersions, discoverManifests } from "./versioning";
-import {
-	loadWorkspaceConfig,
-	validateWorkspaceConfig,
-	serializeWorkspaceConfig,
-} from "./workspace";
+import { loadWorkspaceConfig } from "./workspace";
 
 export {
 	escapeHtml,
@@ -56,7 +42,11 @@ export interface BuildHistoryEntry {
 	status: "success" | "failure";
 	artifactsCompiled: number;
 	filesWritten: number;
-	warnings: Array<{ artifactName: string; harnessName: string; message: string }>;
+	warnings: Array<{
+		artifactName: string;
+		harnessName: string;
+		message: string;
+	}>;
 	errors: Array<{ artifactName: string; harnessName: string; message: string }>;
 	options: { harness?: string; artifacts?: string[]; strict?: boolean };
 }
@@ -542,13 +532,16 @@ export async function handleRequest(
 	// --- Capabilities routes ---
 
 	// GET /api/capabilities → full capability matrix
-	if (pathname === "/api/capabilities" && (!req.method || req.method === "GET")) {
+	if (
+		pathname === "/api/capabilities" &&
+		(!req.method || req.method === "GET")
+	) {
 		return jsonResponse(CAPABILITY_MATRIX);
 	}
 
 	// GET /api/capabilities/:harness → capability entries for a single harness
 	const capabilitiesHarnessMatch =
-		(!req.method || req.method === "GET")
+		!req.method || req.method === "GET"
 			? pathname.match(/^\/api\/capabilities\/([^/]+)$/)
 			: null;
 	if (capabilitiesHarnessMatch) {
@@ -565,7 +558,10 @@ export async function handleRequest(
 	if (pathname === "/api/temper" && req.method === "POST") {
 		const body = await parseJsonBody(req);
 		if (body instanceof Response) return body;
-		const { artifactName, harness } = body as { artifactName?: string; harness?: string };
+		const { artifactName, harness } = body as {
+			artifactName?: string;
+			harness?: string;
+		};
 		if (!artifactName) {
 			return jsonError("Missing required field: artifactName", 400);
 		}
@@ -573,7 +569,10 @@ export async function handleRequest(
 			return jsonError("Missing required field: harness", 400);
 		}
 		if (!(SUPPORTED_HARNESSES as readonly string[]).includes(harness)) {
-			return jsonError(`Invalid harness: ${harness}. Valid harnesses: ${SUPPORTED_HARNESSES.join(", ")}`, 400);
+			return jsonError(
+				`Invalid harness: ${harness}. Valid harnesses: ${SUPPORTED_HARNESSES.join(", ")}`,
+				400,
+			);
 		}
 		// Check if artifact exists in catalog
 		const entry = catalogEntries.find((e) => e.name === artifactName);
@@ -626,7 +625,9 @@ export async function handleRequest(
 			for (const file of files) {
 				const parts = file.split("/");
 				const fileName = parts[parts.length - 1];
-				const artifactName = fileName.replace(/\.[^.]+$/, "").replace(/\.instructions$/, "");
+				const artifactName = fileName
+					.replace(/\.[^.]+$/, "")
+					.replace(/\.instructions$/, "");
 				if (existingNames.has(artifactName)) {
 					conflicts.push(artifactName);
 				}
@@ -652,7 +653,7 @@ export async function handleRequest(
 
 	// GET /api/versions/:name → version info for an artifact
 	const versionsMatch =
-		(!req.method || req.method === "GET")
+		!req.method || req.method === "GET"
 			? pathname.match(/^\/api\/versions\/([^/]+)$/)
 			: null;
 	if (versionsMatch) {
@@ -669,7 +670,8 @@ export async function handleRequest(
 			const installed = manifests.find((m) => m.artifactName === name);
 			if (installed) {
 				installedVersion = installed.version;
-				upgradeAvailable = compareVersions(entry.version, installed.version) > 0;
+				upgradeAvailable =
+					compareVersions(entry.version, installed.version) > 0;
 			}
 		} catch {
 			// If manifest discovery fails, just report source version
@@ -685,9 +687,7 @@ export async function handleRequest(
 
 	// POST /api/upgrade/:name → trigger rebuild + reinstall
 	const upgradeMatch =
-		req.method === "POST"
-			? pathname.match(/^\/api\/upgrade\/([^/]+)$/)
-			: null;
+		req.method === "POST" ? pathname.match(/^\/api\/upgrade\/([^/]+)$/) : null;
 	if (upgradeMatch) {
 		const name = decodeURIComponent(upgradeMatch[1]);
 		const entry = catalogEntries.find((e) => e.name === name);
@@ -752,7 +752,9 @@ export async function handleRequest(
 				return jsonError("No workspace configuration found", 404);
 			}
 			const { config } = wsResult;
-			const projectIndex = config.projects.findIndex((p) => p.name === projectName);
+			const projectIndex = config.projects.findIndex(
+				(p) => p.name === projectName,
+			);
 			if (projectIndex === -1) {
 				return jsonError(`Project '${projectName}' not found`, 404);
 			}
@@ -761,9 +763,16 @@ export async function handleRequest(
 			const project = config.projects[projectIndex];
 			const updatedProject = { ...project, ...update, name: projectName };
 			// Validate the updated project has required fields
-			if (!updatedProject.root || !updatedProject.harnesses || !Array.isArray(updatedProject.harnesses) || updatedProject.harnesses.length === 0) {
+			if (
+				!updatedProject.root ||
+				!updatedProject.harnesses ||
+				!Array.isArray(updatedProject.harnesses) ||
+				updatedProject.harnesses.length === 0
+			) {
 				return jsonError("Validation failed", 400, {
-					errors: ["Project must have a non-empty 'root' and at least one harness"],
+					errors: [
+						"Project must have a non-empty 'root' and at least one harness",
+					],
 				});
 			}
 			// Validate harness names
@@ -778,7 +787,12 @@ export async function handleRequest(
 			// Write back to disk
 			const { writeFile: writeFs } = await import("node:fs/promises");
 			const yaml = await import("js-yaml");
-			const configYaml = yaml.default.dump(config, { indent: 2, lineWidth: -1, noRefs: true, sortKeys: false });
+			const configYaml = yaml.default.dump(config, {
+				indent: 2,
+				lineWidth: -1,
+				noRefs: true,
+				sortKeys: false,
+			});
 			await writeFs(wsResult.source, configYaml, "utf-8");
 			return jsonResponse({ project: config.projects[projectIndex] });
 		} catch (err: unknown) {
@@ -819,7 +833,11 @@ export async function handleRequest(
 
 	// POST /api/build → trigger a build
 	if (pathname === "/api/build" && req.method === "POST") {
-		let buildOptions: { harness?: string; artifacts?: string[]; strict?: boolean } = {};
+		let buildOptions: {
+			harness?: string;
+			artifacts?: string[];
+			strict?: boolean;
+		} = {};
 		// Body is optional
 		const contentType = req.headers.get("content-type") || "";
 		if (contentType.includes("application/json")) {
@@ -874,7 +892,10 @@ export async function handleRequest(
 	}
 
 	// GET /api/build/status → most recent BuildHistoryEntry or null
-	if (pathname === "/api/build/status" && (!req.method || req.method === "GET")) {
+	if (
+		pathname === "/api/build/status" &&
+		(!req.method || req.method === "GET")
+	) {
 		const state = requireState(stateOrEntries, "knowledgeDir");
 		if (!state || state.buildHistory.length === 0) {
 			return jsonResponse(null);

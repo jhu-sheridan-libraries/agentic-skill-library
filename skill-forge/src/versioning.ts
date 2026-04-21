@@ -1,8 +1,8 @@
-import { exists, readdir, readFile, writeFile, mkdir } from "node:fs/promises";
+import { exists, readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import * as p from "@clack/prompts";
 import chalk from "chalk";
-import { VersionManifestSchema, type VersionManifest } from "./schemas";
+import { type VersionManifest, VersionManifestSchema } from "./schemas";
 
 /**
  * Serialize a VersionManifest to pretty-printed JSON with 2-space indentation.
@@ -76,9 +76,12 @@ async function scanForManifests(
 	dir: string,
 	results: VersionManifest[],
 ): Promise<void> {
-	let entries: Awaited<ReturnType<typeof readdir>>;
+	let entries: { name: string; isDirectory(): boolean }[];
 	try {
-		entries = await readdir(dir, { withFileTypes: true });
+		entries = (await readdir(dir, { withFileTypes: true })) as unknown as {
+			name: string;
+			isDirectory(): boolean;
+		}[];
 	} catch {
 		return;
 	}
@@ -116,7 +119,11 @@ export async function upgradeArtifact(
 	}
 
 	// Resolve the migration chain from current to latest
-	const chain = resolveMigrationChain(migrations, manifest.version, latestVersion);
+	const chain = resolveMigrationChain(
+		migrations,
+		manifest.version,
+		latestVersion,
+	);
 
 	if (options.dryRun) {
 		return {
@@ -173,7 +180,6 @@ export function embedVersion(
 		return content;
 	}
 }
-
 
 export interface UpgradeOptions {
 	force?: boolean;
@@ -463,10 +469,7 @@ export async function upgradeCommand(options: UpgradeOptions): Promise<void> {
 					const manifestDir = manifest.sourcePath.includes("/")
 						? manifest.sourcePath
 						: ".";
-					const manifestPath = join(
-						manifestDir,
-						".forge-manifest.json",
-					);
+					const _manifestPath = join(manifestDir, ".forge-manifest.json");
 					// Perform clean reinstall to get new compiled files
 					const reinstallResult = await cleanReinstall(
 						manifest,
