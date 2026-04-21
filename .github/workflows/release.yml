@@ -15,6 +15,9 @@ jobs:
   # ── Gate: run the full CI suite against the tagged commit ──
   ci:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: skill-forge
     steps:
       - uses: actions/checkout@v6
 
@@ -55,6 +58,9 @@ jobs:
             target: bun-darwin-arm64
             artifact: forge-darwin-arm64
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: skill-forge
     steps:
       - uses: actions/checkout@v6
 
@@ -74,13 +80,16 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact }}
-          path: ${{ matrix.artifact }}.tar.gz
+          path: skill-forge/${{ matrix.artifact }}.tar.gz
           retention-days: 5
 
   # ── Compile changelog & create the GitHub Release ──
   release:
     needs: build-binaries
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: skill-forge
     steps:
       - uses: actions/checkout@v6
         with:
@@ -120,6 +129,7 @@ jobs:
 
       - name: Determine pre-release flag
         id: prerelease
+        working-directory: .
         run: |
           if [[ "${{ github.ref_name }}" == *-* ]]; then
             echo "flag=true" >> "$GITHUB_OUTPUT"
@@ -132,18 +142,19 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
-          body_path: release-notes.md
+          body_path: skill-forge/release-notes.md
           prerelease: ${{ steps.prerelease.outputs.flag }}
           files: binaries/*.tar.gz
           generate_release_notes: false
 
       # Commit the updated CHANGELOG.md back to main so the repo stays in sync
       - name: Commit changelog update
+        working-directory: .
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout main
-          git add CHANGELOG.md changes/
+          git add skill-forge/CHANGELOG.md skill-forge/changes/
           git diff --cached --quiet && echo "No changelog changes to commit" && exit 0
           git commit -m "chore: compile changelog for ${{ github.ref_name }}"
           git push origin main
@@ -155,6 +166,9 @@ jobs:
     # Only publish stable releases, skip pre-releases
     if: ${{ !contains(github.ref_name, '-') }}
     environment: npm # use a GitHub environment for approval gates if desired
+    defaults:
+      run:
+        working-directory: skill-forge
     steps:
       - uses: actions/checkout@v6
         with:
