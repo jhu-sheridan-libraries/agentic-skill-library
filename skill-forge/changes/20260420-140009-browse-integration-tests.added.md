@@ -1,0 +1,1 @@
+Added 30 integration tests for browse server mutation endpoints — artifact/collection/manifest CRUD round-trips, sync status verification, Content-Type validation, and structured error responses (400/404/409).

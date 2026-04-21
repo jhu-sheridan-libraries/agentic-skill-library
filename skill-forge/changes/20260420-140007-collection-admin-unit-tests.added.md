@@ -1,0 +1,1 @@
+Added unit tests for `collection-admin.ts` — 15 tests covering `parseCollectionFile`, `serializeCollection`, `validateCollectionInput`, `getCollection` member resolution, and error paths for CRUD operations.

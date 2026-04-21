@@ -1,0 +1,1 @@
+Added tab navigation (Artifacts | Collections | Manifest) to `forge catalog browse` with a shared UI design system including design tokens, reusable card/form/badge/toast/modal components, and context-aware create buttons
