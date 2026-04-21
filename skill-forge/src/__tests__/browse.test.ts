@@ -496,6 +496,18 @@ describe("generateStaticHtmlPage", () => {
 		expect(html).toContain("__CATALOG_DATA__ = []");
 		expect(html).toContain("__ARTIFACT_CONTENT__ = {}");
 	});
+
+	test("preserves dollar-sign sequences in content without String.replace corruption", () => {
+		const tricky: Record<string, string> = {
+			"dollar-artifact": "match `^[a-z]+$` here and $50 cost",
+		};
+		const html = generateStaticHtmlPage([], tricky);
+		// The embedded JSON must contain the literal $ characters, not
+		// String.replace $` / $' / $& expansions.
+		expect(html).toContain("^[a-z]+$");
+		expect(html).toContain("$50");
+		expect(html).not.toContain("<!DOCTYPE html><!DOCTYPE html>");
+	});
 });
 
 describe("exportCommand", () => {

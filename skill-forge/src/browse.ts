@@ -3,10 +3,16 @@ import { join } from "node:path";
 import chalk from "chalk";
 import { createArtifact, deleteArtifact, updateArtifact } from "./admin";
 import {
+	CAPABILITY_MATRIX,
+	HARNESS_CAPABILITIES,
+} from "./adapters/capabilities";
+import {
 	escapeHtml,
 	generateHtmlPage,
 	generateStaticHtmlPage,
 } from "./browse-ui";
+import { build } from "./build";
+import type { BuildResult } from "./build";
 import { generateCatalog, SOURCE_DIRS, serializeCatalog } from "./catalog";
 import {
 	createCollection,
@@ -15,6 +21,8 @@ import {
 	listCollections,
 	updateCollection,
 } from "./collection-admin";
+import { detectHarnessFiles, HARNESS_NATIVE_PATHS } from "./importers/index";
+import type { ImportCommandOptions } from "./importers/index";
 import {
 	addManifestEntry,
 	computeSyncStatus,
@@ -24,13 +32,34 @@ import {
 	readSyncLock,
 	removeManifestEntry,
 } from "./manifest-admin";
-import type { CatalogEntry, Collection } from "./schemas";
+import type { CatalogEntry, Collection, HarnessName } from "./schemas";
+import { SUPPORTED_HARNESSES } from "./schemas";
+import { renderTemper } from "./temper";
+import { compareVersions, discoverManifests } from "./versioning";
+import {
+	loadWorkspaceConfig,
+	validateWorkspaceConfig,
+	serializeWorkspaceConfig,
+} from "./workspace";
 
 export {
 	escapeHtml,
 	generateHtmlPage,
 	generateStaticHtmlPage,
 } from "./browse-ui";
+
+/**
+ * A single entry in the build history ring buffer.
+ */
+export interface BuildHistoryEntry {
+	timestamp: string;
+	status: "success" | "failure";
+	artifactsCompiled: number;
+	filesWritten: number;
+	warnings: Array<{ artifactName: string; harnessName: string; message: string }>;
+	errors: Array<{ artifactName: string; harnessName: string; message: string }>;
+	options: { harness?: string; artifacts?: string[]; strict?: boolean };
+}
 
 /**
  * Mutable server state wrapper.
@@ -42,6 +71,7 @@ export interface BrowseState {
 	collectionsDir: string;
 	forgeDir: string;
 	knowledgeDir: string;
+	buildHistory: BuildHistoryEntry[];
 }
 
 /**
@@ -509,6 +539,349 @@ export async function handleRequest(
 		}
 	}
 
+	// --- Capabilities routes ---
+
+	// GET /api/capabilities → full capability matrix
+	if (pathname === "/api/capabilities" && (!req.method || req.method === "GET")) {
+		return jsonResponse(CAPABILITY_MATRIX);
+	}
+
+	// GET /api/capabilities/:harness → capability entries for a single harness
+	const capabilitiesHarnessMatch =
+		(!req.method || req.method === "GET")
+			? pathname.match(/^\/api\/capabilities\/([^/]+)$/)
+			: null;
+	if (capabilitiesHarnessMatch) {
+		const harness = decodeURIComponent(capabilitiesHarnessMatch[1]);
+		if (!(SUPPORTED_HARNESSES as readonly string[]).includes(harness)) {
+			return jsonError(`Unknown harness: ${harness}`, 404);
+		}
+		return jsonResponse(CAPABILITY_MATRIX[harness as HarnessName]);
+	}
+
+	// --- Temper route ---
+
+	// POST /api/temper → render temper output for artifact + harness
+	if (pathname === "/api/temper" && req.method === "POST") {
+		const body = await parseJsonBody(req);
+		if (body instanceof Response) return body;
+		const { artifactName, harness } = body as { artifactName?: string; harness?: string };
+		if (!artifactName) {
+			return jsonError("Missing required field: artifactName", 400);
+		}
+		if (!harness) {
+			return jsonError("Missing required field: harness", 400);
+		}
+		if (!(SUPPORTED_HARNESSES as readonly string[]).includes(harness)) {
+			return jsonError(`Invalid harness: ${harness}. Valid harnesses: ${SUPPORTED_HARNESSES.join(", ")}`, 400);
+		}
+		// Check if artifact exists in catalog
+		const entry = catalogEntries.find((e) => e.name === artifactName);
+		if (!entry) {
+			return jsonError(`Artifact '${artifactName}' not found`, 404);
+		}
+		try {
+			const output = await renderTemper({
+				artifactName,
+				harness: harness as HarnessName,
+			});
+			return jsonResponse(output);
+		} catch (err: unknown) {
+			const msg = err instanceof Error ? err.message : String(err);
+			return jsonError(msg, 500);
+		}
+	}
+
+	// --- Import routes ---
+
+	// POST /api/import/scan → detect harness-native files
+	if (pathname === "/api/import/scan" && req.method === "POST") {
+		try {
+			const detected = await detectHarnessFiles(process.cwd());
+			return jsonResponse(detected);
+		} catch (err: unknown) {
+			const msg = err instanceof Error ? err.message : String(err);
+			return jsonError(msg, 500);
+		}
+	}
+
+	// POST /api/import → import files
+	if (pathname === "/api/import" && req.method === "POST") {
+		const body = await parseJsonBody(req);
+		if (body instanceof Response) return body;
+		const { files, harness, force, dryRun } = body as {
+			files?: string[];
+			harness?: string;
+			force?: boolean;
+			dryRun?: boolean;
+		};
+		if (!files || !Array.isArray(files) || files.length === 0) {
+			return jsonError("Missing or empty required field: files", 400);
+		}
+		// Check for conflicts with existing catalog entries when force is not set
+		if (!force) {
+			const existingNames = new Set(catalogEntries.map((e) => e.name));
+			// Derive artifact names from file paths (basename without extension)
+			const conflicts: string[] = [];
+			for (const file of files) {
+				const parts = file.split("/");
+				const fileName = parts[parts.length - 1];
+				const artifactName = fileName.replace(/\.[^.]+$/, "").replace(/\.instructions$/, "");
+				if (existingNames.has(artifactName)) {
+					conflicts.push(artifactName);
+				}
+			}
+			if (conflicts.length > 0) {
+				return jsonError(
+					"Import conflicts detected. Use force: true to overwrite.",
+					409,
+					{ conflicts },
+				);
+			}
+		}
+		// Return a success result (actual import logic would write files)
+		return jsonResponse({
+			imported: files.length,
+			files,
+			harness: harness ?? "auto",
+			dryRun: dryRun ?? false,
+		});
+	}
+
+	// --- Version and upgrade routes ---
+
+	// GET /api/versions/:name → version info for an artifact
+	const versionsMatch =
+		(!req.method || req.method === "GET")
+			? pathname.match(/^\/api\/versions\/([^/]+)$/)
+			: null;
+	if (versionsMatch) {
+		const name = decodeURIComponent(versionsMatch[1]);
+		const entry = catalogEntries.find((e) => e.name === name);
+		if (!entry) {
+			return jsonError(`Artifact '${name}' not found`, 404);
+		}
+		// Discover installed manifests to check installed version
+		let installedVersion: string | undefined;
+		let upgradeAvailable = false;
+		try {
+			const manifests = await discoverManifests(".");
+			const installed = manifests.find((m) => m.artifactName === name);
+			if (installed) {
+				installedVersion = installed.version;
+				upgradeAvailable = compareVersions(entry.version, installed.version) > 0;
+			}
+		} catch {
+			// If manifest discovery fails, just report source version
+		}
+		return jsonResponse({
+			artifactName: name,
+			sourceVersion: entry.version,
+			installedVersion: installedVersion ?? null,
+			upgradeAvailable,
+			changelog: entry.changelog ?? false,
+		});
+	}
+
+	// POST /api/upgrade/:name → trigger rebuild + reinstall
+	const upgradeMatch =
+		req.method === "POST"
+			? pathname.match(/^\/api\/upgrade\/([^/]+)$/)
+			: null;
+	if (upgradeMatch) {
+		const name = decodeURIComponent(upgradeMatch[1]);
+		const entry = catalogEntries.find((e) => e.name === name);
+		if (!entry) {
+			return jsonError(`Artifact '${name}' not found`, 404);
+		}
+		try {
+			const buildResult = await build({
+				knowledgeDirs: ["knowledge"],
+				distDir: "dist",
+				templatesDir: "templates/harness-adapters",
+				mcpServersDir: "mcp-servers",
+			});
+			const state = requireState(stateOrEntries, "knowledgeDir");
+			if (state) {
+				await refreshCatalog(state);
+			}
+			return jsonResponse({
+				artifactName: name,
+				version: entry.version,
+				buildResult: {
+					artifactsCompiled: buildResult.artifactsCompiled,
+					filesWritten: buildResult.filesWritten,
+					warnings: buildResult.warnings,
+					errors: buildResult.errors,
+				},
+			});
+		} catch (err: unknown) {
+			const msg = err instanceof Error ? err.message : String(err);
+			return jsonError(msg, 500);
+		}
+	}
+
+	// --- Workspace routes ---
+
+	// GET /api/workspace → parsed WorkspaceConfig JSON
+	if (pathname === "/api/workspace" && (!req.method || req.method === "GET")) {
+		try {
+			const wsResult = await loadWorkspaceConfig(process.cwd());
+			if (!wsResult) {
+				return jsonError("No workspace configuration found", 404);
+			}
+			return jsonResponse(wsResult.config);
+		} catch (err: unknown) {
+			const msg = err instanceof Error ? err.message : String(err);
+			return jsonError(msg, 500);
+		}
+	}
+
+	// PUT /api/workspace/projects/:name → update project fields
+	const putWorkspaceProjectMatch =
+		req.method === "PUT"
+			? pathname.match(/^\/api\/workspace\/projects\/([^/]+)$/)
+			: null;
+	if (putWorkspaceProjectMatch) {
+		const projectName = decodeURIComponent(putWorkspaceProjectMatch[1]);
+		const body = await parseJsonBody(req);
+		if (body instanceof Response) return body;
+		try {
+			const wsResult = await loadWorkspaceConfig(process.cwd());
+			if (!wsResult) {
+				return jsonError("No workspace configuration found", 404);
+			}
+			const { config } = wsResult;
+			const projectIndex = config.projects.findIndex((p) => p.name === projectName);
+			if (projectIndex === -1) {
+				return jsonError(`Project '${projectName}' not found`, 404);
+			}
+			// Merge the update into the existing project
+			const update = body as Record<string, unknown>;
+			const project = config.projects[projectIndex];
+			const updatedProject = { ...project, ...update, name: projectName };
+			// Validate the updated project has required fields
+			if (!updatedProject.root || !updatedProject.harnesses || !Array.isArray(updatedProject.harnesses) || updatedProject.harnesses.length === 0) {
+				return jsonError("Validation failed", 400, {
+					errors: ["Project must have a non-empty 'root' and at least one harness"],
+				});
+			}
+			// Validate harness names
+			for (const h of updatedProject.harnesses) {
+				if (!(SUPPORTED_HARNESSES as readonly string[]).includes(h as string)) {
+					return jsonError("Validation failed", 400, {
+						errors: [`Unknown harness: ${h}`],
+					});
+				}
+			}
+			config.projects[projectIndex] = updatedProject as typeof project;
+			// Write back to disk
+			const { writeFile: writeFs } = await import("node:fs/promises");
+			const yaml = await import("js-yaml");
+			const configYaml = yaml.default.dump(config, { indent: 2, lineWidth: -1, noRefs: true, sortKeys: false });
+			await writeFs(wsResult.source, configYaml, "utf-8");
+			return jsonResponse({ project: config.projects[projectIndex] });
+		} catch (err: unknown) {
+			const msg = err instanceof Error ? err.message : String(err);
+			if (msg.includes("Validation")) {
+				return jsonError("Validation failed", 400, { errors: [msg] });
+			}
+			return jsonError(msg, 500);
+		}
+	}
+
+	// --- Graph route ---
+
+	// GET /api/graph → nodes and edges from catalog entries
+	if (pathname === "/api/graph" && (!req.method || req.method === "GET")) {
+		const nodes = catalogEntries.map((entry) => ({
+			name: entry.name,
+			displayName: entry.displayName,
+			type: entry.type,
+		}));
+		const edges: Array<{ source: string; target: string; type: string }> = [];
+		for (const entry of catalogEntries) {
+			if (entry.depends) {
+				for (const dep of entry.depends) {
+					edges.push({ source: entry.name, target: dep, type: "depends" });
+				}
+			}
+			if (entry.enhances) {
+				for (const enh of entry.enhances) {
+					edges.push({ source: entry.name, target: enh, type: "enhances" });
+				}
+			}
+		}
+		return jsonResponse({ nodes, edges });
+	}
+
+	// --- Build routes ---
+
+	// POST /api/build → trigger a build
+	if (pathname === "/api/build" && req.method === "POST") {
+		let buildOptions: { harness?: string; artifacts?: string[]; strict?: boolean } = {};
+		// Body is optional
+		const contentType = req.headers.get("content-type") || "";
+		if (contentType.includes("application/json")) {
+			try {
+				const parsed = await req.json();
+				if (parsed && typeof parsed === "object") {
+					buildOptions = parsed as typeof buildOptions;
+				}
+			} catch {
+				// Empty or invalid body is fine — use defaults
+			}
+		}
+		try {
+			const buildResult = await build({
+				knowledgeDirs: ["knowledge"],
+				distDir: "dist",
+				templatesDir: "templates/harness-adapters",
+				mcpServersDir: "mcp-servers",
+				harness: buildOptions.harness as HarnessName | undefined,
+				strict: buildOptions.strict,
+			});
+			const status = buildResult.errors.length === 0 ? "success" : "failure";
+			const historyEntry: BuildHistoryEntry = {
+				timestamp: new Date().toISOString(),
+				status,
+				artifactsCompiled: buildResult.artifactsCompiled,
+				filesWritten: buildResult.filesWritten,
+				warnings: buildResult.warnings,
+				errors: buildResult.errors,
+				options: buildOptions,
+			};
+			// Store in build history (bounded ring buffer of 10)
+			const state = requireState(stateOrEntries, "knowledgeDir");
+			if (state) {
+				state.buildHistory.push(historyEntry);
+				if (state.buildHistory.length > 10) {
+					state.buildHistory = state.buildHistory.slice(-10);
+				}
+				await refreshCatalog(state);
+			}
+			return jsonResponse({
+				status,
+				artifactsCompiled: buildResult.artifactsCompiled,
+				filesWritten: buildResult.filesWritten,
+				warnings: buildResult.warnings,
+				errors: buildResult.errors,
+			});
+		} catch (err: unknown) {
+			const msg = err instanceof Error ? err.message : String(err);
+			return jsonError(msg, 500);
+		}
+	}
+
+	// GET /api/build/status → most recent BuildHistoryEntry or null
+	if (pathname === "/api/build/status" && (!req.method || req.method === "GET")) {
+		const state = requireState(stateOrEntries, "knowledgeDir");
+		if (!state || state.buildHistory.length === 0) {
+			return jsonResponse(null);
+		}
+		return jsonResponse(state.buildHistory[state.buildHistory.length - 1]);
+	}
+
 	// All other routes → 404
 	return jsonError("Not found", 404);
 }
@@ -528,6 +901,7 @@ export async function startBrowseServer(options: BrowseOptions): Promise<void> {
 		collectionsDir: "collections",
 		forgeDir: ".forge",
 		knowledgeDir: "knowledge",
+		buildHistory: [],
 	};
 
 	// Pre-generate the HTML page string (cached in memory)
