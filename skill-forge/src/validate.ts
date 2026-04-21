@@ -1,9 +1,12 @@
 import { exists, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import chalk from "chalk";
+import { CAPABILITY_MATRIX, validateMatrixSync } from "./adapters/capabilities";
+import { adapterRegistry } from "./adapters/index";
 import { ASSET_CONVENTION_RULES, ASSET_CONVENTIONS } from "./asset-conventions";
 import { generateCatalog } from "./catalog";
 import { loadCollections, validateArtifactCollectionRefs } from "./collections";
+import { HARNESS_FORMAT_REGISTRY } from "./format-registry";
 import {
 	isParseError,
 	parseHooksYaml,
@@ -16,6 +19,7 @@ import {
 	type ValidationResult,
 	type ValidationWarning,
 } from "./schemas";
+import { loadWorkspaceConfig, validateWorkspaceConfig } from "./workspace";
 
 export type { ValidationError, ValidationResult, ValidationWarning };
 
@@ -547,6 +551,72 @@ export async function validateAll(
 				matchingResult.warnings = [...(matchingResult.warnings ?? []), w];
 			}
 		}
+	}
+
+	// Capability matrix validation: ensure matrix harnesses match adapter registry and format registry
+	const matrixSync = validateMatrixSync(
+		Object.keys(CAPABILITY_MATRIX),
+		Object.keys(adapterRegistry),
+		Object.keys(HARNESS_FORMAT_REGISTRY),
+	);
+	if (matrixSync.missing.length > 0 || matrixSync.extra.length > 0) {
+		// Create a synthetic validation result for the capability matrix
+		const matrixErrors: ValidationError[] = [];
+		for (const h of matrixSync.missing) {
+			matrixErrors.push({
+				field: "CAPABILITY_MATRIX",
+				message: `Missing capability matrix entry for harness: "${h}"`,
+				filePath: "src/adapters/capabilities.ts",
+			});
+		}
+		for (const h of matrixSync.extra) {
+			matrixErrors.push({
+				field: "CAPABILITY_MATRIX",
+				message: `Extra capability matrix entry for unknown harness: "${h}"`,
+				filePath: "src/adapters/capabilities.ts",
+			});
+		}
+		results.push({
+			artifactName: "[capability-matrix]",
+			valid: false,
+			errors: matrixErrors,
+		});
+	}
+
+	// Workspace config validation: validate workspace config if present
+	try {
+		const wsResult = await loadWorkspaceConfig(process.cwd());
+		if (wsResult) {
+			const wsErrors = await validateWorkspaceConfig(
+				wsResult.config,
+				process.cwd(),
+				artifactNames,
+			);
+			if (wsErrors.length > 0) {
+				const prefixedErrors: ValidationError[] = wsErrors.map((e) => ({
+					...e,
+					message: `forge.config.yaml: ${e.message}`,
+				}));
+				results.push({
+					artifactName: "[workspace-config]",
+					valid: false,
+					errors: prefixedErrors,
+				});
+			}
+		}
+	} catch {
+		// If workspace config loading fails (e.g., parse error), report it
+		results.push({
+			artifactName: "[workspace-config]",
+			valid: false,
+			errors: [
+				{
+					field: "workspace-config",
+					message: "forge.config.yaml: Failed to load workspace configuration",
+					filePath: "forge.config.yaml",
+				},
+			],
+		});
 	}
 
 	return results;

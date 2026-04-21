@@ -1,8 +1,9 @@
 import { chmod, exists, mkdir, readdir, rm, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import chalk from "chalk";
+import { getCapabilities } from "./adapters/capabilities";
 import { adapterRegistry } from "./adapters/index";
-import type { AdapterWarning } from "./adapters/types";
+import type { AdapterContext, AdapterWarning } from "./adapters/types";
 import { getCompatibility } from "./compatibility";
 import {
 	isParseError,
@@ -14,9 +15,13 @@ import type {
 	HarnessName,
 	KnowledgeArtifact,
 	McpServerDefinition,
+	WorkspaceConfig,
+	WorkspaceProject,
 } from "./schemas";
 import { SUPPORTED_HARNESSES } from "./schemas";
 import { createTemplateEnv } from "./template-engine";
+import { embedVersion } from "./versioning";
+import { loadWorkspaceConfig, mergeKnowledgeSources } from "./workspace";
 
 export interface BuildOptions {
 	/** One or more source directories to scan for artifacts. */
@@ -29,6 +34,8 @@ export interface BuildOptions {
 	harness?: HarnessName;
 	/** Treat compatibility warnings as errors. */
 	strict?: boolean;
+	/** Workspace root directory for workspace-aware builds. */
+	workspaceRoot?: string;
 }
 
 export interface BuildError {
@@ -179,6 +186,256 @@ async function resolveComposition(
 	return { mcpServers: mergedMcp, hooks: mergedHooks };
 }
 
+/**
+ * Filter artifacts based on a project's include/exclude configuration.
+ */
+function filterArtifactsForProject(
+	allArtifactNames: string[],
+	project: WorkspaceProject,
+): string[] {
+	let names = [...allArtifactNames];
+
+	if (project.artifacts?.include) {
+		const includeSet = new Set(project.artifacts.include);
+		names = names.filter((n) => includeSet.has(n));
+	}
+
+	if (project.artifacts?.exclude) {
+		const excludeSet = new Set(project.artifacts.exclude);
+		names = names.filter((n) => !excludeSet.has(n));
+	}
+
+	return names;
+}
+
+/**
+ * Apply project overrides to an artifact's harness-config.
+ * Project overrides take precedence over artifact harness-config.
+ */
+function applyProjectOverrides(
+	artifact: KnowledgeArtifact,
+	project: WorkspaceProject,
+	harnessName: string,
+): void {
+	if (!project.overrides?.[harnessName]) return;
+
+	const fm = artifact.frontmatter as Record<string, unknown>;
+	const harnessConfig = (fm["harness-config"] as Record<string, Record<string, unknown>>) ?? {};
+	const existingHarnessConf = harnessConfig[harnessName] ?? {};
+
+	// Merge: project overrides take precedence
+	harnessConfig[harnessName] = {
+		...existingHarnessConf,
+		...project.overrides[harnessName],
+	};
+	fm["harness-config"] = harnessConfig;
+}
+
+/**
+ * Workspace-aware build: compile artifacts per project according to workspace config.
+ */
+async function buildWithWorkspace(
+	wsConfig: WorkspaceConfig,
+	wsRoot: string,
+	options: BuildOptions,
+): Promise<BuildResult> {
+	const { distDir, templatesDir, mcpServersDir, harness, strict } = options;
+	const warnings: AdapterWarning[] = [];
+	const errors: BuildError[] = [];
+	let filesWritten = 0;
+	let artifactsCompiled = 0;
+
+	// Resolve knowledgeSources relative to workspace root
+	const resolvedSources = wsConfig.knowledgeSources.map((s) => resolve(wsRoot, s));
+
+	// Merge artifacts from all knowledge sources
+	const mergeResult = await mergeKnowledgeSources(wsConfig.knowledgeSources, wsRoot);
+
+	// If conflicts detected, return errors
+	if (mergeResult.conflicts.length > 0) {
+		for (const conflict of mergeResult.conflicts) {
+			errors.push({
+				artifactName: conflict.name,
+				harnessName: "workspace",
+				message: `Artifact name conflict: "${conflict.name}" found in multiple sources: ${conflict.sources.join(", ")}`,
+			});
+		}
+		return { artifactsCompiled, filesWritten, warnings, errors };
+	}
+
+	// Load shared MCP servers
+	const sharedMcp = await loadSharedMcpServers(
+		resolve(wsRoot, mcpServersDir),
+	);
+
+	// Create template environment
+	const templateEnv = createTemplateEnv(templatesDir);
+
+	// Clear dist
+	if (harness) {
+		const harnessDistDir = join(distDir, harness);
+		if (await exists(harnessDistDir)) {
+			await rm(harnessDistDir, { recursive: true });
+		}
+	} else {
+		if (await exists(distDir)) {
+			await rm(distDir, { recursive: true });
+		}
+	}
+
+	// Collect all artifact paths from resolved sources
+	const artifactPaths = await collectArtifactPaths(resolvedSources);
+
+	if (artifactPaths.length === 0) {
+		return { artifactsCompiled: 0, filesWritten: 0, warnings, errors };
+	}
+
+	// Load all artifacts
+	const loadedArtifacts = new Map<string, KnowledgeArtifact>();
+	for (const artifactPath of artifactPaths) {
+		const parseResult = await loadKnowledgeArtifact(artifactPath);
+		if (isParseError(parseResult)) {
+			const artifactName = artifactPath.split("/").pop() ?? artifactPath;
+			for (const err of parseResult.errors) {
+				errors.push({
+					artifactName,
+					harnessName: "parse",
+					message: err.message,
+				});
+			}
+			continue;
+		}
+		loadedArtifacts.set(parseResult.data.name, parseResult.data);
+	}
+
+	// For each project, compile only matching artifacts for the project's harnesses
+	for (const project of wsConfig.projects) {
+		const allArtifactNames = [...loadedArtifacts.keys()];
+		const projectArtifactNames = filterArtifactsForProject(allArtifactNames, project);
+
+		// Determine target harnesses for this project
+		const projectHarnesses = harness
+			? project.harnesses.includes(harness) ? [harness] : []
+			: project.harnesses;
+
+		if (projectHarnesses.length === 0) continue;
+
+		for (const artifactName of projectArtifactNames) {
+			const artifact = loadedArtifacts.get(artifactName);
+			if (!artifact) continue;
+
+			// Clone the artifact to avoid mutating the shared instance across projects
+			const projectArtifact: KnowledgeArtifact = {
+				...artifact,
+				frontmatter: { ...artifact.frontmatter },
+				mcpServers: [...artifact.mcpServers],
+				hooks: [...artifact.hooks],
+			};
+
+			// Merge shared MCP servers (artifact-local takes precedence)
+			const localMcpNames = new Set(projectArtifact.mcpServers.map((s) => s.name));
+			for (const [name, server] of sharedMcp) {
+				if (!localMcpNames.has(name)) {
+					projectArtifact.mcpServers.push({ name, ...server });
+				}
+			}
+
+			// Filter target harnesses to those the artifact actually supports
+			const artifactHarnesses = projectHarnesses.filter((h) =>
+				projectArtifact.frontmatter.harnesses.includes(h),
+			);
+
+			if (artifactHarnesses.length === 0) continue;
+
+			artifactsCompiled++;
+
+			// Resolve version for embedding
+			const artifactVersion = projectArtifact.frontmatter.version;
+			if (artifactVersion === "0.1.0") {
+				warnings.push({
+					artifactName: projectArtifact.name,
+					harnessName: "build",
+					message:
+						"No explicit version in frontmatter — defaulting to 0.1.0. Consider adding a `version` field.",
+				});
+			}
+
+			for (const h of artifactHarnesses) {
+				const adapter = adapterRegistry[h];
+				if (!adapter) continue;
+
+				// Apply project overrides before compilation
+				applyProjectOverrides(projectArtifact, project, h);
+
+				// Compatibility check
+				const compat = getCompatibility(projectArtifact.frontmatter.type, h);
+				if (compat === "none") {
+					const msg = `Asset type "${projectArtifact.frontmatter.type}" has no output for harness "${h}" — skipping`;
+					if (strict) {
+						errors.push({
+							artifactName: projectArtifact.name,
+							harnessName: h,
+							message: msg,
+						});
+					} else {
+						warnings.push({
+							artifactName: projectArtifact.name,
+							harnessName: h,
+							message: msg,
+						});
+					}
+					continue;
+				}
+				if (compat === "partial") {
+					warnings.push({
+						artifactName: projectArtifact.name,
+						harnessName: h,
+						message: `Asset type "${projectArtifact.frontmatter.type}" has partial support in harness "${h}" — output may be degraded`,
+					});
+				}
+
+				try {
+					const adapterContext: AdapterContext = {
+						capabilities: getCapabilities(h),
+						strict: strict ?? false,
+					};
+					const result = adapter(projectArtifact, templateEnv, adapterContext);
+					warnings.push(...result.warnings);
+
+					// Write output files
+					for (const file of result.files) {
+						let content = file.content;
+						if (file.relativePath.endsWith(".md")) {
+							content = embedVersion(content, artifactVersion, "markdown");
+						} else if (file.relativePath.endsWith(".json")) {
+							content = embedVersion(content, artifactVersion, "json");
+						}
+
+						const outPath = join(distDir, h, projectArtifact.name, file.relativePath);
+						const outDir = outPath.substring(0, outPath.lastIndexOf("/"));
+						await mkdir(outDir, { recursive: true });
+						await writeFile(outPath, content, "utf-8");
+						if (file.executable) {
+							await chmod(outPath, 0o755);
+						}
+						filesWritten++;
+					}
+				} catch (e: unknown) {
+					const msg = e instanceof Error ? e.message : String(e);
+					errors.push({
+						artifactName: projectArtifact.name,
+						harnessName: h,
+						message: msg,
+					});
+					console.error(chalk.red(`Error: ${projectArtifact.name}/${h}: ${msg}`));
+				}
+			}
+		}
+	}
+
+	return { artifactsCompiled, filesWritten, warnings, errors };
+}
+
 export async function build(options: BuildOptions): Promise<BuildResult> {
 	// Resolve source dirs — support both new knowledgeDirs and legacy knowledgeDir
 	const sourceDirs =
@@ -188,7 +445,16 @@ export async function build(options: BuildOptions): Promise<BuildResult> {
 				? [options.knowledgeDir]
 				: ["knowledge"];
 
-	const { distDir, templatesDir, mcpServersDir, harness, strict } = options;
+	const { distDir, templatesDir, mcpServersDir, harness, strict, workspaceRoot } = options;
+
+	// Check for workspace config — if present, delegate to workspace-aware build
+	const wsRoot = workspaceRoot ?? process.cwd();
+	const wsResult = await loadWorkspaceConfig(wsRoot);
+	if (wsResult) {
+		return buildWithWorkspace(wsResult.config, wsRoot, options);
+	}
+
+	// Fall back to existing single-directory behavior
 	const warnings: AdapterWarning[] = [];
 	const errors: BuildError[] = [];
 	let filesWritten = 0;
@@ -287,6 +553,17 @@ export async function build(options: BuildOptions): Promise<BuildResult> {
 
 		artifactsCompiled++;
 
+		// Resolve version for embedding
+		const artifactVersion = artifact.frontmatter.version;
+		if (artifactVersion === "0.1.0") {
+			warnings.push({
+				artifactName: artifact.name,
+				harnessName: "build",
+				message:
+					"No explicit version in frontmatter — defaulting to 0.1.0. Consider adding a `version` field.",
+			});
+		}
+
 		for (const h of targetHarnesses) {
 			const adapter = adapterRegistry[h];
 			if (!adapter) continue;
@@ -319,15 +596,27 @@ export async function build(options: BuildOptions): Promise<BuildResult> {
 			}
 
 			try {
-				const result = adapter(artifact, templateEnv);
+				const adapterContext: AdapterContext = {
+					capabilities: getCapabilities(h),
+					strict: strict ?? false,
+				};
+				const result = adapter(artifact, templateEnv, adapterContext);
 				warnings.push(...result.warnings);
 
 				// Write output files — dist path uses leaf artifact name (not scoped @org/name)
 				for (const file of result.files) {
+					// Embed version in markdown and JSON files
+					let content = file.content;
+					if (file.relativePath.endsWith(".md")) {
+						content = embedVersion(content, artifactVersion, "markdown");
+					} else if (file.relativePath.endsWith(".json")) {
+						content = embedVersion(content, artifactVersion, "json");
+					}
+
 					const outPath = join(distDir, h, artifact.name, file.relativePath);
 					const outDir = outPath.substring(0, outPath.lastIndexOf("/"));
 					await mkdir(outDir, { recursive: true });
-					await writeFile(outPath, file.content, "utf-8");
+					await writeFile(outPath, content, "utf-8");
 					if (file.executable) {
 						await chmod(outPath, 0o755);
 					}

@@ -1,0 +1,1 @@
+Harness capability matrix declaring support levels (full/partial/none) for 8 capabilities across all 7 harnesses, with configurable degradation strategies (inline/comment/omit) applied automatically during build

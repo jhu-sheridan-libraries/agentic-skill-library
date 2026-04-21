@@ -1,10 +1,37 @@
 import { resolveFormat } from "../format-registry";
 import { renderTemplate } from "../template-engine";
-import type { AdapterWarning, HarnessAdapter, OutputFile } from "./types";
+import type { AdapterContext, AdapterWarning, HarnessAdapter, OutputFile } from "./types";
+import { applyDegradation } from "./degradation";
+import type { HarnessCapabilityName } from "./capabilities";
 
-export const qdeveloperAdapter: HarnessAdapter = (artifact, templateEnv) => {
+export const qdeveloperAdapter: HarnessAdapter = (artifact, templateEnv, context?) => {
 	const files: OutputFile[] = [];
 	const warnings: AdapterWarning[] = [];
+
+	// Capability degradation checks
+	if (context) {
+		const checks: Array<{ capability: HarnessCapabilityName; hasFeature: boolean }> = [
+			{ capability: "hooks", hasFeature: artifact.hooks.length > 0 },
+			{ capability: "mcp", hasFeature: artifact.mcpServers.length > 0 },
+			{ capability: "workflows", hasFeature: artifact.workflows.length > 0 },
+		];
+		for (const { capability, hasFeature } of checks) {
+			if (!hasFeature) continue;
+			const entry = context.capabilities[capability];
+			if (entry.support === "full") continue;
+			if (context.strict) {
+				warnings.push({
+					artifactName: artifact.name,
+					harnessName: "qdeveloper",
+					message: `Strict mode: capability ${capability} not supported by harness qdeveloper`,
+				});
+				return { files, warnings };
+			}
+			const degradation = applyDegradation(entry.degradation!, capability, artifact, "qdeveloper");
+			warnings.push(...degradation.warnings);
+		}
+	}
+
 	const harnessConfig = (artifact.frontmatter as Record<string, unknown>)[
 		"harness-config"
 	] as Record<string, unknown> | undefined;
