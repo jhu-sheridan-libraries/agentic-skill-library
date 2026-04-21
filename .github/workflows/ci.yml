@@ -131,6 +131,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.3.12"
@@ -224,12 +228,23 @@ jobs:
     defaults:
       run:
         working-directory: skill-forge
-    if: ${{ !inputs.skip-eval }}
+    if: >-
+      ${{
+        !inputs.skip-eval &&
+        (
+          github.event_name == 'workflow_dispatch' ||
+          github.event.pull_request.head.repo.full_name == github.repository
+        )
+      }}
     env:
-      OPENAI_API_KEY: ${{ secrets.GITHUB_TOKEN }}
-      OPENAI_BASE_URL: https://models.github.ai/inference
+      AWS_BEARER_TOKEN_BEDROCK: ${{ secrets.AWS_BEARER_TOKEN_BEDROCK }}
+      AWS_DEFAULT_REGION: us-east-1
     steps:
       - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -251,7 +266,7 @@ jobs:
         run: bun run dev build
 
       - name: Run evals
-        run: bun run dev eval --ci --provider openai:gpt-4o --output eval-results.json
+        run: bun run dev eval --ci --output eval-results.json
 
       - name: Upload eval results
         if: always()
