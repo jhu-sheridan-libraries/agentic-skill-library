@@ -3079,12 +3079,21 @@ export function generateHtmlPage(): string {
       var svgWidth = svg.clientWidth || 800;
       var svgHeight = 500;
 
+      // Scale SVG height based on node count for better spacing
+      var nodeCount = nodes.length;
+      svgHeight = Math.max(500, Math.min(900, 300 + nodeCount * 40));
+      svg.setAttribute('height', svgHeight);
+
       // Force-directed layout
       var nodeMap = {};
+      // Spread nodes in a circle initially to avoid overlap from the start
+      var angleStep = (2 * Math.PI) / Math.max(nodeCount, 1);
+      var initRadius = Math.min(svgWidth, svgHeight) * 0.35;
       for (var i = 0; i < nodes.length; i++) {
+        var angle = angleStep * i;
         nodeMap[nodes[i].name] = {
-          x: svgWidth / 2 + (Math.random() - 0.5) * svgWidth * 0.6,
-          y: svgHeight / 2 + (Math.random() - 0.5) * svgHeight * 0.6,
+          x: svgWidth / 2 + Math.cos(angle) * initRadius + (Math.random() - 0.5) * 20,
+          y: svgHeight / 2 + Math.sin(angle) * initRadius + (Math.random() - 0.5) * 20,
           vx: 0, vy: 0,
           name: nodes[i].name,
           displayName: nodes[i].displayName || nodes[i].name,
@@ -3092,41 +3101,48 @@ export function generateHtmlPage(): string {
         };
       }
 
-      // Simple force simulation
-      for (var iter = 0; iter < 100; iter++) {
-        // Repulsion between all nodes
+      // Force simulation with tuned parameters
+      var idealEdgeLen = Math.max(150, Math.min(250, svgWidth / Math.max(nodeCount, 2)));
+      var iterations = 200;
+      for (var iter = 0; iter < iterations; iter++) {
+        var alpha = 1 - iter / iterations; // cooling factor
         var nodeKeys = Object.keys(nodeMap);
+        // Repulsion between all node pairs (Coulomb-like)
         for (var i = 0; i < nodeKeys.length; i++) {
           for (var j = i + 1; j < nodeKeys.length; j++) {
             var a = nodeMap[nodeKeys[i]], b = nodeMap[nodeKeys[j]];
             var dx = b.x - a.x, dy = b.y - a.y;
-            var dist = Math.sqrt(dx * dx + dy * dy) || 1;
-            var force = 5000 / (dist * dist);
-            var fx = (dx / dist) * force, fy = (dy / dist) * force;
+            var dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 1) { dx = (Math.random() - 0.5) * 2; dy = (Math.random() - 0.5) * 2; dist = 1; }
+            var repulsion = 30000 / (dist * dist);
+            var fx = (dx / dist) * repulsion * alpha;
+            var fy = (dy / dist) * repulsion * alpha;
             a.vx -= fx; a.vy -= fy;
             b.vx += fx; b.vy += fy;
           }
         }
-        // Attraction along edges
+        // Attraction along edges (Hooke-like spring)
         for (var i = 0; i < edges.length; i++) {
           var src = nodeMap[edges[i].source], tgt = nodeMap[edges[i].target];
           if (!src || !tgt) continue;
           var dx = tgt.x - src.x, dy = tgt.y - src.y;
           var dist = Math.sqrt(dx * dx + dy * dy) || 1;
-          var force = (dist - 120) * 0.01;
+          var force = (dist - idealEdgeLen) * 0.005 * alpha;
           var fx = (dx / dist) * force, fy = (dy / dist) * force;
           src.vx += fx; src.vy += fy;
           tgt.vx -= fx; tgt.vy -= fy;
         }
-        // Center gravity
+        // Gentle center gravity
         for (var i = 0; i < nodeKeys.length; i++) {
           var n = nodeMap[nodeKeys[i]];
-          n.vx += (svgWidth / 2 - n.x) * 0.005;
-          n.vy += (svgHeight / 2 - n.y) * 0.005;
-          n.vx *= 0.8; n.vy *= 0.8;
+          n.vx += (svgWidth / 2 - n.x) * 0.002 * alpha;
+          n.vy += (svgHeight / 2 - n.y) * 0.002 * alpha;
+          // Velocity damping
+          n.vx *= 0.7; n.vy *= 0.7;
           n.x += n.vx; n.y += n.vy;
-          n.x = Math.max(30, Math.min(svgWidth - 30, n.x));
-          n.y = Math.max(30, Math.min(svgHeight - 30, n.y));
+          // Keep nodes within bounds with padding for labels
+          n.x = Math.max(50, Math.min(svgWidth - 50, n.x));
+          n.y = Math.max(40, Math.min(svgHeight - 40, n.y));
         }
       }
 
@@ -3143,7 +3159,7 @@ export function generateHtmlPage(): string {
       });
 
       // Pan and zoom (task 18.2)
-      var viewBox = { x: 0, y: 0, w: svgWidth, h: svgHeight };
+      var viewBox = { x: -20, y: -10, w: svgWidth + 40, h: svgHeight + 20 };
       var isPanning = false, panStart = { x: 0, y: 0 };
 
       svg.setAttribute('viewBox', viewBox.x + ' ' + viewBox.y + ' ' + viewBox.w + ' ' + viewBox.h);
