@@ -114,7 +114,8 @@ jobs:
         run: bun test --coverage --coverage-reporter=lcov
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        if: ${{ !inputs.skip-test }}
+        uses: codecov/codecov-action@v6
         with:
           files: skill-forge/coverage/lcov.info
           fail_ci_if_error: false
