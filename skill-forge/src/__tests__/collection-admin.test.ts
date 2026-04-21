@@ -3,6 +3,7 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
+	type CollectionInput,
 	createCollection,
 	deleteCollection,
 	getCollection,
@@ -10,12 +11,13 @@ import {
 	serializeCollection,
 	updateCollection,
 	validateCollectionInput,
-	type CollectionInput,
 } from "../collection-admin";
 import { makeCatalogEntry } from "./test-helpers";
 
 /** Build a valid CollectionInput with sensible defaults. */
-function makeCollectionInput(overrides: Partial<CollectionInput> = {}): CollectionInput {
+function makeCollectionInput(
+	overrides: Partial<CollectionInput> = {},
+): CollectionInput {
 	return {
 		name: "test-collection",
 		displayName: "Test Collection",
@@ -76,7 +78,6 @@ describe("parseCollectionFile", () => {
 		expect(() => parseCollectionFile(yaml)).toThrow();
 	});
 });
-
 
 // --- serializeCollection ---
 
@@ -173,7 +174,11 @@ describe("createCollection", () => {
 	test("throws conflict error when file already exists", async () => {
 		const input = makeCollectionInput({ name: "existing-col" });
 		// Pre-create the file to trigger conflict
-		await writeFile(join(collectionsDir, "existing-col.yaml"), "name: existing-col\n", "utf-8");
+		await writeFile(
+			join(collectionsDir, "existing-col.yaml"),
+			"name: existing-col\n",
+			"utf-8",
+		);
 
 		try {
 			await createCollection(collectionsDir, input);
@@ -229,7 +234,10 @@ describe("getCollection", () => {
 		// Create catalog entries — some belong to the collection, some don't
 		const entries = [
 			makeCatalogEntry({ name: "artifact-a", collections: ["my-bundle"] }),
-			makeCatalogEntry({ name: "artifact-b", collections: ["my-bundle", "other"] }),
+			makeCatalogEntry({
+				name: "artifact-b",
+				collections: ["my-bundle", "other"],
+			}),
 			makeCatalogEntry({ name: "artifact-c", collections: ["other"] }),
 			makeCatalogEntry({ name: "artifact-d", collections: [] }),
 		];

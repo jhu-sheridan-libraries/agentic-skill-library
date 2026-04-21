@@ -6,7 +6,7 @@ import {
 	serializeCollection,
 	validateCollectionInput,
 } from "../collection-admin";
-import { type Collection, CollectionSchema, TrustLaneSchema } from "../schemas";
+import { type Collection, CollectionSchema } from "../schemas";
 
 // --- Shared Arbitraries ---
 
@@ -92,26 +92,24 @@ describe("Collection admin property tests", () => {
 	 * resulting raw object.
 	 */
 	test("Property 11: Collection unknown key preservation", () => {
-		const unknownKeyArb = fc
-			.string({ minLength: 1, maxLength: 20 })
-			.filter(
-				(s) =>
-					s.length > 0 &&
-					!s.includes("\0") &&
-					!s.includes("\n") &&
-					s.trim() === s &&
-					// Avoid collisions with known Collection schema keys
-					![
-						"name",
-						"displayName",
-						"description",
-						"version",
-						"author",
-						"trust",
-						"tags",
-						"harnesses",
-					].includes(s),
-			);
+		const unknownKeyArb = fc.string({ minLength: 1, maxLength: 20 }).filter(
+			(s) =>
+				s.length > 0 &&
+				!s.includes("\0") &&
+				!s.includes("\n") &&
+				s.trim() === s &&
+				// Avoid collisions with known Collection schema keys
+				![
+					"name",
+					"displayName",
+					"description",
+					"version",
+					"author",
+					"trust",
+					"tags",
+					"harnesses",
+				].includes(s),
+		);
 
 		fc.assert(
 			fc.property(
@@ -201,7 +199,12 @@ describe("Collection admin property tests", () => {
 	 * that match all active filter criteria.
 	 */
 	test("Property 16: Collection filtering correctness", () => {
-		const trustValues = ["official", "partner", "community", "experimental"] as const;
+		const trustValues = [
+			"official",
+			"partner",
+			"community",
+			"experimental",
+		] as const;
 		const tagPool = ["workflow", "craft", "security", "testing", "devops"];
 
 		const collectionWithTrustAndTagsArb = fc.record({
@@ -254,7 +257,10 @@ describe("Collection admin property tests", () => {
 
 		fc.assert(
 			fc.property(
-				fc.array(collectionWithTrustAndTagsArb, { minLength: 0, maxLength: 20 }),
+				fc.array(collectionWithTrustAndTagsArb, {
+					minLength: 0,
+					maxLength: 20,
+				}),
 				filterArb,
 				(collections, filter) => {
 					const result = filterCollections(collections, filter);
@@ -262,7 +268,7 @@ describe("Collection admin property tests", () => {
 					// Every returned collection must satisfy all active filters
 					for (const col of result) {
 						if (filter.trustLevels.length > 0) {
-							expect(filter.trustLevels).toContain(col.trust);
+							expect(filter.trustLevels as string[]).toContain(col.trust!);
 						}
 						if (filter.tags.length > 0) {
 							for (const tag of filter.tags) {

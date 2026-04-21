@@ -1,5 +1,12 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { exists, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import {
+	exists,
+	mkdir,
+	mkdtemp,
+	readFile,
+	rm,
+	writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import fc from "fast-check";
@@ -240,14 +247,12 @@ describe("Admin artifact correctness properties", () => {
 				),
 				fc.constant("invalid-type"),
 			),
-			inclusion: fc.option(
-				fc.constantFrom("always", "fileMatch", "manual"),
-				{ nil: undefined },
-			),
-			categories: fc.array(
-				fc.oneof(categoryArb, fc.constant("invalid-cat")),
-				{ maxLength: 4 },
-			) as fc.Arbitrary<string[]>,
+			inclusion: fc.option(fc.constantFrom("always", "fileMatch", "manual"), {
+				nil: undefined,
+			}),
+			categories: fc.array(fc.oneof(categoryArb, fc.constant("invalid-cat")), {
+				maxLength: 4,
+			}) as fc.Arbitrary<string[]>,
 			ecosystem: fc.array(fc.string({ maxLength: 10 }), { maxLength: 3 }),
 			depends: fc.array(fc.string({ maxLength: 10 }), { maxLength: 3 }),
 			enhances: fc.array(fc.string({ maxLength: 10 }), { maxLength: 3 }),
@@ -273,7 +278,8 @@ describe("Admin artifact correctness properties", () => {
 					depends: input.depends,
 					enhances: input.enhances,
 				};
-				if (input.displayName !== undefined) fmData.displayName = input.displayName;
+				if (input.displayName !== undefined)
+					fmData.displayName = input.displayName;
 				if (input.inclusion !== undefined) fmData.inclusion = input.inclusion;
 
 				const schemaResult = FrontmatterSchema.safeParse(fmData);
@@ -401,8 +407,16 @@ describe("Admin artifact correctness properties", () => {
 					const artifactDir = join(runKnowledgeDir, createInput.name);
 
 					// Write custom hooks and mcp content
-					await writeFile(join(artifactDir, "hooks.yaml"), hooksContent, "utf-8");
-					await writeFile(join(artifactDir, "mcp-servers.yaml"), mcpContent, "utf-8");
+					await writeFile(
+						join(artifactDir, "hooks.yaml"),
+						hooksContent,
+						"utf-8",
+					);
+					await writeFile(
+						join(artifactDir, "mcp-servers.yaml"),
+						mcpContent,
+						"utf-8",
+					);
 
 					// Update with new frontmatter/body but same name
 					const updatedInput = { ...updateInput, name: createInput.name };
@@ -495,7 +509,11 @@ describe("Admin artifact correctness properties", () => {
 
 				// Update the first artifact
 				const updateInput = { ...uniqueInputs[1], name: uniqueInputs[0].name };
-				await updateArtifact(runKnowledgeDir, uniqueInputs[0].name, updateInput);
+				await updateArtifact(
+					runKnowledgeDir,
+					uniqueInputs[0].name,
+					updateInput,
+				);
 
 				freshCatalog = await generateCatalog(runKnowledgeDir);
 				expect(freshCatalog.length).toBe(uniqueInputs.length);
@@ -566,7 +584,10 @@ describe("Admin artifact correctness properties", () => {
 				const parsed =
 					joined.length === 0
 						? []
-						: joined.split(",").map((s) => s.trim()).filter((s) => s.length > 0);
+						: joined
+								.split(",")
+								.map((s) => s.trim())
+								.filter((s) => s.length > 0);
 
 				expect(parsed).toEqual(arr);
 			}),

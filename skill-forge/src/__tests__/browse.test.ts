@@ -12,15 +12,13 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
+	type BrowseState,
 	escapeHtml,
 	exportCommand,
 	generateHtmlPage,
 	generateStaticHtmlPage,
 	handleRequest,
-	refreshCatalog,
-	refreshCollections,
 	validatePort,
-	type BrowseState,
 } from "../browse";
 import { makeCatalogEntry } from "./test-helpers";
 
@@ -558,7 +556,6 @@ describe("exportCommand", () => {
 	});
 });
 
-
 // ---------------------------------------------------------------------------
 // Integration tests for mutation endpoints (task 5.5)
 // ---------------------------------------------------------------------------
@@ -979,12 +976,20 @@ describe("manifest mutation integration", () => {
 		await fetch(`${baseUrl}/api/manifest/entries`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ name: "dup-entry", version: "1.0.0", mode: "required" }),
+			body: JSON.stringify({
+				name: "dup-entry",
+				version: "1.0.0",
+				mode: "required",
+			}),
 		});
 		const res = await fetch(`${baseUrl}/api/manifest/entries`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ name: "dup-entry", version: "1.0.0", mode: "required" }),
+			body: JSON.stringify({
+				name: "dup-entry",
+				version: "1.0.0",
+				mode: "required",
+			}),
 		});
 		expect(res.status).toBe(409);
 		const body = await res.json();
@@ -1017,7 +1022,12 @@ describe("manifest mutation integration", () => {
 		const res = await fetch(`${baseUrl}/api/manifest/entries`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ name: "x", collection: "y", version: "1.0.0", mode: "required" }),
+			body: JSON.stringify({
+				name: "x",
+				collection: "y",
+				version: "1.0.0",
+				mode: "required",
+			}),
 		});
 		expect(res.status).toBe(400);
 		const body = await res.json();
@@ -1071,11 +1081,25 @@ describe("manifest status integration", () => {
 		const syncLock = {
 			syncedAt: "2025-01-15T10:30:00Z",
 			entries: [
-				{ name: "synced-art", version: "1.0.0", harnesses: ["kiro"], backend: "github" },
-				{ name: "outdated-art", version: "1.0.0", harnesses: ["kiro"], backend: "github" },
+				{
+					name: "synced-art",
+					version: "1.0.0",
+					harnesses: ["kiro"],
+					backend: "github",
+				},
+				{
+					name: "outdated-art",
+					version: "1.0.0",
+					harnesses: ["kiro"],
+					backend: "github",
+				},
 			],
 		};
-		await writeFile(join(tmpForge, "sync-lock.json"), JSON.stringify(syncLock), "utf-8");
+		await writeFile(
+			join(tmpForge, "sync-lock.json"),
+			JSON.stringify(syncLock),
+			"utf-8",
+		);
 
 		const res = await fetch(`${baseUrl}/api/manifest/status`);
 		expect(res.status).toBe(200);
@@ -1087,11 +1111,15 @@ describe("manifest status integration", () => {
 		expect(synced.status).toBe("synced");
 		expect(synced.syncedVersion).toBe("1.0.0");
 
-		const outdated = body.entries.find((e: any) => e.identifier === "outdated-art");
+		const outdated = body.entries.find(
+			(e: any) => e.identifier === "outdated-art",
+		);
 		expect(outdated.status).toBe("outdated");
 		expect(outdated.syncedVersion).toBe("1.0.0");
 
-		const missing = body.entries.find((e: any) => e.identifier === "missing-art");
+		const missing = body.entries.find(
+			(e: any) => e.identifier === "missing-art",
+		);
 		expect(missing.status).toBe("missing");
 		expect(missing.syncedVersion).toBeNull();
 	});

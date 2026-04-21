@@ -1,17 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import fc from "fast-check";
-import {
-	type ManifestEntryInput,
-	addManifestEntry,
-	computeSyncStatus,
-	editManifestEntry,
-	readManifest,
-	removeManifestEntry,
-	validateManifestEntry,
-} from "../manifest-admin";
 import type { Manifest, ManifestEntry } from "../guild/manifest";
 import {
 	ArtifactManifestEntrySchema,
@@ -19,7 +10,15 @@ import {
 	printManifest,
 } from "../guild/manifest";
 import type { SyncLock, SyncLockEntry } from "../guild/sync";
-import { writeFile } from "node:fs/promises";
+import {
+	addManifestEntry,
+	computeSyncStatus,
+	editManifestEntry,
+	type ManifestEntryInput,
+	readManifest,
+	removeManifestEntry,
+	validateManifestEntry,
+} from "../manifest-admin";
 
 // --- Shared Arbitraries ---
 
@@ -51,9 +50,12 @@ const artifactEntryArb: fc.Arbitrary<ManifestEntry> = fc.record({
 	name: kebabCaseString(),
 	version: versionArb,
 	mode: modeArb,
-	harnesses: fc.option(fc.uniqueArray(harnessArb, { minLength: 1, maxLength: 3 }), {
-		nil: undefined,
-	}),
+	harnesses: fc.option(
+		fc.uniqueArray(harnessArb, { minLength: 1, maxLength: 3 }),
+		{
+			nil: undefined,
+		},
+	),
 	backend: fc.option(kebabCaseString(), { nil: undefined }),
 }) as fc.Arbitrary<ManifestEntry>;
 
@@ -62,9 +64,12 @@ const collectionEntryArb: fc.Arbitrary<ManifestEntry> = fc.record({
 	collection: kebabCaseString(),
 	version: versionArb,
 	mode: modeArb,
-	harnesses: fc.option(fc.uniqueArray(harnessArb, { minLength: 1, maxLength: 3 }), {
-		nil: undefined,
-	}),
+	harnesses: fc.option(
+		fc.uniqueArray(harnessArb, { minLength: 1, maxLength: 3 }),
+		{
+			nil: undefined,
+		},
+	),
 	backend: fc.option(kebabCaseString(), { nil: undefined }),
 }) as fc.Arbitrary<ManifestEntry>;
 
@@ -116,7 +121,10 @@ describe("Manifest admin property tests", () => {
 			fc.property(
 				uniqueEntriesArb,
 				fc.array(statusChoiceArb, { minLength: 0, maxLength: 10 }),
-				fc.option(fc.date().map((d) => d.toISOString()), { nil: undefined }),
+				fc.option(
+					fc.date().map((d) => d.toISOString()),
+					{ nil: undefined },
+				),
 				(entries, statusChoices, syncedAt) => {
 					// Build sync-lock entries based on the status choices
 					const syncLockEntries: SyncLockEntry[] = [];
@@ -124,7 +132,8 @@ describe("Manifest admin property tests", () => {
 
 					for (let i = 0; i < entries.length; i++) {
 						const entry = entries[i];
-						const choice = statusChoices[i % Math.max(statusChoices.length, 1)] ?? "missing";
+						const choice =
+							statusChoices[i % Math.max(statusChoices.length, 1)] ?? "missing";
 						const identifier = getIdentifier(entry);
 
 						if (choice === "synced") {
@@ -209,23 +218,31 @@ describe("Manifest admin property tests", () => {
 			collection: fc.constant(undefined) as fc.Arbitrary<string | undefined>,
 			version: versionArb,
 			mode: modeArb,
-			harnesses: fc.option(fc.uniqueArray(harnessArb, { minLength: 1, maxLength: 3 }), {
-				nil: undefined,
-			}),
+			harnesses: fc.option(
+				fc.uniqueArray(harnessArb, { minLength: 1, maxLength: 3 }),
+				{
+					nil: undefined,
+				},
+			),
 			backend: fc.option(kebabCaseString(), { nil: undefined }),
 		});
 
 		// Generator for valid collection ref inputs
-		const validCollectionInputArb: fc.Arbitrary<ManifestEntryInput> = fc.record({
-			name: fc.constant(undefined) as fc.Arbitrary<string | undefined>,
-			collection: kebabCaseString(),
-			version: versionArb,
-			mode: modeArb,
-			harnesses: fc.option(fc.uniqueArray(harnessArb, { minLength: 1, maxLength: 3 }), {
-				nil: undefined,
-			}),
-			backend: fc.option(kebabCaseString(), { nil: undefined }),
-		});
+		const validCollectionInputArb: fc.Arbitrary<ManifestEntryInput> = fc.record(
+			{
+				name: fc.constant(undefined) as fc.Arbitrary<string | undefined>,
+				collection: kebabCaseString(),
+				version: versionArb,
+				mode: modeArb,
+				harnesses: fc.option(
+					fc.uniqueArray(harnessArb, { minLength: 1, maxLength: 3 }),
+					{
+						nil: undefined,
+					},
+				),
+				backend: fc.option(kebabCaseString(), { nil: undefined }),
+			},
+		);
 
 		// Generator for invalid inputs with BOTH name and collection
 		const bothSetInputArb: fc.Arbitrary<ManifestEntryInput> = fc.record({
@@ -255,7 +272,8 @@ describe("Manifest admin property tests", () => {
 					const result = validateManifestEntry(input);
 
 					const hasName = input.name != null && input.name !== "";
-					const hasCollection = input.collection != null && input.collection !== "";
+					const hasCollection =
+						input.collection != null && input.collection !== "";
 
 					if (hasName && hasCollection) {
 						// Both set — must reject
@@ -310,7 +328,15 @@ describe("Manifest admin property tests", () => {
 			.filter(
 				(s) =>
 					/^[a-zA-Z][a-zA-Z0-9_]*$/.test(s) &&
-					!["backend", "artifacts", "name", "version", "mode", "collection", "harnesses"].includes(s),
+					![
+						"backend",
+						"artifacts",
+						"name",
+						"version",
+						"mode",
+						"collection",
+						"harnesses",
+					].includes(s),
 			);
 
 		const safeValueArb = fc
@@ -348,62 +374,75 @@ describe("Manifest admin property tests", () => {
 		const mutationArb = fc.constantFrom("add", "edit", "remove");
 
 		await fc.assert(
-			fc.asyncProperty(initialManifestArb, mutationArb, async (config, mutation) => {
-				const runDir = await mkdtemp(join(tempDir, "p15-"));
-				const manifestPath = join(runDir, "manifest.yaml");
+			fc.asyncProperty(
+				initialManifestArb,
+				mutationArb,
+				async (config, mutation) => {
+					const runDir = await mkdtemp(join(tempDir, "p15-"));
+					const manifestPath = join(runDir, "manifest.yaml");
 
-				// Build the initial manifest object with extra keys
-				const initialManifest: Record<string, unknown> = {
-					backend: config.backend,
-					artifacts: config.existingEntries,
-					...config.extraKeys,
-				};
+					// Build the initial manifest object with extra keys
+					const initialManifest: Record<string, unknown> = {
+						backend: config.backend,
+						artifacts: config.existingEntries,
+						...config.extraKeys,
+					};
 
-				// Write the initial manifest to disk
-				const yamlContent = printManifest(initialManifest as Manifest);
-				await writeFile(manifestPath, yamlContent, "utf-8");
+					// Write the initial manifest to disk
+					const yamlContent = printManifest(initialManifest as Manifest);
+					await writeFile(manifestPath, yamlContent, "utf-8");
 
-				// Ensure the new entry name doesn't collide with existing entries
-				const existingIds = new Set(config.existingEntries.map(getIdentifier));
-				const newEntryName = existingIds.has(config.newEntry.name)
-					? `${config.newEntry.name}-new`
-					: config.newEntry.name;
+					// Ensure the new entry name doesn't collide with existing entries
+					const existingIds = new Set(
+						config.existingEntries.map(getIdentifier),
+					);
+					const newEntryName = existingIds.has(config.newEntry.name)
+						? `${config.newEntry.name}-new`
+						: config.newEntry.name;
 
-				try {
-					if (mutation === "add") {
-						await addManifestEntry(manifestPath, {
-							name: newEntryName,
-							version: config.newEntry.version,
-							mode: config.newEntry.mode,
-						});
-					} else if (mutation === "edit" && config.existingEntries.length > 0) {
-						const targetId = getIdentifier(config.existingEntries[0]);
-						await editManifestEntry(manifestPath, targetId, {
-							version: config.newEntry.version,
-						});
-					} else if (mutation === "remove" && config.existingEntries.length > 0) {
-						const targetId = getIdentifier(config.existingEntries[0]);
-						await removeManifestEntry(manifestPath, targetId);
-					} else {
-						// Skip if edit/remove with no existing entries
+					try {
+						if (mutation === "add") {
+							await addManifestEntry(manifestPath, {
+								name: newEntryName,
+								version: config.newEntry.version,
+								mode: config.newEntry.mode,
+							});
+						} else if (
+							mutation === "edit" &&
+							config.existingEntries.length > 0
+						) {
+							const targetId = getIdentifier(config.existingEntries[0]);
+							await editManifestEntry(manifestPath, targetId, {
+								version: config.newEntry.version,
+							});
+						} else if (
+							mutation === "remove" &&
+							config.existingEntries.length > 0
+						) {
+							const targetId = getIdentifier(config.existingEntries[0]);
+							await removeManifestEntry(manifestPath, targetId);
+						} else {
+							// Skip if edit/remove with no existing entries
+							return;
+						}
+					} catch {
+						// If the mutation fails (e.g., validation), skip this case
 						return;
 					}
-				} catch {
-					// If the mutation fails (e.g., validation), skip this case
-					return;
-				}
 
-				// Read back the manifest and verify top-level fields are preserved
-				const { manifest: resultManifest, raw } = await readManifest(manifestPath);
+					// Read back the manifest and verify top-level fields are preserved
+					const { manifest: resultManifest, raw } =
+						await readManifest(manifestPath);
 
-				// Backend must be preserved
-				expect(resultManifest.backend).toBe(config.backend);
+					// Backend must be preserved
+					expect(resultManifest.backend).toBe(config.backend);
 
-				// Extra keys must be preserved in the raw object
-				for (const [key, value] of Object.entries(config.extraKeys)) {
-					expect(raw[key]).toBe(value);
-				}
-			}),
+					// Extra keys must be preserved in the raw object
+					for (const [key, value] of Object.entries(config.extraKeys)) {
+						expect(raw[key]).toBe(value);
+					}
+				},
+			),
 			{ numRuns: 50 },
 		);
 	});

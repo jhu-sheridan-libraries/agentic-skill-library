@@ -89,10 +89,14 @@ export function computeSyncStatus(
 ): SyncStatusResponse {
 	const entries: EntryStatus[] = manifest.artifacts.map((entry) => {
 		const identifier =
-			"name" in entry ? entry.name : (entry as { collection: string }).collection;
-		const type: "artifact" | "collection" = "name" in entry ? "artifact" : "collection";
+			"name" in entry
+				? entry.name
+				: (entry as { collection: string }).collection;
+		const type: "artifact" | "collection" =
+			"name" in entry ? "artifact" : "collection";
 
-		const lockEntry = syncLock?.entries.find((e) => e.name === identifier) ?? null;
+		const lockEntry =
+			syncLock?.entries.find((e) => e.name === identifier) ?? null;
 
 		let status: "synced" | "outdated" | "missing";
 		if (!lockEntry) {
@@ -133,25 +137,41 @@ export class ManifestAdminError extends Error {
 /** Validates a ManifestEntryInput against the appropriate schema */
 export function validateManifestEntry(
 	input: ManifestEntryInput,
-): { success: true; data: ManifestEntry } | { success: false; errors: Array<{ field: string; message: string }> } {
+):
+	| { success: true; data: ManifestEntry }
+	| { success: false; errors: Array<{ field: string; message: string }> } {
 	const hasName = input.name != null && input.name !== "";
 	const hasCollection = input.collection != null && input.collection !== "";
 
 	if (hasName && hasCollection) {
 		return {
 			success: false,
-			errors: [{ field: "name", message: "Cannot set both 'name' and 'collection' — each entry must have exactly one" }],
+			errors: [
+				{
+					field: "name",
+					message:
+						"Cannot set both 'name' and 'collection' — each entry must have exactly one",
+				},
+			],
 		};
 	}
 
 	if (!hasName && !hasCollection) {
 		return {
 			success: false,
-			errors: [{ field: "name", message: "Must set either 'name' (for artifact ref) or 'collection' (for collection ref)" }],
+			errors: [
+				{
+					field: "name",
+					message:
+						"Must set either 'name' (for artifact ref) or 'collection' (for collection ref)",
+				},
+			],
 		};
 	}
 
-	const schema = hasName ? ArtifactManifestEntrySchema : CollectionManifestEntrySchema;
+	const schema = hasName
+		? ArtifactManifestEntrySchema
+		: CollectionManifestEntrySchema;
 	const result = schema.safeParse(input);
 
 	if (!result.success) {
@@ -167,7 +187,9 @@ export function validateManifestEntry(
 
 /** Helper to get the identifier from a manifest entry */
 function getEntryIdentifier(entry: ManifestEntry): string {
-	return "name" in entry ? entry.name : (entry as { collection: string }).collection;
+	return "name" in entry
+		? entry.name
+		: (entry as { collection: string }).collection;
 }
 
 /** Writes the manifest back to disk, preserving unknown top-level keys from the raw object */

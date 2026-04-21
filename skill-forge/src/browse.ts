@@ -1,14 +1,36 @@
 import { exists, mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import chalk from "chalk";
-import { createArtifact, updateArtifact, deleteArtifact } from "./admin";
-import { escapeHtml, generateHtmlPage, generateStaticHtmlPage } from "./browse-ui";
+import { createArtifact, deleteArtifact, updateArtifact } from "./admin";
+import {
+	escapeHtml,
+	generateHtmlPage,
+	generateStaticHtmlPage,
+} from "./browse-ui";
 import { generateCatalog, SOURCE_DIRS, serializeCatalog } from "./catalog";
-import { listCollections, getCollection, createCollection, updateCollection, deleteCollection } from "./collection-admin";
-import { readManifest, readSyncLock, computeSyncStatus, addManifestEntry, editManifestEntry, removeManifestEntry, ManifestAdminError } from "./manifest-admin";
+import {
+	createCollection,
+	deleteCollection,
+	getCollection,
+	listCollections,
+	updateCollection,
+} from "./collection-admin";
+import {
+	addManifestEntry,
+	computeSyncStatus,
+	editManifestEntry,
+	ManifestAdminError,
+	readManifest,
+	readSyncLock,
+	removeManifestEntry,
+} from "./manifest-admin";
 import type { CatalogEntry, Collection } from "./schemas";
 
-export { escapeHtml, generateHtmlPage, generateStaticHtmlPage } from "./browse-ui";
+export {
+	escapeHtml,
+	generateHtmlPage,
+	generateStaticHtmlPage,
+} from "./browse-ui";
 
 /**
  * Mutable server state wrapper.
@@ -145,7 +167,8 @@ function handleMutationError(err: unknown): Response {
 	const type = (err as any)?.type;
 	const message = err instanceof Error ? err.message : String(err);
 
-	if (type === "validation") return jsonError("Validation failed", 400, (err as any).details);
+	if (type === "validation")
+		return jsonError("Validation failed", 400, (err as any).details);
 	if (type === "conflict") return jsonError(message, 409);
 	if (type === "not-found") return jsonError(message, 404);
 	return jsonError(message, 500);
@@ -226,9 +249,13 @@ export async function handleRequest(
 		const filePath = join(entry.path, "knowledge.md");
 		try {
 			const fileExists = await exists(filePath);
-			if (!fileExists) return jsonError(`Content not available for '${name}'`, 404);
+			if (!fileExists)
+				return jsonError(`Content not available for '${name}'`, 404);
 			const content = await Bun.file(filePath).text();
-			return new Response(content, { status: 200, headers: { "Content-Type": "text/plain" } });
+			return new Response(content, {
+				status: 200,
+				headers: { "Content-Type": "text/plain" },
+			});
 		} catch {
 			return jsonError(`Content not available for '${name}'`, 404);
 		}
@@ -271,7 +298,9 @@ export async function handleRequest(
 
 	// DELETE /api/artifact/:name → delete an artifact
 	const deleteArtifactMatch =
-		req.method === "DELETE" ? pathname.match(/^\/api\/artifact\/([^/]+)$/) : null;
+		req.method === "DELETE"
+			? pathname.match(/^\/api\/artifact\/([^/]+)$/)
+			: null;
 	if (deleteArtifactMatch) {
 		const state = requireState(stateOrEntries, "knowledgeDir");
 		if (!state) return NOT_CONFIGURED();
@@ -288,7 +317,10 @@ export async function handleRequest(
 	// --- Collection routes ---
 
 	// GET /api/collections → list all collections
-	if (pathname === "/api/collections" && (!req.method || req.method === "GET")) {
+	if (
+		pathname === "/api/collections" &&
+		(!req.method || req.method === "GET")
+	) {
 		const state = requireState(stateOrEntries, "collectionsDir");
 		if (!state) return NOT_CONFIGURED("collections");
 		try {
@@ -306,7 +338,10 @@ export async function handleRequest(
 		const body = await parseJsonBody(req);
 		if (body instanceof Response) return body;
 		try {
-			const collection = await createCollection(state.collectionsDir, body as any);
+			const collection = await createCollection(
+				state.collectionsDir,
+				body as any,
+			);
 			await refreshCollections(state);
 			return jsonResponse({ collection }, 201);
 		} catch (err: unknown) {
@@ -316,7 +351,7 @@ export async function handleRequest(
 
 	// GET /api/collections/:name → get a single collection with members
 	const getCollectionMatch =
-		(!req.method || req.method === "GET")
+		!req.method || req.method === "GET"
 			? pathname.match(/^\/api\/collections\/([^/]+)$/)
 			: null;
 	if (getCollectionMatch) {
@@ -324,8 +359,15 @@ export async function handleRequest(
 		if (!state) return NOT_CONFIGURED("collections");
 		const name = decodeURIComponent(getCollectionMatch[1]);
 		try {
-			const result = await getCollection(state.collectionsDir, name, state.catalogEntries);
-			return jsonResponse({ collection: result.collection, members: result.members });
+			const result = await getCollection(
+				state.collectionsDir,
+				name,
+				state.catalogEntries,
+			);
+			return jsonResponse({
+				collection: result.collection,
+				members: result.members,
+			});
 		} catch (err: unknown) {
 			return handleMutationError(err);
 		}
@@ -333,7 +375,9 @@ export async function handleRequest(
 
 	// PUT /api/collections/:name → update an existing collection
 	const putCollectionMatch =
-		req.method === "PUT" ? pathname.match(/^\/api\/collections\/([^/]+)$/) : null;
+		req.method === "PUT"
+			? pathname.match(/^\/api\/collections\/([^/]+)$/)
+			: null;
 	if (putCollectionMatch) {
 		const state = requireState(stateOrEntries, "collectionsDir");
 		if (!state) return NOT_CONFIGURED();
@@ -341,7 +385,11 @@ export async function handleRequest(
 		const body = await parseJsonBody(req);
 		if (body instanceof Response) return body;
 		try {
-			const collection = await updateCollection(state.collectionsDir, name, body as any);
+			const collection = await updateCollection(
+				state.collectionsDir,
+				name,
+				body as any,
+			);
 			await refreshCollections(state);
 			return jsonResponse({ collection });
 		} catch (err: unknown) {
@@ -351,7 +399,9 @@ export async function handleRequest(
 
 	// DELETE /api/collections/:name → delete a collection
 	const deleteCollectionMatch =
-		req.method === "DELETE" ? pathname.match(/^\/api\/collections\/([^/]+)$/) : null;
+		req.method === "DELETE"
+			? pathname.match(/^\/api\/collections\/([^/]+)$/)
+			: null;
 	if (deleteCollectionMatch) {
 		const state = requireState(stateOrEntries, "collectionsDir");
 		if (!state) return NOT_CONFIGURED();
@@ -372,7 +422,9 @@ export async function handleRequest(
 		const state = requireState(stateOrEntries, "forgeDir");
 		if (!state) return NOT_CONFIGURED("manifest");
 		try {
-			const { manifest } = await readManifest(join(state.forgeDir, "manifest.yaml"));
+			const { manifest } = await readManifest(
+				join(state.forgeDir, "manifest.yaml"),
+			);
 			return jsonResponse(manifest);
 		} catch (err: unknown) {
 			return handleMutationError(err);
@@ -380,7 +432,10 @@ export async function handleRequest(
 	}
 
 	// GET /api/manifest/status → return sync status
-	if (pathname === "/api/manifest/status" && (!req.method || req.method === "GET")) {
+	if (
+		pathname === "/api/manifest/status" &&
+		(!req.method || req.method === "GET")
+	) {
 		const state = requireState(stateOrEntries, "forgeDir");
 		if (!state) return NOT_CONFIGURED("manifest");
 		try {
@@ -401,7 +456,10 @@ export async function handleRequest(
 		const body = await parseJsonBody(req);
 		if (body instanceof Response) return body;
 		try {
-			const manifest = await addManifestEntry(join(state.forgeDir, "manifest.yaml"), body as any);
+			const manifest = await addManifestEntry(
+				join(state.forgeDir, "manifest.yaml"),
+				body as any,
+			);
 			return jsonResponse({ manifest }, 201);
 		} catch (err: unknown) {
 			return handleMutationError(err);
@@ -410,7 +468,9 @@ export async function handleRequest(
 
 	// PUT /api/manifest/entries/:identifier → edit a manifest entry
 	const putManifestEntryMatch =
-		req.method === "PUT" ? pathname.match(/^\/api\/manifest\/entries\/([^/]+)$/) : null;
+		req.method === "PUT"
+			? pathname.match(/^\/api\/manifest\/entries\/([^/]+)$/)
+			: null;
 	if (putManifestEntryMatch) {
 		const state = requireState(stateOrEntries, "forgeDir");
 		if (!state) return NOT_CONFIGURED();
@@ -418,7 +478,11 @@ export async function handleRequest(
 		const body = await parseJsonBody(req);
 		if (body instanceof Response) return body;
 		try {
-			const manifest = await editManifestEntry(join(state.forgeDir, "manifest.yaml"), identifier, body as any);
+			const manifest = await editManifestEntry(
+				join(state.forgeDir, "manifest.yaml"),
+				identifier,
+				body as any,
+			);
 			return jsonResponse({ manifest });
 		} catch (err: unknown) {
 			return handleMutationError(err);
@@ -427,13 +491,18 @@ export async function handleRequest(
 
 	// DELETE /api/manifest/entries/:identifier → remove a manifest entry
 	const deleteManifestEntryMatch =
-		req.method === "DELETE" ? pathname.match(/^\/api\/manifest\/entries\/([^/]+)$/) : null;
+		req.method === "DELETE"
+			? pathname.match(/^\/api\/manifest\/entries\/([^/]+)$/)
+			: null;
 	if (deleteManifestEntryMatch) {
 		const state = requireState(stateOrEntries, "forgeDir");
 		if (!state) return NOT_CONFIGURED();
 		const identifier = decodeURIComponent(deleteManifestEntryMatch[1]);
 		try {
-			await removeManifestEntry(join(state.forgeDir, "manifest.yaml"), identifier);
+			await removeManifestEntry(
+				join(state.forgeDir, "manifest.yaml"),
+				identifier,
+			);
 			return new Response(null, { status: 204 });
 		} catch (err: unknown) {
 			return handleMutationError(err);

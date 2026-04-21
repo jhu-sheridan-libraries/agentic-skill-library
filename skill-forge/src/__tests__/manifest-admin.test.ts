@@ -2,18 +2,18 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import type { Manifest } from "../guild/manifest";
+import type { SyncLock } from "../guild/sync";
 import {
-	type ManifestEntryInput,
-	ManifestAdminError,
 	addManifestEntry,
 	computeSyncStatus,
 	editManifestEntry,
+	ManifestAdminError,
+	type ManifestEntryInput,
 	readManifest,
 	readSyncLock,
 	removeManifestEntry,
 } from "../manifest-admin";
-import type { Manifest } from "../guild/manifest";
-import type { SyncLock } from "../guild/sync";
 
 let tempDir: string;
 let forgeDir: string;
@@ -68,7 +68,6 @@ artifacts:
 	});
 });
 
-
 // --- readSyncLock ---
 
 describe("readSyncLock", () => {
@@ -104,14 +103,17 @@ describe("computeSyncStatus", () => {
 
 	test("with matching versions marks entries as synced", () => {
 		const manifest: Manifest = {
-			artifacts: [
-				{ name: "skill-a", version: "1.0.0", mode: "required" },
-			],
+			artifacts: [{ name: "skill-a", version: "1.0.0", mode: "required" }],
 		};
 		const syncLock: SyncLock = {
 			syncedAt: "2025-01-15T10:30:00Z",
 			entries: [
-				{ name: "skill-a", version: "1.0.0", harnesses: ["kiro"], backend: "github" },
+				{
+					name: "skill-a",
+					version: "1.0.0",
+					harnesses: ["kiro"],
+					backend: "github",
+				},
 			],
 		};
 
@@ -125,14 +127,17 @@ describe("computeSyncStatus", () => {
 
 	test("with mismatched versions marks entries as outdated", () => {
 		const manifest: Manifest = {
-			artifacts: [
-				{ name: "skill-a", version: "2.0.0", mode: "required" },
-			],
+			artifacts: [{ name: "skill-a", version: "2.0.0", mode: "required" }],
 		};
 		const syncLock: SyncLock = {
 			syncedAt: "2025-01-15T10:30:00Z",
 			entries: [
-				{ name: "skill-a", version: "1.0.0", harnesses: ["kiro"], backend: "github" },
+				{
+					name: "skill-a",
+					version: "1.0.0",
+					harnesses: ["kiro"],
+					backend: "github",
+				},
 			],
 		};
 
@@ -144,7 +149,6 @@ describe("computeSyncStatus", () => {
 		expect(result.entries[0].version).toBe("2.0.0");
 	});
 });
-
 
 // --- addManifestEntry ---
 
@@ -189,7 +193,9 @@ describe("editManifestEntry", () => {
 		await writeFile(manifestPath, yamlContent, "utf-8");
 
 		try {
-			await editManifestEntry(manifestPath, "nonexistent-skill", { version: "2.0.0" });
+			await editManifestEntry(manifestPath, "nonexistent-skill", {
+				version: "2.0.0",
+			});
 			expect(true).toBe(false); // should not reach here
 		} catch (err: unknown) {
 			expect(err).toBeInstanceOf(ManifestAdminError);

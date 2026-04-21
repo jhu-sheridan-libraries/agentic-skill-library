@@ -1,7 +1,11 @@
 import { exists, readdir, readFile, unlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import yaml from "js-yaml";
-import { type CatalogEntry, type Collection, CollectionSchema } from "./schemas";
+import {
+	type CatalogEntry,
+	type Collection,
+	CollectionSchema,
+} from "./schemas";
 
 const KEBAB_CASE_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
@@ -70,7 +74,9 @@ export function validateCollectionInput(
  * Serializes a Collection record to a YAML string using js-yaml.
  * Accepts Record<string, unknown> to preserve unknown keys beyond the schema.
  */
-export function serializeCollection(collection: Record<string, unknown>): string {
+export function serializeCollection(
+	collection: Record<string, unknown>,
+): string {
 	return yaml.dump(collection, {
 		lineWidth: -1,
 		noRefs: true,
@@ -115,7 +121,10 @@ export async function listCollections(
 	const entries = await readdir(collectionsDir);
 	const yamlFiles = entries.filter((f) => f.endsWith(".yaml"));
 
-	const results: Array<{ collection: Collection; raw: Record<string, unknown> }> = [];
+	const results: Array<{
+		collection: Collection;
+		raw: Record<string, unknown>;
+	}> = [];
 
 	for (const file of yamlFiles) {
 		const filePath = join(collectionsDir, file);
@@ -137,7 +146,11 @@ export async function getCollection(
 	collectionsDir: string,
 	name: string,
 	catalogEntries: CatalogEntry[],
-): Promise<{ collection: Collection; raw: Record<string, unknown>; members: string[] }> {
+): Promise<{
+	collection: Collection;
+	raw: Record<string, unknown>;
+	members: string[];
+}> {
 	const filePath = join(collectionsDir, `${name}.yaml`);
 
 	let content: string;
@@ -186,7 +199,9 @@ export async function createCollection(
 	}
 
 	// Serialize and write the new collection file
-	const yamlContent = serializeCollection(validation.data as Record<string, unknown>);
+	const yamlContent = serializeCollection(
+		validation.data as Record<string, unknown>,
+	);
 	await writeFile(filePath, yamlContent, "utf-8");
 
 	return validation.data;

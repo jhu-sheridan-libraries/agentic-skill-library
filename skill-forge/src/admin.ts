@@ -2,7 +2,11 @@ import { exists, mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import yaml from "js-yaml";
 import { generateCatalog } from "./catalog";
-import { type CatalogEntry, type Frontmatter, FrontmatterSchema } from "./schemas";
+import {
+	type CatalogEntry,
+	type Frontmatter,
+	FrontmatterSchema,
+} from "./schemas";
 
 const KEBAB_CASE_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 

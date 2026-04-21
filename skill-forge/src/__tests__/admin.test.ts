@@ -1,21 +1,23 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
+	type ArtifactInput,
 	createArtifact,
 	deleteArtifact,
 	serializeFrontmatter,
 	toKebabCase,
 	updateArtifact,
 	validateArtifactInput,
-	type ArtifactInput,
 } from "../admin";
 import { SUPPORTED_HARNESSES } from "../schemas";
 import { makeFrontmatter } from "./test-helpers";
 
 /** Build a valid ArtifactInput with sensible defaults. */
-function makeArtifactInput(overrides: Partial<ArtifactInput> = {}): ArtifactInput {
+function makeArtifactInput(
+	overrides: Partial<ArtifactInput> = {},
+): ArtifactInput {
 	return {
 		name: "test-artifact",
 		description: "A test artifact",
@@ -67,7 +69,6 @@ describe("serializeFrontmatter", () => {
 	});
 });
 
-
 // --- validateArtifactInput ---
 
 describe("validateArtifactInput", () => {
@@ -106,7 +107,9 @@ describe("validateArtifactInput", () => {
 		const result = validateArtifactInput(input);
 		expect(result.success).toBe(false);
 		if (!result.success) {
-			expect(result.errors.some((e) => e.field.startsWith("harnesses"))).toBe(true);
+			expect(result.errors.some((e) => e.field.startsWith("harnesses"))).toBe(
+				true,
+			);
 		}
 	});
 
@@ -163,7 +166,6 @@ describe("toKebabCase", () => {
 		expect(toKebabCase("Skill")).toBe("skill");
 	});
 });
-
 
 // --- createArtifact / updateArtifact / deleteArtifact (filesystem tests) ---
 
