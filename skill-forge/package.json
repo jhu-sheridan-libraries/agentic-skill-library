@@ -26,7 +26,7 @@
 		"gray-matter": "^4.0.3",
 		"js-yaml": "^4.1.0",
 		"nunjucks": "^3.2.4",
-		"promptfoo": "^0.121.0",
+		"promptfoo": "^0.121.5",
 		"zod": "^4.3.6"
 	},
 	"devDependencies": {
