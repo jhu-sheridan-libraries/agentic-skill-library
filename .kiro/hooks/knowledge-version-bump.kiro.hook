@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Knowledge Version Bump",
+  "description": "When a knowledge artifact's knowledge.md is edited, checks if the version in the frontmatter was incremented. If not, bumps the patch version automatically.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/knowledge/*/knowledge.md"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A knowledge artifact was just edited. Check if the `version` field in its YAML frontmatter was already incremented as part of this edit. If the version was NOT changed but the content (body or frontmatter fields other than version) was substantively modified, bump the patch version (e.g. 0.1.0 → 0.1.1). If the version was already incremented, do nothing. Do NOT bump for whitespace-only or formatting-only changes."
+  }
+}

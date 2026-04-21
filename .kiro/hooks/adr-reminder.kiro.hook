@@ -1,0 +1,12 @@
+{
+  "name": "ADR Enforcement on Session End",
+  "version": "2.0.0",
+  "description": "When an agent session ends, checks git diff for architectural changes and cross-references against existing ADRs. If undocumented architectural choices are found, creates ADRs and changelog fragments before the session closes.",
+  "when": {
+    "type": "agentStop"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Before this session ends, check if any architectural decisions from this session are undocumented:\n\n1. Run: git -C skill-forge diff --stat HEAD (or git diff --stat HEAD) to see what changed.\n2. Filter for architectural files (src/, lib/, commands/, modules/ — excluding tests).\n3. If architectural files changed, scan skill-forge/docs/adr/README.md for existing ADRs.\n4. Read the design.md of any active spec whose files were touched.\n5. If you find NEW architectural patterns, module structures, or integration approaches that are NOT covered by existing ADRs:\n   a. Create the ADR(s) immediately at skill-forge/docs/adr/NNNN-short-title.md\n   b. Update the README.md index table\n   c. Create changelog fragments in skill-forge/changes/\n6. If all changes are covered by existing ADRs, report: 'All architectural decisions documented — no new ADRs needed.'\n\nDo NOT just list what changed. Either create missing ADRs or confirm coverage."
+  }
+}
