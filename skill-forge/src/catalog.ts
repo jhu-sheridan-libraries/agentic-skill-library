@@ -20,6 +20,8 @@ async function loadArtifactEntry(
 	const fm = artifact.frontmatter;
 
 	const hasEvals = await exists(join(artifactPath, "evals"));
+	const hasChangelog = await exists(join(artifactPath, "CHANGELOG.md"));
+	const hasMigrations = await exists(join(artifactPath, "migrations"));
 
 	const harnessConfig = (fm as Record<string, unknown>)["harness-config"] as
 		| Record<string, Record<string, unknown>>
@@ -44,6 +46,8 @@ async function loadArtifactEntry(
 		type: fm.type,
 		path: catalogPath,
 		evals: hasEvals,
+		changelog: hasChangelog,
+		migrations: hasMigrations,
 		categories: fm.categories,
 		ecosystem: fm.ecosystem,
 		depends: fm.depends,
