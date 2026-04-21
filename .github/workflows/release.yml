@@ -71,7 +71,14 @@ jobs:
       - run: bun install
 
       - name: Compile binary
-        run: bun build src/cli.ts --compile --target=${{ matrix.target }} --outfile ${{ matrix.artifact }}
+        run: |
+          bun build src/cli.ts --compile \
+            --target=${{ matrix.target }} \
+            --outfile ${{ matrix.artifact }} \
+            --external playwright-core \
+            --external playwright \
+            --external electron \
+            --external chromium-bidi
 
       - name: Compress binary
         run: tar -czf ${{ matrix.artifact }}.tar.gz ${{ matrix.artifact }}
