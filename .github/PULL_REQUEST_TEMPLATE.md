@@ -33,7 +33,7 @@ _If checked: describe migration path and which consumers are affected._
 ## Checklist
 
 **Code**
-- [ ] `bun test` passes (333/333)
+- [ ] `bun test` passes
 - [ ] `bun run lint` clean
 - [ ] No new TypeScript errors (`bun x tsc --noEmit`)
 

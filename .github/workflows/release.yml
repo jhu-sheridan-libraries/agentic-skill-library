@@ -25,6 +25,16 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            skill-forge/node_modules
+          key: bun-${{ runner.os }}-${{ hashFiles('skill-forge/bun.lock') }}
+          restore-keys: |
+            bun-${{ runner.os }}-
+
       - run: bun install
 
       - name: Lint
@@ -68,6 +78,16 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            skill-forge/node_modules
+          key: bun-${{ runner.os }}-${{ hashFiles('skill-forge/bun.lock') }}
+          restore-keys: |
+            bun-${{ runner.os }}-
+
       - run: bun install
 
       - name: Compile binary
@@ -105,6 +125,16 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            skill-forge/node_modules
+          key: bun-${{ runner.os }}-${{ hashFiles('skill-forge/bun.lock') }}
+          restore-keys: |
+            bun-${{ runner.os }}-
 
       - run: bun install
 
@@ -184,6 +214,16 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun/install/cache
+            skill-forge/node_modules
+          key: bun-${{ runner.os }}-${{ hashFiles('skill-forge/bun.lock') }}
+          restore-keys: |
+            bun-${{ runner.os }}-
 
       - run: bun install
 

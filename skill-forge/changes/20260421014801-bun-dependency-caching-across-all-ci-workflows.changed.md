@@ -1,0 +1,1 @@
+Added Bun dependency caching (`~/.bun/install/cache` + `node_modules`) keyed on `bun.lock` hash to all GitHub Actions workflows (CI, release, audit, pages)
