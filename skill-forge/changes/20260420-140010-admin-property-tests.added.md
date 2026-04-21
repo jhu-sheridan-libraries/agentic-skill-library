@@ -1,1 +1,0 @@
-Added 9 property-based tests for artifact admin correctness (Properties 1–9) — frontmatter serialization round-trip, validation consistency, kebab-case enforcement, file structure verification, update preservation, delete removal, catalog consistency, toKebabCase output, and comma-separated parsing.

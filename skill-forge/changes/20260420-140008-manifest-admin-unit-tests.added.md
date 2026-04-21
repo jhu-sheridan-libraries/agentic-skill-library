@@ -1,1 +1,0 @@
-Added unit tests for `manifest-admin.ts` — 9 tests covering `readManifest`, `readSyncLock`, `computeSyncStatus` (synced/outdated/missing), and error paths for `addManifestEntry`, `editManifestEntry`, `removeManifestEntry`.

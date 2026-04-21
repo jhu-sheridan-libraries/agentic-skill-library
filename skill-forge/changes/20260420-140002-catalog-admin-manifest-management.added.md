@@ -1,1 +1,0 @@
-Added manifest entry management to `forge catalog browse` — view manifest entries with sync status indicators, add/edit/remove entries via REST API (`GET/POST/PUT/DELETE /api/manifest/entries`), and display synced/outdated/missing status from sync-lock comparison

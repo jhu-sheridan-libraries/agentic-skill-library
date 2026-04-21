@@ -1,1 +1,0 @@
-Added full CRUD capabilities to `forge catalog browse` for knowledge artifacts — create, edit, and delete artifacts directly from the browser UI via `POST /api/artifact`, `PUT /api/artifact/:name`, and `DELETE /api/artifact/:name` endpoints with validation, conflict detection, and automatic catalog refresh
