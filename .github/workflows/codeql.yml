@@ -14,6 +14,9 @@ jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: skill-forge
 
     strategy:
       fail-fast: false
@@ -23,10 +26,15 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
+          source-root: skill-forge
           # Focus on the CLI source and MCP bridge; exclude generated dist and node_modules
           paths-ignore: |
             skill-forge/dist
