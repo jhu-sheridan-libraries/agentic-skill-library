@@ -305,10 +305,10 @@ describe("Version output", () => {
 	 * Version output includes version number, Bun version, and platform
 	 */
 	test("includes version number, bun version, and platform", () => {
-		const output = renderVersion("0.1.0", noColor);
+		const output = renderVersion("0.2.0", noColor);
 
 		expect(output).toContain("forge");
-		expect(output).toContain("v0.1.0");
+		expect(output).toContain("v0.2.0");
 		expect(output).toContain("bun");
 		expect(output).toContain("platform");
 		expect(output).toContain(process.platform);
@@ -320,7 +320,7 @@ describe("Version output", () => {
 	 * Version output has no ANSI codes when useColor is false
 	 */
 	test("no ANSI codes when useColor is false", () => {
-		const output = renderVersion("0.1.0", noColor);
+		const output = renderVersion("0.2.0", noColor);
 		expect(output).not.toContain("\x1b[");
 	});
 });
@@ -343,7 +343,7 @@ describe("Help output determinism", () => {
 			commandMetaRegistry.build,
 			noColor,
 		);
-		const versionOutput = renderVersion("0.1.0", noColor);
+		const versionOutput = renderVersion("0.2.0", noColor);
 
 		// ISO timestamp pattern
 		const isoPattern = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
