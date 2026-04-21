@@ -778,6 +778,90 @@ export function generateHtmlPage(): string {
       color: var(--color-text-primary);
       border-bottom-color: var(--color-text-primary);
     }
+
+    /* --- Capability badges (Task 17.1) --- */
+    .badge-cap-full    { background: #d1e7dd; color: #0a3622; }
+    .badge-cap-partial { background: #fff3cd; color: #856404; }
+    .badge-cap-none    { background: #f8d7da; color: #842029; }
+    .cap-matrix { display: grid; gap: 2px; font-size: 0.72rem; margin-bottom: 20px; overflow-x: auto; }
+    .cap-matrix-header { font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.65rem; padding: 6px 8px; background: var(--color-surface-alt); border-radius: var(--radius-sm); white-space: nowrap; }
+    .cap-matrix-cell { padding: 4px 8px; border-radius: var(--radius-sm); text-align: center; font-size: 0.68rem; font-weight: 500; white-space: nowrap; }
+    .cap-matrix-label { padding: 6px 8px; font-size: 0.72rem; color: var(--color-text-secondary); white-space: nowrap; }
+    .cap-card { border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 8px; }
+    .cap-card-title { font-weight: 600; font-size: 0.825rem; margin-bottom: 8px; }
+    .cap-card-badges { display: flex; flex-wrap: wrap; gap: 4px; }
+
+    /* --- Temper panel (Task 17.2) --- */
+    .temper-panel { border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 20px; margin-top: 20px; background: var(--color-surface); }
+    .temper-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 12px; flex-wrap: wrap; }
+    .temper-panel-header h3 { font-family: var(--font-display); font-size: 1rem; font-weight: 600; margin: 0; }
+    .temper-section { margin-bottom: 16px; }
+    .temper-section-title { font-size: 0.75rem; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; cursor: pointer; user-select: none; }
+    .temper-section-title:hover { color: var(--color-text-primary); }
+    .temper-section-content { font-family: var(--font-mono); font-size: 0.78rem; background: var(--color-surface-alt); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 12px; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word; line-height: 1.5; }
+    .temper-deg-inline  { color: #0a3622; }
+    .temper-deg-comment { color: #856404; }
+    .temper-deg-omit    { color: #842029; }
+
+    /* --- Import modal (Task 17.3) --- */
+    .import-modal .modal-dialog { max-width: 560px; }
+    .import-file-list { max-height: 300px; overflow-y: auto; margin-bottom: 16px; }
+    .import-harness-group { margin-bottom: 12px; }
+    .import-harness-label { font-size: 0.78rem; font-weight: 600; color: var(--color-text-secondary); margin-bottom: 4px; }
+    .import-file-item { display: flex; align-items: center; gap: 6px; padding: 4px 0; font-size: 0.8rem; color: var(--color-text-primary); }
+    .import-file-item input { accent-color: #555; }
+    .import-toggle-row { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; font-size: 0.8rem; }
+    .import-toggle-row label { display: flex; align-items: center; gap: 4px; cursor: pointer; }
+
+    /* --- Version display (Task 17.4) --- */
+    .version-section { margin-bottom: 20px; }
+    .version-badge-upgrade { background: #cfe2ff; color: #084298; font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: var(--radius-pill); }
+    .version-not-installed { font-size: 0.8rem; color: var(--color-text-muted); font-style: italic; }
+    .changelog-section { border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 12px 16px; margin-top: 8px; font-size: 0.825rem; }
+    .changelog-section pre { font-family: var(--font-mono); font-size: 0.78rem; white-space: pre-wrap; word-wrap: break-word; }
+
+    /* --- Workspace tab (Task 17.5) --- */
+    .ws-project-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; padding: 24px; max-width: 1440px; margin: 0 auto; }
+    .ws-project-card { border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 16px 20px; cursor: pointer; background: var(--color-surface); transition: border-color 0.15s, box-shadow 0.15s; }
+    .ws-project-card:hover { border-color: var(--color-border-hover); box-shadow: var(--shadow-card-hover); }
+    .ws-project-name { font-family: var(--font-display); font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
+    .ws-project-root { font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 8px; }
+    .ws-project-meta { display: flex; gap: 12px; font-size: 0.78rem; color: var(--color-text-secondary); }
+
+    /* --- Dependency graph (Task 18.1) --- */
+    .dep-graph-container { padding: 24px; max-width: 1440px; margin: 0 auto; }
+    .dep-graph-controls { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    .dep-graph-controls select { font-family: var(--font-body); font-size: 0.8rem; padding: 4px 8px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+    .dep-graph-svg { border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); width: 100%; min-height: 400px; cursor: grab; }
+    .dep-graph-svg:active { cursor: grabbing; }
+    .dep-graph-svg text { font-family: var(--font-body); font-size: 11px; fill: var(--color-text-primary); pointer-events: none; }
+    .dep-graph-svg circle { cursor: pointer; transition: opacity 0.15s; }
+    .dep-graph-svg circle:hover { stroke-width: 3; }
+    .dep-graph-svg .dimmed { opacity: 0.2; }
+    .dep-graph-svg .highlighted { opacity: 1; }
+
+    /* --- Build dashboard (Task 19.1) --- */
+    .build-panel { padding: 24px; max-width: 960px; margin: 0 auto; }
+    .build-config { border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 20px; background: var(--color-surface); }
+    .build-config h3 { font-family: var(--font-display); font-size: 1rem; font-weight: 600; margin-bottom: 16px; }
+    .build-config-row { margin-bottom: 12px; }
+    .build-config-label { font-size: 0.75rem; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+    .build-result { border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 20px; }
+    .build-result-banner { padding: 12px 16px; border-radius: var(--radius-md); font-weight: 600; font-size: 0.875rem; margin-bottom: 12px; }
+    .build-result-banner.success { background: var(--color-success-bg); color: var(--color-success); }
+    .build-result-banner.failure { background: var(--color-error-bg); color: var(--color-error); }
+    .build-warnings, .build-errors { margin-top: 8px; }
+    .build-warnings summary, .build-errors summary { font-size: 0.8rem; font-weight: 600; cursor: pointer; padding: 4px 0; }
+    .build-warning-item, .build-error-item { font-size: 0.78rem; padding: 4px 0; border-bottom: 1px solid var(--color-border-subtle); }
+    .build-history { border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 20px; }
+    .build-history h3 { font-family: var(--font-display); font-size: 1rem; font-weight: 600; margin-bottom: 12px; }
+    .build-history-item { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--color-border-subtle); font-size: 0.8rem; cursor: pointer; }
+    .build-history-item:hover { background: var(--color-surface-alt); }
+    .build-status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
+    .build-status-dot.success { background: var(--color-status-synced); }
+    .build-status-dot.failure { background: var(--color-status-missing); }
+    .build-status-dot.none { background: var(--color-text-muted); }
+    .build-status-indicator { display: inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; color: var(--color-text-muted); margin-left: 8px; }
   </style>
 </head>
 <body>
@@ -786,12 +870,17 @@ export function generateHtmlPage(): string {
     <div class="header-divider"></div>
     <span id="artifact-count"></span>
     <span style="flex:1"></span>
+    <span id="build-status-indicator" class="build-status-indicator"></span>
+    <button id="import-btn" style="font-family:var(--font-body);font-size:0.8rem;font-weight:500;padding:6px 14px;border-radius:var(--radius-md);background:var(--color-surface);color:var(--color-text-secondary);border:1px solid var(--color-border);cursor:pointer;transition:background 0.15s;margin-right:6px" onclick="openImportModal()">Import</button>
+    <button id="build-btn" style="font-family:var(--font-body);font-size:0.8rem;font-weight:500;padding:6px 14px;border-radius:var(--radius-md);background:var(--color-surface);color:var(--color-text-secondary);border:1px solid var(--color-border);cursor:pointer;transition:background 0.15s;margin-right:6px" onclick="showView('build')">Build</button>
     <button id="new-btn" style="font-family:var(--font-body);font-size:0.8rem;font-weight:500;padding:6px 14px;border-radius:var(--radius-md);background:var(--color-text-primary);color:#fff;border:1px solid var(--color-text-primary);cursor:pointer;transition:background 0.15s" onclick="handleNewButton()">+ New Artifact</button>
   </header>
   <nav class="tab-nav" id="tab-nav">
     <div class="tab-nav-item tab-nav-item--active" data-view="artifacts" onclick="showView('artifacts')">Artifacts</div>
     <div class="tab-nav-item" data-view="collections" onclick="showView('collections')">Collections</div>
     <div class="tab-nav-item" data-view="manifest" onclick="showView('manifest')">Manifest</div>
+    <div class="tab-nav-item" data-view="graph" onclick="showView('graph')">Dependencies</div>
+    <div class="tab-nav-item" data-view="workspace" id="workspace-tab" style="display:none" onclick="showView('workspace')">Workspace</div>
   </nav>
   <div class="filters" id="artifact-filters">
     <div class="filter-search-row">
@@ -839,6 +928,9 @@ export function generateHtmlPage(): string {
   <div id="collection-detail-view" style="display:none"></div>
   <div id="manifest-view" style="display:none"></div>
   <div id="form-panel-container" style="display:none"></div>
+  <div id="workspace-view" style="display:none"></div>
+  <div id="graph-view" style="display:none"></div>
+  <div id="build-view" style="display:none"></div>
   <div class="toast-container" id="toast-container"></div>
   <div class="modal" id="modal">
     <div class="modal-overlay" onclick="hideModal()"></div>
@@ -848,6 +940,22 @@ export function generateHtmlPage(): string {
       <div class="modal-actions">
         <button class="btn-cancel" onclick="hideModal()">Cancel</button>
         <button class="btn-danger" id="modal-confirm-btn">Confirm</button>
+      </div>
+    </div>
+  </div>
+  <div class="modal import-modal" id="import-modal">
+    <div class="modal-overlay" onclick="hideImportModal()"></div>
+    <div class="modal-dialog" style="max-width:560px">
+      <h3>Import Harness Files</h3>
+      <div id="import-scan-status" style="font-size:0.825rem;color:var(--color-text-secondary);margin-bottom:12px">Scanning...</div>
+      <div id="import-file-list" class="import-file-list"></div>
+      <div class="import-toggle-row">
+        <label><input type="checkbox" id="import-dry-run"> Dry Run</label>
+        <label><input type="checkbox" id="import-force"> Force Overwrite</label>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="hideImportModal()">Cancel</button>
+        <button class="btn-submit" id="import-confirm-btn" onclick="executeImport()">Import</button>
       </div>
     </div>
   </div>
@@ -1248,8 +1356,10 @@ export function generateHtmlPage(): string {
         (keywordsHtml ? '<div class="card-keywords" style="margin-bottom:20px">' + keywordsHtml + '</div>' : '') +
         '<div style="margin-bottom:16px">' +
           '<button id="detail-edit-btn" style="font-size:0.78rem;padding:5px 12px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);cursor:pointer;margin-right:8px">Edit</button>' +
-          '<button id="detail-delete-btn" style="font-size:0.78rem;padding:5px 12px;border:1px solid var(--color-error);border-radius:var(--radius-md);background:var(--color-surface);color:var(--color-error);cursor:pointer">Delete</button>' +
+          '<button id="detail-delete-btn" style="font-size:0.78rem;padding:5px 12px;border:1px solid var(--color-error);border-radius:var(--radius-md);background:var(--color-surface);color:var(--color-error);cursor:pointer;margin-right:8px">Delete</button>' +
+          '<button id="detail-preview-btn" style="font-size:0.78rem;padding:5px 12px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);cursor:pointer">Preview</button>' +
         '</div>' +
+        '<div id="detail-version-section" class="version-section"></div>' +
         collectionBadgesHtml +
         '<div class="detail-section-label">Targets</div>' +
         '<div style="font-size:0.875rem;color:#444;margin-bottom:20px;line-height:2">' +
@@ -1260,10 +1370,13 @@ export function generateHtmlPage(): string {
             (fmt ? ' <span style="color:#bbb;font-size:0.8rem">→</span> <span style="color:#888">' + escapeHtmlJs(fmt) + '</span>' : '');
         }).join('<br>') +
         '</div>' +
+        '<div id="detail-capabilities-section"></div>' +
+        '<div id="detail-dependencies-section"></div>' +
         '<div class="detail-section-label">Details</div>' +
         '<div class="detail-meta">' + metaRows + '</div>' +
         '<div class="detail-section-label">Source</div>' +
-        '<div class="detail-content"><pre>Loading...</pre></div>';
+        '<div class="detail-content"><pre>Loading...</pre></div>' +
+        '<div id="detail-temper-panel"></div>';
 
       detailView.innerHTML = html;
 
@@ -1273,6 +1386,24 @@ export function generateHtmlPage(): string {
 
       // Wire edit/delete buttons (task 8.2)
       wireDetailActions(entry);
+
+      // Wire preview button (task 17.2)
+      var previewBtn = document.getElementById('detail-preview-btn');
+      if (previewBtn) {
+        previewBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          loadTemperPanel(entry);
+        });
+      }
+
+      // Load capabilities (task 17.1)
+      loadCapabilities(entry);
+
+      // Load version info (task 17.4)
+      loadVersionInfo(entry);
+
+      // Load dependencies (task 18.3)
+      loadDependencySection(entry);
 
       // Wire collection badge clicks (task 9.4)
       var colBadges = detailView.querySelectorAll('.artifact-collection-badge');
@@ -1385,6 +1516,9 @@ export function generateHtmlPage(): string {
       document.getElementById('form-panel-container').style.display = 'none';
       document.getElementById('artifact-filters').style.display = 'none';
       document.getElementById('collection-filters').style.display = 'none';
+      document.getElementById('workspace-view').style.display = 'none';
+      document.getElementById('graph-view').style.display = 'none';
+      document.getElementById('build-view').style.display = 'none';
 
       // Update tab active state
       var tabs = document.querySelectorAll('.tab-nav-item');
@@ -1407,6 +1541,8 @@ export function generateHtmlPage(): string {
       } else if (viewName === 'manifest') {
         newBtn.textContent = '+ Add Entry';
         newBtn.style.display = '';
+      } else {
+        newBtn.style.display = 'none';
       }
 
       if (viewName === 'artifacts') {
@@ -1419,6 +1555,15 @@ export function generateHtmlPage(): string {
       } else if (viewName === 'manifest') {
         document.getElementById('manifest-view').style.display = 'block';
         loadManifest();
+      } else if (viewName === 'workspace') {
+        document.getElementById('workspace-view').style.display = 'block';
+        loadWorkspace();
+      } else if (viewName === 'graph') {
+        document.getElementById('graph-view').style.display = 'block';
+        loadGraph();
+      } else if (viewName === 'build') {
+        document.getElementById('build-view').style.display = 'block';
+        renderBuildPanel();
       }
     }
 
@@ -2393,6 +2538,1021 @@ export function generateHtmlPage(): string {
     }
 
     // END task 10.2
+    // END task 10.2
+
+    // --- Task 17.1: Capability badges and matrix grid ---
+    var _capabilityCache = {};
+    var CAP_NAMES = ['hooks','mcp','path_scoping','workflows','toggleable_rules','agents','file_match_inclusion','system_prompt_merging'];
+
+    function loadCapabilities(entry) {
+      var section = document.getElementById('detail-capabilities-section');
+      if (!section) return;
+      if (!entry.harnesses || entry.harnesses.length === 0) { section.innerHTML = ''; return; }
+
+      function renderCaps(matrix) {
+        var harnesses = entry.harnesses;
+        var html = '<div class="detail-section-label">Harness Capabilities</div>';
+        if (harnesses.length >= 3) {
+          var cols = harnesses.length + 1;
+          html += '<div class="cap-matrix" style="grid-template-columns: auto ' + harnesses.map(function() { return '1fr'; }).join(' ') + '">';
+          html += '<div class="cap-matrix-header"></div>';
+          for (var h = 0; h < harnesses.length; h++) {
+            var icon = HARNESS_ICONS[harnesses[h]] || '';
+            html += '<div class="cap-matrix-header" style="text-align:center">' + icon + ' ' + escapeHtmlJs(harnesses[h]) + '</div>';
+          }
+          for (var c = 0; c < CAP_NAMES.length; c++) {
+            var cap = CAP_NAMES[c];
+            html += '<div class="cap-matrix-label">' + escapeHtmlJs(cap.replace(/_/g, ' ')) + '</div>';
+            for (var h = 0; h < harnesses.length; h++) {
+              var hData = matrix[harnesses[h]];
+              var capEntry = hData ? hData[cap] : null;
+              var support = capEntry ? capEntry.support : 'none';
+              var deg = capEntry && capEntry.degradation ? capEntry.degradation : '';
+              var cls = 'badge-cap-' + support;
+              var title = support + (deg ? ' (' + deg + ')' : '');
+              html += '<div class="cap-matrix-cell ' + cls + '" title="' + escapeHtmlJs(title) + '">' + escapeHtmlJs(support) + (deg ? '<br><span style="font-size:0.6rem;opacity:0.8">' + escapeHtmlJs(deg) + '</span>' : '') + '</div>';
+            }
+          }
+          html += '</div>';
+        } else {
+          for (var h = 0; h < harnesses.length; h++) {
+            var hName = harnesses[h];
+            var icon = HARNESS_ICONS[hName] || '';
+            var hData = matrix[hName];
+            html += '<div class="cap-card"><div class="cap-card-title">' + icon + ' ' + escapeHtmlJs(hName) + '</div><div class="cap-card-badges">';
+            for (var c = 0; c < CAP_NAMES.length; c++) {
+              var cap = CAP_NAMES[c];
+              var capEntry = hData ? hData[cap] : null;
+              var support = capEntry ? capEntry.support : 'none';
+              var deg = capEntry && capEntry.degradation ? capEntry.degradation : '';
+              var cls = 'badge-cap-' + support;
+              var title = cap.replace(/_/g, ' ') + ': ' + support + (deg ? ' (' + deg + ')' : '');
+              html += '<span class="badge ' + cls + '" title="' + escapeHtmlJs(title) + '">' + escapeHtmlJs(cap.replace(/_/g, ' ')) + '</span>';
+            }
+            html += '</div></div>';
+          }
+        }
+        section.innerHTML = html;
+      }
+
+      if (Object.keys(_capabilityCache).length > 0) {
+        renderCaps(_capabilityCache);
+      } else {
+        fetch('/api/capabilities')
+          .then(function(res) { return res.ok ? res.json() : {}; })
+          .then(function(data) { _capabilityCache = data; renderCaps(data); })
+          .catch(function() { section.innerHTML = ''; });
+      }
+    }
+    // END task 17.1
+
+    // --- Task 17.2: Inline temper panel ---
+    function loadTemperPanel(entry) {
+      var panel = document.getElementById('detail-temper-panel');
+      if (!panel) return;
+      var harnesses = entry.harnesses || [];
+      if (harnesses.length === 0) { panel.innerHTML = ''; return; }
+
+      var selectedHarness = harnesses[0];
+      function renderPanel() {
+        panel.innerHTML = '<div class="temper-panel">' +
+          '<div class="temper-panel-header"><h3>Preview</h3>' +
+          '<select id="temper-harness-select" style="font-family:var(--font-body);font-size:0.8rem;padding:4px 8px;border:1px solid var(--color-border);border-radius:var(--radius-md)">' +
+          harnesses.map(function(h) {
+            return '<option value="' + escapeHtmlJs(h) + '"' + (h === selectedHarness ? ' selected' : '') + '>' + escapeHtmlJs(h) + '</option>';
+          }).join('') +
+          '</select></div>' +
+          '<div id="temper-content" style="font-size:0.825rem;color:var(--color-text-secondary)">Loading...</div></div>';
+
+        document.getElementById('temper-harness-select').addEventListener('change', function() {
+          selectedHarness = this.value;
+          fetchTemper();
+        });
+        fetchTemper();
+      }
+
+      function fetchTemper() {
+        var contentEl = document.getElementById('temper-content');
+        if (contentEl) contentEl.innerHTML = '<div style="color:var(--color-text-muted)">Loading preview...</div>';
+        fetch('/api/temper', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ artifactName: entry.name, harness: selectedHarness })
+        })
+        .then(function(res) { return res.ok ? res.json() : null; })
+        .then(function(data) {
+          if (!data || !contentEl) return;
+          var html = '';
+          if (data.sections && data.sections.length > 0) {
+            for (var i = 0; i < data.sections.length; i++) {
+              var s = data.sections[i];
+              html += '<div class="temper-section">';
+              html += '<div class="temper-section-title">' + escapeHtmlJs(s.title || s.type) + '</div>';
+              html += '<div class="temper-section-content">' + escapeHtmlJs(s.content || '') + '</div>';
+              html += '</div>';
+            }
+          }
+          if (data.degradations && data.degradations.length > 0) {
+            html += '<div class="temper-section"><div class="temper-section-title">Degradation Report</div><div style="font-size:0.8rem">';
+            for (var i = 0; i < data.degradations.length; i++) {
+              var d = data.degradations[i];
+              var cls = d.strategy === 'inline' ? 'temper-deg-inline' : d.strategy === 'comment' ? 'temper-deg-comment' : 'temper-deg-omit';
+              html += '<div style="padding:4px 0"><span class="' + cls + '" style="font-weight:600">' + escapeHtmlJs(d.strategy || '') + '</span> — ' + escapeHtmlJs(d.capability || d.message || '') + '</div>';
+            }
+            html += '</div></div>';
+          }
+          if (!html) html = '<div style="color:var(--color-text-muted)">No preview data available</div>';
+          if (data.fileCount !== undefined) {
+            html += '<div style="margin-top:12px;font-size:0.75rem;color:var(--color-text-muted)">' +
+              'Files: ' + data.fileCount + ' | Hooks translated: ' + (data.hooksTranslated || 0) + ' | Hooks degraded: ' + (data.hooksDegraded || 0) +
+              (data.mcpServers ? ' | MCP servers: ' + data.mcpServers : '') + '</div>';
+          }
+          contentEl.innerHTML = html;
+        })
+        .catch(function() {
+          if (contentEl) contentEl.innerHTML = '<div style="color:var(--color-error)">Failed to load preview</div>';
+        });
+      }
+
+      renderPanel();
+    }
+    // END task 17.2
+
+    // --- Task 17.3: Import modal ---
+    function openImportModal() {
+      var modal = document.getElementById('import-modal');
+      modal.classList.add('active');
+      document.getElementById('import-scan-status').textContent = 'Scanning for harness files...';
+      document.getElementById('import-file-list').innerHTML = '';
+      document.getElementById('import-dry-run').checked = false;
+      document.getElementById('import-force').checked = false;
+
+      fetch('/api/import/scan', { method: 'POST' })
+        .then(function(res) { return res.ok ? res.json() : null; })
+        .then(function(data) {
+          if (!data) {
+            document.getElementById('import-scan-status').textContent = 'Scan failed';
+            return;
+          }
+          var harnesses = Object.keys(data);
+          var totalFiles = 0;
+          harnesses.forEach(function(h) { totalFiles += (data[h] || []).length; });
+          if (totalFiles === 0) {
+            document.getElementById('import-scan-status').textContent = 'No harness files detected';
+            return;
+          }
+          document.getElementById('import-scan-status').textContent = totalFiles + ' file(s) detected';
+          var listHtml = '';
+          for (var i = 0; i < harnesses.length; i++) {
+            var h = harnesses[i];
+            var files = data[h] || [];
+            if (files.length === 0) continue;
+            var icon = HARNESS_ICONS[h] || '';
+            listHtml += '<div class="import-harness-group"><div class="import-harness-label">' + icon + ' ' + escapeHtmlJs(h) + '</div>';
+            for (var j = 0; j < files.length; j++) {
+              listHtml += '<div class="import-file-item"><input type="checkbox" class="import-file-cb" value="' + escapeHtmlJs(files[j]) + '" data-harness="' + escapeHtmlJs(h) + '" checked> ' + escapeHtmlJs(files[j]) + '</div>';
+            }
+            listHtml += '</div>';
+          }
+          document.getElementById('import-file-list').innerHTML = listHtml;
+        })
+        .catch(function() {
+          document.getElementById('import-scan-status').textContent = 'Scan failed';
+        });
+    }
+
+    function hideImportModal() {
+      document.getElementById('import-modal').classList.remove('active');
+    }
+
+    function executeImport() {
+      var cbs = document.querySelectorAll('.import-file-cb:checked');
+      var files = [];
+      for (var i = 0; i < cbs.length; i++) files.push(cbs[i].value);
+      if (files.length === 0) { showToast('No files selected', 'error'); return; }
+
+      var dryRun = document.getElementById('import-dry-run').checked;
+      var force = document.getElementById('import-force').checked;
+
+      var body = { files: files, force: force, dryRun: dryRun };
+      fetch('/api/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      })
+      .then(function(res) {
+        if (res.status === 409) {
+          return res.json().then(function(data) {
+            hideImportModal();
+            showModal('Import Conflict', 'Conflicting artifacts: ' + (data.conflicts || []).join(', ') + '. Retry with force?', function() {
+              body.force = true;
+              fetch('/api/import', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+              }).then(function(r) { return r.json(); }).then(function(result) {
+                showToast('Imported ' + (result.artifacts || []).length + ' artifact(s)', 'success');
+                refreshCatalog();
+              }).catch(function() { showToast('Import failed', 'error'); });
+            });
+            return null;
+          });
+        }
+        return res.ok ? res.json() : null;
+      })
+      .then(function(data) {
+        if (!data) return;
+        hideImportModal();
+        if (dryRun) {
+          showToast('Dry run: ' + (data.artifacts || []).length + ' artifact(s) would be imported', 'success');
+        } else {
+          showToast('Imported ' + (data.artifacts || []).length + ' artifact(s)', 'success');
+          refreshCatalog();
+        }
+      })
+      .catch(function() { showToast('Import failed', 'error'); });
+    }
+
+    function refreshCatalog() {
+      fetch('/api/catalog').then(function(r) { return r.json(); }).then(function(d) {
+        catalogData = d;
+        updateArtifactCount(catalogData.length);
+        populateHarnessFilter(catalogData);
+        populateFormatFilter(catalogData);
+        populateMaturityFilter(catalogData);
+        populateCollectionFilter(catalogData);
+        filterAndRender();
+      });
+    }
+    // END task 17.3
+
+    // --- Task 17.4: Version display and upgrade button ---
+    function loadVersionInfo(entry) {
+      var section = document.getElementById('detail-version-section');
+      if (!section) return;
+
+      fetch('/api/versions/' + encodeURIComponent(entry.name))
+        .then(function(res) { return res.ok ? res.json() : null; })
+        .then(function(data) {
+          if (!data) { section.innerHTML = ''; return; }
+          var html = '<div class="detail-section-label">Version</div>';
+          html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">';
+          html += '<span style="font-family:var(--font-mono);font-size:0.875rem;font-weight:600">' + escapeHtmlJs(data.sourceVersion || entry.version || '0.1.0') + '</span>';
+          if (data.installedVersion) {
+            html += '<span style="font-size:0.78rem;color:var(--color-text-muted)">installed: ' + escapeHtmlJs(data.installedVersion) + '</span>';
+          } else {
+            html += '<span class="version-not-installed">Not installed</span>';
+          }
+          if (data.upgradeAvailable) {
+            html += '<span class="version-badge-upgrade">Upgrade Available</span>';
+            html += '<button id="detail-upgrade-btn" style="font-size:0.75rem;padding:4px 10px;border:1px solid var(--color-info);border-radius:var(--radius-md);background:var(--color-info-bg);color:var(--color-info);cursor:pointer">Upgrade</button>';
+          }
+          html += '</div>';
+          if (data.changelog) {
+            html += '<div class="changelog-section"><div class="detail-section-label" style="margin-top:0">Changelog</div><pre>' + escapeHtmlJs(data.changelog) + '</pre></div>';
+          }
+          section.innerHTML = html;
+
+          if (data.upgradeAvailable) {
+            var upgradeBtn = document.getElementById('detail-upgrade-btn');
+            if (upgradeBtn) {
+              upgradeBtn.addEventListener('click', function() {
+                upgradeBtn.textContent = 'Upgrading...';
+                upgradeBtn.disabled = true;
+                fetch('/api/upgrade/' + encodeURIComponent(entry.name), { method: 'POST' })
+                  .then(function(res) { return res.ok ? res.json() : null; })
+                  .then(function(result) {
+                    if (result) {
+                      showToast('Upgraded to ' + (result.version || 'latest'), 'success');
+                      loadVersionInfo(entry);
+                    } else {
+                      showToast('Upgrade failed', 'error');
+                      upgradeBtn.textContent = 'Upgrade';
+                      upgradeBtn.disabled = false;
+                    }
+                  })
+                  .catch(function() {
+                    showToast('Upgrade failed', 'error');
+                    upgradeBtn.textContent = 'Upgrade';
+                    upgradeBtn.disabled = false;
+                  });
+              });
+            }
+          }
+        })
+        .catch(function() { section.innerHTML = ''; });
+    }
+    // END task 17.4
+
+    // --- Task 17.5: Workspace tab ---
+    var workspaceData = null;
+
+    function loadWorkspace() {
+      var view = document.getElementById('workspace-view');
+      view.style.padding = '24px';
+      view.style.maxWidth = '1440px';
+      view.style.margin = '0 auto';
+      view.innerHTML = '<div class="empty-state">Loading workspace...</div>';
+
+      fetch('/api/workspace')
+        .then(function(res) {
+          if (res.status === 404) return null;
+          return res.ok ? res.json() : null;
+        })
+        .then(function(data) {
+          workspaceData = data;
+          if (!data || !data.projects || data.projects.length === 0) {
+            view.innerHTML = '<div class="empty-state">No workspace configuration found</div>';
+            return;
+          }
+          renderWorkspaceList(data);
+        })
+        .catch(function() {
+          view.innerHTML = '<div class="empty-state">Failed to load workspace</div>';
+        });
+    }
+
+    function renderWorkspaceList(data) {
+      var view = document.getElementById('workspace-view');
+      var projects = data.projects || [];
+      var html = '<div class="ws-project-list">';
+      for (var i = 0; i < projects.length; i++) {
+        var p = projects[i];
+        var artifactCount = 0;
+        if (p.artifacts && p.artifacts.include) artifactCount = p.artifacts.include.length;
+        html += '<div class="ws-project-card" data-project="' + escapeHtmlJs(p.name) + '">' +
+          '<div class="ws-project-name">' + escapeHtmlJs(p.name) + '</div>' +
+          '<div class="ws-project-root">' + escapeHtmlJs(p.root) + '</div>' +
+          '<div class="ws-project-meta">' +
+            '<span>' + (p.harnesses || []).map(function(h) { return (HARNESS_ICONS[h] || '') + ' ' + h; }).join(', ') + '</span>' +
+            '<span>' + artifactCount + ' artifact(s)</span>' +
+          '</div></div>';
+      }
+      html += '</div>';
+      view.innerHTML = html;
+
+      var cards = view.querySelectorAll('.ws-project-card');
+      for (var i = 0; i < cards.length; i++) {
+        cards[i].addEventListener('click', function() {
+          showWorkspaceDetail(this.getAttribute('data-project'));
+        });
+      }
+    }
+
+    function showWorkspaceDetail(projectName) {
+      if (!workspaceData || !workspaceData.projects) return;
+      var project = null;
+      for (var i = 0; i < workspaceData.projects.length; i++) {
+        if (workspaceData.projects[i].name === projectName) { project = workspaceData.projects[i]; break; }
+      }
+      if (!project) return;
+
+      var view = document.getElementById('workspace-view');
+      var html = '<div style="max-width:860px;margin:0 auto">' +
+        '<div class="detail-back" id="ws-back-link"><span class="detail-back-arrow">\u2190</span> Workspace</div>' +
+        '<h2 style="font-family:var(--font-display);font-size:1.5rem;font-weight:700;margin-bottom:4px">' + escapeHtmlJs(project.name) + '</h2>' +
+        '<div style="font-family:var(--font-mono);font-size:0.8rem;color:var(--color-text-muted);margin-bottom:16px">' + escapeHtmlJs(project.root) + '</div>' +
+        '<div class="detail-section-label">Harnesses</div>' +
+        '<div style="margin-bottom:16px">' + (project.harnesses || []).map(function(h) {
+          return '<span class="badge badge-maturity-stable" style="margin-right:4px">' + (HARNESS_ICONS[h] || '') + ' ' + escapeHtmlJs(h) + '</span>';
+        }).join('') + '</div>';
+
+      if (project.artifacts) {
+        html += '<div class="detail-section-label">Artifacts</div><div style="margin-bottom:16px;font-size:0.825rem">';
+        if (project.artifacts.include && project.artifacts.include.length > 0) {
+          html += '<div style="margin-bottom:4px"><strong>Include:</strong> ' + project.artifacts.include.map(function(a) { return escapeHtmlJs(a); }).join(', ') + '</div>';
+        }
+        if (project.artifacts.exclude && project.artifacts.exclude.length > 0) {
+          html += '<div><strong>Exclude:</strong> ' + project.artifacts.exclude.map(function(a) { return escapeHtmlJs(a); }).join(', ') + '</div>';
+        }
+        html += '</div>';
+      }
+
+      if (project.overrides && Object.keys(project.overrides).length > 0) {
+        html += '<div class="detail-section-label">Overrides</div><div class="detail-content"><pre>' + escapeHtmlJs(JSON.stringify(project.overrides, null, 2)) + '</pre></div>';
+      }
+
+      html += '<div style="margin-top:20px"><button id="ws-edit-btn" style="font-size:0.78rem;padding:5px 12px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);cursor:pointer">Edit Project</button></div>';
+      html += '<div id="ws-edit-errors" style="margin-top:8px"></div>';
+      html += '</div>';
+      view.innerHTML = html;
+
+      document.getElementById('ws-back-link').addEventListener('click', function() {
+        renderWorkspaceList(workspaceData);
+      });
+
+      document.getElementById('ws-edit-btn').addEventListener('click', function() {
+        showWorkspaceEditForm(project);
+      });
+    }
+
+    function showWorkspaceEditForm(project) {
+      var view = document.getElementById('workspace-view');
+      var html = '<div style="max-width:640px;margin:0 auto;padding:32px 40px">' +
+        '<div class="detail-back" id="ws-edit-back"><span class="detail-back-arrow">\u2190</span> Back</div>' +
+        '<h2 style="font-family:var(--font-display);font-size:1.25rem;font-weight:700;margin-bottom:16px">Edit: ' + escapeHtmlJs(project.name) + '</h2>' +
+        '<div class="form-group"><label class="form-label">Harnesses</label>' +
+        '<div class="form-checkbox-group">' + ALL_HARNESSES.map(function(h) {
+          var checked = (project.harnesses || []).indexOf(h) !== -1 ? ' checked' : '';
+          return '<label><input type="checkbox" name="ws-harness" value="' + escapeHtmlJs(h) + '"' + checked + '> ' + escapeHtmlJs(h) + '</label>';
+        }).join('') + '</div></div>' +
+        '<div class="form-group"><label class="form-label">Include Artifacts (comma-separated)</label>' +
+        '<input class="form-input" id="ws-include" value="' + escapeHtmlJs((project.artifacts && project.artifacts.include || []).join(', ')) + '"></div>' +
+        '<div class="form-group"><label class="form-label">Exclude Artifacts (comma-separated)</label>' +
+        '<input class="form-input" id="ws-exclude" value="' + escapeHtmlJs((project.artifacts && project.artifacts.exclude || []).join(', ')) + '"></div>' +
+        '<div class="form-group"><label class="form-label">Overrides (JSON)</label>' +
+        '<textarea class="form-textarea mono" id="ws-overrides">' + escapeHtmlJs(JSON.stringify(project.overrides || {}, null, 2)) + '</textarea></div>' +
+        '<div id="ws-save-errors" style="color:var(--color-error);font-size:0.8rem;margin-bottom:8px"></div>' +
+        '<div class="form-actions"><button type="button" class="btn-cancel" id="ws-cancel-btn">Cancel</button>' +
+        '<button type="button" class="btn-submit" id="ws-save-btn">Save</button></div></div>';
+      view.innerHTML = html;
+
+      document.getElementById('ws-edit-back').addEventListener('click', function() { showWorkspaceDetail(project.name); });
+      document.getElementById('ws-cancel-btn').addEventListener('click', function() { showWorkspaceDetail(project.name); });
+      document.getElementById('ws-save-btn').addEventListener('click', function() {
+        var hCbs = document.querySelectorAll('input[name="ws-harness"]:checked');
+        var harnesses = [];
+        for (var i = 0; i < hCbs.length; i++) harnesses.push(hCbs[i].value);
+        var include = parseCommaSeparated(document.getElementById('ws-include').value);
+        var exclude = parseCommaSeparated(document.getElementById('ws-exclude').value);
+        var overrides = {};
+        try { overrides = JSON.parse(document.getElementById('ws-overrides').value || '{}'); } catch(e) {
+          document.getElementById('ws-save-errors').textContent = 'Invalid JSON in overrides';
+          return;
+        }
+        var body = { harnesses: harnesses, artifacts: { include: include, exclude: exclude }, overrides: overrides };
+        fetch('/api/workspace/projects/' + encodeURIComponent(project.name), {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        })
+        .then(function(res) {
+          if (res.ok) return res.json();
+          return res.json().then(function(err) { throw err; });
+        })
+        .then(function() {
+          showToast('Project updated', 'success');
+          loadWorkspace();
+        })
+        .catch(function(err) {
+          var msg = (err && err.error) || 'Save failed';
+          document.getElementById('ws-save-errors').textContent = msg;
+          showToast(msg, 'error');
+        });
+      });
+    }
+
+    // Check workspace on init to show/hide tab
+    document.addEventListener('DOMContentLoaded', function() {
+      fetch('/api/workspace')
+        .then(function(res) {
+          if (res.ok) {
+            return res.json().then(function(data) {
+              if (data && data.projects && data.projects.length > 0) {
+                document.getElementById('workspace-tab').style.display = '';
+              }
+            });
+          }
+        })
+        .catch(function() {});
+    });
+    // END task 17.5
+
+    // --- Task 18.1: Dependency graph SVG renderer ---
+    var graphData = null;
+
+    function loadGraph() {
+      var view = document.getElementById('graph-view');
+      view.innerHTML = '<div class="dep-graph-container"><div class="empty-state">Loading graph...</div></div>';
+
+      fetch('/api/graph')
+        .then(function(res) { return res.ok ? res.json() : { nodes: [], edges: [] }; })
+        .then(function(data) {
+          graphData = data;
+          renderGraph(data);
+        })
+        .catch(function() {
+          view.innerHTML = '<div class="dep-graph-container"><div class="empty-state">Failed to load graph</div></div>';
+        });
+    }
+
+    var TYPE_COLORS = {
+      skill: '#6366f1',
+      power: '#10b981',
+      rule: '#f59e0b',
+      workflow: '#ec4899',
+      prompt: '#8b5cf6',
+      agent: '#06b6d4',
+      template: '#84cc16',
+      reference: '#64748b'
+    };
+
+    function renderGraph(data) {
+      var view = document.getElementById('graph-view');
+      var nodes = data.nodes || [];
+      var edges = data.edges || [];
+
+      if (edges.length === 0) {
+        view.innerHTML = '<div class="dep-graph-container"><div class="empty-state">No dependency relationships found. Add <code>depends</code> or <code>enhances</code> fields to artifact frontmatter.</div></div>';
+        return;
+      }
+
+      // Collect types for filter
+      var types = {};
+      nodes.forEach(function(n) { if (n.type) types[n.type] = true; });
+      var typeList = Object.keys(types).sort();
+
+      var html = '<div class="dep-graph-container">' +
+        '<div class="dep-graph-controls">' +
+        '<select id="graph-type-filter"><option value="">All types</option>' +
+        typeList.map(function(t) { return '<option value="' + escapeHtmlJs(t) + '">' + escapeHtmlJs(t) + '</option>'; }).join('') +
+        '</select>' +
+        '<span style="font-size:0.75rem;color:var(--color-text-muted)">' + nodes.length + ' nodes, ' + edges.length + ' edges</span>' +
+        '</div>' +
+        '<svg id="graph-svg" class="dep-graph-svg" width="100%" height="500">' +
+        '<defs><marker id="arrow-depends" viewBox="0 0 10 10" refX="20" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6366f1"/></marker>' +
+        '<marker id="arrow-enhances" viewBox="0 0 10 10" refX="20" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981"/></marker></defs>' +
+        '<g id="graph-edges"></g><g id="graph-nodes"></g></svg></div>';
+      view.innerHTML = html;
+
+      var svg = document.getElementById('graph-svg');
+      var svgWidth = svg.clientWidth || 800;
+      var svgHeight = 500;
+
+      // Force-directed layout
+      var nodeMap = {};
+      for (var i = 0; i < nodes.length; i++) {
+        nodeMap[nodes[i].name] = {
+          x: svgWidth / 2 + (Math.random() - 0.5) * svgWidth * 0.6,
+          y: svgHeight / 2 + (Math.random() - 0.5) * svgHeight * 0.6,
+          vx: 0, vy: 0,
+          name: nodes[i].name,
+          displayName: nodes[i].displayName || nodes[i].name,
+          type: nodes[i].type || 'skill'
+        };
+      }
+
+      // Simple force simulation
+      for (var iter = 0; iter < 100; iter++) {
+        // Repulsion between all nodes
+        var nodeKeys = Object.keys(nodeMap);
+        for (var i = 0; i < nodeKeys.length; i++) {
+          for (var j = i + 1; j < nodeKeys.length; j++) {
+            var a = nodeMap[nodeKeys[i]], b = nodeMap[nodeKeys[j]];
+            var dx = b.x - a.x, dy = b.y - a.y;
+            var dist = Math.sqrt(dx * dx + dy * dy) || 1;
+            var force = 5000 / (dist * dist);
+            var fx = (dx / dist) * force, fy = (dy / dist) * force;
+            a.vx -= fx; a.vy -= fy;
+            b.vx += fx; b.vy += fy;
+          }
+        }
+        // Attraction along edges
+        for (var i = 0; i < edges.length; i++) {
+          var src = nodeMap[edges[i].source], tgt = nodeMap[edges[i].target];
+          if (!src || !tgt) continue;
+          var dx = tgt.x - src.x, dy = tgt.y - src.y;
+          var dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          var force = (dist - 120) * 0.01;
+          var fx = (dx / dist) * force, fy = (dy / dist) * force;
+          src.vx += fx; src.vy += fy;
+          tgt.vx -= fx; tgt.vy -= fy;
+        }
+        // Center gravity
+        for (var i = 0; i < nodeKeys.length; i++) {
+          var n = nodeMap[nodeKeys[i]];
+          n.vx += (svgWidth / 2 - n.x) * 0.005;
+          n.vy += (svgHeight / 2 - n.y) * 0.005;
+          n.vx *= 0.8; n.vy *= 0.8;
+          n.x += n.vx; n.y += n.vy;
+          n.x = Math.max(30, Math.min(svgWidth - 30, n.x));
+          n.y = Math.max(30, Math.min(svgHeight - 30, n.y));
+        }
+      }
+
+      drawGraph(nodes, edges, nodeMap);
+
+      // Wire filter
+      document.getElementById('graph-type-filter').addEventListener('change', function() {
+        var filterType = this.value;
+        var filteredNodes = filterType ? nodes.filter(function(n) { return n.type === filterType; }) : nodes;
+        var filteredNames = {};
+        filteredNodes.forEach(function(n) { filteredNames[n.name] = true; });
+        var filteredEdges = edges.filter(function(e) { return filteredNames[e.source] || filteredNames[e.target]; });
+        drawGraph(filteredNodes, filteredEdges, nodeMap);
+      });
+
+      // Pan and zoom (task 18.2)
+      var viewBox = { x: 0, y: 0, w: svgWidth, h: svgHeight };
+      var isPanning = false, panStart = { x: 0, y: 0 };
+
+      svg.setAttribute('viewBox', viewBox.x + ' ' + viewBox.y + ' ' + viewBox.w + ' ' + viewBox.h);
+
+      svg.addEventListener('mousedown', function(e) {
+        if (e.target.tagName === 'circle' || e.target.tagName === 'text') return;
+        isPanning = true;
+        panStart = { x: e.clientX, y: e.clientY };
+      });
+      svg.addEventListener('mousemove', function(e) {
+        if (!isPanning) return;
+        var dx = (e.clientX - panStart.x) * (viewBox.w / svgWidth);
+        var dy = (e.clientY - panStart.y) * (viewBox.h / svgHeight);
+        viewBox.x -= dx; viewBox.y -= dy;
+        panStart = { x: e.clientX, y: e.clientY };
+        svg.setAttribute('viewBox', viewBox.x + ' ' + viewBox.y + ' ' + viewBox.w + ' ' + viewBox.h);
+      });
+      svg.addEventListener('mouseup', function() { isPanning = false; });
+      svg.addEventListener('mouseleave', function() { isPanning = false; });
+      svg.addEventListener('wheel', function(e) {
+        e.preventDefault();
+        var scale = e.deltaY > 0 ? 1.1 : 0.9;
+        var mx = viewBox.x + viewBox.w * (e.offsetX / svgWidth);
+        var my = viewBox.y + viewBox.h * (e.offsetY / svgHeight);
+        viewBox.w *= scale; viewBox.h *= scale;
+        viewBox.x = mx - viewBox.w * (e.offsetX / svgWidth);
+        viewBox.y = my - viewBox.h * (e.offsetY / svgHeight);
+        svg.setAttribute('viewBox', viewBox.x + ' ' + viewBox.y + ' ' + viewBox.w + ' ' + viewBox.h);
+      });
+    }
+
+    function drawGraph(nodes, edges, nodeMap) {
+      var edgesG = document.getElementById('graph-edges');
+      var nodesG = document.getElementById('graph-nodes');
+      edgesG.innerHTML = '';
+      nodesG.innerHTML = '';
+
+      // Draw edges
+      for (var i = 0; i < edges.length; i++) {
+        var e = edges[i];
+        var src = nodeMap[e.source], tgt = nodeMap[e.target];
+        if (!src || !tgt) continue;
+        var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', src.x); line.setAttribute('y1', src.y);
+        line.setAttribute('x2', tgt.x); line.setAttribute('y2', tgt.y);
+        line.setAttribute('data-source', e.source);
+        line.setAttribute('data-target', e.target);
+        if (e.type === 'enhances') {
+          line.setAttribute('stroke', '#10b981');
+          line.setAttribute('stroke-dasharray', '6,3');
+          line.setAttribute('marker-end', 'url(#arrow-enhances)');
+        } else {
+          line.setAttribute('stroke', '#6366f1');
+          line.setAttribute('marker-end', 'url(#arrow-depends)');
+        }
+        line.setAttribute('stroke-width', '1.5');
+        edgesG.appendChild(line);
+      }
+
+      // Draw nodes
+      for (var i = 0; i < nodes.length; i++) {
+        var n = nodeMap[nodes[i].name];
+        if (!n) continue;
+        var color = TYPE_COLORS[n.type] || '#64748b';
+        var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', n.x); circle.setAttribute('cy', n.y);
+        circle.setAttribute('r', '12');
+        circle.setAttribute('fill', color);
+        circle.setAttribute('stroke', '#fff');
+        circle.setAttribute('stroke-width', '2');
+        circle.setAttribute('data-name', n.name);
+        // Click to navigate (task 18.2)
+        circle.addEventListener('click', function() {
+          var name = this.getAttribute('data-name');
+          showView('artifacts');
+          showDetailView(name);
+        });
+        // Hover to highlight (task 18.2)
+        circle.addEventListener('mouseenter', function() {
+          highlightNode(this.getAttribute('data-name'));
+        });
+        circle.addEventListener('mouseleave', function() {
+          clearHighlight();
+        });
+        nodesG.appendChild(circle);
+
+        var text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', n.x); text.setAttribute('y', n.y + 22);
+        text.setAttribute('text-anchor', 'middle');
+        text.textContent = n.displayName;
+        nodesG.appendChild(text);
+      }
+    }
+
+    // --- Task 18.2: Dependency graph interactions ---
+    function highlightNode(name) {
+      var svg = document.getElementById('graph-svg');
+      if (!svg) return;
+      var connected = {};
+      connected[name] = true;
+      var lines = svg.querySelectorAll('line');
+      for (var i = 0; i < lines.length; i++) {
+        var src = lines[i].getAttribute('data-source');
+        var tgt = lines[i].getAttribute('data-target');
+        if (src === name || tgt === name) {
+          connected[src] = true;
+          connected[tgt] = true;
+          lines[i].classList.add('highlighted');
+          lines[i].classList.remove('dimmed');
+        } else {
+          lines[i].classList.add('dimmed');
+          lines[i].classList.remove('highlighted');
+        }
+      }
+      var circles = svg.querySelectorAll('circle');
+      for (var i = 0; i < circles.length; i++) {
+        var n = circles[i].getAttribute('data-name');
+        if (connected[n]) {
+          circles[i].classList.add('highlighted');
+          circles[i].classList.remove('dimmed');
+        } else {
+          circles[i].classList.add('dimmed');
+          circles[i].classList.remove('highlighted');
+        }
+      }
+    }
+
+    function clearHighlight() {
+      var svg = document.getElementById('graph-svg');
+      if (!svg) return;
+      var els = svg.querySelectorAll('.dimmed, .highlighted');
+      for (var i = 0; i < els.length; i++) {
+        els[i].classList.remove('dimmed', 'highlighted');
+      }
+    }
+    // END task 18.1, 18.2
+
+    // --- Task 18.3: Artifact-scoped dependency section ---
+    function loadDependencySection(entry) {
+      var section = document.getElementById('detail-dependencies-section');
+      if (!section) return;
+
+      var depends = entry.depends || [];
+      var enhances = entry.enhances || [];
+
+      // Find dependents (artifacts that depend on this one)
+      var dependents = [];
+      var enhancedBy = [];
+      for (var i = 0; i < catalogData.length; i++) {
+        var other = catalogData[i];
+        if (other.name === entry.name) continue;
+        if (other.depends && other.depends.indexOf(entry.name) !== -1) dependents.push(other.name);
+        if (other.enhances && other.enhances.indexOf(entry.name) !== -1) enhancedBy.push(other.name);
+      }
+
+      if (depends.length === 0 && enhances.length === 0 && dependents.length === 0 && enhancedBy.length === 0) {
+        section.innerHTML = '';
+        return;
+      }
+
+      var catalogNames = {};
+      for (var i = 0; i < catalogData.length; i++) catalogNames[catalogData[i].name] = true;
+
+      var html = '<div class="detail-section-label">Dependencies</div><div style="margin-bottom:20px;font-size:0.825rem">';
+
+      if (depends.length > 0) {
+        html += '<div style="margin-bottom:8px"><strong>Depends on:</strong> ';
+        html += depends.map(function(d) {
+          var missing = !catalogNames[d];
+          var warn = missing ? ' <span style="color:var(--color-error);font-size:0.75rem" title="Not found in catalog">\u26A0</span>' : '';
+          return '<a href="#" class="dep-link" data-name="' + escapeHtmlJs(d) + '" style="color:var(--color-info);text-decoration:none;font-family:var(--font-mono);font-size:0.8rem">' + escapeHtmlJs(d) + '</a>' + warn;
+        }).join(', ');
+        html += '</div>';
+      }
+
+      if (enhances.length > 0) {
+        html += '<div style="margin-bottom:8px"><strong>Enhances:</strong> ';
+        html += enhances.map(function(d) {
+          var missing = !catalogNames[d];
+          var warn = missing ? ' <span style="color:var(--color-error);font-size:0.75rem" title="Not found in catalog">\u26A0</span>' : '';
+          return '<a href="#" class="dep-link" data-name="' + escapeHtmlJs(d) + '" style="color:var(--color-info);text-decoration:none;font-family:var(--font-mono);font-size:0.8rem">' + escapeHtmlJs(d) + '</a>' + warn;
+        }).join(', ');
+        html += '</div>';
+      }
+
+      if (dependents.length > 0) {
+        html += '<div style="margin-bottom:8px"><strong>Depended on by:</strong> ';
+        html += dependents.map(function(d) {
+          return '<a href="#" class="dep-link" data-name="' + escapeHtmlJs(d) + '" style="color:var(--color-info);text-decoration:none;font-family:var(--font-mono);font-size:0.8rem">' + escapeHtmlJs(d) + '</a>';
+        }).join(', ');
+        html += '</div>';
+      }
+
+      if (enhancedBy.length > 0) {
+        html += '<div style="margin-bottom:8px"><strong>Enhanced by:</strong> ';
+        html += enhancedBy.map(function(d) {
+          return '<a href="#" class="dep-link" data-name="' + escapeHtmlJs(d) + '" style="color:var(--color-info);text-decoration:none;font-family:var(--font-mono);font-size:0.8rem">' + escapeHtmlJs(d) + '</a>';
+        }).join(', ');
+        html += '</div>';
+      }
+
+      html += '</div>';
+      section.innerHTML = html;
+
+      // Wire dependency links
+      var links = section.querySelectorAll('.dep-link');
+      for (var i = 0; i < links.length; i++) {
+        links[i].addEventListener('click', function(e) {
+          e.preventDefault();
+          showDetailView(this.getAttribute('data-name'));
+        });
+      }
+    }
+    // END task 18.3
+
+    // --- Task 19.1: Build dashboard panel ---
+    var buildHistory = [];
+
+    function renderBuildPanel() {
+      var view = document.getElementById('build-view');
+      var savedConfig = loadBuildConfig();
+
+      var html = '<div class="build-panel">' +
+        '<div class="build-config"><h3>Build Configuration</h3>' +
+        '<div class="build-config-row"><div class="build-config-label">Harnesses</div>' +
+        '<div class="form-checkbox-group">' + ALL_HARNESSES.map(function(h) {
+          var checked = savedConfig.harnesses.indexOf(h) !== -1 ? ' checked' : '';
+          return '<label><input type="checkbox" name="build-harness" value="' + escapeHtmlJs(h) + '"' + checked + '> ' + (HARNESS_ICONS[h] || '') + ' ' + escapeHtmlJs(h) + '</label>';
+        }).join('') + '</div></div>' +
+        '<div class="build-config-row"><div class="build-config-label">Artifacts</div>' +
+        '<input class="form-input" id="build-artifacts" placeholder="All artifacts (or comma-separated names)" value="' + escapeHtmlJs((savedConfig.artifacts || []).join(', ')) + '" style="font-size:0.8rem"></div>' +
+        '<div class="build-config-row"><div class="build-config-label">Options</div>' +
+        '<label style="font-size:0.8rem;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="build-strict"' + (savedConfig.strict ? ' checked' : '') + '> Strict mode (fail on degradation)</label></div>' +
+        '<div style="margin-top:16px"><button class="btn-submit" id="build-trigger-btn" onclick="triggerBuild()">Build</button></div></div>' +
+        '<div id="build-result-container"></div>' +
+        '<div id="build-history-container"></div></div>';
+      view.innerHTML = html;
+
+      renderBuildHistory();
+      loadBuildStatus();
+    }
+
+    function triggerBuild() {
+      var btn = document.getElementById('build-trigger-btn');
+      btn.textContent = 'Building...';
+      btn.disabled = true;
+
+      var hCbs = document.querySelectorAll('input[name="build-harness"]:checked');
+      var harnesses = [];
+      for (var i = 0; i < hCbs.length; i++) harnesses.push(hCbs[i].value);
+      var artifactsStr = (document.getElementById('build-artifacts') || {}).value || '';
+      var artifacts = parseCommaSeparated(artifactsStr);
+      var strict = document.getElementById('build-strict').checked;
+
+      // Save config (task 19.3)
+      saveBuildConfig({ harnesses: harnesses, artifacts: artifacts, strict: strict });
+
+      var body = {};
+      if (harnesses.length > 0 && harnesses.length < ALL_HARNESSES.length) body.harness = harnesses;
+      if (artifacts.length > 0) body.artifacts = artifacts;
+      if (strict) body.strict = true;
+
+      fetch('/api/build', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(result) {
+        btn.textContent = 'Build';
+        btn.disabled = false;
+        displayBuildResult(result);
+        buildHistory.unshift(result);
+        if (buildHistory.length > 10) buildHistory = buildHistory.slice(0, 10);
+        renderBuildHistory();
+        updateBuildStatusIndicator(result);
+      })
+      .catch(function() {
+        btn.textContent = 'Build';
+        btn.disabled = false;
+        showToast('Build failed', 'error');
+      });
+    }
+
+    function displayBuildResult(result) {
+      var container = document.getElementById('build-result-container');
+      if (!container) return;
+      var status = result.status || (result.errors && result.errors.length > 0 ? 'failure' : 'success');
+      var bannerClass = status === 'success' ? 'success' : 'failure';
+      var html = '<div class="build-result">' +
+        '<div class="build-result-banner ' + bannerClass + '">' +
+        (status === 'success' ? '\u2713 Build succeeded' : '\u2717 Build failed') +
+        ' \u2014 ' + (result.artifactsCompiled || 0) + ' artifact(s), ' + (result.filesWritten || 0) + ' file(s)' +
+        '</div>';
+
+      if (result.warnings && result.warnings.length > 0) {
+        html += '<details class="build-warnings"><summary>\u26A0 ' + result.warnings.length + ' warning(s)</summary>';
+        for (var i = 0; i < result.warnings.length; i++) {
+          var w = result.warnings[i];
+          html += '<div class="build-warning-item">';
+          if (w.artifactName) html += '<strong>' + escapeHtmlJs(w.artifactName) + '</strong>';
+          if (w.harnessName) html += ' \u2192 ' + escapeHtmlJs(w.harnessName);
+          html += ': ' + escapeHtmlJs(w.message || '') + '</div>';
+        }
+        html += '</details>';
+      }
+
+      if (result.errors && result.errors.length > 0) {
+        html += '<details class="build-errors" open><summary>\u2717 ' + result.errors.length + ' error(s)</summary>';
+        for (var i = 0; i < result.errors.length; i++) {
+          var e = result.errors[i];
+          html += '<div class="build-error-item">';
+          if (e.artifactName) html += '<strong>' + escapeHtmlJs(e.artifactName) + '</strong>';
+          if (e.harnessName) html += ' \u2192 ' + escapeHtmlJs(e.harnessName);
+          html += ': ' + escapeHtmlJs(e.message || '') + '</div>';
+        }
+        html += '</details>';
+      }
+
+      html += '</div>';
+      container.innerHTML = html;
+    }
+    // END task 19.1
+
+    // --- Task 19.2: Build status indicator and history ---
+    function loadBuildStatus() {
+      fetch('/api/build/status')
+        .then(function(res) { return res.ok ? res.json() : null; })
+        .then(function(data) {
+          if (data) {
+            updateBuildStatusIndicator(data);
+            if (data.history) buildHistory = data.history;
+            renderBuildHistory();
+          }
+        })
+        .catch(function() {});
+    }
+
+    function updateBuildStatusIndicator(result) {
+      var indicator = document.getElementById('build-status-indicator');
+      if (!indicator) return;
+      var status = result.status || (result.errors && result.errors.length > 0 ? 'failure' : 'success');
+      if (status === 'success') {
+        indicator.innerHTML = '<span class="build-status-dot success"></span> Build OK';
+      } else {
+        indicator.innerHTML = '<span class="build-status-dot failure"></span> Build failed';
+      }
+    }
+
+    function renderBuildHistory() {
+      var container = document.getElementById('build-history-container');
+      if (!container) return;
+      if (buildHistory.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+      var html = '<div class="build-history"><h3>Build History</h3>';
+      for (var i = 0; i < buildHistory.length; i++) {
+        var b = buildHistory[i];
+        var status = b.status || (b.errors && b.errors.length > 0 ? 'failure' : 'success');
+        var ts = b.timestamp ? new Date(b.timestamp).toLocaleString() : 'Unknown';
+        var warnCount = (b.warnings || []).length;
+        var errCount = (b.errors || []).length;
+        html += '<div class="build-history-item" data-idx="' + i + '">' +
+          '<span class="build-status-dot ' + status + '"></span>' +
+          '<span>' + escapeHtmlJs(ts) + '</span>' +
+          '<span>' + (b.artifactsCompiled || 0) + ' artifacts</span>' +
+          (warnCount > 0 ? '<span style="color:var(--color-warning)">' + warnCount + ' warn</span>' : '') +
+          (errCount > 0 ? '<span style="color:var(--color-error)">' + errCount + ' err</span>' : '') +
+          '</div>';
+      }
+      html += '</div>';
+      container.innerHTML = html;
+
+      var items = container.querySelectorAll('.build-history-item');
+      for (var i = 0; i < items.length; i++) {
+        items[i].addEventListener('click', function() {
+          var idx = parseInt(this.getAttribute('data-idx'), 10);
+          if (buildHistory[idx]) displayBuildResult(buildHistory[idx]);
+        });
+      }
+    }
+
+    // Load build status on init
+    document.addEventListener('DOMContentLoaded', function() {
+      fetch('/api/build/status')
+        .then(function(res) { return res.ok ? res.json() : null; })
+        .then(function(data) {
+          if (data) updateBuildStatusIndicator(data);
+        })
+        .catch(function() {});
+    });
+    // END task 19.2
+
+    // --- Task 19.3: Build config localStorage persistence ---
+    function saveBuildConfig(config) {
+      try {
+        localStorage.setItem('forge-build-config', JSON.stringify(config));
+      } catch(e) {}
+    }
+
+    function loadBuildConfig() {
+      try {
+        var stored = localStorage.getItem('forge-build-config');
+        if (stored) return JSON.parse(stored);
+      } catch(e) {}
+      return { harnesses: ALL_HARNESSES.slice(), artifacts: [], strict: false };
+    }
+    // END task 19.3
 
     // --- Task 11.1: Tab navigation (wired in HTML above) ---
     // showView() already handles tab switching, filter visibility, and content rendering.
@@ -2431,5 +3591,7 @@ export function generateStaticHtmlPage(
 ): string {
 	const dataScript = `<script>window.__CATALOG_DATA__ = ${safeJsonEmbed(entries)};
 window.__ARTIFACT_CONTENT__ = ${safeJsonEmbed(contentMap)};</script>`;
-	return generateHtmlPage().replace("</head>", `${dataScript}\n</head>`);
+	// Use a replacer function instead of a replacement string to avoid
+	// String.replace interpreting $-sequences (e.g. $`, $') in the JSON data.
+	return generateHtmlPage().replace("</head>", () => `${dataScript}\n</head>`);
 }

@@ -1,0 +1,1 @@
+Admin UI components in Browse SPA: capability badges with color-coded matrix grid, inline temper preview panel, import modal with file scanner, version display with upgrade button, workspace tab with project management, interactive dependency graph (inline SVG with force-directed layout), and build dashboard with config persistence and history

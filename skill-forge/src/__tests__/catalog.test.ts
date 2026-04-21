@@ -166,6 +166,8 @@ describe("Catalog generation", () => {
 			"type",
 			"path",
 			"evals",
+			"changelog",
+			"migrations",
 			"categories",
 			"ecosystem",
 			"depends",
@@ -338,5 +340,89 @@ describe("Catalog generation", () => {
 		expect(entry.formatByHarness).toBeDefined();
 		expect(entry.formatByHarness?.kiro).toBe("steering");
 		expect(entry.formatByHarness?.cursor).toBe("rule");
+	});
+
+	/**
+	 * Validates: Requirements 9.4, 13.3
+	 * Catalog entry includes changelog: true when CHANGELOG.md exists in artifact dir.
+	 */
+	test("catalog entry sets changelog to true when CHANGELOG.md exists", async () => {
+		await writeArtifact(knowledgeDir, { name: "versioned-skill" });
+		const artifactDir = join(knowledgeDir, "versioned-skill");
+		await writeFile(join(artifactDir, "CHANGELOG.md"), "# Changelog\n\n## 0.1.0\n- Initial release\n", "utf-8");
+
+		const entries = await generateCatalog(knowledgeDir);
+
+		expect(entries.length).toBe(1);
+		expect(entries[0].changelog).toBe(true);
+	});
+
+	/**
+	 * Validates: Requirements 13.3
+	 * Catalog entry sets changelog to false when no CHANGELOG.md exists.
+	 */
+	test("catalog entry sets changelog to false when CHANGELOG.md is absent", async () => {
+		await writeArtifact(knowledgeDir, { name: "no-changelog-skill" });
+
+		const entries = await generateCatalog(knowledgeDir);
+
+		expect(entries.length).toBe(1);
+		expect(entries[0].changelog).toBe(false);
+	});
+
+	/**
+	 * Validates: Requirements 13.4
+	 * Catalog entry includes migrations: true when migrations/ dir exists.
+	 */
+	test("catalog entry sets migrations to true when migrations/ dir exists", async () => {
+		await writeArtifact(knowledgeDir, { name: "migratable-skill" });
+		const artifactDir = join(knowledgeDir, "migratable-skill");
+		await mkdir(join(artifactDir, "migrations"), { recursive: true });
+
+		const entries = await generateCatalog(knowledgeDir);
+
+		expect(entries.length).toBe(1);
+		expect(entries[0].migrations).toBe(true);
+	});
+
+	/**
+	 * Validates: Requirements 13.4
+	 * Catalog entry sets migrations to false when no migrations/ dir exists.
+	 */
+	test("catalog entry sets migrations to false when migrations/ dir is absent", async () => {
+		await writeArtifact(knowledgeDir, { name: "no-migrations-skill" });
+
+		const entries = await generateCatalog(knowledgeDir);
+
+		expect(entries.length).toBe(1);
+		expect(entries[0].migrations).toBe(false);
+	});
+
+	/**
+	 * Validates: Requirements 9.4
+	 * Catalog entry version field is populated from frontmatter.
+	 */
+	test("catalog entry version field is populated from frontmatter", async () => {
+		const artifactDir = join(knowledgeDir, "versioned-artifact");
+		await mkdir(artifactDir, { recursive: true });
+		await writeFile(
+			join(artifactDir, "knowledge.md"),
+			[
+				"---",
+				"name: versioned-artifact",
+				'description: "Artifact with explicit version"',
+				"version: 2.3.4",
+				'harnesses: ["kiro"]',
+				"---",
+				"",
+				"Test body.",
+			].join("\n"),
+			"utf-8",
+		);
+
+		const entries = await generateCatalog(knowledgeDir);
+
+		expect(entries.length).toBe(1);
+		expect(entries[0].version).toBe("2.3.4");
 	});
 });
