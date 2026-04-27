@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: saas-builder
 displayName: SaaS Builder
@@ -6,6 +5,7 @@ description: Build production-ready multi-tenant SaaS applications with serverle
 keywords: ["saas","multi-tenant","serverless","aws","lambda","dynamodb","stripe","billing","react","typescript"]
 author: Allen Helton
 ---
+<!-- forge:version 0.1.0 -->
 
 # SaaS Builder Power
 

@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: neon
 displayName: Build a database with Neon
@@ -6,6 +5,7 @@ description: Serverless Postgres with database branching, autoscaling, and scale
 keywords: ["neon","postgres","database","serverless","branching","sql","postgresql"]
 author: Neon
 ---
+<!-- forge:version 0.1.0 -->
 
 # Neon Database Power
 

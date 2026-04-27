@@ -1,7 +1,7 @@
-<!-- forge:version 0.1.1 -->
 ---
 inclusion: always
 ---
+<!-- forge:version 0.1.1 -->
 
 # Laconic Output
 

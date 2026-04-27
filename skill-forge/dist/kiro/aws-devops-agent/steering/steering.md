@@ -1,8 +1,8 @@
-<!-- forge:version 0.1.0 -->
 ---
 description: AWS DevOps Agent tool usage patterns via AWS MCP Server
 alwaysApply: true
 ---
+<!-- forge:version 0.1.0 -->
 
 # AWS DevOps Agent (via AWS MCP Server)
 

@@ -1,7 +1,7 @@
-<!-- forge:version 0.1.7 -->
 ---
 inclusion: auto
 ---
+<!-- forge:version 0.1.7 -->
 
 ## Onboarding
 

@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: postman
 displayName: API Testing with Postman
@@ -6,6 +5,7 @@ description: Automate API testing and collection management with Postman - creat
 keywords: ["postman","api","collections","rest","http","automation"]
 author: Postman
 ---
+<!-- forge:version 0.1.0 -->
 
 # Onboarding
 

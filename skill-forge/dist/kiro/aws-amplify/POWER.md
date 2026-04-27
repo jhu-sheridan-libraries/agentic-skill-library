@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: aws-amplify
 displayName: Build full-stack apps with AWS Amplify
@@ -6,6 +5,7 @@ description: Build and extend full-stack applications with AWS Amplify Gen 2 usi
 keywords: ["amplify","amplify gen 2","fullstack","graphql","cognito","lambda","authentication","storage","data model","react","next.js","flutter","deployment"]
 author: AWS
 ---
+<!-- forge:version 0.1.0 -->
 
 # AWS Amplify Gen 2
 

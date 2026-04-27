@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: gcp-aws-migrate
 displayName: GCP to AWS Migration Advisor
@@ -6,6 +5,7 @@ description: Expert guidance for migrating workloads from Google Cloud Platform 
 keywords: ["gcp","aws","migration","cloud migration","terraform","re-platform","cost estimation"]
 author: AWS
 ---
+<!-- forge:version 0.1.0 -->
 
 # GCP-to-AWS Migration Advisor
 

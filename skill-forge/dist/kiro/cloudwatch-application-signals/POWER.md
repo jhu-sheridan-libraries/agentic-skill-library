@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: cloudwatch-application-signals
 displayName: [DEPRECATED] Amazon CloudWatch Application Signals
@@ -6,6 +5,7 @@ description: :warning: DEPRECATED: This power has been merged into the AWS Obser
 keywords: ["application-signals","aws","observability","apm","slo","traces","monitoring","cloudwatch","audit"]
 author: AWS
 ---
+<!-- forge:version 0.1.0 -->
 
 # Migrating to AWS Observability power
 

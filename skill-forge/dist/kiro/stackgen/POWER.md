@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: stackgen
 displayName: StackGen Infrastructure as Code
@@ -6,6 +5,7 @@ description: Design, manage, and deploy cloud infrastructure with StackGen - cre
 keywords: ["infrastructure","iac","cloud","terraform","aws","azure","gcp","deployment"]
 author: StackGen
 ---
+<!-- forge:version 0.1.0 -->
 
 # StackGen Power
 

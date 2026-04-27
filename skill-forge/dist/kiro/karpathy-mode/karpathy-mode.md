@@ -1,7 +1,7 @@
-<!-- forge:version 0.2.1 -->
 ---
 inclusion: always
 ---
+<!-- forge:version 0.2.1 -->
 
 # Karpathy Mode
 

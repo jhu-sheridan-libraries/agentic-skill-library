@@ -1,4 +1,3 @@
-<!-- forge:version 0.4.1 -->
 ---
 name: adr
 displayName: Architecture Decision Records
@@ -6,6 +5,7 @@ description: Create, maintain, and cross-reference Architecture Decision Records
 keywords: ["adr","architecture-decision-record","madr","decision-log"]
 author: Steven J. Miklovic
 ---
+<!-- forge:version 0.4.1 -->
 
 # ADR Power
 

@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: graviton-migration-power
 displayName: Graviton Migration Power
@@ -6,6 +5,7 @@ description: Analyzes source code to identify compatibilities with Graviton proc
 keywords: ["ec2","graviton","arm","migration","porting","dependencies","compatibilities","arm64","aarch64"]
 author: AWS
 ---
+<!-- forge:version 0.1.0 -->
 
 # Graviton Migration Power
 

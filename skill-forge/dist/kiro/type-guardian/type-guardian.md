@@ -1,7 +1,7 @@
-<!-- forge:version 0.2.0 -->
 ---
 inclusion: always
 ---
+<!-- forge:version 0.2.0 -->
 
 ## Overview
 

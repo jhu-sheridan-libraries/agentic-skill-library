@@ -1,7 +1,7 @@
-<!-- forge:version 0.1.0 -->
 ---
 inclusion: manual
 ---
+<!-- forge:version 0.1.0 -->
 
 # Terraform Power
 

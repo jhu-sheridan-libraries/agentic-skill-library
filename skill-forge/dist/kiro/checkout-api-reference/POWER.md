@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: checkout-api-reference
 displayName: Checkout.com Global Payments
@@ -6,6 +5,7 @@ description: Access Checkout.com's comprehensive API documentation with intellig
 keywords: ["checkout","payments","openapi","fintech","payment processing","disputes","issuing","identity verification"]
 author: Checkout.com
 ---
+<!-- forge:version 0.1.0 -->
 
 # Checkout.com Global Payments
 

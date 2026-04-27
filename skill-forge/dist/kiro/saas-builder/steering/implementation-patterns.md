@@ -1,7 +1,7 @@
-<!-- forge:version 0.1.0 -->
 ---
 inclusion: always
 ---
+<!-- forge:version 0.1.0 -->
 
 # Implementation Patterns
 

@@ -1,7 +1,7 @@
-<!-- forge:version 0.1.1 -->
 ---
 inclusion: manual
 ---
+<!-- forge:version 0.1.1 -->
 
 The fastest path through a bug is rarely the first one you see. Before touching code, articulate the problem precisely. Writing forces clarity that browsing stack traces does not.
 

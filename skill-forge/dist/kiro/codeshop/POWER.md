@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.7 -->
 ---
 name: Codeshop
 displayName: Codeshop
@@ -6,6 +5,7 @@ description: A collection of 19 developer workflow skills covering planning, des
 keywords: ["codeshop","planning","interface-design","test-driven-development","refactoring","domain-modeling","issue-triage","prd","vertical-slices","codebase-architecture","bug-triage","qa-session","skill-authoring","article-editing","living-documentation","code-review-craft","commit-messages","debugging-methodology"]
 author: Steven J. Miklovic
 ---
+<!-- forge:version 0.1.7 -->
 
 ## Onboarding
 

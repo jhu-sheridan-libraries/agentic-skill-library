@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: aws-devops-agent
 displayName: AWS DevOps Agent
@@ -6,6 +5,7 @@ description: AI agent for AWS operational intelligence via the AWS MCP Server. I
 keywords: ["incident","troubleshoot","root-cause","cloudwatch","outage","latency","cost","topology","runbooks"]
 author: AWS
 ---
+<!-- forge:version 0.1.0 -->
 
 # AWS DevOps Agent — Kiro Power (AWS MCP Server)
 

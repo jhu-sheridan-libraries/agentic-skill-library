@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: dynatrace
 displayName: Dynatrace Observability
@@ -6,6 +5,7 @@ description: Query logs, metrics, traces, problems, and Kubernetes events from D
 keywords: ["dynatrace","observability","monitoring","dql","logs","metrics","kubernetes","davis","grail"]
 author: Dynatrace
 ---
+<!-- forge:version 0.1.0 -->
 
 # Dynatrace Observability Power
 

@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: aws-observability
 displayName: AWS Observability
@@ -6,6 +5,7 @@ description: Comprehensive AWS observability platform combining CloudWatch Logs,
 keywords: ["cloudwatch","observability","monitoring","logs","metrics","traces","alarms","apm","application signals","opentelemetry","x-ray","latency","error rate","troubleshooting","root cause","log analysis","cloudtrail","synthetic monitoring","service map"]
 author: AWS
 ---
+<!-- forge:version 0.1.0 -->
 
 # ⚠️ CRITICAL: ALWAYS LOAD STEERING FILES FIRST
 

@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: spark-troubleshooting-agent
 displayName: Troubleshoot Spark applications on AWS
@@ -6,6 +5,7 @@ description: Troubleshoot Spark applications on AWS EMR, Glue, and SageMaker - a
 keywords: ["spark","emr","glue","sagemaker","troubleshooting","pyspark","scala","aws"]
 author: AWS
 ---
+<!-- forge:version 0.1.0 -->
 
 # Onboarding
 

@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: datadog
 displayName: Datadog Observability
@@ -6,6 +5,7 @@ description: Query logs, metrics, traces, RUM events, incidents, and monitors fr
 keywords: ["datadog","observability","monitoring","logs","metrics","apm","traces","rum","incidents"]
 author: Datadog
 ---
+<!-- forge:version 0.1.0 -->
 
 # Onboarding
 
