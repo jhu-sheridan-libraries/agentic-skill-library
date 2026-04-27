@@ -1198,17 +1198,44 @@ function generateClientScript(): string {
 
       if (window.__CATALOG_DATA__) {
         initCatalog(window.__CATALOG_DATA__);
+        navigateFromHash();
       } else {
         fetch('/api/catalog')
           .then(function(res) { return res.json(); })
-          .then(initCatalog)
+          .then(function(data) {
+            initCatalog(data);
+            navigateFromHash();
+          })
           .catch(function(err) {
             console.error('Failed to load catalog:', err);
             var grid = document.getElementById('card-grid');
             grid.innerHTML = '<div class="empty-state">Failed to load catalog data</div>';
           });
       }
+
+      window.addEventListener('hashchange', function() {
+        navigateFromHash();
+      });
     });
+
+    function navigateFromHash() {
+      var hash = window.location.hash.replace(/^#/, '');
+      if (hash.indexOf('artifact/') === 0) {
+        var name = decodeURIComponent(hash.substring('artifact/'.length));
+        if (catalogData.some(function(e) { return e.name === name; })) {
+          // Avoid re-render if already showing this artifact
+          var detailView = document.getElementById('detail-view');
+          if (detailView && detailView.style.display === 'block' && detailView.getAttribute('data-current') === name) return;
+          showDetailView(name);
+        }
+      } else if (!hash) {
+        var dv = document.getElementById('detail-view');
+        if (dv && dv.style.display === 'block') {
+          dv.style.display = 'none';
+          showView(currentView);
+        }
+      }
+    }
 
     // --- Task 5.2: Search and filter functionality ---
 
@@ -1315,10 +1342,13 @@ function generateClientScript(): string {
       }
       if (!entry) return;
 
+      window.location.hash = 'artifact/' + encodeURIComponent(name);
+
       document.getElementById('card-grid').style.display = 'none';
       document.getElementById('artifact-filters').style.display = 'none';
       var detailView = document.getElementById('detail-view');
       detailView.style.display = 'block';
+      detailView.setAttribute('data-current', name);
 
       var harnessesHtml = '';
       if (entry.harnesses && entry.harnesses.length > 0) {
@@ -1384,11 +1414,12 @@ function generateClientScript(): string {
         (entry.description ? '<div class="detail-description">' + escapeHtmlJs(entry.description) + '</div>' : '') +
         '<div class="detail-badges">' + detailMaturityBadge + detailTrustBadge + '</div>' +
         (keywordsHtml ? '<div class="card-keywords" style="margin-bottom:20px">' + keywordsHtml + '</div>' : '') +
+        (window.__CATALOG_DATA__ ? '' :
         '<div style="margin-bottom:16px">' +
           '<button id="detail-edit-btn" style="font-size:0.78rem;padding:5px 12px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);cursor:pointer;margin-right:8px">Edit</button>' +
           '<button id="detail-delete-btn" style="font-size:0.78rem;padding:5px 12px;border:1px solid var(--color-error);border-radius:var(--radius-md);background:var(--color-surface);color:var(--color-error);cursor:pointer;margin-right:8px">Delete</button>' +
           '<button id="detail-preview-btn" style="font-size:0.78rem;padding:5px 12px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);cursor:pointer">Preview</button>' +
-        '</div>' +
+        '</div>') +
         '<div id="detail-version-section" class="version-section"></div>' +
         collectionBadgesHtml +
         '<div class="detail-section-label">Targets</div>' +
@@ -1480,6 +1511,7 @@ function generateClientScript(): string {
     }
 
     function hideDetailView() {
+      history.replaceState(null, '', window.location.pathname + window.location.search);
       document.getElementById('detail-view').style.display = 'none';
       showView(currentView);
     }
@@ -1496,7 +1528,7 @@ function generateClientScript(): string {
     var ALL_HARNESSES = ['kiro','claude-code','copilot','cursor','windsurf','cline','qdeveloper'];
     var ALL_CATEGORIES = ['testing','security','code-style','devops','documentation','architecture','debugging','performance','accessibility'];
     var ARTIFACT_TYPES = ['skill','power','rule'];
-    var INCLUSION_MODES = ['always','fileMatch','manual'];
+    var INCLUSION_MODES = ['always','auto','fileMatch','manual'];
 
     function renderBadge(text, variant) {
       return '<span class="badge badge-' + escapeHtmlJs(variant) + '">' + escapeHtmlJs(text) + '</span>';
@@ -2106,10 +2138,11 @@ function generateClientScript(): string {
             (col.description ? '<div class="detail-description">' + escapeHtmlJs(col.description) + '</div>' : '') +
             '<div class="detail-badges" style="margin-bottom:20px">' + trustBadge + '</div>' +
             tagsHtml +
+            (window.__CATALOG_DATA__ ? '' :
             '<div style="margin-bottom:16px">' +
               '<button id="col-edit-btn" style="font-size:0.78rem;padding:5px 12px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);cursor:pointer;margin-right:8px">Edit</button>' +
               '<button id="col-delete-btn" style="font-size:0.78rem;padding:5px 12px;border:1px solid var(--color-error);border-radius:var(--radius-md);background:var(--color-surface);color:var(--color-error);cursor:pointer">Delete</button>' +
-            '</div>' +
+            '</div>') +
             membersHtml;
 
           document.getElementById('collection-back-link').addEventListener('click', function() {
