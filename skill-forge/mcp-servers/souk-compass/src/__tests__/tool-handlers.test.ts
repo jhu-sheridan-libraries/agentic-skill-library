@@ -9,7 +9,7 @@ import {
 } from "bun:test";
 import type { EmbeddingProvider } from "../embedding-provider.js";
 import { ErrorCodes, SoukCompassError } from "../errors.js";
-import type { SoukCompassConfig } from "../schemas.js";
+import type { CompassSetupInput, SoukCompassConfig } from "../schemas.js";
 import type { SolrSearchResponse, SoukVectorClient } from "../solr-client.js";
 import type { ToolContext, ToolResult } from "../tools/types.js";
 
@@ -135,7 +135,10 @@ describe("compass_setup handler", () => {
 			solrClient: makeMockSolrClient({ health: async () => false }),
 		});
 
-		const result = await handleCompassSetup({} as any, ctx);
+		const result = await handleCompassSetup(
+			{} as unknown as CompassSetupInput,
+			ctx,
+		);
 		const data = parseResult(result);
 
 		// Should still return structured status even when Solr is unreachable
@@ -919,9 +922,9 @@ describe("compass_index_document handler", () => {
 
 		expect(capturedMetadata).toBeDefined();
 		// User metadata should be prefixed with metadata_ by toUserSolrDocument
-		expect(capturedMetadata!.metadata_project).toBe("test");
-		expect(capturedMetadata!.metadata_lang).toBe("ts");
-		expect(capturedMetadata!.doc_source).toBe("user");
+		expect(capturedMetadata?.metadata_project).toBe("test");
+		expect(capturedMetadata?.metadata_lang).toBe("ts");
+		expect(capturedMetadata?.doc_source).toBe("user");
 	});
 
 	test("Solr unreachable returns error", async () => {
@@ -1029,7 +1032,7 @@ describe("compass_status handler", () => {
 	test("includes cache stats when provider has getStats", async () => {
 		const handleCompassStatus = await importHandler();
 		const mockProvider = makeMockEmbeddingProvider();
-		(mockProvider as any).getStats = () => ({
+		(mockProvider as unknown as Record<string, unknown>).getStats = () => ({
 			memory: { hits: 10, misses: 5, size: 15 },
 			sqlite: { hits: 3, misses: 12, size: 20 },
 		});
@@ -1056,7 +1059,9 @@ describe("compass_status handler", () => {
 		const data = parseResult(result);
 
 		expect(data.cache).toBeDefined();
-		expect((data.cache as any).memory.hits).toBe(10);
+		expect(
+			(data.cache as Record<string, Record<string, number>>).memory.hits,
+		).toBe(10);
 	});
 });
 

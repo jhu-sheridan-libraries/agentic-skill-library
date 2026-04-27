@@ -268,7 +268,7 @@ describe("Collection admin property tests", () => {
 					// Every returned collection must satisfy all active filters
 					for (const col of result) {
 						if (filter.trustLevels.length > 0) {
-							expect(filter.trustLevels as string[]).toContain(col.trust!);
+							expect(filter.trustLevels as string[]).toContain(col.trust ?? "");
 						}
 						if (filter.tags.length > 0) {
 							for (const tag of filter.tags) {

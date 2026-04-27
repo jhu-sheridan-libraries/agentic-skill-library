@@ -668,9 +668,9 @@ describe("compass_index_artifacts extended", () => {
 		await handleCompassIndexArtifacts({ name: "commit-craft" }, ctx);
 
 		expect(capturedMetadata).toBeDefined();
-		expect(capturedMetadata!.content_hash).toBeDefined();
+		expect(capturedMetadata?.content_hash).toBeDefined();
 		// content_hash should be a 64-char hex string (SHA-256)
-		expect(capturedMetadata!.content_hash).toMatch(/^[a-f0-9]{64}$/);
+		expect(capturedMetadata?.content_hash).toMatch(/^[a-f0-9]{64}$/);
 	});
 
 	test("chunked=true all artifacts uses commit=false per upsert then explicit commit", async () => {
@@ -1025,7 +1025,7 @@ describe("compass_status extended", () => {
 	test("returns cache stats per tier with all three tiers", async () => {
 		const handleCompassStatus = await importHandler();
 		const mockProvider = makeMockEmbeddingProvider();
-		(mockProvider as any).getStats = () => ({
+		(mockProvider as unknown as Record<string, unknown>).getStats = () => ({
 			memory: { hits: 20, misses: 10, size: 30 },
 			sqlite: { hits: 5, misses: 25, size: 50 },
 			solr: { hits: 2, misses: 28 },

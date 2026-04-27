@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { WorkspaceConfig } from "../schemas";
+import type { HarnessName, WorkspaceConfig } from "../schemas";
 import {
 	loadWorkspaceConfig,
 	mergeKnowledgeSources,
@@ -145,7 +145,7 @@ describe("validateWorkspaceConfig", () => {
 				{
 					name: "api",
 					root: "packages/api",
-					harnesses: ["kiro", "unknown-harness" as any],
+					harnesses: ["kiro", "unknown-harness" as unknown as HarnessName],
 				},
 			],
 		};
@@ -203,7 +203,9 @@ describe("validateWorkspaceConfig", () => {
 
 		const config: WorkspaceConfig = {
 			knowledgeSources: ["knowledge"],
-			defaults: { harnesses: ["kiro", "bad-harness" as any] },
+			defaults: {
+				harnesses: ["kiro", "bad-harness" as unknown as HarnessName],
+			},
 			projects: [{ name: "api", root: "packages/api", harnesses: ["kiro"] }],
 		};
 

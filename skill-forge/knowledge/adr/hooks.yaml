@@ -2,8 +2,7 @@
   description: >-
     When an agent session ends, directs the agent to check git diff for
     architectural changes, cross-reference against existing ADRs, and CREATE
-    any missing ADRs before the session closes. Uses askAgent (not runCommand)
-    so the agent can actually write files.
+    any missing ADRs before the session closes.
   event: agent_stop
   action:
     type: ask_agent
@@ -22,7 +21,6 @@
          c. Create changelog fragments if the project uses them
       6. If all changes are covered, report: 'All architectural decisions documented.'
 
-      Do NOT just list what changed. Either create missing ADRs or confirm coverage.
 
 - name: ADR + Spec Context Check
   description: >-
@@ -45,5 +43,3 @@
          c. Create a changelog fragment if the project uses them
          d. Then proceed with the task implementation.
       4. If all decisions are already covered by existing ADRs, proceed — no action needed.
-
-      Do NOT just acknowledge this reminder. Either create the ADR or confirm coverage.

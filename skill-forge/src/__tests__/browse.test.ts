@@ -638,7 +638,9 @@ describe("artifact mutation integration", () => {
 		// GET catalog and verify it's there
 		const catalogRes = await fetch(`${baseUrl}/api/catalog`);
 		const catalog = await catalogRes.json();
-		const found = catalog.find((e: any) => e.name === "test-artifact");
+		const found = catalog.find(
+			(e: { name: string }) => e.name === "test-artifact",
+		);
 		expect(found).toBeDefined();
 		expect(found.description).toBe("A test artifact");
 	});
@@ -661,7 +663,9 @@ describe("artifact mutation integration", () => {
 		// GET catalog and verify update
 		const catalogRes = await fetch(`${baseUrl}/api/catalog`);
 		const catalog = await catalogRes.json();
-		const found = catalog.find((e: any) => e.name === "test-artifact");
+		const found = catalog.find(
+			(e: { name: string }) => e.name === "test-artifact",
+		);
 		expect(found.description).toBe("Updated description");
 	});
 
@@ -674,7 +678,9 @@ describe("artifact mutation integration", () => {
 		// GET catalog and verify it's gone
 		const catalogRes = await fetch(`${baseUrl}/api/catalog`);
 		const catalog = await catalogRes.json();
-		const found = catalog.find((e: any) => e.name === "test-artifact");
+		const found = catalog.find(
+			(e: { name: string }) => e.name === "test-artifact",
+		);
 		expect(found).toBeUndefined();
 	});
 
@@ -795,7 +801,9 @@ describe("collection mutation integration", () => {
 		expect(listRes.status).toBe(200);
 		const list = await listRes.json();
 		expect(Array.isArray(list)).toBe(true);
-		const found = list.find((c: any) => c.name === "test-collection");
+		const found = list.find(
+			(c: { name: string }) => c.name === "test-collection",
+		);
 		expect(found).toBeDefined();
 
 		// GET single
@@ -1123,18 +1131,20 @@ describe("manifest status integration", () => {
 		expect(body.syncedAt).toBe("2025-01-15T10:30:00Z");
 		expect(body.entries.length).toBe(3);
 
-		const synced = body.entries.find((e: any) => e.identifier === "synced-art");
+		const synced = body.entries.find(
+			(e: { identifier: string }) => e.identifier === "synced-art",
+		);
 		expect(synced.status).toBe("synced");
 		expect(synced.syncedVersion).toBe("1.0.0");
 
 		const outdated = body.entries.find(
-			(e: any) => e.identifier === "outdated-art",
+			(e: { identifier: string }) => e.identifier === "outdated-art",
 		);
 		expect(outdated.status).toBe("outdated");
 		expect(outdated.syncedVersion).toBe("1.0.0");
 
 		const missing = body.entries.find(
-			(e: any) => e.identifier === "missing-art",
+			(e: { identifier: string }) => e.identifier === "missing-art",
 		);
 		expect(missing.status).toBe("missing");
 		expect(missing.syncedVersion).toBeNull();
@@ -1256,7 +1266,6 @@ describe("content-type validation on mutation endpoints", () => {
 		expect(body.error).toContain("Content-Type");
 	});
 });
-
 
 // ---------------------------------------------------------------------------
 // Static-mode behavior tests (Tasks 4.1–4.5)

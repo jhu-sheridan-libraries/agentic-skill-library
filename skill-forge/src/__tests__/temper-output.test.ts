@@ -210,16 +210,18 @@ describe("renderComparison", () => {
 			templatesDir: "templates/harness-adapters",
 		});
 
-		const kiro = result.harnesses.find((h) => h.harnessName === "kiro")!;
-		const copilot = result.harnesses.find((h) => h.harnessName === "copilot")!;
+		const kiro = result.harnesses.find((h) => h.harnessName === "kiro");
+		const copilot = result.harnesses.find((h) => h.harnessName === "copilot");
+		expect(kiro).toBeDefined();
+		expect(copilot).toBeDefined();
 
 		// Kiro fully supports hooks
-		expect(kiro.hooksTranslated).toBe(1);
-		expect(kiro.hooksDegraded).toBe(0);
+		expect(kiro?.hooksTranslated).toBe(1);
+		expect(kiro?.hooksDegraded).toBe(0);
 
 		// Copilot does not support hooks
-		expect(copilot.hooksDegraded).toBeGreaterThan(0);
-		expect(copilot.degradations.length).toBeGreaterThan(0);
+		expect(copilot?.hooksDegraded).toBeGreaterThan(0);
+		expect(copilot?.degradations.length).toBeGreaterThan(0);
 	});
 
 	test("formatComparisonOutput produces plain text with noColor", async () => {

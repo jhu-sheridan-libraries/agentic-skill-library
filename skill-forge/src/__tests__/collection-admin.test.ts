@@ -183,9 +183,10 @@ describe("createCollection", () => {
 		try {
 			await createCollection(collectionsDir, input);
 			expect(true).toBe(false); // should not reach here
-		} catch (err: any) {
-			expect(err.type).toBe("conflict");
-			expect(err.message).toContain("existing-col");
+		} catch (err: unknown) {
+			const typed = err as Error & { type?: string };
+			expect(typed.type).toBe("conflict");
+			expect(typed.message).toContain("existing-col");
 		}
 	});
 });
@@ -197,9 +198,10 @@ describe("updateCollection", () => {
 		try {
 			await updateCollection(collectionsDir, "nonexistent", input);
 			expect(true).toBe(false); // should not reach here
-		} catch (err: any) {
-			expect(err.type).toBe("not-found");
-			expect(err.message).toContain("nonexistent");
+		} catch (err: unknown) {
+			const typed = err as Error & { type?: string };
+			expect(typed.type).toBe("not-found");
+			expect(typed.message).toContain("nonexistent");
 		}
 	});
 });
@@ -209,9 +211,10 @@ describe("deleteCollection", () => {
 		try {
 			await deleteCollection(collectionsDir, "nonexistent");
 			expect(true).toBe(false); // should not reach here
-		} catch (err: any) {
-			expect(err.type).toBe("not-found");
-			expect(err.message).toContain("nonexistent");
+		} catch (err: unknown) {
+			const typed = err as Error & { type?: string };
+			expect(typed.type).toBe("not-found");
+			expect(typed.message).toContain("nonexistent");
 		}
 	});
 });
@@ -273,9 +276,10 @@ describe("getCollection", () => {
 		try {
 			await getCollection(collectionsDir, "missing", []);
 			expect(true).toBe(false); // should not reach here
-		} catch (err: any) {
-			expect(err.type).toBe("not-found");
-			expect(err.message).toContain("missing");
+		} catch (err: unknown) {
+			const typed = err as Error & { type?: string };
+			expect(typed.type).toBe("not-found");
+			expect(typed.message).toContain("missing");
 		}
 	});
 });

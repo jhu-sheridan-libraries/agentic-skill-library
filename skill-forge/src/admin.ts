@@ -129,9 +129,11 @@ export async function createArtifact(
 	// Validate input
 	const validation = validateArtifactInput(input);
 	if (!validation.success) {
-		const error = new Error("Validation failed");
-		(error as any).type = "validation";
-		(error as any).details = validation.errors;
+		const error: Error & { type?: string; details?: unknown } = new Error(
+			"Validation failed",
+		);
+		error.type = "validation";
+		error.details = validation.errors;
 		throw error;
 	}
 
@@ -139,8 +141,10 @@ export async function createArtifact(
 
 	// Check for existing directory
 	if (await exists(artifactDir)) {
-		const error = new Error(`Artifact '${input.name}' already exists`);
-		(error as any).type = "conflict";
+		const error: Error & { type?: string } = new Error(
+			`Artifact '${input.name}' already exists`,
+		);
+		error.type = "conflict";
 		throw error;
 	}
 
@@ -182,9 +186,11 @@ export async function updateArtifact(
 	// Validate input
 	const validation = validateArtifactInput(input);
 	if (!validation.success) {
-		const error = new Error("Validation failed");
-		(error as any).type = "validation";
-		(error as any).details = validation.errors;
+		const error: Error & { type?: string; details?: unknown } = new Error(
+			"Validation failed",
+		);
+		error.type = "validation";
+		error.details = validation.errors;
 		throw error;
 	}
 
@@ -192,8 +198,10 @@ export async function updateArtifact(
 
 	// Check that the artifact directory exists
 	if (!(await exists(artifactDir))) {
-		const error = new Error(`Artifact '${name}' not found`);
-		(error as any).type = "not-found";
+		const error: Error & { type?: string } = new Error(
+			`Artifact '${name}' not found`,
+		);
+		error.type = "not-found";
 		throw error;
 	}
 
@@ -224,8 +232,10 @@ export async function deleteArtifact(
 
 	// Check that the artifact directory exists
 	if (!(await exists(artifactDir))) {
-		const error = new Error(`Artifact '${name}' not found`);
-		(error as any).type = "not-found";
+		const error: Error & { type?: string } = new Error(
+			`Artifact '${name}' not found`,
+		);
+		error.type = "not-found";
 		throw error;
 	}
 

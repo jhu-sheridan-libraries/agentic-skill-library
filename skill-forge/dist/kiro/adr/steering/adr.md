@@ -1,4 +1,4 @@
-<!-- forge:version 0.3.0 -->
+<!-- forge:version 0.4.0 -->
 ---
 inclusion: manual
 ---
@@ -12,12 +12,13 @@ Architecture Decision Records (ADRs) capture significant architectural choices �
 Use this power when your project makes architectural choices that future contributors need to understand: new module structures, integration patterns, technology selections, or data flow changes.
 
 ## Steering Files
-- **workflow** — Create, update, review, cross-reference
-- **generate-from-diff** — Auto-draft ADR from git diff
-- **health-check** — Staleness detection, codebase cross-reference
-- **team-review** — Review checklist, reviewer suggestions, promotion workflow
-- **specs-integration** — ADR ↔ Kiro spec linking
-- **changelog** — CHANGELOG.md for projects without fragment tools
+
+- **workflow** — Core ADR operations: create, update, review, cross-reference. Start here for any ADR task. Includes both MADR templates (full and short-form).
+- **generate-from-diff** — Auto-draft an ADR by analyzing `git diff`. Use when you've made changes and want the power to infer the architectural decision from code changes rather than describing it manually.
+- **health-check** — Audit all ADRs for staleness, broken references, drifted implementations, and orphaned drafts. Use periodically (e.g. monthly) or before releases to ensure ADR accuracy.
+- **team-review** — Structured review checklist, reviewer suggestions via git blame, and promotion workflow (Proposed→Accepted). Use when ADRs are ready for team sign-off.
+- **specs-integration** — Bidirectional linking between ADRs and Kiro specs. Use when working within the specs workflow to ensure architectural decisions are captured alongside requirements and design docs.
+- **changelog** — Detect and integrate with your project's changelog tool (towncrier, changesets, conventional-changelog, release-please, git-cliff, or plain CHANGELOG.md). Use after creating any ADR to maintain changelog entries.
 
 ## Shared Definitions
 
@@ -57,9 +58,9 @@ After every ADR write, update `README.md` in ADR directory:
 
 ### Changelog Check
 After every ADR write:
-1. Fragment tool found → use its format. See `changelog` steering for detection list.
-2. CHANGELOG.md exists → append link. See `changelog` steering for format.
-3. Nothing → offer to bootstrap. See `changelog` steering.
+1. Fragment tool found (towncrier, changesets, conventional-changelog, release-please, git-cliff, or custom `changes/` directory) → use its native format. See `changelog` steering for full detection order and per-tool format guidance.
+2. No fragment tool but CHANGELOG.md (or CHANGES.md, HISTORY.md, NEWS.md) exists → append link entry. See `changelog` steering for format.
+3. Nothing found → offer to bootstrap CHANGELOG.md. See `changelog` steering.
 
 ### Templates
 See `workflow` steering, section 5.
@@ -136,6 +137,12 @@ These patterns cause hooks to be ignored during autonomous sessions:
 | No explicit termination condition | Agent doesn't know when the hook is satisfied | End with "Either create missing ADRs or confirm coverage" |
 | Passive voice ("ADRs should be reviewed") | No clear actor or action | Active imperative ("Review ADRs. Create if missing.") |
 
+### Hook Portability Notes
+
+- All `askAgent` hooks are portable across platforms since they delegate logic to the agent.
+- The `fileCreated` hook's `patterns` array should be customized per project. The defaults (`**/modules/**/*.tf`, `**/src/**/commands/*.py`) assume Terraform/Python — adjust for your stack.
+- For `runCommand` hooks that need shell logic, prefer simple POSIX-compatible commands (`git`, `grep`, `test`) over language-specific inline scripts. If complex logic is needed, extract it to a script file in the repo and reference it from the hook.
+
 ## Examples
 
 **Creating an ADR after introducing a new module:**
@@ -154,13 +161,37 @@ ADR-012 chose global type fields. ADR-014 repurposes type as taxonomy.
 → Both index rows updated
 ```
 
+## Configuration
+
+No additional configuration required beyond git. The power works with any project that has a git repository. It auto-discovers the ADR directory location and adapts to your project's changelog tooling.
+
+Optional customization:
+- **ADR directory**: defaults to `docs/adr/`. Override by creating your preferred directory (`docs/decisions/`, `docs/architecture/decisions/`) before first use.
+- **Hook file patterns**: the `fileCreated` hook ships with Terraform/Python patterns. Edit the `patterns` array to match your project's architectural file types (e.g. `**/cdk/**/*.ts`, `**/helm/**/*.yaml`, `**/*.proto`).
+- **Changelog tool**: auto-detected. See `changelog` steering for the full detection order. No manual config needed.
+
 ## Troubleshooting
 
-**ADR directory not found:** The power searches `docs/adr/`, `docs/decisions/`, `docs/architecture/decisions/`, then `docs/`. If none exist, it proposes `docs/adr/` and asks for confirmation before creating.
+**ADR directory not found:**
+The power searches `docs/adr/` → `docs/decisions/` → `docs/architecture/decisions/` → `docs/`. If none exist, it proposes `docs/adr/` and asks for confirmation. In monorepos, the search also checks immediate subdirectories (`*/docs/adr/`).
 
-**Duplicate ADR detected:** If a new ADR covers the same decision as an existing one, the power flags the overlap. Either supersede the old one or merge the content.
+**Duplicate ADR detected:**
+If a new ADR covers the same decision as an existing one, the power flags the overlap and offers three options: supersede the old ADR, amend it in place, or proceed as unrelated. Choose based on whether the decision has changed (supersede) or just needs clarification (amend).
 
-**Index out of sync:** Run the health-check steering workflow to detect missing index entries, stale statuses, and dangling cross-references.
+**Index out of sync:**
+Run the health-check steering workflow to detect missing index entries, stale statuses, and dangling cross-references. This produces an actionable report without auto-fixing.
+
+**Numbering conflicts in team environments:**
+When multiple team members create ADRs concurrently, number collisions can occur. The power auto-assigns the next sequential number based on existing files at write time. If a conflict is detected after merge, renumber the later ADR and update all cross-references.
+
+**Merge conflicts in README.md index:**
+The index table is append-only by convention. Git merge conflicts typically occur in the table rows. Resolve by keeping both rows and verifying the ADR numbers are correct. Run health-check after resolving to validate.
+
+**Hook not firing / being ignored:**
+Ensure the hook JSON is valid (check `.kiro/hooks/` directory). Common issues: missing `version` field, incorrect `type` value, or the hook file not ending in `.kiro.hook`. For `agentStop` hooks, note they only fire when the agent session actually ends — not on individual message completions.
+
+**Changelog tool not detected:**
+The detection order checks specific files and directories (see `changelog` steering). If your project uses a non-standard location or tool, the power falls back to looking for `CHANGELOG.md` at the project root. You can manually create the file to establish the pattern.
 
 ## Changelog
 
