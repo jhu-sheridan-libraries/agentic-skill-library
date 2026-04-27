@@ -16,7 +16,7 @@ export const SUPPORTED_HARNESSES = [
 export const HarnessNameSchema = z.enum(SUPPORTED_HARNESSES);
 export type HarnessName = z.infer<typeof HarnessNameSchema>;
 
-export const InclusionModeSchema = z.enum(["always", "fileMatch", "manual"]);
+export const InclusionModeSchema = z.enum(["always", "auto", "fileMatch", "manual"]);
 export type InclusionMode = z.infer<typeof InclusionModeSchema>;
 
 export const AssetTypeSchema = z.enum([

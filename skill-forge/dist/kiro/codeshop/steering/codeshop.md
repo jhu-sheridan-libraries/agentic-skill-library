@@ -1,6 +1,6 @@
 <!-- forge:version 0.1.7 -->
 ---
-inclusion: manual
+inclusion: auto
 ---
 
 ## Onboarding

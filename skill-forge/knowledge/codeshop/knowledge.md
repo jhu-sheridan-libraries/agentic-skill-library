@@ -26,7 +26,7 @@ version: 0.1.7
 harnesses:
   - kiro
 type: power
-inclusion: manual
+inclusion: auto
 categories:
   - architecture
   - testing

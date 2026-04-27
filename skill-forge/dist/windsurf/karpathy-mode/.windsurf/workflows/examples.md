@@ -1,4 +1,4 @@
-<!-- forge:version 0.2.0 -->
+<!-- forge:version 0.2.1 -->
 # Examples
 
 Real-world code examples demonstrating the four principles. Each example shows what LLMs commonly do wrong and how to fix it.

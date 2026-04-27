@@ -12,7 +12,7 @@ version: 0.4.1
 harnesses:
   - kiro
 type: power
-inclusion: manual
+inclusion: auto
 categories:
   - architecture
   - documentation
