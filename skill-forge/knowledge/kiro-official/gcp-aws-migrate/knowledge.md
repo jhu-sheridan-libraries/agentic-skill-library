@@ -23,7 +23,7 @@ ecosystem: [aws, gcp, terraform]
 depends: []
 enhances: []
 maturity: stable
-trust: community
+trust: partner
 audience: intermediate
 model-assumptions: []
 collections:

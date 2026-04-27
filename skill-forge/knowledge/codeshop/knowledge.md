@@ -22,7 +22,7 @@ keywords:
   - commit-messages
   - debugging-methodology
 author: Steven J. Miklovic
-version: 0.1.6
+version: 0.1.7
 harnesses:
   - kiro
 type: power
@@ -35,7 +35,7 @@ ecosystem: []
 depends: []
 enhances: []
 maturity: experimental
-trust: community
+trust: official
 audience: intermediate
 model-assumptions: []
 collections: [jhu, neon-caravan]
