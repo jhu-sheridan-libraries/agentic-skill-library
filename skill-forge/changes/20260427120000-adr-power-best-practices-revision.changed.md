@@ -1,0 +1,1 @@
+Revised ADR power (v0.4.0): expanded troubleshooting section, added configuration section, broadened changelog tool detection guidance, improved steering file descriptions with when-to-use context, added hook portability notes.
