@@ -1,0 +1,63 @@
+# Eval: Individual skills produce actionable, on-topic guidance
+#
+# Tests that each steering file is well-structured, scoped, and
+# provides concrete steps rather than vague advice.
+#
+# Run:  bun run dev eval codeshop
+
+description: "Individual skills produce actionable, on-topic guidance"
+
+prompts:
+  - file://dist/kiro/codeshop/steering/drive-tests.md
+  - file://dist/kiro/codeshop/steering/triage-bug.md
+  - file://dist/kiro/codeshop/steering/stress-test-plan.md
+  - file://dist/kiro/codeshop/steering/craft-commits.md
+  - file://dist/kiro/codeshop/steering/review-changes.md
+  - file://dist/kiro/codeshop/steering/compose-issues.md
+  - file://dist/kiro/codeshop/steering/journal-debug.md
+  - file://dist/kiro/codeshop/steering/refactor-architecture.md
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+
+tests:
+  - description: "Steering file provides actionable workflow guidance"
+    assert:
+      - type: llm-rubric
+        value: >
+          Evaluate this steering file as instructions for an AI coding
+          assistant. PASS if the guidance is:
+          1. Actionable — contains concrete steps, not vague advice
+          2. Scoped — stays focused on its declared purpose
+          3. Non-contradictory — instructions don't conflict
+          4. Phase-aware — if multi-phase, phases have clear entry/exit
+          FAIL if the guidance is vague, contradictory, or tries to
+          cover too many concerns at once.
+
+  - description: "Steering file has clear success criteria"
+    assert:
+      - type: llm-rubric
+        value: >
+          A good workflow steering file tells the agent when it's done.
+          PASS if the file defines or implies clear completion criteria
+          — what the deliverable is, when to stop, or what the user
+          should have at the end. FAIL if the workflow could run
+          indefinitely with no clear stopping point.
+
+  - description: "Steering file avoids implementation-specific file paths"
+    assert:
+      - type: llm-rubric
+        value: >
+          Steering files should describe behaviors and patterns, not
+          hardcode file paths or line numbers that will go stale.
+          PASS if the guidance uses behavioral descriptions, type
+          names, and interface references. FAIL if it references
+          specific file paths, line numbers, or implementation details
+          that would break when the codebase changes.
