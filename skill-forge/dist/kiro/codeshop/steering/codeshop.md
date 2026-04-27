@@ -65,6 +65,21 @@ Match the user's request to the right steering file. Each skill is either a **Wo
 | laconic-output (caveman) | Knowledge | `laconic-output.md` | "be brief", "laconic mode", "terse output", "spartan mode" | Spartan communication mode — every word earns its place or gets cut. Grammar stays intact, sentences stripped to their load-bearing minimum. No warmth, no hedging, no filler. |
 | author-knowledge (write-a-skill) | Workflow | `author-knowledge.md` | "write a skill", "author knowledge", "create artifact" | Author canonical knowledge artifacts with proper structure, frontmatter, and optional workflows — Skill Forge handles compilation to any harness. |
 
+### Spec Mode Integration
+
+The following hooks fire automatically during Kiro spec task execution. They do not require manual invocation — the Kiro spec engine triggers them via `preTaskExecution` and `postTaskExecution` events, and each hook's prompt determines whether to activate its workflow based on the task context.
+
+| Hook Name | Kiro Event | Workflow Loaded | Detection Criteria |
+|---|---|---|---|
+| Plan Stress Test | preTaskExecution | `stress-test-plan.md` | First task in the spec (task 1 or task 1.1) |
+| Bugfix Triage Context | preTaskExecution | `triage-bug.md` | Bugfix keywords: bugfix, bug, fix, regression, defect, broken |
+| Domain Concept Validation | preTaskExecution | `challenge-domain-model.md` | Domain keywords: new type, new interface, new entity, new aggregate, bounded context, domain event, value object, new module, new model |
+| TDD Task Detection | preTaskExecution | `drive-tests.md` | Test keywords: test, spec, TDD, red-green, assertion, coverage, unit test, integration test, property test |
+| Post-Task Code Review | postTaskExecution | `review-changes.md` | Unconditional — fires after every task |
+| Post-Task Commit Guidance | postTaskExecution | `craft-commits.md` | Unconditional — fires after every task |
+
+**Precedence:** Pre-task hooks fire in array order — Plan Stress Test first, then Bugfix Triage Context, Domain Concept Validation, and TDD Task Detection. Each hook independently evaluates its detection criteria and exits early if the task does not match. Post-task hooks (Code Review, Commit Guidance) fire after all pre-task hooks and task execution complete.
+
 ## Shared Concepts
 
 These cross-cutting concepts are referenced by multiple skills. Steering files reference this section rather than redefining these terms, keeping vocabulary consistent across all codeshop workflows.
@@ -289,6 +304,20 @@ Triage identifies the bug and narrows the search space, the debug journal isolat
 `drive-tests` → `review-changes` → `craft-commits`
 
 TDD produces working, tested changes, review validates they meet quality and intent, and craft-commits writes commit messages that capture the rationale — why the change was made, not just what changed.
+
+### Spec-Driven Development Chain
+
+`stress-test-plan` → `drive-tests` → `review-changes` → `craft-commits`
+
+Stress-test-plan fires before the first spec task to validate the design and surface gaps before implementation begins, drive-tests activates for test-related tasks using TDD red-green-refactor methodology, review-changes performs a lightweight code review after each task completes, and craft-commits suggests a conventional commit message capturing the rationale for the changes.
+
+### Spec Bugfix Chain
+
+`triage-bug` → `journal-debug` → `drive-tests`
+
+Triage-bug loads the debugging methodology for bugfix spec tasks and narrows the search space, journal-debug provides systematic isolation of the root cause through articulation and binary search, and drive-tests implements the fix using TDD with a regression test that prevents recurrence.
+
+**Note:** The Spec-Driven Development Chain and Spec Bugfix Chain are activated automatically by spec-hooks during spec task execution. Unlike the manually-invoked chains above, these chains are triggered by `preTaskExecution` and `postTaskExecution` hook events — the developer does not need to invoke them explicitly.
 
 ---
 

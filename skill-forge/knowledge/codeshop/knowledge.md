@@ -22,7 +22,7 @@ keywords:
   - commit-messages
   - debugging-methodology
 author: Steven J. Miklovic
-version: 0.1.7
+version: 0.1.8
 harnesses:
   - kiro
 type: power
@@ -43,6 +43,111 @@ inherit-hooks: false
 harness-config:
   kiro:
     format: power
+    spec-hooks:
+      - name: "Plan Stress Test"
+        version: "1.0.0"
+        description: "Detects the first spec task and stress-tests the plan before implementation begins"
+        when:
+          type: preTaskExecution
+        then:
+          type: askAgent
+          prompt: |
+            Before starting this task, assess whether it is the first task in the spec:
+
+            1. Check the task description for references to "task 1" or "task 1.1" indicating this is the first task in the implementation plan.
+            2. If the task is the first task:
+               a. Read the stress-test-plan steering file from the codeshop power.
+               b. Perform a brief stress-test of the spec's design.md, surfacing any gaps or assumptions before implementation begins.
+            3. If the task is not the first task, proceed with the task normally.
+
+            Either load the stress-test-plan workflow and confirm it is applied, or confirm the task is not the first task and proceed with implementation.
+
+      - name: "Bugfix Triage Context"
+        version: "1.0.0"
+        description: "Detects bugfix spec tasks and loads the triage methodology"
+        when:
+          type: preTaskExecution
+        then:
+          type: askAgent
+          prompt: |
+            Before starting this task, assess whether it involves a bugfix context:
+
+            1. Check the task description and spec context for bugfix-related keywords: bugfix, bug, fix, regression, defect, broken.
+            2. If the task matches:
+               a. Read the triage-bug steering file from the codeshop power.
+               b. Apply the triage methodology (diagnose, find root cause, plan TDD fix) to the task.
+            3. If the task does not match, proceed with the task normally.
+
+            Either load the triage-bug workflow and confirm it is applied, or confirm the task does not involve a bugfix context and proceed with implementation.
+
+      - name: "Domain Concept Validation"
+        version: "1.0.0"
+        description: "Detects tasks introducing new domain concepts and validates them against the existing model"
+        when:
+          type: preTaskExecution
+        then:
+          type: askAgent
+          prompt: |
+            Before starting this task, assess whether it introduces new domain concepts:
+
+            1. Check the task description for domain-related keywords: new type, new interface, new entity, new aggregate, bounded context, domain event, value object, new module, new model.
+            2. If the task matches:
+               a. Read the challenge-domain-model steering file from the codeshop power.
+               b. Validate that the proposed concepts align with the project's existing domain model in CONTEXT.md and UBIQUITOUS_LANGUAGE.md.
+            3. If the task does not match, proceed with the task normally.
+
+            Either load the challenge-domain-model workflow and confirm it is applied, or confirm the task does not introduce new domain concepts and proceed with implementation.
+
+      - name: "TDD Task Detection"
+        version: "1.0.0"
+        description: "Detects test-related spec tasks and loads the TDD workflow"
+        when:
+          type: preTaskExecution
+        then:
+          type: askAgent
+          prompt: |
+            Before starting this task, assess whether it involves writing or modifying tests:
+
+            1. Check the task description for test-related keywords: test, spec, TDD, red-green, assertion, coverage, unit test, integration test, property test.
+            2. If the task matches:
+               a. Read the drive-tests steering file from the codeshop power.
+               b. Apply the TDD red-green-refactor methodology to the task.
+            3. If the task does not match, proceed with the task normally.
+
+            Either load the drive-tests workflow and confirm it is applied, or confirm the task does not involve tests and proceed with implementation.
+
+      - name: "Post-Task Code Review"
+        version: "1.0.0"
+        description: "Performs a lightweight code review after each spec task completes"
+        when:
+          type: postTaskExecution
+        then:
+          type: askAgent
+          prompt: |
+            This task has just been completed. Perform a lightweight code review of the changes made during this task:
+
+            1. Read the review-changes steering file from the codeshop power.
+            2. Review the changes made during this task using the review-changes taxonomy.
+            3. Classify findings as must-address, should-address, or nit.
+            4. Report only must-address and should-address findings inline.
+
+            Load the review-changes workflow and confirm the review is complete.
+
+      - name: "Post-Task Commit Guidance"
+        version: "1.0.0"
+        description: "Suggests a well-crafted commit message after each spec task completes"
+        when:
+          type: postTaskExecution
+        then:
+          type: askAgent
+          prompt: |
+            This task has just been completed. Draft a commit message for the changes made during this task:
+
+            1. Read the craft-commits steering file from the codeshop power.
+            2. Draft a conventional commit message that captures the rationale for the changes.
+            3. Include the spec task identifier in the commit message body for traceability.
+
+            Load the craft-commits workflow and present the suggested commit message.
 ---
 
 ## Onboarding
@@ -106,6 +211,21 @@ Match the user's request to the right steering file. Each skill is either a **Wo
 | map-context (zoom-out) | Knowledge | `map-context.md` | "zoom out", "map context", "show dependencies" | Zoom out to a higher level of abstraction and map all relevant modules and callers for an unfamiliar area of code. |
 | laconic-output (caveman) | Knowledge | `laconic-output.md` | "be brief", "laconic mode", "terse output", "spartan mode" | Spartan communication mode — every word earns its place or gets cut. Grammar stays intact, sentences stripped to their load-bearing minimum. No warmth, no hedging, no filler. |
 | author-knowledge (write-a-skill) | Workflow | `author-knowledge.md` | "write a skill", "author knowledge", "create artifact" | Author canonical knowledge artifacts with proper structure, frontmatter, and optional workflows — Skill Forge handles compilation to any harness. |
+
+### Spec Mode Integration
+
+The following hooks fire automatically during Kiro spec task execution. They do not require manual invocation — the Kiro spec engine triggers them via `preTaskExecution` and `postTaskExecution` events, and each hook's prompt determines whether to activate its workflow based on the task context.
+
+| Hook Name | Kiro Event | Workflow Loaded | Detection Criteria |
+|---|---|---|---|
+| Plan Stress Test | preTaskExecution | `stress-test-plan.md` | First task in the spec (task 1 or task 1.1) |
+| Bugfix Triage Context | preTaskExecution | `triage-bug.md` | Bugfix keywords: bugfix, bug, fix, regression, defect, broken |
+| Domain Concept Validation | preTaskExecution | `challenge-domain-model.md` | Domain keywords: new type, new interface, new entity, new aggregate, bounded context, domain event, value object, new module, new model |
+| TDD Task Detection | preTaskExecution | `drive-tests.md` | Test keywords: test, spec, TDD, red-green, assertion, coverage, unit test, integration test, property test |
+| Post-Task Code Review | postTaskExecution | `review-changes.md` | Unconditional — fires after every task |
+| Post-Task Commit Guidance | postTaskExecution | `craft-commits.md` | Unconditional — fires after every task |
+
+**Precedence:** Pre-task hooks fire in array order — Plan Stress Test first, then Bugfix Triage Context, Domain Concept Validation, and TDD Task Detection. Each hook independently evaluates its detection criteria and exits early if the task does not match. Post-task hooks (Code Review, Commit Guidance) fire after all pre-task hooks and task execution complete.
 
 ## Shared Concepts
 
@@ -331,6 +451,20 @@ Triage identifies the bug and narrows the search space, the debug journal isolat
 `drive-tests` → `review-changes` → `craft-commits`
 
 TDD produces working, tested changes, review validates they meet quality and intent, and craft-commits writes commit messages that capture the rationale — why the change was made, not just what changed.
+
+### Spec-Driven Development Chain
+
+`stress-test-plan` → `drive-tests` → `review-changes` → `craft-commits`
+
+Stress-test-plan fires before the first spec task to validate the design and surface gaps before implementation begins, drive-tests activates for test-related tasks using TDD red-green-refactor methodology, review-changes performs a lightweight code review after each task completes, and craft-commits suggests a conventional commit message capturing the rationale for the changes.
+
+### Spec Bugfix Chain
+
+`triage-bug` → `journal-debug` → `drive-tests`
+
+Triage-bug loads the debugging methodology for bugfix spec tasks and narrows the search space, journal-debug provides systematic isolation of the root cause through articulation and binary search, and drive-tests implements the fix using TDD with a regression test that prevents recurrence.
+
+**Note:** The Spec-Driven Development Chain and Spec Bugfix Chain are activated automatically by spec-hooks during spec task execution. Unlike the manually-invoked chains above, these chains are triggered by `preTaskExecution` and `postTaskExecution` hook events — the developer does not need to invoke them explicitly.
 
 ---
 
