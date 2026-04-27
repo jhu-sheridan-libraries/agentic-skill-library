@@ -1,6 +1,6 @@
 <!-- forge:version 0.4.1 -->
 ---
-inclusion: manual
+inclusion: auto
 ---
 
 # ADR Power
