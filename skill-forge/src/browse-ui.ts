@@ -1149,6 +1149,27 @@ export function generateHtmlPage(): string {
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+      var isStaticMode = !!window.__CATALOG_DATA__;
+
+      if (isStaticMode) {
+        // Hide interactive tabs that require live API endpoints
+        var tabItems = document.querySelectorAll('.tab-nav-item');
+        var hiddenViews = ['collections', 'manifest', 'graph', 'workspace', 'build'];
+        for (var t = 0; t < tabItems.length; t++) {
+          var view = tabItems[t].getAttribute('data-view');
+          if (hiddenViews.indexOf(view) !== -1) {
+            tabItems[t].style.display = 'none';
+          }
+        }
+
+        // Hide header action buttons and build status indicator
+        var hideIds = ['import-btn', 'build-btn', 'new-btn', 'build-status-indicator'];
+        for (var h = 0; h < hideIds.length; h++) {
+          var el = document.getElementById(hideIds[h]);
+          if (el) el.style.display = 'none';
+        }
+      }
+
       function initCatalog(data) {
         catalogData = data;
         updateArtifactCount(catalogData.length);
@@ -1156,6 +1177,15 @@ export function generateHtmlPage(): string {
         populateFormatFilter(catalogData);
         populateMaturityFilter(catalogData);
         populateCollectionFilter(catalogData);
+
+        // In static mode, pre-select the "jhu" collection filter if it exists
+        if (isStaticMode) {
+          var jhuCb = document.querySelector('.collection-cb[value="jhu"]');
+          if (jhuCb) {
+            jhuCb.checked = true;
+          }
+        }
+
         renderCards(catalogData, false);
 
         // Wire up search and filter event listeners
@@ -1164,6 +1194,11 @@ export function generateHtmlPage(): string {
         document.getElementById('format-filter').addEventListener('change', filterAndRender);
         document.getElementById('maturity-filter').addEventListener('change', filterAndRender);
         document.getElementById('collection-filter').addEventListener('change', filterAndRender);
+
+        // Apply the jhu filter after event listeners are wired
+        if (isStaticMode) {
+          filterAndRender();
+        }
       }
 
       if (window.__CATALOG_DATA__) {

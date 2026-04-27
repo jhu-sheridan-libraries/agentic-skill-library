@@ -1256,3 +1256,177 @@ describe("content-type validation on mutation endpoints", () => {
 		expect(body.error).toContain("Content-Type");
 	});
 });
+
+
+// ---------------------------------------------------------------------------
+// Static-mode behavior tests (Tasks 4.1–4.5)
+// ---------------------------------------------------------------------------
+
+describe("static mode — isStaticMode detection (Task 4.1)", () => {
+	const entries = [
+		makeCatalogEntry({ name: "detect-skill", displayName: "Detect Skill" }),
+	];
+	const contentMap: Record<string, string> = { "detect-skill": "# Hello" };
+
+	test("generateStaticHtmlPage output contains isStaticMode variable", () => {
+		const html = generateStaticHtmlPage(entries, contentMap);
+		expect(html).toContain("var isStaticMode = !!window.__CATALOG_DATA__");
+	});
+
+	test("isStaticMode is set inside the DOMContentLoaded handler", () => {
+		const html = generateStaticHtmlPage(entries, contentMap);
+		const domIdx = html.indexOf("DOMContentLoaded");
+		const flagIdx = html.indexOf("var isStaticMode");
+		expect(domIdx).toBeGreaterThan(-1);
+		expect(flagIdx).toBeGreaterThan(domIdx);
+	});
+});
+
+describe("static mode — tab hiding logic (Task 4.2)", () => {
+	const html = generateStaticHtmlPage(
+		[makeCatalogEntry({ name: "tab-test" })],
+		{ "tab-test": "content" },
+	);
+
+	test("static page JS hides 'collections' tab", () => {
+		expect(html).toContain("collections");
+		// The hiddenViews array must list collections
+		expect(html).toMatch(/hiddenViews.*collections/);
+	});
+
+	test("static page JS hides 'manifest' tab", () => {
+		expect(html).toMatch(/hiddenViews.*manifest/);
+	});
+
+	test("static page JS hides 'graph' tab", () => {
+		expect(html).toMatch(/hiddenViews.*graph/);
+	});
+
+	test("static page JS hides 'workspace' tab", () => {
+		expect(html).toMatch(/hiddenViews.*workspace/);
+	});
+
+	test("static page JS hides 'build' tab", () => {
+		expect(html).toMatch(/hiddenViews.*build/);
+	});
+
+	test("tab hiding is gated on isStaticMode", () => {
+		// The hiddenViews logic should appear inside an if (isStaticMode) block
+		const staticIdx = html.indexOf("if (isStaticMode)");
+		const hiddenIdx = html.indexOf("hiddenViews");
+		expect(staticIdx).toBeGreaterThan(-1);
+		expect(hiddenIdx).toBeGreaterThan(staticIdx);
+	});
+});
+
+describe("static mode — header button hiding logic (Task 4.3)", () => {
+	const html = generateStaticHtmlPage(
+		[makeCatalogEntry({ name: "btn-test" })],
+		{ "btn-test": "content" },
+	);
+
+	test("static page JS hides import-btn", () => {
+		expect(html).toContain("'import-btn'");
+	});
+
+	test("static page JS hides build-btn", () => {
+		expect(html).toContain("'build-btn'");
+	});
+
+	test("static page JS hides new-btn", () => {
+		expect(html).toContain("'new-btn'");
+	});
+
+	test("static page JS hides build-status-indicator", () => {
+		expect(html).toContain("'build-status-indicator'");
+	});
+
+	test("button hiding uses hideIds array with all four IDs", () => {
+		expect(html).toMatch(
+			/hideIds.*=.*\[.*'import-btn'.*'build-btn'.*'new-btn'.*'build-status-indicator'.*\]/,
+		);
+	});
+
+	test("button hiding is gated on isStaticMode", () => {
+		const staticIdx = html.indexOf("if (isStaticMode)");
+		const hideIdsIdx = html.indexOf("hideIds");
+		expect(staticIdx).toBeGreaterThan(-1);
+		expect(hideIdsIdx).toBeGreaterThan(staticIdx);
+	});
+});
+
+describe("static mode — jhu collection pre-selection (Task 4.4)", () => {
+	const html = generateStaticHtmlPage(
+		[makeCatalogEntry({ name: "jhu-test", collections: ["jhu"] })],
+		{ "jhu-test": "content" },
+	);
+
+	test("static page JS looks for .collection-cb checkbox with value 'jhu'", () => {
+		expect(html).toContain('.collection-cb[value="jhu"]');
+	});
+
+	test("static page JS sets checked = true on the jhu checkbox", () => {
+		expect(html).toContain("jhuCb.checked = true");
+	});
+
+	test("jhu pre-selection is gated on isStaticMode", () => {
+		// The jhu checkbox logic should be inside an if (isStaticMode) block
+		const jhuIdx = html.indexOf('.collection-cb[value="jhu"]');
+		// Find the nearest preceding isStaticMode check
+		const preceding = html.lastIndexOf("isStaticMode", jhuIdx);
+		expect(preceding).toBeGreaterThan(-1);
+	});
+
+	test("filterAndRender is called after jhu pre-selection in static mode", () => {
+		// After the jhu checkbox logic, filterAndRender should be called
+		const jhuIdx = html.indexOf("jhuCb.checked = true");
+		const filterIdx = html.indexOf("filterAndRender()", jhuIdx);
+		expect(filterIdx).toBeGreaterThan(jhuIdx);
+	});
+});
+
+describe("live mode — regression tests (Task 4.5)", () => {
+	const html = generateHtmlPage();
+
+	test("live mode HTML contains Artifacts tab", () => {
+		expect(html).toContain('data-view="artifacts"');
+	});
+
+	test("live mode HTML contains Collections tab", () => {
+		expect(html).toContain('data-view="collections"');
+	});
+
+	test("live mode HTML contains Manifest tab", () => {
+		expect(html).toContain('data-view="manifest"');
+	});
+
+	test("live mode HTML contains Dependencies (graph) tab", () => {
+		expect(html).toContain('data-view="graph"');
+	});
+
+	test("live mode HTML contains Workspace tab", () => {
+		expect(html).toContain('data-view="workspace"');
+	});
+
+	test("live mode HTML contains import-btn", () => {
+		expect(html).toContain('id="import-btn"');
+	});
+
+	test("live mode HTML contains build-btn", () => {
+		expect(html).toContain('id="build-btn"');
+	});
+
+	test("live mode HTML contains new-btn", () => {
+		expect(html).toContain('id="new-btn"');
+	});
+
+	test("live mode HTML contains build-status-indicator", () => {
+		expect(html).toContain('id="build-status-indicator"');
+	});
+
+	test("live mode HTML does NOT embed __CATALOG_DATA__ inline", () => {
+		// generateHtmlPage (live) should not have the data script injection
+		// It should reference __CATALOG_DATA__ only in the JS detection logic, not as an assignment
+		expect(html).not.toContain("__CATALOG_DATA__ = [");
+	});
+});
