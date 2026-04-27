@@ -1,0 +1,153 @@
+# ──────────────────────────────────────────────
+# User-Triggered Hooks (3)
+# ──────────────────────────────────────────────
+
+- name: Map Context
+  description: >-
+    User-invoked zoom-out to map relevant modules, callers, and dependencies
+    in the codebase area the user is asking about.
+  event: user_triggered
+  action:
+    type: ask_agent
+    prompt: >-
+      Read the map-context steering file from the codeshop power.
+      Explore the codebase area the user is asking about. Go up one layer
+      of abstraction and present a map of all relevant modules, callers,
+      and dependencies. Do NOT summarize — show the actual dependency graph.
+
+- name: Define Glossary
+  description: >-
+    User-invoked glossary extraction from the current conversation context.
+  event: user_triggered
+  action:
+    type: ask_agent
+    prompt: >-
+      Read the define-glossary steering file from the codeshop power.
+      Scan the current conversation for domain-relevant terms. Identify
+      ambiguities, synonyms, and vague terms. Propose a canonical glossary
+      and write it to UBIQUITOUS_LANGUAGE.md. Present a summary of all
+      terms added or changed inline.
+
+- name: Challenge Domain Model
+  description: >-
+    User-invoked domain model grilling session that interviews the user
+    about their plan against the existing domain model.
+  event: user_triggered
+  action:
+    type: ask_agent
+    prompt: >-
+      Read the challenge-domain-model steering file from the codeshop power.
+      Begin a grilling session: interview the user about every aspect of
+      their plan against the existing domain model. Start with the first
+      question immediately. Update CONTEXT.md as decisions crystallize and
+      offer ADRs inline when architectural decisions emerge.
+
+# ──────────────────────────────────────────────
+# Pre-Task Hook (1)
+# ──────────────────────────────────────────────
+
+- name: Architectural Change Detection
+  description: >-
+    Before starting a task, assess whether it involves architectural changes
+    and load the appropriate workflow context if needed.
+  event: pre_task
+  action:
+    type: ask_agent
+    prompt: >-
+      Before starting this task, assess whether it involves architectural
+      changes (new module structures, integration patterns, interface redesigns,
+      or significant refactoring):
+
+      1. Read the task description and any linked spec design.md.
+      2. If the task involves architectural changes:
+         a. Read the refactor-architecture steering file from codeshop.
+         b. Check if CONTEXT.md and docs/adr/ exist — if so, review them
+            for relevant context before proceeding.
+         c. Proceed with the task using the architectural review framework.
+      3. If the task does not involve architectural changes, proceed normally.
+
+      Either load the architectural context and confirm it is applied, or
+      confirm the task is non-architectural and proceed with implementation.
+
+# ──────────────────────────────────────────────
+# Agent-Stop Hook (1)
+# ──────────────────────────────────────────────
+
+- name: Unfiled Issue Reminder
+  description: >-
+    When the session ends, review the conversation for bugs discussed but
+    not filed and either file them or confirm all are filed.
+  event: agent_stop
+  action:
+    type: ask_agent
+    prompt: >-
+      Before this session ends, review the conversation for any bugs,
+      issues, or problems that were discussed but NOT filed as GitHub issues:
+
+      1. Scan the conversation for bug reports, error descriptions, or
+         "we should fix" mentions.
+      2. If unfiled issues exist:
+         a. For each unfiled issue, create a GitHub issue using the
+            triage-bug or run-qa-session issue template patterns.
+         b. Use durable language (describe behaviors, not file paths).
+         c. Include reproduction steps if they were discussed.
+      3. If all discussed issues were already filed, report:
+         "All issues from this session have been filed."
+
+      Either file every unfiled issue now or confirm all are already filed.
+
+# ──────────────────────────────────────────────
+# File-Edited Hooks — Conditional Steering (3)
+# ──────────────────────────────────────────────
+
+- name: Domain Context File Guidance
+  description: >-
+    When CONTEXT.md or CONTEXT-MAP.md is edited, remind the agent about
+    the challenge-domain-model workflow for domain modeling.
+  event: file_edited
+  condition:
+    file_patterns:
+      - "CONTEXT.md"
+      - "CONTEXT-MAP.md"
+  action:
+    type: ask_agent
+    prompt: >-
+      You are editing a domain context file. Read the challenge-domain-model
+      steering file from codeshop and apply its domain modeling framework to
+      validate the changes you are making. Verify that all terms match the
+      project's ubiquitous language and that bounded context boundaries are
+      respected.
+
+- name: ADR File Guidance
+  description: >-
+    When files under docs/adr/ are edited, remind the agent about the
+    refactor-architecture workflow for ADR files.
+  event: file_edited
+  condition:
+    file_patterns:
+      - "docs/adr/**"
+  action:
+    type: ask_agent
+    prompt: >-
+      You are editing an Architecture Decision Record. Read the
+      refactor-architecture steering file from codeshop and apply its
+      architectural review framework to validate this ADR. Verify the
+      decision is grounded in the current codebase context and that
+      CONTEXT.md reflects any new architectural boundaries.
+
+- name: Glossary File Guidance
+  description: >-
+    When UBIQUITOUS_LANGUAGE.md is edited, remind the agent about the
+    define-glossary workflow for glossary files.
+  event: file_edited
+  condition:
+    file_patterns:
+      - "UBIQUITOUS_LANGUAGE.md"
+  action:
+    type: ask_agent
+    prompt: >-
+      You are editing the ubiquitous language glossary. Read the
+      define-glossary steering file from codeshop and apply its glossary
+      discipline to validate the changes. Check for ambiguities, synonyms,
+      and terms that conflict with existing definitions. Update the glossary
+      entry with a precise, unambiguous definition.
