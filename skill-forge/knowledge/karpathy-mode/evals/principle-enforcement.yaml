@@ -1,0 +1,185 @@
+# Eval: Karpathy Mode enforces all four principles against adversarial inputs
+#
+# Each test presents the exact anti-pattern described in the artifact and
+# verifies the guidance produces the correct behavior instead.
+# These are adversarial: the user_query is designed to trigger the bad pattern.
+#
+# Run:  bun run dev eval karpathy-mode
+
+description: "Karpathy Mode enforces four principles against adversarial anti-patterns"
+
+prompts:
+  - file://dist/kiro/karpathy-mode/steering/karpathy-mode.md
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+
+tests:
+  # --- Principle 1: Think Before Coding ---
+
+  - description: "P1: Surfaces assumptions instead of silently implementing"
+    vars:
+      user_query: "Add a feature to export user data"
+    assert:
+      - type: llm-rubric
+        value: >
+          This is the exact hidden-assumptions anti-pattern from the
+          artifact. The agent must NOT silently assume format, scope,
+          fields, or delivery mechanism. PASS if the response asks
+          clarifying questions about at least two of: export format,
+          scope (all users or filtered), which fields, delivery
+          mechanism (download vs API vs background job). FAIL if it
+          immediately starts implementing an export feature.
+
+  - description: "P1: Presents multiple interpretations instead of picking silently"
+    vars:
+      user_query: "Make the search faster"
+    assert:
+      - type: llm-rubric
+        value: >
+          This is the multiple-interpretations anti-pattern. The agent
+          must NOT pick one interpretation and implement it. PASS if
+          the response presents at least two distinct interpretations
+          (e.g., response time vs throughput vs perceived speed) and
+          asks which matters most. FAIL if it immediately starts
+          implementing a caching or indexing solution.
+
+  - description: "P1: Stops and asks when the request is unclear"
+    vars:
+      user_query: "Fix the thing we talked about"
+    assert:
+      - type: llm-rubric
+        value: >
+          The request is ambiguous — no prior context. The agent must
+          stop and ask for clarification rather than guessing. PASS
+          if the response names the ambiguity and asks what 'the thing'
+          refers to. FAIL if it guesses or starts implementing anything.
+
+  # --- Principle 2: Simplicity First ---
+
+  - description: "P2: Rejects over-abstraction for a single-use function"
+    vars:
+      user_query: "Add a function to calculate discount"
+    assert:
+      - type: llm-rubric
+        value: >
+          This is the over-abstraction anti-pattern. The agent must
+          NOT build a DiscountStrategy ABC, multiple classes, or a
+          configuration system. PASS if the response produces a single
+          simple function (≤10 lines) that calculates the discount
+          directly. FAIL if it introduces classes, inheritance,
+          configuration objects, or abstractions for future use cases.
+
+  - description: "P2: Does not add unrequested features"
+    vars:
+      user_query: "Save user preferences to database"
+    assert:
+      - type: llm-rubric
+        value: >
+          This is the speculative features anti-pattern. The agent
+          must NOT add caching, validation, merging, notifications,
+          or other features that weren't requested. PASS if the
+          response implements only the minimal save operation.
+          FAIL if it adds any unrequested functionality.
+
+  - description: "P2: Pushes back when a simpler approach exists"
+    vars:
+      user_query: "Implement a plugin architecture so we can add features later"
+    assert:
+      - type: llm-rubric
+        value: >
+          Principle 2 says to push back when a simpler approach
+          exists. A plugin architecture is speculative complexity.
+          PASS if the response questions whether the plugin
+          architecture is needed now, suggests starting simpler,
+          or asks what specific features need to be added. FAIL
+          if it immediately designs a plugin system.
+
+  # --- Principle 3: Surgical Changes ---
+
+  - description: "P3: Does not improve adjacent code while fixing a bug"
+    vars:
+      user_query: "Fix the bug where empty emails crash the validator"
+    assert:
+      - type: llm-rubric
+        value: >
+          This is the drive-by refactoring anti-pattern. The agent
+          must ONLY fix the empty email crash — not improve the regex,
+          add validation for other fields, change comments, or add
+          docstrings. PASS if the response changes only the lines
+          needed to handle empty emails. FAIL if it touches anything
+          beyond the specific empty-email bug.
+
+  - description: "P3: Matches existing style instead of imposing preferences"
+    vars:
+      user_query: "Add logging to the upload function"
+    assert:
+      - type: llm-rubric
+        value: >
+          This is the style-drift anti-pattern. The agent must add
+          only logging lines and match existing style. PASS if the
+          response adds only logging and explicitly states it will
+          match existing style (quotes, type hints, formatting).
+          FAIL if it changes quote style, adds type hints, adds
+          docstrings, or reformats anything beyond the logging lines.
+
+  - description: "P3: Mentions unrelated dead code instead of deleting it"
+    vars:
+      user_query: "Add error handling to the payment processor"
+    assert:
+      - type: llm-rubric
+        value: >
+          If the agent notices pre-existing dead code while adding
+          error handling, it must mention it rather than delete it.
+          PASS if the response adds only the requested error handling
+          and, if it notices dead code, mentions it as a separate
+          observation rather than removing it. FAIL if it deletes
+          pre-existing dead code as part of the error handling task.
+
+  # --- Principle 4: Goal-Driven Execution ---
+
+  - description: "P4: Transforms vague task into verifiable steps"
+    vars:
+      user_query: "Fix the authentication system"
+    assert:
+      - type: llm-rubric
+        value: >
+          This is the vague-vs-verifiable anti-pattern. The agent
+          must NOT say 'I'll review and improve the code.' PASS if
+          the response defines specific verifiable steps with explicit
+          success criteria (e.g., 'Write test that reproduces X →
+          make it pass → verify no regressions'). FAIL if it gives
+          a vague plan like 'review, identify issues, make improvements.'
+
+  - description: "P4: Writes a failing test before fixing a reported bug"
+    vars:
+      user_query: "The sorting breaks when there are duplicate scores"
+    assert:
+      - type: llm-rubric
+        value: >
+          This is the test-first verification pattern. The agent must
+          NOT immediately change sort logic. PASS if the response
+          starts by writing a test that reproduces the duplicate-score
+          issue before proposing any fix. FAIL if it immediately
+          modifies the sort implementation without first writing a
+          reproducing test.
+
+  - description: "P4: States a plan with verify steps for multi-step tasks"
+    vars:
+      user_query: "Refactor the user service to use the repository pattern"
+    assert:
+      - type: llm-rubric
+        value: >
+          Multi-step tasks require a brief plan with verify steps.
+          PASS if the response includes a numbered plan where each
+          step has an explicit verification check (e.g., 'Step 1:
+          Extract interface → verify: existing tests still pass').
+          FAIL if it dives into implementation without a plan, or
+          gives a plan without verification criteria.

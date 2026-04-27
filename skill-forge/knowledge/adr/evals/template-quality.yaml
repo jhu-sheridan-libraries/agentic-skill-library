@@ -1,0 +1,105 @@
+# Eval: ADR template quality — full MADR vs short-form selection and content
+#
+# Tests that the workflow steering file selects the right template and
+# produces structurally complete ADRs with required sections.
+#
+# Run:  bun run dev eval adr
+
+description: "ADR template selection and structural completeness"
+
+prompts:
+  - file://dist/kiro/adr/steering/workflow.md
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+
+tests:
+  - description: "Full MADR used when multiple options were considered"
+    vars:
+      user_query: >
+        We evaluated PostgreSQL, MongoDB, and DynamoDB for our user
+        data store and chose PostgreSQL for its ACID guarantees.
+    assert:
+      - type: llm-rubric
+        value: >
+          Multiple alternatives were evaluated, so the full MADR
+          template is required. PASS if the draft includes all of:
+          Context and Problem Statement, Decision Drivers, Considered
+          Options (all three), Decision Outcome with rationale,
+          Options Analysis with pros/cons, and Links. FAIL if it
+          uses the short-form template or omits any required section.
+
+  - description: "Short-form used when no alternatives were viable"
+    vars:
+      user_query: >
+        We need to document our decision to use the existing company
+        SSO system for authentication — there was no real alternative
+        since it's mandated by IT policy.
+    assert:
+      - type: llm-rubric
+        value: >
+          No real alternatives existed (mandated choice), so the
+          short-form template is appropriate. PASS if the draft uses
+          the short-form template with a 'Rationale for No Alternatives'
+          section explaining the mandate. FAIL if it invents fake
+          alternatives to fill the full MADR template.
+
+  - description: "'Do nothing' option is always included in full MADR"
+    vars:
+      user_query: >
+        We chose to migrate from our custom auth to Auth0.
+        The alternatives we considered were Auth0, Okta, and Cognito.
+    assert:
+      - type: llm-rubric
+        value: >
+          The full MADR template requires 'Do nothing' as an option
+          even when the user didn't mention it. PASS if the Considered
+          Options section includes 'Do nothing' (keep custom auth)
+          alongside Auth0, Okta, and Cognito. FAIL if 'Do nothing'
+          is absent from the options list.
+
+  - description: "Decision Drivers are specific and traceable, not generic"
+    vars:
+      user_query: >
+        Create an ADR for choosing React over Vue for our frontend.
+        We chose React because of ecosystem size and team familiarity.
+    assert:
+      - type: llm-rubric
+        value: >
+          Decision Drivers must be specific and traceable, not generic
+          platitudes. PASS if the drivers include specific constraints
+          like team size, existing skills, specific library needs, or
+          measurable criteria. FAIL if drivers are vague ("better
+          ecosystem", "more popular") without specific context.
+
+  - description: "Options Analysis avoids strawmen"
+    vars:
+      user_query: >
+        We chose Kubernetes over Docker Swarm for container orchestration.
+    assert:
+      - type: llm-rubric
+        value: >
+          The Options Analysis must present balanced pros/cons — not
+          strawmen where the rejected option has only cons. PASS if
+          Docker Swarm's analysis includes genuine pros (simpler
+          setup, lower operational overhead, sufficient for small
+          scale) alongside its cons. FAIL if Docker Swarm is presented
+          as having no advantages.
+
+  - description: "Status lifecycle is correctly applied"
+    vars:
+      user_query: "I want to create a new ADR that the team hasn't reviewed yet"
+    assert:
+      - type: llm-rubric
+        value: >
+          A new ADR that hasn't been reviewed should start as 'Draft',
+          not 'Proposed' or 'Accepted'. PASS if the initial status
+          is set to 'Draft'. FAIL if it starts as 'Proposed' or
+          'Accepted' without a review step.

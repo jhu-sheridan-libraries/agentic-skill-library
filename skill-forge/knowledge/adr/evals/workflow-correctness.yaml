@@ -1,0 +1,118 @@
+# Eval: ADR workflow correctness — core rules and process integrity
+#
+# Tests the 8 rules from POWER.md against realistic scenarios.
+# Uses adversarial cases: presents situations where the rules would be
+# violated and verifies the guidance prevents the violation.
+#
+# Run:  bun run dev eval adr
+
+description: "ADR workflow enforces core rules under adversarial conditions"
+
+prompts:
+  - file://dist/kiro/adr/POWER.md
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+
+tests:
+  - description: "Rule 1: Runs git context before drafting"
+    vars:
+      user_query: "Create an ADR for our decision to use PostgreSQL"
+    assert:
+      - type: llm-rubric
+        value: >
+          Rule 1 requires running git context (git log, git diff, git
+          rev-parse) before drafting any ADR. PASS if the response
+          includes git commands to gather context before drafting.
+          FAIL if it immediately starts drafting the ADR without
+          first running git context commands.
+
+  - description: "Rule 2: Duplicate-checks before creating"
+    vars:
+      user_query: "Create an ADR for switching from REST to GraphQL"
+    assert:
+      - type: llm-rubric
+        value: >
+          Rule 2 requires checking for duplicate ADRs before creating
+          a new one. PASS if the response includes a step to grep
+          existing ADRs for related terms (GraphQL, REST, API design)
+          before drafting. FAIL if it proceeds directly to drafting
+          without a duplicate check.
+
+  - description: "Rule 3: Never silently rewrites accepted decisions"
+    vars:
+      user_query: "Update ADR-005 to change the decision from PostgreSQL to MongoDB"
+    assert:
+      - type: llm-rubric
+        value: >
+          Rule 3 prohibits silently rewriting accepted decisions.
+          Reversing an accepted decision requires supersession, not
+          in-place editing. PASS if the response requires creating a
+          new superseding ADR rather than editing ADR-005 directly.
+          FAIL if it proceeds to edit the accepted ADR in place.
+
+  - description: "Rule 4: Supersession updates both ADRs"
+    vars:
+      user_query: "ADR-003 is being superseded by a new ADR about our caching strategy"
+    assert:
+      - type: llm-rubric
+        value: >
+          Rule 4 requires updating both the old and new ADR when
+          superseding. PASS if the response specifies updating ADR-003
+          with 'Superseded by ADR-NNN' AND the new ADR with
+          'Supersedes ADR-003'. FAIL if it only updates one side.
+
+  - description: "Rule 5: No dangling references"
+    vars:
+      user_query: "Create an ADR that relates to ADR-007 and ADR-012"
+    assert:
+      - type: llm-rubric
+        value: >
+          Rule 5 prohibits dangling references. Before adding links
+          to ADR-007 and ADR-012, the agent must verify those ADRs
+          exist. PASS if the response includes verification that
+          ADR-007 and ADR-012 exist before adding the links.
+          FAIL if it adds the references without verification.
+
+  - description: "Rule 6: Updates index after every write"
+    vars:
+      user_query: "Create a new ADR for our decision to use TypeScript"
+    assert:
+      - type: llm-rubric
+        value: >
+          Rule 6 requires updating the README.md index after every
+          ADR write. PASS if the response includes updating the index
+          table as part of the workflow. FAIL if it only creates the
+          ADR file without mentioning the index update.
+
+  - description: "Rule 7: Draft → confirm → write, never skips confirmation"
+    vars:
+      user_query: "Just write the ADR for using Redis as our cache, I trust you"
+    assert:
+      - type: llm-rubric
+        value: >
+          Rule 7 requires showing a draft and getting confirmation
+          before writing, even when the user says to skip it.
+          PASS if the response drafts the ADR and asks for
+          confirmation before writing to disk. FAIL if it writes
+          the ADR directly without showing a draft first.
+
+  - description: "Rule 8: Changelog entries are links, not restatements"
+    vars:
+      user_query: "Add a changelog entry for the new ADR about our database choice"
+    assert:
+      - type: llm-rubric
+        value: >
+          Rule 8 requires changelog entries to be links to ADRs,
+          not prose summaries. PASS if the response produces a
+          changelog entry in the format
+          '- [ADR-NNN](path/to/adr.md): Title' without restating
+          the decision content. FAIL if it writes a prose summary
+          of the decision in the changelog.

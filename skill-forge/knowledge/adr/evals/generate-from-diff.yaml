@@ -1,0 +1,104 @@
+# Eval: generate-from-diff correctly classifies changes and skips non-architectural diffs
+#
+# Tests the signal classification table and the "no high/medium signals → stop" rule.
+# Uses adversarial cases: diffs that should NOT trigger ADR creation.
+#
+# Run:  bun run dev eval adr
+
+description: "generate-from-diff classifies changes correctly and skips non-architectural diffs"
+
+prompts:
+  - file://dist/kiro/adr/steering/generate-from-diff.md
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+
+tests:
+  - description: "Test-only diff produces no ADR"
+    vars:
+      user_query: >
+        Git diff shows: tests/test_auth.py +45 lines, tests/test_user.py +12 lines.
+        No other files changed.
+    assert:
+      - type: llm-rubric
+        value: >
+          Test-only changes are explicitly classified as 'Skip' in
+          the signal table. PASS if the response reports 'No
+          architectural changes detected' and stops without drafting
+          an ADR. FAIL if it drafts an ADR for test-only changes.
+
+  - description: "Docs-only diff produces no ADR"
+    vars:
+      user_query: >
+        Git diff shows: README.md +20 lines, docs/api.md +8 lines.
+        No source files changed.
+    assert:
+      - type: llm-rubric
+        value: >
+          Docs-only changes are explicitly classified as 'Skip'.
+          PASS if the response reports 'No architectural changes
+          detected' and stops. FAIL if it drafts an ADR.
+
+  - description: "New dependency triggers ADR draft"
+    vars:
+      user_query: >
+        Git diff shows: package.json adds 'redis: ^4.6.0' and
+        src/cache/redis-client.ts is a new file with 45 lines.
+    assert:
+      - type: llm-rubric
+        value: >
+          A new dependency (redis) with usage code is a High-relevance
+          signal. PASS if the response drafts an ADR covering the
+          decision to add Redis as a dependency. FAIL if it reports
+          no architectural changes or skips the draft.
+
+  - description: "New module/package triggers ADR draft"
+    vars:
+      user_query: >
+        Git diff shows: src/payments/__init__.py (new), src/payments/
+        processor.py (new, 120 lines), src/payments/models.py (new,
+        80 lines).
+    assert:
+      - type: llm-rubric
+        value: >
+          A new package with multiple files is a High-relevance signal.
+          PASS if the response drafts an ADR for the new payments
+          module. FAIL if it skips the draft.
+
+  - description: "Uncertain sections are marked with REVIEW comments"
+    vars:
+      user_query: >
+        Git diff shows: src/auth/middleware.py changed significantly,
+        removing JWT validation and adding session-based auth.
+        Commit message: 'fix auth bug'.
+    assert:
+      - type: llm-rubric
+        value: >
+          When the diff is ambiguous (commit message says 'fix' but
+          the change is architectural), uncertain sections must be
+          marked with REVIEW comments. PASS if the draft includes
+          at least one '<!-- REVIEW: ... -->' marker on uncertain
+          sections (e.g., whether this was intentional or a fix).
+          FAIL if it drafts with no uncertainty markers.
+
+  - description: "Related signals are grouped into a single ADR"
+    vars:
+      user_query: >
+        Git diff shows: package.json adds 'stripe: ^12.0.0',
+        src/billing/stripe-client.ts (new), src/billing/webhook.ts
+        (new), src/billing/types.ts (new).
+    assert:
+      - type: llm-rubric
+        value: >
+          Multiple related signals (new dependency + new module files)
+          should be grouped into a single ADR, not multiple. PASS if
+          the response drafts one ADR covering the Stripe integration
+          decision. FAIL if it proposes multiple separate ADRs for
+          the dependency and the module files.

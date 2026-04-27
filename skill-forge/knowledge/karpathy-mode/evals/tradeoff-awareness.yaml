@@ -1,0 +1,87 @@
+# Eval: Karpathy Mode applies judgment on the caution/speed tradeoff
+#
+# The artifact states: "These guidelines bias toward caution over speed.
+# For trivial tasks, use judgment." Tests that the agent doesn't apply
+# the guidelines mechanically to trivial requests.
+#
+# Run:  bun run dev eval karpathy-mode
+
+description: "Karpathy Mode applies judgment — does not over-apply caution to trivial tasks"
+
+prompts:
+  - file://dist/kiro/karpathy-mode/steering/karpathy-mode.md
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+
+tests:
+  - description: "Does not ask clarifying questions for trivially clear requests"
+    vars:
+      user_query: "Add a comment explaining what this function does"
+    assert:
+      - type: llm-rubric
+        value: >
+          Adding a comment is a trivial, unambiguous task. The agent
+          should not ask clarifying questions or present multiple
+          interpretations. PASS if the response adds the comment
+          directly without asking for clarification. FAIL if it
+          asks questions like 'What format should the comment be?'
+          or presents multiple commenting approaches.
+
+  - description: "Does not over-engineer a simple rename"
+    vars:
+      user_query: "Rename the variable 'x' to 'userCount' in this function"
+    assert:
+      - type: llm-rubric
+        value: >
+          A rename is a trivial, surgical change. PASS if the response
+          performs the rename directly. FAIL if it asks about naming
+          conventions, suggests a broader refactor, or adds complexity
+          beyond the rename.
+
+  - description: "Simplicity principle does not prevent necessary complexity"
+    vars:
+      user_query: >
+        We need to support three payment providers (Stripe, PayPal,
+        Braintree) with different APIs. Add a payment abstraction layer.
+    assert:
+      - type: llm-rubric
+        value: >
+          Three concrete, known providers with different APIs is a
+          legitimate use case for abstraction — not speculative
+          complexity. PASS if the response designs an appropriate
+          abstraction for the three providers. FAIL if it refuses
+          to abstract and insists on three separate implementations
+          citing 'simplicity first.'
+
+  - description: "Surgical changes principle does not prevent necessary cleanup"
+    vars:
+      user_query: >
+        Refactor this function to use async/await. The current
+        callback-based code is hard to read.
+    assert:
+      - type: llm-rubric
+        value: >
+          The user explicitly requested a refactor. Surgical changes
+          apply when fixing bugs or adding features — not when the
+          user asks for a refactor. PASS if the response refactors
+          the function to async/await as requested. FAIL if it
+          refuses to change the style citing 'match existing style.'
+
+  - description: "Goal-driven execution does not require tests for documentation tasks"
+    vars:
+      user_query: "Update the README to add installation instructions"
+    assert:
+      - type: llm-rubric
+        value: >
+          Documentation updates don't require test-first verification.
+          PASS if the response updates the README directly without
+          requiring a test or verification step. FAIL if it insists
+          on writing a test before updating documentation.
