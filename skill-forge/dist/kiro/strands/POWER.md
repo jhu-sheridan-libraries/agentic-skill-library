@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: strands
 displayName: Build an agent with Strands SDK
@@ -6,6 +5,7 @@ description: Build AI agents with Strands SDK using Bedrock, Anthropic, OpenAI, 
 keywords: ["agents","ai","llm","bedrock","anthropic","openai","gemini","strands","tools"]
 author: AWS
 ---
+<!-- forge:version 0.1.0 -->
 
 # Strands Agents SDK Power
 

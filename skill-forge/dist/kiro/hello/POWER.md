@@ -1,4 +1,3 @@
-<!-- forge:version 0.2.0 -->
 ---
 name: hello
 displayName: Hello
@@ -6,6 +5,7 @@ description: A friendly test artifact that greets you in 20 languages. Use it to
 keywords: ["testing","hello","greeting","onboarding"]
 author: Steven
 ---
+<!-- forge:version 0.2.0 -->
 
 # Hello, World!
 

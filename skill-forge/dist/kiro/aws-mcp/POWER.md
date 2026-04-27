@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: aws-mcp
 displayName: Work with AWS
@@ -6,6 +5,7 @@ description: Perform complex, multi-step AWS tasks by combining real-time access
 keywords: ["aws","aws-mcp","aws-automation","aws-best-practices","agent-sops","aws-workflows","aws-troubleshooting","aws-resource-management","aws-cost-management","aws-cli-alternative","aws-security","aws-docs","aws-cli","aws-apis","multi-step-aws-tasks","aws-tasks","security","aws-sops"]
 author: AWS
 ---
+<!-- forge:version 0.1.0 -->
 
 # Work with AWS Power
 

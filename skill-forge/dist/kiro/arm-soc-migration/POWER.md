@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: arm-soc-migration
 displayName: Perform Migration between Arm SoC
@@ -6,6 +5,7 @@ description: Guides migration of code from one Arm SoC to another, with architec
 keywords: ["arm","soc","migration","embedded","cortex","neon","sve","hal","platform","cross-compile"]
 author: Arm
 ---
+<!-- forge:version 0.1.0 -->
 
 # Kiro Arm SoC Migration Power
 

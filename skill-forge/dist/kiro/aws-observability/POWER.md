@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: aws-observability
 displayName: AWS Observability
@@ -6,6 +5,7 @@ description: Comprehensive AWS observability platform combining CloudWatch Logs,
 keywords: ["cloudwatch","logs","metrics","traces","alarms","alerts","monitoring","observability","application signals","apm","distributed tracing","x-ray","opentelemetry","otel","slow","latency","performance","bottleneck","degradation","timeout","high latency","slow api","api performance","service performance","response time","p50","p90","p95","p99","errors","error rate","fault rate","failure rate","5xx","4xx","exceptions","availability","uptime","downtime","outage","sev1","sev2","slo","sli","service level","error budget","breach","troubleshooting","root cause","rca","investigate","diagnose","log analysis","log insights","log query","log patterns","audit","cloudtrail","security audit","access logs","iam changes","change events","service map","cascading failure","canary","synthetic monitoring","health check","observability gaps","missing instrumentation","monitoring instrumentation","structured logging","silent failures","logging gaps","alarm investigation","trace analysis","span analysis","request tracing"]
 author: AWS
 ---
+<!-- forge:version 0.1.0 -->
 
 # ⚠️ CRITICAL: ALWAYS LOAD STEERING FILES FIRST
 

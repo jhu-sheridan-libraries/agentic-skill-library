@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: stripe
 displayName: Stripe Payments
@@ -6,6 +5,7 @@ description: Build payment integrations with Stripe - accept payments, manage su
 keywords: ["stripe","payments","checkout","subscriptions","billing","invoices","refunds","payment-intents"]
 author: Stripe
 ---
+<!-- forge:version 0.1.0 -->
 
 # Stripe Payments Power
 

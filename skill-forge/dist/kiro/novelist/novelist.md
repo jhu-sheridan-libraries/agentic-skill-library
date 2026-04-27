@@ -1,7 +1,7 @@
-<!-- forge:version 0.2.0 -->
 ---
 inclusion: manual
 ---
+<!-- forge:version 0.2.0 -->
 
 # Novelty
 

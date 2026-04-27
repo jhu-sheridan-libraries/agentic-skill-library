@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: aws-sam
 displayName: AWS SAM
@@ -6,6 +5,7 @@ description: An opinionated Kiro Power to aid development with AWS Serverless Ap
 keywords: ["aws","sam","serverless","lambda","cloudformation","deployment"]
 author: AWS
 ---
+<!-- forge:version 0.1.0 -->
 
 # AWS Serverless Application Model (SAM) Power
 

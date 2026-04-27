@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: figma
 displayName: Design to Code with Figma
@@ -6,6 +5,7 @@ description: Connect Figma designs to code components - automatically generate d
 keywords: ["ui","design","code","layout","mockup","frame","component","frontend"]
 author: Figma
 ---
+<!-- forge:version 0.1.0 -->
 
 # Workflow 
 

@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: aws-infrastructure-as-code
 displayName: Build AWS infrastructure with CDK and CloudFormation
@@ -6,6 +5,7 @@ description: Build well-architected AWS infrastructure with CDK using latest doc
 keywords: ["aws","cdk","cloudformation","troubleshoot","validate","compliance","cfn-lint","cfn-guard","infrastructure","iac","template","stack","construct","resource","deployment"]
 author: AWS
 ---
+<!-- forge:version 0.1.0 -->
 
 # AWS Infrastructure as Code
 

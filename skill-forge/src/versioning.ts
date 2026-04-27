@@ -167,7 +167,24 @@ export function embedVersion(
 	format: "markdown" | "json",
 ): string {
 	if (format === "markdown") {
-		return `<!-- forge:version ${version} -->\n${content}`;
+		const comment = `<!-- forge:version ${version} -->`;
+		// If content has YAML frontmatter, place the version comment after
+		// the closing --- so frontmatter parsers can still detect the block.
+		if (content.startsWith("---\n") || content.startsWith("---\r\n")) {
+			const closingIdx = content.indexOf("\n---", 3);
+			if (closingIdx !== -1) {
+				// Find the end of the closing --- line
+				const afterClosing = closingIdx + 4; // skip \n---
+				const nextNewline =
+					content[afterClosing] === "\r"
+						? afterClosing + 2
+						: content[afterClosing] === "\n"
+							? afterClosing + 1
+							: afterClosing;
+				return `${content.slice(0, nextNewline)}${comment}\n${content.slice(nextNewline)}`;
+			}
+		}
+		return `${comment}\n${content}`;
 	}
 
 	// JSON format: inject _forgeVersion field

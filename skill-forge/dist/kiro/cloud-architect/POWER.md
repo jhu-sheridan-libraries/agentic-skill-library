@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: cloud-architect
 displayName: Build infrastructure on AWS
@@ -6,6 +5,7 @@ description: Build AWS infrastructure with CDK in Python following AWS Well-Arch
 keywords: ["aws","cdk","python","infrastructure","iac","cloudformation","lambda","well-architected"]
 author: Christian Bonzelet
 ---
+<!-- forge:version 0.1.0 -->
 
 # Cloud Architect Power
 

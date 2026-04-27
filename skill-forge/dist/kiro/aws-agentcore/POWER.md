@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: aws-agentcore
 displayName: Build an agent with Amazon Bedrock AgentCore
@@ -6,6 +5,7 @@ description: Build, test, and deploy AI agents using AWS Bedrock AgentCore with 
 keywords: ["agentcore","bedrock","aws","agents","ai","development","agent"]
 author: AWS
 ---
+<!-- forge:version 0.1.0 -->
 
 # AWS Bedrock AgentCore
 

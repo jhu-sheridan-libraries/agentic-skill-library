@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: terraform
 displayName: Deploy infrastructure with Terraform
@@ -6,6 +5,7 @@ description: Build and manage Infrastructure as Code with Terraform - access reg
 keywords: ["terraform","hashicorp","infrastructure","iac","hcp","providers","modules","registry"]
 author: HashiCorp
 ---
+<!-- forge:version 0.1.0 -->
 
 # Terraform Power
 

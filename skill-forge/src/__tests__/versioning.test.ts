@@ -230,9 +230,15 @@ describe("upgradeArtifact", () => {
 });
 
 describe("embedVersion", () => {
-	test("embeds version comment in markdown", () => {
+	test("embeds version comment in markdown without frontmatter", () => {
 		const result = embedVersion("# Hello", "1.2.3", "markdown");
 		expect(result).toBe("<!-- forge:version 1.2.3 -->\n# Hello");
+	});
+
+	test("embeds version comment after frontmatter in markdown with frontmatter", () => {
+		const content = "---\nname: test\n---\n# Hello";
+		const result = embedVersion(content, "1.2.3", "markdown");
+		expect(result).toBe("---\nname: test\n---\n<!-- forge:version 1.2.3 -->\n# Hello");
 	});
 
 	test("embeds _forgeVersion field in JSON", () => {

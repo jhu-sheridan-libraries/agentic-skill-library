@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: aws-healthomics
 displayName: AWS HealthOmics
@@ -6,6 +5,7 @@ description: Create, migrate, run, debug and optimize genomics workflows in AWS 
 keywords: ["healthomics","WDL","CWL","Nextflow","workflow","genomics","bioinformatics","pipeline"]
 author: AWS
 ---
+<!-- forge:version 0.1.0 -->
 
 # When to use this power
 

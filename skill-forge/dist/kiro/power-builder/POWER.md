@@ -1,4 +1,3 @@
-<!-- forge:version 0.1.0 -->
 ---
 name: power-builder
 displayName: Power Builder
@@ -6,6 +5,7 @@ description: Complete guide for building and testing new Kiro Powers with templa
 keywords: ["kiro power","power builder","build power","create power","mcp power","power documentation"]
 author: Kiro Team
 ---
+<!-- forge:version 0.1.0 -->
 
 # Power Builder
 
