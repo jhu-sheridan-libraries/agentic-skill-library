@@ -1,4 +1,4 @@
-<!-- forge:version 0.1.6 -->
+<!-- forge:version 0.1.7 -->
 # Author Knowledge
 
 Create canonical knowledge artifacts for Skill Forge — `knowledge.md` with YAML frontmatter and markdown body, plus optional `hooks.yaml`, `mcp-servers.yaml`, and `workflows/` phase files. The artifact is harness-agnostic: Skill Forge compiles it to skills, powers, rules, or agents depending on the `type` and `harness-config` fields.

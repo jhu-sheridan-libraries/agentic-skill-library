@@ -1,4 +1,4 @@
-<!-- forge:version 0.1.6 -->
+<!-- forge:version 0.1.7 -->
 # Craft Commits
 
 Write commit messages that tell the story of *why*, not just *what*. Every commit message is a letter to the next engineer — often yourself six months later.

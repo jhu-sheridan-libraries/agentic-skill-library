@@ -35,7 +35,7 @@ export const clineAdapter: HarnessAdapter = (
 				return { files, warnings };
 			}
 			const degradation = applyDegradation(
-				entry.degradation!,
+				entry.degradation ?? "inline",
 				capability,
 				artifact,
 				"cline",

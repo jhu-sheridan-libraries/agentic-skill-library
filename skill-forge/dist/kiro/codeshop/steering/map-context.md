@@ -1,4 +1,4 @@
-<!-- forge:version 0.1.6 -->
+<!-- forge:version 0.1.7 -->
 # Map Context
 
 > **Adaptation note:** User-invoked only — do not proactively suggest this workflow. It runs when the user explicitly asks to zoom out, get broader context, or understand how a section of code fits into the bigger picture.

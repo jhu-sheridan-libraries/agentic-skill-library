@@ -181,7 +181,7 @@ describe("SoukVectorClient", () => {
 
 			const [url] = fetchSpy.mock.calls[0] as [string];
 			const parsed = new URL(url);
-			const q = parsed.searchParams.get("q")!;
+			const q = parsed.searchParams.get("q") ?? "";
 
 			// Should contain knn clause with earlyTermination and BM25 text clause
 			expect(q).toContain("{!knn f=vector topK=5 earlyTermination=true}");
@@ -313,7 +313,7 @@ describe("SoukVectorClient", () => {
 
 			const [url] = fetchSpy.mock.calls[0] as [string];
 			const parsed = new URL(url);
-			const q = parsed.searchParams.get("q")!;
+			const q = parsed.searchParams.get("q") ?? "";
 			expect(q).toContain("{!vectorSimilarity f=vector minReturn=0.8}");
 			expect(q).toContain(JSON.stringify(embedding));
 			expect(parsed.searchParams.get("rows")).toBe("10");
@@ -370,7 +370,7 @@ describe("SoukVectorClient", () => {
 
 			const [url] = fetchSpy.mock.calls[0] as [string];
 			const parsed = new URL(url);
-			const q = parsed.searchParams.get("q")!;
+			const q = parsed.searchParams.get("q") ?? "";
 			expect(q).toContain("earlyTermination=true");
 		});
 
@@ -384,7 +384,7 @@ describe("SoukVectorClient", () => {
 
 			const [url] = fetchSpy.mock.calls[0] as [string];
 			const parsed = new URL(url);
-			const q = parsed.searchParams.get("q")!;
+			const q = parsed.searchParams.get("q") ?? "";
 			expect(q).not.toContain("efSearchScaleFactor");
 		});
 
@@ -401,7 +401,7 @@ describe("SoukVectorClient", () => {
 
 			const [url] = fetchSpy.mock.calls[0] as [string];
 			const parsed = new URL(url);
-			const q = parsed.searchParams.get("q")!;
+			const q = parsed.searchParams.get("q") ?? "";
 			expect(q).toContain("efSearchScaleFactor=2.5");
 			expect(q).toContain("earlyTermination=true");
 		});
@@ -419,7 +419,7 @@ describe("SoukVectorClient", () => {
 
 			const [url] = fetchSpy.mock.calls[0] as [string];
 			const parsed = new URL(url);
-			const q = parsed.searchParams.get("q")!;
+			const q = parsed.searchParams.get("q") ?? "";
 			expect(q).not.toContain("earlyTermination");
 		});
 
@@ -440,7 +440,7 @@ describe("SoukVectorClient", () => {
 
 			const [url] = fetchSpy.mock.calls[0] as [string];
 			const parsed = new URL(url);
-			const q = parsed.searchParams.get("q")!;
+			const q = parsed.searchParams.get("q") ?? "";
 			expect(q).toContain("earlyTermination=true");
 			expect(q).toContain("efSearchScaleFactor=1.5");
 		});
@@ -461,7 +461,7 @@ describe("SoukVectorClient", () => {
 
 			const [url] = fetchSpy.mock.calls[0] as [string];
 			const parsed = new URL(url);
-			const q = parsed.searchParams.get("q")!;
+			const q = parsed.searchParams.get("q") ?? "";
 			expect(q).toContain("minTraverse=500");
 			expect(q).toContain("minReturn=0.8");
 		});
@@ -490,7 +490,7 @@ describe("SoukVectorClient", () => {
 
 			const [url] = fetchSpy.mock.calls[0] as [string];
 			const parsed = new URL(url);
-			const q = parsed.searchParams.get("q")!;
+			const q = parsed.searchParams.get("q") ?? "";
 			expect(q).toContain("minReturn=0.75");
 			expect(q).toContain("minTraverse=200");
 			expect(parsed.searchParams.get("fq")).toBe("maturity:stable");
@@ -517,7 +517,7 @@ describe("SoukVectorClient", () => {
 
 			const [url] = fetchSpy.mock.calls[0] as [string];
 			const parsed = new URL(url);
-			const q = parsed.searchParams.get("q")!;
+			const q = parsed.searchParams.get("q") ?? "";
 			// hybridWeight=0.0 → vector weight is 0, keyword weight is 1
 			expect(q).toContain("mul(scale(query({v='text:test query'}),0,1),1)");
 			expect(q).toContain(",0)");
@@ -534,7 +534,7 @@ describe("SoukVectorClient", () => {
 
 			const [url] = fetchSpy.mock.calls[0] as [string];
 			const parsed = new URL(url);
-			const q = parsed.searchParams.get("q")!;
+			const q = parsed.searchParams.get("q") ?? "";
 			// hybridWeight=1.0 → vector weight is 1, keyword weight is 0
 			expect(q).toContain(",1)");
 			expect(q).toContain("mul(scale(query({v='text:test query'}),0,1),0)");

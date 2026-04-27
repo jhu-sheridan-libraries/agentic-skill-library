@@ -1,4 +1,4 @@
-<!-- forge:version 0.1.6 -->
+<!-- forge:version 0.1.7 -->
 # Challenge Domain Model
 
 Grilling session that challenges your plan against the existing domain model, sharpens terminology, and updates documentation (CONTEXT.md, ADRs) inline as decisions crystallize. Use when the user wants to stress-test a plan against their project's language and documented decisions.

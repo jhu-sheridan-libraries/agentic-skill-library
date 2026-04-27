@@ -1,4 +1,4 @@
-<!-- forge:version 0.1.6 -->
+<!-- forge:version 0.1.7 -->
 # Write Living Docs
 
 Create and maintain documentation that stays reliable by deriving it from authoritative sources in the codebase rather than maintaining it separately. Grounded in Living Documentation principles (Cyrille Martraire) — the default is "don't document," and everything that is documented must be traceable to an authoritative source.

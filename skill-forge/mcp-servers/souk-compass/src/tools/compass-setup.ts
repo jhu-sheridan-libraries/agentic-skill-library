@@ -161,7 +161,7 @@ async function createCollections(ctx: ToolContext): Promise<ToolResult> {
 	return jsonResult({ action: "create_collections", collections: results });
 }
 
-async function stopSolr(ctx: ToolContext): Promise<ToolResult> {
+async function stopSolr(_ctx: ToolContext): Promise<ToolResult> {
 	if (!(await isDockerAvailable())) {
 		return dockerNotInstalledResult();
 	}

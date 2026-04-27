@@ -1,4 +1,4 @@
-<!-- forge:version 0.1.6 -->
+<!-- forge:version 0.1.7 -->
 # Compose Issues
 
 Break a plan, spec, or PRD into independently-grabbable GitHub issues using tracer-bullet vertical slices.

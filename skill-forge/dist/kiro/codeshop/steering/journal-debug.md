@@ -1,4 +1,4 @@
-<!-- forge:version 0.1.6 -->
+<!-- forge:version 0.1.7 -->
 # Journal Debug
 
 A systematic debugging workflow — articulate the problem before chasing the solution. Writing forces clarity that browsing stack traces does not. The fastest path through a bug is rarely the first one you see.

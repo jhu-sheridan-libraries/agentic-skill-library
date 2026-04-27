@@ -84,7 +84,7 @@ describe("codeshop power — structural validation", () => {
 			.filter((f) => f.endsWith(".md"));
 
 		// 19 overview steering files
-		const overviewFiles = steeringFiles.filter(
+		const _overviewFiles = steeringFiles.filter(
 			(f) => !f.includes("-") || STEERING_FILES.includes(f),
 		);
 		// Filter to just the 19 known steering overview files

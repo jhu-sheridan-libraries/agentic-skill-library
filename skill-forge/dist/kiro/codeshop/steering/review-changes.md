@@ -1,4 +1,4 @@
-<!-- forge:version 0.1.6 -->
+<!-- forge:version 0.1.7 -->
 # Review Changes
 
 Code review as a craft — read with intent, comment with purpose, approve with confidence. Use when reviewing pull requests, merge requests, or any code changes. The goal is a better codebase, not a lower diff count.

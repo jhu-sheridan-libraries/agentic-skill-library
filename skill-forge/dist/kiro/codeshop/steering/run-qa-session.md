@@ -1,4 +1,4 @@
-<!-- forge:version 0.1.6 -->
+<!-- forge:version 0.1.7 -->
 # Run QA Session
 
 Interactive QA session where the user reports bugs or issues conversationally, and the agent files GitHub issues. Explores the codebase in the background for context and domain language.

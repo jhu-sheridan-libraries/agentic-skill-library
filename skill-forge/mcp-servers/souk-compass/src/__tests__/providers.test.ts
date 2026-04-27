@@ -31,6 +31,19 @@ import {
 import { ErrorCodes, SoukCompassError } from "../errors.js";
 
 // ---------------------------------------------------------------------------
+// Type helpers for accessing private provider methods in tests
+// ---------------------------------------------------------------------------
+
+interface EmbedMethods {
+	embed(text: string): Promise<number[]>;
+	batchEmbed(texts: string[]): Promise<number[][]>;
+}
+
+interface MockBedrockClient {
+	send(command: unknown): Promise<{ body: Uint8Array }>;
+}
+
+// ---------------------------------------------------------------------------
 // @xenova/transformers mock
 //
 // The module-level `cachedTransformersPipeline` in local-provider.ts means the
@@ -141,7 +154,9 @@ function installBedrockMock() {
 							dimensions: this.dimensions,
 						}),
 					});
-					const response = await (client as any).send(command);
+					const response = await (client as unknown as MockBedrockClient).send(
+						command,
+					);
 					const body = JSON.parse(
 						new TextDecoder().decode((response as { body: Uint8Array }).body),
 					) as { embedding: number[] };
@@ -198,7 +213,7 @@ describe("LocalEmbeddingProvider — HTTP path", () => {
 			new Response(JSON.stringify({ embedding: expected }), { status: 200 }),
 		);
 		const provider = await makeLocalProvider(1024, HTTP_URL);
-		const result = await (provider as any).embed("hello");
+		const result = await (provider as unknown as EmbedMethods).embed("hello");
 		expect(result).toEqual(expected);
 	});
 
@@ -209,7 +224,7 @@ describe("LocalEmbeddingProvider — HTTP path", () => {
 			}),
 		);
 		const provider = await makeLocalProvider(512, "http://embed.local/v1");
-		await (provider as any).embed("the quick fox");
+		await (provider as unknown as EmbedMethods).embed("the quick fox");
 
 		const [url, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
 		expect(url).toBe("http://embed.local/v1");
@@ -227,7 +242,9 @@ describe("LocalEmbeddingProvider — HTTP path", () => {
 			new Response("Bad Request", { status: 400, statusText: "Bad Request" }),
 		);
 		const provider = await makeLocalProvider(1024, HTTP_URL);
-		await expect((provider as any).embed("fail")).rejects.toMatchObject({
+		await expect(
+			(provider as unknown as EmbedMethods).embed("fail"),
+		).rejects.toMatchObject({
 			code: ErrorCodes.EMBED_FAILURE,
 		});
 	});
@@ -240,7 +257,9 @@ describe("LocalEmbeddingProvider — HTTP path", () => {
 			}),
 		);
 		const provider = await makeLocalProvider(1024, HTTP_URL);
-		await expect((provider as any).embed("fail")).rejects.toMatchObject({
+		await expect(
+			(provider as unknown as EmbedMethods).embed("fail"),
+		).rejects.toMatchObject({
 			code: ErrorCodes.EMBED_FAILURE,
 		});
 	});
@@ -248,7 +267,9 @@ describe("LocalEmbeddingProvider — HTTP path", () => {
 	test("throws SoukCompassError on network failure", async () => {
 		fetchSpy.mockRejectedValueOnce(new TypeError("Failed to fetch"));
 		const provider = await makeLocalProvider(1024, HTTP_URL);
-		await expect((provider as any).embed("net-fail")).rejects.toMatchObject({
+		await expect(
+			(provider as unknown as EmbedMethods).embed("net-fail"),
+		).rejects.toMatchObject({
 			code: ErrorCodes.EMBED_FAILURE,
 		});
 	});
@@ -258,7 +279,7 @@ describe("LocalEmbeddingProvider — HTTP path", () => {
 		const provider = await makeLocalProvider(1024, HTTP_URL);
 		let thrown: unknown;
 		try {
-			await (provider as any).embed("x");
+			await (provider as unknown as EmbedMethods).embed("x");
 		} catch (e) {
 			thrown = e;
 		}
@@ -272,7 +293,7 @@ describe("LocalEmbeddingProvider — HTTP path", () => {
 			}),
 		);
 		const provider = await makeLocalProvider(1024, HTTP_URL);
-		await (provider as any).embed("z".repeat(50_000));
+		await (provider as unknown as EmbedMethods).embed("z".repeat(50_000));
 
 		const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
 		const sent = (JSON.parse(init.body as string) as { text: string }).text;
@@ -327,9 +348,13 @@ describe("LocalEmbeddingProvider — batchEmbed (HTTP path)", () => {
 			);
 		}
 		const provider = await makeProvider();
-		const results = await (provider as any).batchEmbed(["a", "b", "c"]);
+		const results = await (provider as unknown as EmbedMethods).batchEmbed([
+			"a",
+			"b",
+			"c",
+		]);
 		expect(results).toHaveLength(3);
-		for (const r of results as number[][]) expect(r).toHaveLength(1024);
+		for (const r of results) expect(r).toHaveLength(1024);
 	});
 
 	test("returns results in the same order as the input texts", async () => {
@@ -342,11 +367,9 @@ describe("LocalEmbeddingProvider — batchEmbed (HTTP path)", () => {
 			);
 		}
 		const provider = await makeProvider();
-		const [r0, r1, r2] = (await (provider as any).batchEmbed([
-			"t0",
-			"t1",
-			"t2",
-		])) as number[][];
+		const [r0, r1, r2] = await (provider as unknown as EmbedMethods).batchEmbed(
+			["t0", "t1", "t2"],
+		);
 		expect(r0[0]).toBeCloseTo(0);
 		expect(r1[0]).toBeCloseTo(0.5);
 		expect(r2[0]).toBeCloseTo(1);
@@ -365,13 +388,15 @@ describe("LocalEmbeddingProvider — batchEmbed (HTTP path)", () => {
 			});
 		}
 		const provider = await makeProvider();
-		await (provider as any).batchEmbed(["x1", "x2", "x3"]);
+		await (provider as unknown as EmbedMethods).batchEmbed(["x1", "x2", "x3"]);
 		expect(resolveOrder).toEqual(["first", "second", "third"]);
 	});
 
 	test("returns empty array for empty input", async () => {
 		const provider = await makeProvider();
-		expect(await (provider as any).batchEmbed([])).toEqual([]);
+		expect(await (provider as unknown as EmbedMethods).batchEmbed([])).toEqual(
+			[],
+		);
 	});
 });
 
@@ -392,7 +417,7 @@ describe("LocalEmbeddingProvider — transformers path (dimension handling)", ()
 	test("pads with zeros when raw vector is shorter than configured dimensions", async () => {
 		fakeTransformersOutput = new Float32Array([1, 2, 3]); // 3 values
 		const provider = await makeProvider(7); // need 7
-		const result = await (provider as any).embed("pad me");
+		const result = await (provider as unknown as EmbedMethods).embed("pad me");
 		expect(result).toHaveLength(7);
 		expect(result[0]).toBeCloseTo(1);
 		expect(result[1]).toBeCloseTo(2);
@@ -404,7 +429,9 @@ describe("LocalEmbeddingProvider — transformers path (dimension handling)", ()
 	test("truncates when raw vector is longer than configured dimensions", async () => {
 		fakeTransformersOutput = new Float32Array([0.1, 0.2, 0.3, 0.4, 0.5]);
 		const provider = await makeProvider(3); // need only 3
-		const result = await (provider as any).embed("truncate me");
+		const result = await (provider as unknown as EmbedMethods).embed(
+			"truncate me",
+		);
 		expect(result).toHaveLength(3);
 		expect(result[0]).toBeCloseTo(0.1);
 		expect(result[1]).toBeCloseTo(0.2);
@@ -414,7 +441,7 @@ describe("LocalEmbeddingProvider — transformers path (dimension handling)", ()
 	test("returns vector unchanged when raw length equals configured dimensions", async () => {
 		fakeTransformersOutput = new Float32Array([0.9, 0.8, 0.7]);
 		const provider = await makeProvider(3);
-		const result = await (provider as any).embed("exact");
+		const result = await (provider as unknown as EmbedMethods).embed("exact");
 		expect(result).toHaveLength(3);
 		expect(result[0]).toBeCloseTo(0.9);
 	});
@@ -422,7 +449,9 @@ describe("LocalEmbeddingProvider — transformers path (dimension handling)", ()
 	test("throws SoukCompassError with EMBED_FAILURE when the pipeline extractor throws", async () => {
 		transformersShouldThrow = true;
 		const provider = await makeProvider(384);
-		await expect((provider as any).embed("boom")).rejects.toMatchObject({
+		await expect(
+			(provider as unknown as EmbedMethods).embed("boom"),
+		).rejects.toMatchObject({
 			code: ErrorCodes.EMBED_FAILURE,
 		});
 	});
@@ -432,7 +461,7 @@ describe("LocalEmbeddingProvider — transformers path (dimension handling)", ()
 		const provider = await makeProvider(384);
 		let thrown: unknown;
 		try {
-			await (provider as any).embed("err");
+			await (provider as unknown as EmbedMethods).embed("err");
 		} catch (e) {
 			thrown = e;
 		}

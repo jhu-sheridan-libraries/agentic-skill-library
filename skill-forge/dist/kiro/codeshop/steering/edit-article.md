@@ -1,4 +1,4 @@
-<!-- forge:version 0.1.6 -->
+<!-- forge:version 0.1.7 -->
 # Edit Article
 
 Edit and improve articles by restructuring sections, improving clarity, and tightening prose.

@@ -2,11 +2,17 @@ import { exists, mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import chalk from "chalk";
 import { CAPABILITY_MATRIX } from "./adapters/capabilities";
-import { createArtifact, deleteArtifact, updateArtifact } from "./admin";
+import {
+	type ArtifactInput,
+	createArtifact,
+	deleteArtifact,
+	updateArtifact,
+} from "./admin";
 import { generateHtmlPage, generateStaticHtmlPage } from "./browse-ui";
 import { build } from "./build";
 import { generateCatalog, SOURCE_DIRS, serializeCatalog } from "./catalog";
 import {
+	type CollectionInput,
 	createCollection,
 	deleteCollection,
 	getCollection,
@@ -18,6 +24,7 @@ import {
 	addManifestEntry,
 	computeSyncStatus,
 	editManifestEntry,
+	type ManifestEntryInput,
 	readManifest,
 	readSyncLock,
 	removeManifestEntry,
@@ -184,11 +191,12 @@ function jsonError(error: string, status: number, details?: unknown): Response {
  * Maps errors thrown by admin mutation functions to structured JSON responses.
  */
 function handleMutationError(err: unknown): Response {
-	const type = (err as any)?.type;
+	const typed = err as Error & { type?: string; details?: unknown };
+	const type = typed?.type;
 	const message = err instanceof Error ? err.message : String(err);
 
 	if (type === "validation")
-		return jsonError("Validation failed", 400, (err as any).details);
+		return jsonError("Validation failed", 400, typed.details);
 	if (type === "conflict") return jsonError(message, 409);
 	if (type === "not-found") return jsonError(message, 404);
 	return jsonError(message, 500);
@@ -290,7 +298,10 @@ export async function handleRequest(
 		const body = await parseJsonBody(req);
 		if (body instanceof Response) return body;
 		try {
-			const entry = await createArtifact(state.knowledgeDir, body as any);
+			const entry = await createArtifact(
+				state.knowledgeDir,
+				body as ArtifactInput,
+			);
 			await refreshCatalog(state);
 			return jsonResponse({ entry }, 201);
 		} catch (err: unknown) {
@@ -308,7 +319,11 @@ export async function handleRequest(
 		const body = await parseJsonBody(req);
 		if (body instanceof Response) return body;
 		try {
-			const entry = await updateArtifact(state.knowledgeDir, name, body as any);
+			const entry = await updateArtifact(
+				state.knowledgeDir,
+				name,
+				body as ArtifactInput,
+			);
 			await refreshCatalog(state);
 			return jsonResponse({ entry });
 		} catch (err: unknown) {
@@ -360,7 +375,7 @@ export async function handleRequest(
 		try {
 			const collection = await createCollection(
 				state.collectionsDir,
-				body as any,
+				body as CollectionInput,
 			);
 			await refreshCollections(state);
 			return jsonResponse({ collection }, 201);
@@ -408,7 +423,7 @@ export async function handleRequest(
 			const collection = await updateCollection(
 				state.collectionsDir,
 				name,
-				body as any,
+				body as CollectionInput,
 			);
 			await refreshCollections(state);
 			return jsonResponse({ collection });
@@ -478,7 +493,7 @@ export async function handleRequest(
 		try {
 			const manifest = await addManifestEntry(
 				join(state.forgeDir, "manifest.yaml"),
-				body as any,
+				body as ManifestEntryInput,
 			);
 			return jsonResponse({ manifest }, 201);
 		} catch (err: unknown) {
@@ -501,7 +516,7 @@ export async function handleRequest(
 			const manifest = await editManifestEntry(
 				join(state.forgeDir, "manifest.yaml"),
 				identifier,
-				body as any,
+				body as Partial<ManifestEntryInput>,
 			);
 			return jsonResponse({ manifest });
 		} catch (err: unknown) {

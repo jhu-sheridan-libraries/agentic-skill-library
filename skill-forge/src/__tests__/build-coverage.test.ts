@@ -43,7 +43,7 @@ describe("build() coverage — error paths", () => {
 	test("empty source directory reports 0 artifacts", async () => {
 		const opts = makeBuildOptions();
 		// Create an empty knowledge dir
-		await mkdir(opts.knowledgeDirs![0], { recursive: true });
+		await mkdir(opts.knowledgeDirs?.[0] ?? "", { recursive: true });
 		await mkdir(opts.mcpServersDir, { recursive: true });
 
 		const result = await build(opts);
@@ -55,7 +55,7 @@ describe("build() coverage — error paths", () => {
 
 	test("malformed knowledge.md (invalid YAML frontmatter) reports error and continues", async () => {
 		const opts = makeBuildOptions();
-		const knowledgeDir = opts.knowledgeDirs![0];
+		const knowledgeDir = opts.knowledgeDirs?.[0] ?? "";
 		await mkdir(knowledgeDir, { recursive: true });
 		await mkdir(opts.mcpServersDir, { recursive: true });
 

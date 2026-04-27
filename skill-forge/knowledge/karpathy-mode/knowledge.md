@@ -29,7 +29,7 @@ depends: []
 enhances: []
 maturity: experimental
 model-assumptions: []
-collections: []
+collections: [jhu, neon-caravan]
 inherit-hooks: false
 ---
 # Karpathy Mode

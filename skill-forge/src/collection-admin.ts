@@ -157,8 +157,10 @@ export async function getCollection(
 	try {
 		content = await readFile(filePath, "utf-8");
 	} catch (_err) {
-		const error = new Error(`Collection '${name}' not found`);
-		(error as any).type = "not-found";
+		const error: Error & { type?: string } = new Error(
+			`Collection '${name}' not found`,
+		);
+		error.type = "not-found";
 		throw error;
 	}
 
@@ -183,9 +185,11 @@ export async function createCollection(
 	// Validate input
 	const validation = validateCollectionInput(input);
 	if (!validation.success) {
-		const error = new Error("Validation failed");
-		(error as any).type = "validation";
-		(error as any).details = validation.errors;
+		const error: Error & { type?: string; details?: unknown } = new Error(
+			"Validation failed",
+		);
+		error.type = "validation";
+		error.details = validation.errors;
 		throw error;
 	}
 
@@ -193,8 +197,10 @@ export async function createCollection(
 
 	// Check for existing file
 	if (await exists(filePath)) {
-		const error = new Error(`Collection '${input.name}' already exists`);
-		(error as any).type = "conflict";
+		const error: Error & { type?: string } = new Error(
+			`Collection '${input.name}' already exists`,
+		);
+		error.type = "conflict";
 		throw error;
 	}
 
@@ -220,9 +226,11 @@ export async function updateCollection(
 	// Validate input
 	const validation = validateCollectionInput(input);
 	if (!validation.success) {
-		const error = new Error("Validation failed");
-		(error as any).type = "validation";
-		(error as any).details = validation.errors;
+		const error: Error & { type?: string; details?: unknown } = new Error(
+			"Validation failed",
+		);
+		error.type = "validation";
+		error.details = validation.errors;
 		throw error;
 	}
 
@@ -235,8 +243,10 @@ export async function updateCollection(
 		const parsed = parseCollectionFile(content);
 		existingRaw = parsed.raw;
 	} catch (_err) {
-		const error = new Error(`Collection '${name}' not found`);
-		(error as any).type = "not-found";
+		const error: Error & { type?: string } = new Error(
+			`Collection '${name}' not found`,
+		);
+		error.type = "not-found";
 		throw error;
 	}
 
@@ -265,8 +275,10 @@ export async function deleteCollection(
 
 	// Check if file exists
 	if (!(await exists(filePath))) {
-		const error = new Error(`Collection '${name}' not found`);
-		(error as any).type = "not-found";
+		const error: Error & { type?: string } = new Error(
+			`Collection '${name}' not found`,
+		);
+		error.type = "not-found";
 		throw error;
 	}
 

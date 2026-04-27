@@ -1,4 +1,4 @@
-<!-- forge:version 0.1.6 -->
+<!-- forge:version 0.1.7 -->
 # Design Interface
 
 Generate multiple radically different interface designs for a module, then compare them. Based on "Design It Twice" from "A Philosophy of Software Design": your first idea is unlikely to be the best.

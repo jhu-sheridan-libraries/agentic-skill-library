@@ -1,4 +1,4 @@
-<!-- forge:version 0.1.6 -->
+<!-- forge:version 0.1.7 -->
 # Define Glossary
 
 > **Adaptation note:** User-invoked only — do not proactively suggest this workflow. It runs when the user explicitly asks to define domain terms, build a glossary, harden terminology, or create a ubiquitous language.

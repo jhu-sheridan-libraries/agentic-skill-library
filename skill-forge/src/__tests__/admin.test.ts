@@ -191,9 +191,10 @@ describe("createArtifact", () => {
 		try {
 			await createArtifact(knowledgeDir, input);
 			expect(true).toBe(false); // should not reach here
-		} catch (err: any) {
-			expect(err.type).toBe("conflict");
-			expect(err.message).toContain("existing-artifact");
+		} catch (err: unknown) {
+			const typed = err as Error & { type?: string };
+			expect(typed.type).toBe("conflict");
+			expect(typed.message).toContain("existing-artifact");
 		}
 	});
 });
@@ -205,9 +206,10 @@ describe("updateArtifact", () => {
 		try {
 			await updateArtifact(knowledgeDir, "nonexistent", input);
 			expect(true).toBe(false); // should not reach here
-		} catch (err: any) {
-			expect(err.type).toBe("not-found");
-			expect(err.message).toContain("nonexistent");
+		} catch (err: unknown) {
+			const typed = err as Error & { type?: string };
+			expect(typed.type).toBe("not-found");
+			expect(typed.message).toContain("nonexistent");
 		}
 	});
 });
@@ -217,9 +219,10 @@ describe("deleteArtifact", () => {
 		try {
 			await deleteArtifact(knowledgeDir, "nonexistent");
 			expect(true).toBe(false); // should not reach here
-		} catch (err: any) {
-			expect(err.type).toBe("not-found");
-			expect(err.message).toContain("nonexistent");
+		} catch (err: unknown) {
+			const typed = err as Error & { type?: string };
+			expect(typed.type).toBe("not-found");
+			expect(typed.message).toContain("nonexistent");
 		}
 	});
 });
