@@ -1,0 +1,69 @@
+# Eval: Mystery Series Novelist provides genre-specific guidance distinct from base Novelist
+#
+# Tests that the genre overlay adds mystery craft (clue architecture, fair play,
+# suspect management, series continuity) without duplicating base Novelist.
+#
+# Run:  bun run dev eval mystery-series-novelist
+
+description: "Mystery Series Novelist provides genre-specific guidance distinct from base Novelist"
+
+prompts:
+  - file://dist/kiro/mystery-series-novelist/mystery-series-novelist.md
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+
+tests:
+  - description: "Identifies mystery subgenre before giving advice"
+    vars:
+      user_query: "I'm writing a mystery novel"
+    assert:
+      - type: llm-rubric
+        value: >
+          The power should ask about subgenre (cozy, whodunit,
+          procedural, hardboiled, psychological thriller, legal
+          thriller, locked room) before giving specific guidance.
+          PASS if it asks or presents subgenre options. FAIL if it
+          gives generic mystery advice without determining subgenre.
+
+  - description: "Clue architecture guidance is systematic"
+    vars:
+      user_query: "Help me plant clues for the murder mystery"
+    assert:
+      - type: llm-rubric
+        value: >
+          Clue guidance should address placement, misdirection, fair
+          play rules, and reader accessibility — not just "scatter
+          hints." PASS if the guidance covers clue types (physical,
+          behavioral, informational), red herrings, and fair-play
+          validation. FAIL if it only suggests hiding clues without
+          a systematic approach.
+
+  - description: "Fair play rules are enforced for traditional mysteries"
+    vars:
+      user_query: "I'm writing a traditional whodunit"
+    assert:
+      - type: llm-rubric
+        value: >
+          Traditional whodunits require fair play — the reader must
+          have access to all clues needed to solve the mystery before
+          the reveal. PASS if the guidance references fair-play rules
+          or reader-solvability. FAIL if it allows solutions that
+          depend on information withheld from the reader.
+
+  - description: "Defers to Novelist for general craft and Series Continuity for tracking"
+    assert:
+      - type: llm-rubric
+        value: >
+          As a genre overlay, this power should reference both the
+          Novelist power (general craft) and Series Continuity power
+          (cross-book tracking). PASS if both are referenced with
+          clear division of responsibility. FAIL if it tries to
+          handle all concerns itself.

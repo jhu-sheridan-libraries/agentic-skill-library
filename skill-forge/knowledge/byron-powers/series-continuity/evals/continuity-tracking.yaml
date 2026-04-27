@@ -1,0 +1,66 @@
+# Eval: Series Continuity provides genre-agnostic continuity tracking
+#
+# Tests that the power handles within-book and cross-book continuity
+# without assuming a specific genre.
+#
+# Run:  bun run dev eval series-continuity
+
+description: "Series Continuity provides genre-agnostic continuity tracking"
+
+prompts:
+  - file://dist/kiro/series-continuity/series-continuity.md
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+
+tests:
+  - description: "Distinguishes within-book from cross-book continuity"
+    vars:
+      user_query: "Help me track continuity for my series"
+    assert:
+      - type: llm-rubric
+        value: >
+          The power should distinguish two levels: within-book
+          continuity (character details, timeline, setting facts in
+          a single book) and cross-book continuity (recurring arcs,
+          character evolution, series-level storylines). PASS if both
+          levels are addressed. FAIL if it only handles one level.
+
+  - description: "Is genre-agnostic"
+    assert:
+      - type: llm-rubric
+        value: >
+          This power should work for any genre — mystery, fantasy,
+          sci-fi, romance, literary fiction. PASS if the guidance
+          is genre-neutral and references that genre-specific powers
+          layer on top. FAIL if it assumes a specific genre or
+          includes genre-specific rules.
+
+  - description: "Provides concrete tracking structures"
+    vars:
+      user_query: "How should I organize my series bible?"
+    assert:
+      - type: llm-rubric
+        value: >
+          The guidance should offer concrete structures for tracking
+          continuity — character sheets, timeline formats, setting
+          registries, or similar. PASS if it provides specific
+          organizational patterns. FAIL if it only says "keep notes"
+          without structure.
+
+  - description: "Clarifies relationship to other powers"
+    assert:
+      - type: llm-rubric
+        value: >
+          The power should explain how it relates to Novelist (craft),
+          genre powers (genre-specific rules), and Book Agent (series
+          positioning). PASS if the relationship table or equivalent
+          is present. FAIL if the power's role in the ecosystem is
+          unclear.

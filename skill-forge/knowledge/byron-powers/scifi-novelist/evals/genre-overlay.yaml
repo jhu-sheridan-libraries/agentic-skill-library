@@ -1,0 +1,68 @@
+# Eval: Sci-Fi Novelist provides genre-specific guidance distinct from base Novelist
+#
+# Tests that the genre overlay adds science fiction craft (speculative tech,
+# hard-SF consistency, subgenre conventions) without duplicating base Novelist.
+#
+# Run:  bun run dev eval scifi-novelist
+
+description: "Sci-Fi Novelist provides genre-specific guidance distinct from base Novelist"
+
+prompts:
+  - file://dist/kiro/scifi-novelist/scifi-novelist.md
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+
+tests:
+  - description: "Identifies SF subgenre before giving advice"
+    vars:
+      user_query: "I'm writing a science fiction novel"
+    assert:
+      - type: llm-rubric
+        value: >
+          The power should ask about subgenre (hard SF, space opera,
+          cyberpunk, military SF, first contact, dystopia, time travel)
+          before giving specific guidance. PASS if it asks or presents
+          subgenre options. FAIL if it gives generic SF advice without
+          determining subgenre first.
+
+  - description: "Technology design guidance enforces internal consistency"
+    vars:
+      user_query: "Help me design the FTL drive for my space opera"
+    assert:
+      - type: llm-rubric
+        value: >
+          Speculative technology guidance should address internal
+          consistency, narrative consequences, and limitations — not
+          just cool factor. PASS if the guidance asks about rules,
+          costs, and story implications of the technology. FAIL if
+          it only brainstorms features without consistency checks.
+
+  - description: "Hard SF vs soft SF distinction is respected"
+    vars:
+      user_query: "I'm writing hard science fiction about a generation ship"
+    assert:
+      - type: llm-rubric
+        value: >
+          Hard SF requires scientific plausibility. The guidance should
+          emphasize accuracy, known physics, and extrapolation rather
+          than handwaving. PASS if it references scientific constraints
+          and plausibility. FAIL if it treats hard SF the same as
+          space opera.
+
+  - description: "Defers to Novelist power for general craft"
+    assert:
+      - type: llm-rubric
+        value: >
+          As a genre overlay, this power should explicitly state that
+          it extends (not replaces) the Novelist power. PASS if the
+          document references the Novelist power and clarifies the
+          division of responsibility. FAIL if it tries to cover all
+          craft concerns itself.

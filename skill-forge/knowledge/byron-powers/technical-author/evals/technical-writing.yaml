@@ -1,0 +1,65 @@
+# Eval: Technical Author provides structured technical book guidance
+#
+# Tests that the power covers the full technical book lifecycle
+# with publisher-aware conventions.
+#
+# Run:  bun run dev eval technical-author
+
+description: "Technical Author provides structured technical book guidance"
+
+prompts:
+  - file://dist/kiro/technical-author/technical-author.md
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+
+tests:
+  - description: "Identifies author's current phase before advising"
+    vars:
+      user_query: "I want to write a technical book"
+    assert:
+      - type: llm-rubric
+        value: >
+          The power should ask where the user is in their journey
+          (planning, writing, production, or full journey) before
+          giving specific advice. PASS if it asks or presents track
+          options. FAIL if it dumps all advice at once.
+
+  - description: "Code examples guidance addresses technical book concerns"
+    vars:
+      user_query: "How should I handle code listings in my book?"
+    assert:
+      - type: llm-rubric
+        value: >
+          Technical book code guidance should address: testability,
+          progressive complexity, reader-runnable examples, and
+          prose-code balance. PASS if the guidance covers at least
+          two of these concerns. FAIL if it only says "include code."
+
+  - description: "Publisher-aware conventions are referenced"
+    assert:
+      - type: llm-rubric
+        value: >
+          The power should reference specific technical publishers
+          (O'Reilly, Pragmatic Bookshelf, Manning, Addison-Wesley)
+          or their conventions. PASS if publisher-specific guidance
+          is present. FAIL if the advice is publisher-agnostic.
+
+  - description: "Proposal guidance covers acquisitions process"
+    vars:
+      user_query: "Help me write a book proposal"
+    assert:
+      - type: llm-rubric
+        value: >
+          A technical book proposal should cover: market analysis,
+          competitive titles, audience definition, chapter outline,
+          and sample chapter. PASS if the guidance addresses the
+          acquisitions process with specific deliverables. FAIL if
+          it gives generic proposal advice.

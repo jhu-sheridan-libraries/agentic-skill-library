@@ -1,0 +1,70 @@
+# Eval: Novelist power produces sound creative writing guidance
+#
+# Tests that the core novelist POWER.md provides actionable, craft-aware
+# guidance for fiction writing across its two tracks (Creative + Professional).
+#
+# Run:  bun run dev eval novelist
+
+description: "Novelist power produces sound creative writing guidance"
+
+prompts:
+  - file://dist/kiro/novelist/novelist.md
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+
+tests:
+  - description: "Provides structured phases for novel development"
+    vars:
+      user_query: "I want to write a novel but I don't know where to start"
+    assert:
+      - type: llm-rubric
+        value: >
+          The power should guide the user through a structured creative
+          process — not dump all advice at once. PASS if the response
+          identifies a starting phase (e.g., premise, concept, character
+          development) and offers to walk through it step by step.
+          FAIL if it gives a wall of generic writing tips.
+
+  - description: "Distinguishes creative track from professional track"
+    vars:
+      user_query: "I have a finished manuscript, what now?"
+    assert:
+      - type: llm-rubric
+        value: >
+          A finished manuscript signals the Professional Track (market
+          research, querying, submission). PASS if the response steers
+          toward professional/business concerns rather than more
+          drafting or revision. FAIL if it suggests starting over or
+          focuses only on craft improvements.
+
+  - description: "Character development guidance is craft-specific"
+    vars:
+      user_query: "Help me develop my protagonist"
+    assert:
+      - type: llm-rubric
+        value: >
+          Character development guidance should reference fiction craft
+          concepts — motivation, arc, internal conflict, voice, agency.
+          PASS if the guidance uses specific craft vocabulary and asks
+          probing questions about the character. FAIL if it gives
+          generic advice like "make them relatable" without structure.
+
+  - description: "Scene-level guidance addresses pacing and tension"
+    vars:
+      user_query: "This scene feels flat, help me fix it"
+    assert:
+      - type: llm-rubric
+        value: >
+          Scene-level feedback should address craft elements: pacing,
+          tension, sensory detail, dialogue purpose, scene goal.
+          PASS if the guidance identifies specific craft levers to
+          adjust. FAIL if it only suggests "add more description"
+          or other surface-level advice.

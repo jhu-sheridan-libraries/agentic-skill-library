@@ -1,0 +1,58 @@
+# Eval: Proofreader Review Checklist adapts to document type
+#
+# Tests that the power provides document-type-specific checklists
+# rather than one-size-fits-all proofreading.
+#
+# Run:  bun run dev eval proofreader-review-checklist
+
+description: "Proofreader Review Checklist adapts to document type"
+
+prompts:
+  - file://dist/kiro/proofreader-review-checklist/proofreader-review-checklist.md
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+
+tests:
+  - description: "Asks about document type before reviewing"
+    vars:
+      user_query: "Review this document for me"
+    assert:
+      - type: llm-rubric
+        value: >
+          The power should ask what type of document is being reviewed
+          (manuscript chapter, outline, query letter, proposal,
+          character sheet) before applying a checklist. PASS if it
+          asks or identifies the document type. FAIL if it applies
+          a generic checklist without determining type.
+
+  - description: "Manuscript chapter checklist covers mechanical and voice concerns"
+    vars:
+      user_query: "Review this manuscript chapter"
+    assert:
+      - type: llm-rubric
+        value: >
+          A manuscript chapter review should cover both mechanical
+          issues (spelling, grammar, punctuation, formatting) and
+          voice/consistency issues (tense, POV, tone). PASS if both
+          dimensions are addressed. FAIL if it only checks spelling
+          and grammar.
+
+  - description: "Query letter checklist covers publishing-specific concerns"
+    vars:
+      user_query: "Review my query letter"
+    assert:
+      - type: llm-rubric
+        value: >
+          A query letter review should address publishing-specific
+          concerns: hook, comp titles, word count, genre positioning,
+          bio relevance, and professional tone. PASS if the checklist
+          includes publishing-industry criteria. FAIL if it only
+          checks grammar and spelling.

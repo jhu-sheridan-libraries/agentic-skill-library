@@ -1,0 +1,70 @@
+# Eval: Fantasy Novelist provides genre-specific guidance distinct from base Novelist
+#
+# Tests that the genre overlay adds fantasy-specific craft (magic systems,
+# world-building, subgenre conventions) without duplicating base Novelist concerns.
+#
+# Run:  bun run dev eval fantasy-novelist
+
+description: "Fantasy Novelist provides genre-specific guidance distinct from base Novelist"
+
+prompts:
+  - file://dist/kiro/fantasy-novelist/fantasy-novelist.md
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+
+tests:
+  - description: "Identifies subgenre before giving advice"
+    vars:
+      user_query: "I'm writing a fantasy novel"
+    assert:
+      - type: llm-rubric
+        value: >
+          The power should ask about subgenre (epic, urban, grimdark,
+          cozy, portal, romantasy, sword & sorcery) before giving
+          specific guidance. PASS if it asks or presents subgenre
+          options. FAIL if it gives generic fantasy advice without
+          determining subgenre first.
+
+  - description: "Magic system guidance is structured and systematic"
+    vars:
+      user_query: "Help me design a magic system"
+    assert:
+      - type: llm-rubric
+        value: >
+          Magic system design should address rules, costs, limitations,
+          and narrative function — not just "what cool things can it do."
+          PASS if the guidance covers at least: source of power, rules/
+          limitations, cost or consequence, and how it serves the story.
+          FAIL if it only brainstorms abilities without structure.
+
+  - description: "World-building guidance addresses fantasy-specific concerns"
+    vars:
+      user_query: "I need help building my fantasy world"
+    assert:
+      - type: llm-rubric
+        value: >
+          Fantasy world-building should cover concerns unique to the
+          genre: cosmology, non-human species, political systems shaped
+          by magic, history and mythology. PASS if the guidance addresses
+          at least two fantasy-specific world-building dimensions.
+          FAIL if it gives generic setting advice that could apply to
+          any genre.
+
+  - description: "Defers to Novelist power for general craft"
+    assert:
+      - type: llm-rubric
+        value: >
+          As a genre overlay, this power should explicitly state that
+          it extends (not replaces) the Novelist power. General craft
+          concerns (character arcs, plot structure, prose quality)
+          belong to Novelist. PASS if the document references the
+          Novelist power and clarifies the division of responsibility.
+          FAIL if it tries to cover all craft concerns itself.

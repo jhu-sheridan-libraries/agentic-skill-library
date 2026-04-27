@@ -1,0 +1,67 @@
+# Eval: Book Agent & Publicist provides publishing business guidance
+#
+# Tests that the power covers the business side of publishing —
+# representation, deals, publicity, and career strategy.
+#
+# Run:  bun run dev eval book-agent-publicist
+
+description: "Book Agent & Publicist provides publishing business guidance"
+
+prompts:
+  - file://dist/kiro/book-agent-publicist/book-agent-publicist.md
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+
+tests:
+  - description: "Identifies author's publishing phase before advising"
+    vars:
+      user_query: "I need help with the business side of my book"
+    assert:
+      - type: llm-rubric
+        value: >
+          The power should ask where the user is (representation,
+          deal/contract, publicity, career, or full journey) before
+          giving specific advice. PASS if it asks or presents track
+          options. FAIL if it dumps all advice at once.
+
+  - description: "Query letter guidance is industry-specific"
+    vars:
+      user_query: "Help me write a query letter to literary agents"
+    assert:
+      - type: llm-rubric
+        value: >
+          Query letter guidance should cover industry conventions:
+          hook paragraph, synopsis, comp titles, bio, word count,
+          and personalization per agent. PASS if the guidance
+          references specific query letter structure and agent
+          research. FAIL if it gives generic cover letter advice.
+
+  - description: "Contract guidance addresses publishing deal terms"
+    vars:
+      user_query: "I got an offer from a publisher, what should I look for?"
+    assert:
+      - type: llm-rubric
+        value: >
+          Contract guidance should address publishing-specific terms:
+          advance structure, royalty rates, rights (audio, foreign,
+          film), option clauses, reversion clauses, and non-compete.
+          PASS if it covers at least three publishing-specific deal
+          terms. FAIL if it gives generic contract advice.
+
+  - description: "Distinguishes craft from business concerns"
+    assert:
+      - type: llm-rubric
+        value: >
+          This power handles the business side of publishing. It
+          should not duplicate craft guidance from Novelist or
+          Technical Author. PASS if the document focuses on
+          representation, deals, publicity, and career strategy.
+          FAIL if it includes substantial craft or writing guidance.
