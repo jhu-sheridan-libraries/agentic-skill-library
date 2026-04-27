@@ -19,17 +19,8 @@ export function escapeHtml(str: string): string {
 		.replace(/'/g, "&#39;");
 }
 
-export function generateHtmlPage(): string {
-	return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Skill Forge Catalog</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <style>
+function generateStyles(): string {
+	return `  <style>
     :root {
       /* Typography */
       --font-display: "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -862,10 +853,11 @@ export function generateHtmlPage(): string {
     .build-status-dot.failure { background: var(--color-status-missing); }
     .build-status-dot.none { background: var(--color-text-muted); }
     .build-status-indicator { display: inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; color: var(--color-text-muted); margin-left: 8px; }
-  </style>
-</head>
-<body>
-  <header>
+  </style>`;
+}
+
+function generateMarkup(): string {
+	return `  <header>
     <h1>Skill Forge</h1>
     <div class="header-divider"></div>
     <span id="artifact-count"></span>
@@ -958,8 +950,11 @@ export function generateHtmlPage(): string {
         <button class="btn-submit" id="import-confirm-btn" onclick="executeImport()">Import</button>
       </div>
     </div>
-  </div>
-  <script>
+  </div>`;
+}
+
+function generateClientScript(): string {
+	return `  <script>
     // --- Task 5.1: Catalog fetch and card rendering ---
 
     var catalogData = [];
@@ -3611,7 +3606,24 @@ export function generateHtmlPage(): string {
     // END task 11.1
 
     // END task 5.1
-  </script>
+  </script>`;
+}
+
+export function generateHtmlPage(): string {
+	return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Skill Forge Catalog</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+${generateStyles()}
+</head>
+<body>
+${generateMarkup()}
+${generateClientScript()}
 </body>
 </html>`;
 }
