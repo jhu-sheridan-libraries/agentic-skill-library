@@ -2,5 +2,20 @@
   "context-bazaar": {
     "command": "node",
     "args": ["${CLAUDE_PLUGIN_ROOT}/skill-forge/bridge/mcp-server.cjs"]
+  },
+  "souk-compass": {
+    "command": "bun",
+    "args": ["${CLAUDE_PLUGIN_ROOT}/skill-forge/mcp-servers/souk-compass/dist/mcp-server.cjs"],
+    "env": {
+      "SOUK_COMPASS_SOLR_URL": "http://localhost:8983",
+      "SOUK_COMPASS_SOLR_COLLECTION": "context-bazaar",
+      "SOUK_COMPASS_USER_COLLECTION": "context-bazaar-user-docs",
+      "SOUK_COMPASS_EMBED_PROVIDER": "local",
+      "SOUK_COMPASS_CACHE_TIERS": "memory,sqlite,solr",
+      "SOUK_COMPASS_CACHE_DB": "~/.souk-compass/embed-cache.db",
+      "SOUK_COMPASS_EMBED_CACHE_SIZE": "1000",
+      "SOUK_COMPASS_EF_SEARCH_SCALE": "1.0",
+      "SOUK_COMPASS_DEFAULT_MIN_SCORE": ""
+    }
   }
 }

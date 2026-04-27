@@ -1,9 +1,13 @@
-<!-- forge:version 0.1.0 -->
+<!-- forge:version 0.2.0 -->
 ---
 inclusion: always
 ---
 
-Code review is a collaboration, not an audit. The goal is a better codebase, not a lower diff count.
+## Overview
+
+Review Ritual treats code review as a craft — read with intent, comment with purpose, approve with confidence. Use it when reviewing pull requests, merge requests, or any code changes. The goal is a better codebase, not a lower diff count.
+
+Code review is a collaboration, not an audit.
 
 ## The reviewer's contract
 
@@ -43,3 +47,29 @@ Before leaving any comment, ask: does this improve the code, or does it reflect 
 ## Approving
 
 Only approve when you would be comfortable explaining this code to a colleague yourself. Rubber-stamp approvals devalue the review process for everyone.
+
+## Best Practices
+
+- Separate "must fix" from "nit" — label your comments so the author knows what blocks merge
+- Review in one sitting when possible — context-switching mid-review leads to missed connections
+- Time-box large PRs — if a PR is too big to review in 30 minutes, ask the author to split it
+- Review your own PR first — catch the obvious issues before asking someone else to
+
+## Examples
+
+**Good comment:**
+> `processOrder` throws if `user` is null, which happens when the session expires mid-checkout. Consider adding a null check with a redirect to login.
+
+**Bad comment:**
+> This could throw.
+
+**Good nit:**
+> nit: I'd name this `fetchActiveUsers` rather than `getUsers` — but not blocking.
+
+## Troubleshooting
+
+**PR too large to review effectively:** Ask the author to split it into logical chunks. Review each chunk separately. If splitting isn't possible, review in the reading order (description → tests → implementation).
+
+**Disagreement on approach:** If you and the author disagree, focus on the *why*. Ask "what problem does this solve?" rather than asserting your preferred approach. Escalate to a third reviewer if needed.
+
+**Review fatigue:** If you're rubber-stamping, stop. Take a break. A review that misses a security issue is worse than no review at all.

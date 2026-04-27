@@ -15,7 +15,7 @@ keywords:
   - mythology
   - prophecy
 author: Steven J. Miklovic
-version: 0.1.0
+version: 0.2.0
 harnesses:
   - kiro
 type: power
@@ -38,6 +38,10 @@ collections:
 inherit-hooks: false
 ---
 # Fantasy Novelist
+
+## Overview
+
+Genre-specific companion to the Novelist power for writing fantasy fiction. Provides magic system design, mythic world-building, non-human species and culture creation, prophecy and fate mechanics, and subgenre-aware conventions. Activate alongside the Novelist and Series Continuity powers for the full creative writing stack.
 
 ## Relationship to Novelist and Series Continuity
 
@@ -254,4 +258,23 @@ When reviewing manuscript content, apply these checks:
 6. **Prophecy consistency** — If prophecy exists, is it consistent across all mentions? Does the fulfillment match the prophecy's actual words (not just the characters' interpretation)?
 
 7. **Trope awareness** — Does any scene use a major fantasy trope without apparent awareness? Flag with the trope name and ask whether the usage is intentional.
+
+## Examples
+
+**Good magic cost design:**
+> The healer can mend bones in minutes, but absorbs the pain herself. Healing a shattered femur leaves her bedridden for a day. Healing a mortal wound might kill her. This creates tension: she *can* save him, but should she?
+
+**Bad magic cost design:**
+> The wizard casts fireballs. He gets tired afterward. (Too vague — how tired? For how long? What happens if he pushes past it?)
+
+**Good species differentiation:**
+> The Thornfolk perceive time as a spiral, not a line. They don't distinguish "past" from "future" — only "near" and "far" on the spiral. This makes them maddening negotiators but extraordinary prophets.
+
+## Troubleshooting
+
+**Agent ignores hardness rating:** Restate the hardness level explicitly: "This is a hard magic system. The reader knows the rules. Magic CAN solve this problem because the reader understands the cost."
+
+**Magic system too complex:** If you need more than one page to explain the rules, the system is too complex for the reader. Simplify or split into a core system and advanced applications revealed later.
+
+**Non-human species feel like humans in costume:** Push harder on the two-axis test. Change their perception of time, their decision-making process, or their relationship to death. If they still feel human, change their social structure.
 

@@ -1,1 +1,20 @@
-[]
+- name: TypeScript Type Discipline Check
+  description: >-
+    After writing or editing a TypeScript file, reminds the agent to verify
+    type discipline: no 'any', explicit types at boundaries, discriminated
+    unions over optionals, and minimal use of type assertions.
+  event: post_tool_use
+  tool_pattern: "write"
+  action:
+    type: ask_agent
+    prompt: >-
+      If you just wrote or edited a TypeScript file, verify Type Guardian rules:
+
+      1. No `any` — use `unknown` and narrow, or use generics
+      2. Explicit return types on exported functions and public class properties
+      3. Discriminated unions over optional fields where the condition matters
+      4. Minimal `as` assertions — if used, add a comment explaining why
+      5. Use utility types (Partial, Pick, Omit, Record, etc.) instead of
+         manually redefining subsets of existing types
+
+      If any violations exist in the code you just wrote, fix them now.

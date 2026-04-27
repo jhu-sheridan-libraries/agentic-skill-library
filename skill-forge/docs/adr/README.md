@@ -40,6 +40,8 @@ ADRs document significant architectural decisions made during the project's deve
 | [028](0028-capability-matrix-in-adapters.md) | Capability matrix co-located with adapters | Accepted | 2026-04-22 |
 | [029](0029-importers-module-for-multi-harness-parsers.md) | Importers module for multi-harness parsers | Proposed | 2026-04-23 |
 | [030](0030-authoring-level-version-embedding-and-manifests.md) | Authoring-level version embedding and manifests | Accepted | 2026-04-21 |
+| [031](0031-souk-compass-standalone-mcp-server-for-semantic-search.md) | Souk Compass — standalone MCP server for semantic search | Proposed | 2026-04-24 |
+| [032](0032-solrcloud-mode-for-souk-compass.md) | SolrCloud mode for Souk Compass local development | Accepted | 2026-04-24 |
 
 ## Creating a New ADR
 

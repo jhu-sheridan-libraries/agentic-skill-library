@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<schema name="souk-compass" version="1.0">
+  <uniqueKey>id</uniqueKey>
+
+  <!-- Core fields -->
+  <field name="id" type="string" indexed="true" stored="true" required="true" />
+  <field name="text" type="text_general" indexed="true" stored="true" />
+  <field name="vector" type="knn_vector_1024" indexed="true" stored="true" />
+
+  <!-- Artifact metadata -->
+  <field name="artifact_name" type="string" indexed="true" stored="true" />
+  <field name="artifact_type" type="string" indexed="true" stored="true" />
+  <field name="display_name" type="string" indexed="false" stored="true" />
+  <field name="maturity" type="string" indexed="true" stored="true" />
+  <field name="author" type="string" indexed="true" stored="true" />
+  <field name="version" type="string" indexed="true" stored="true" />
+  <field name="doc_source" type="string" indexed="true" stored="true" />
+
+  <!-- Change detection and chunking -->
+  <field name="content_hash" type="string" indexed="true" stored="true" />
+  <field name="chunk_index" type="pint" indexed="true" stored="true" />
+  <field name="parent_artifact" type="string" indexed="true" stored="true" />
+
+  <!-- Multi-valued fields -->
+  <field name="collection_names" type="string" indexed="true" stored="true" multiValued="true" />
+  <field name="keywords" type="string" indexed="true" stored="true" multiValued="true" />
+
+  <!-- Dynamic fields for user metadata -->
+  <dynamicField name="metadata_*" type="string" indexed="true" stored="true" />
+
+  <!-- SolrCloud internal fields -->
+  <field name="_version_" type="plong" indexed="true" stored="true" multiValued="false" />
+  <field name="_root_" type="string" indexed="true" stored="false" multiValued="false" />
+  <field name="_nest_path_" type="_nest_path_" indexed="true" stored="true" multiValued="false" />
+
+  <!-- Field types -->
+  <fieldType name="pint" class="solr.IntPointField" docValues="true" />
+  <fieldType name="plong" class="solr.LongPointField" docValues="true" />
+  <fieldType name="_nest_path_" class="solr.NestPathField" />
+  <fieldType name="string" class="solr.StrField" sortMissingLast="true" multiValued="false" />
+  <fieldType name="text_general" class="solr.TextField" positionIncrementGap="100">
+    <analyzer type="index">
+      <tokenizer class="solr.StandardTokenizerFactory" />
+      <filter class="solr.LowerCaseFilterFactory" />
+    </analyzer>
+    <analyzer type="query">
+      <tokenizer class="solr.StandardTokenizerFactory" />
+      <filter class="solr.LowerCaseFilterFactory" />
+    </analyzer>
+  </fieldType>
+  <fieldType name="knn_vector_1024" class="solr.DenseVectorField"
+    vectorDimension="1024"
+    similarityFunction="cosine"
+    knnAlgorithm="hnsw"
+    hnswMaxConnections="16"
+    hnswBeamWidth="100" />
+</schema>

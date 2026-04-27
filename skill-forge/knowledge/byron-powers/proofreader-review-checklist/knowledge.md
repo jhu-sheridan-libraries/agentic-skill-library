@@ -14,7 +14,7 @@ keywords:
   - chapter
   - character-sheet
 author: Demo
-version: 0.1.0
+version: 0.2.0
 harnesses:
   - kiro
 type: power
@@ -155,3 +155,22 @@ Then apply the relevant checklist below.
 - Distinguish mechanical errors (correct them directly) from stylistic choices (flag with a note explaining the concern)
 - Be specific: cite the exact passage or line, not just the category of problem
 - When uncertain whether something is an error or an intentional choice, ask before changing it
+
+## Examples
+
+**Good proofreading note (specific, actionable):**
+> Chapter 3, paragraph 2: "She walked to the their car" — typo: "the their" should be "their". Mechanical error, corrected.
+
+**Good stylistic flag (respectful, informative):**
+> Chapter 7, dialogue tag: "he exclaimed loudly" — the adverb "loudly" is redundant with "exclaimed." Consider removing. Flagged as stylistic concern, not corrected.
+
+**Bad proofreading note (vague):**
+> Some grammar issues in this chapter. (Which ones? Where? What kind?)
+
+## Troubleshooting
+
+**Agent corrects intentional stylistic choices:** When reviewing fiction, flag unusual constructions as questions ("Is this intentional?") rather than corrections. Dialect, voice, and deliberate rule-breaking are authorial choices.
+
+**Agent misses consistency errors:** Run a dedicated consistency pass separate from the grammar pass. Looking for everything at once causes both types of errors to be missed.
+
+**Agent over-corrects dialogue:** Dialogue should sound like speech, not prose. Fragments, contractions, and grammatical shortcuts are normal in dialogue and should not be "fixed."

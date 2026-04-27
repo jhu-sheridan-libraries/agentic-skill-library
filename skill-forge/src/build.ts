@@ -362,12 +362,16 @@ async function buildWithWorkspace(
 
 			// Resolve version for embedding
 			const artifactVersion = projectArtifact.frontmatter.version;
-			if (artifactVersion === "0.1.0") {
+
+			// Warn about default version only for artifacts mature enough to need explicit versioning
+			if (
+				artifactVersion === "0.1.0" &&
+				projectArtifact.frontmatter.maturity !== "experimental"
+			) {
 				warnings.push({
 					artifactName: projectArtifact.name,
 					harnessName: "build",
-					message:
-						"No explicit version in frontmatter — defaulting to 0.1.0. Consider adding a `version` field.",
+					message: `Maturity is "${projectArtifact.frontmatter.maturity}" but version is still the default 0.1.0. Consider setting an explicit version.`,
 				});
 			}
 
@@ -580,12 +584,16 @@ export async function build(options: BuildOptions): Promise<BuildResult> {
 
 		// Resolve version for embedding
 		const artifactVersion = artifact.frontmatter.version;
-		if (artifactVersion === "0.1.0") {
+
+		// Warn about default version only for artifacts mature enough to need explicit versioning
+		if (
+			artifactVersion === "0.1.0" &&
+			artifact.frontmatter.maturity !== "experimental"
+		) {
 			warnings.push({
 				artifactName: artifact.name,
 				harnessName: "build",
-				message:
-					"No explicit version in frontmatter — defaulting to 0.1.0. Consider adding a `version` field.",
+				message: `Maturity is "${artifact.frontmatter.maturity}" but version is still the default 0.1.0. Consider setting an explicit version.`,
 			});
 		}
 

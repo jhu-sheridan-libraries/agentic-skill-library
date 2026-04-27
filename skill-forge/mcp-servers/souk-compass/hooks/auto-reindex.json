@@ -1,0 +1,10 @@
+{
+  "id": "souk-compass-auto-reindex",
+  "name": "Auto-Reindex on Build",
+  "version": "1.0.0",
+  "description": "Triggers compass_reindex after forge build completes to keep the semantic search index synchronized with the catalog.",
+  "eventType": "postToolUse",
+  "hookAction": "askAgent",
+  "outputPrompt": "The catalog has been rebuilt. Run compass_reindex to update the semantic search index.",
+  "toolTypes": "shell"
+}

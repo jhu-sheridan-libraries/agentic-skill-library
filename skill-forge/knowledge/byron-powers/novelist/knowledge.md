@@ -10,7 +10,7 @@ keywords:
   - manuscript
   - storytelling
 author: Steven J. Miklovic
-version: 0.1.0
+version: 0.2.0
 harnesses:
   - kiro
 type: power
@@ -35,6 +35,25 @@ inherit-hooks: false
 Novelist is a comprehensive power for writing long-form fiction. It breaks the novel-writing process into discrete, manageable phases — each with its own steering file — so you can focus on one aspect of craft at a time while keeping the big picture in view.
 
 Whether you're starting from a vague idea or sitting on a polished manuscript ready for market, Novelty meets you where you are.
+
+## Steering Files
+
+This power has fourteen workflow files across two tracks:
+
+- **concept-and-premise** — Develop novel concepts and premises
+- **character-creation** — Create compelling characters with arcs
+- **world-building** — Build immersive story worlds
+- **plot-structure** — Design plot structure and pacing
+- **scene-drafting** — Draft individual scenes
+- **dialogue** — Write effective dialogue
+- **style-and-tone** — Develop voice, style, and tone
+- **multi-pov-and-timeline** — Manage multiple POVs and timelines
+- **fiction-seeds** — Generate and develop story seeds
+- **seed-library** — Manage a library of story ideas
+- **revision-and-editing** — Revise and edit manuscripts
+- **manuscript-diagnostics** — Diagnose manuscript issues
+- **market-and-genre** — Research market and genre positioning
+- **submission-and-query** — Prepare submissions and query letters
 
 ## Getting Started
 
@@ -125,3 +144,22 @@ If the user selects the Full Journey, guide them through all fourteen phases in 
 - Don't try to perfect one phase before moving on; iteration is part of the process
 - When stuck, try jumping to a different phase for fresh perspective
 - You can switch between tracks at any time — the boundaries are guides, not walls
+
+## Examples
+
+**Good premise (high-concept):**
+> A grief-stricken father discovers his dead daughter's AI chatbot has been talking to other dead people's chatbots — and they're planning something.
+
+**Bad premise:**
+> A man goes on a journey and learns about himself. (No specificity, no stakes, no hook.)
+
+**Good scene-level goal:**
+> In this scene, the reader learns that Marcus has been lying about his alibi — but Marcus doesn't know the reader knows. Build dramatic irony.
+
+## Troubleshooting
+
+**Agent produces flat characters:** Use the character creation workflow. Ensure each character has a want (external goal), a need (internal growth), and a lie they believe.
+
+**Plot feels episodic rather than building:** Check the plot structure workflow. Each scene should cause the next — if you can rearrange scenes without consequence, the causal chain is broken.
+
+**Agent overwrites the author's voice:** Remind it of the style-and-tone workflow. The agent should match the author's established voice, not impose its own.

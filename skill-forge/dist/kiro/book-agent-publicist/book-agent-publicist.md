@@ -1,4 +1,4 @@
-<!-- forge:version 0.1.0 -->
+<!-- forge:version 0.2.0 -->
 ---
 inclusion: manual
 ---
@@ -10,6 +10,23 @@ inclusion: manual
 Book Agent & Publicist covers everything between finishing a manuscript and building a sustainable author career. It's the business companion to the Novelist and Technical Author powers — picking up where craft leaves off and handling the commercial, strategic, and public-facing side of publishing.
 
 Whether you're querying your first novel, negotiating a multi-book deal, planning a publicity campaign, or building a long-term author brand, this power meets you where you are.
+
+## Steering Files
+
+This power has twelve workflow files across four tracks:
+
+- **agent-research** — Research and evaluate literary agents
+- **query-campaign** — Write and manage query letter campaigns
+- **agent-evaluation** — Evaluate agent offers and fit
+- **submission-to-publishers** — Navigate publisher submissions
+- **deal-negotiation** — Negotiate book deals and terms
+- **contract-literacy** — Understand publishing contracts
+- **publicity-planning** — Plan book publicity campaigns
+- **launch-execution** — Execute book launch strategies
+- **media-and-press** — Handle media outreach and press
+- **author-platform** — Build author platform and online presence
+- **brand-and-identity** — Develop author brand identity
+- **career-strategy** — Long-term author career planning
 
 ## Getting Started
 
@@ -120,6 +137,22 @@ If the user selects the Full Journey, guide them through all twelve phases in or
 - You can switch between tracks at any time — the boundaries are guides, not walls
 - The publishing landscape changes constantly — verify specific agent/publisher details before acting on them
 - This power complements the Novelist and Technical Author powers — use them together for the complete journey from manuscript to career
+
+## Examples
+
+**Good query letter opening:**
+> When marine biologist Dr. Lena Okafor discovers that the deep-sea creatures she's been studying are systematically dismantling undersea cables, she must convince a skeptical Navy that the ocean is fighting back — before the next blackout takes out the Eastern Seaboard.
+
+**Bad query letter opening:**
+> My book is about a scientist who finds something weird in the ocean. It's a thriller with sci-fi elements. (Too vague — no stakes, no character, no hook.)
+
+## Troubleshooting
+
+**Agent writes generic query letters:** Provide the manuscript's premise, protagonist, stakes, and comp titles. The agent needs specifics to write a compelling pitch.
+
+**Agent doesn't know current market trends:** Publishing trends change constantly. Verify agent/publisher submission guidelines, genre trends, and comp title relevance against current sources before acting on recommendations.
+
+**Career track feels premature:** It's not — platform building starts before the first book is published. Even early-career authors benefit from thinking about brand and audience.
 
 ## Agent Evaluation
 

@@ -2,6 +2,7 @@
 	"files": {
 		"includes": [
 			"src/**",
+			"mcp-servers/*/src/**",
 			"scripts/**",
 			"evals/**",
 			"collections/**",

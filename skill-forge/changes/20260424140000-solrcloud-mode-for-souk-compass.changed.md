@@ -1,0 +1,1 @@
+Switched Souk Compass local Solr from standalone mode to SolrCloud (1 node + ZooKeeper), enabling the Collections API for programmatic collection management and configset-based schema deployment. Updated health check to use ping endpoint for mode-agnostic operation.

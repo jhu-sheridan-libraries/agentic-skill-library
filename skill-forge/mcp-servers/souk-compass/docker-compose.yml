@@ -1,0 +1,35 @@
+services:
+  solr:
+    image: solr:9
+    container_name: souk-compass-solr
+    ports:
+      - "8983:8983"
+    volumes:
+      - solr-data:/var/solr
+      - ./solr/configset:/opt/solr/server/solr/configsets/souk-compass
+    environment:
+      ZK_HOST: zoo:2181
+    depends_on:
+      zoo:
+        condition: service_healthy
+
+  zoo:
+    image: zookeeper:3.9
+    container_name: souk-compass-zoo
+    ports:
+      - "2181:2181"
+    environment:
+      ZOO_4LW_COMMANDS_WHITELIST: "mntr,conf,ruok"
+    volumes:
+      - zoo-data:/data
+      - zoo-datalog:/datalog
+    healthcheck:
+      test: ["CMD-SHELL", "echo ruok | nc localhost 2181 | grep imok"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  solr-data:
+  zoo-data:
+  zoo-datalog:

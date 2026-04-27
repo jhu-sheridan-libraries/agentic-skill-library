@@ -1,1 +1,22 @@
-[]
+- name: Three-Sentence Rule on Error
+  description: >-
+    After a shell command fails, prompts the agent to apply the Debug Journal's
+    three-sentence rule before chasing the fix: articulate what was expected,
+    what happened, and what has been ruled out.
+  event: post_tool_use
+  tool_pattern: "shell"
+  action:
+    type: ask_agent
+    prompt: >-
+      If the command just failed or produced an error, apply the Debug Journal
+      three-sentence rule before attempting a fix:
+
+      1. What I expected to happen
+      2. What actually happened
+      3. What I already know it is NOT
+
+      Write these three sentences explicitly. If you cannot write sentence 3,
+      you have not started investigating yet — gather more information first.
+
+      Do NOT jump straight to a fix. Articulate the problem, then isolate the
+      root cause, then fix and verify.

@@ -14,7 +14,7 @@ keywords:
   - technology
   - futurism
 author: Steven J. Miklovic
-version: 0.1.0
+version: 0.2.0
 harnesses:
   - kiro
 type: power
@@ -36,6 +36,10 @@ collections:
 inherit-hooks: false
 ---
 # Sci-Fi Novelist
+
+## Overview
+
+Genre-specific companion to the Novelist power for writing science fiction. Provides speculative technology design, alien species creation, hard-SF consistency validation, and subgenre-aware world-building. Activate alongside the Novelist power for the full creative writing stack.
 
 ## Relationship to Novelist
 
@@ -203,3 +207,19 @@ When reviewing manuscript content, apply these checks in order of priority:
 
 6. **Subgenre contract violations** — Does any scene break the implicit reader contract for the declared subgenre? Flag with the specific expectation violated.
 
+
+## Examples
+
+**Good extrapolation chain:**
+> Technology: Cheap fusion power → Second-order: Desalination becomes trivial → Third-order: Desert nations become agricultural superpowers → Story implication: The old oil economies collapse, creating political refugees who drive the plot.
+
+**Bad speculative element:**
+> The ship has a "quantum drive" that goes anywhere instantly. (No cost, no limitation, no extrapolation. It's a plot convenience, not a technology.)
+
+## Troubleshooting
+
+**Agent introduces technology without constraints:** Ask "What can this technology NOT do?" and "What does it cost?" If the answer is "nothing," the technology needs redesign.
+
+**Hardness rating inconsistency:** If the project is rated hard-SF but the agent is hand-waving physics, restate the hardness level and point to specific violations in the technology bible.
+
+**Exposition dumps about technology:** Technology should be introduced through character interaction, not encyclopedia entries. If a passage reads like a textbook, rewrite it as a character encountering the technology's effects.

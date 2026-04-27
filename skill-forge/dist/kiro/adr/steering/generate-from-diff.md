@@ -1,4 +1,4 @@
-<!-- forge:version 0.2.0 -->
+<!-- forge:version 0.3.0 -->
 # ADR-from-Diff Generation
 
 Auto-draft ADR from current git diff. Uses shared rules from POWER.md (git context, duplicate check, confirm before write, index, changelog).

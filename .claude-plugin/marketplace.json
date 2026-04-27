@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "context-bazaar",
-      "description": "A typed, discoverable knowledge bazaar for AI coding harness configurations. Browse and install skills, powers, workflows, prompts, and agents for Kiro, Claude Code, Copilot, Cursor, Windsurf, Cline, and Q Developer.",
+      "description": "A typed, discoverable knowledge bazaar for AI coding harness configurations with Souk Compass semantic search. Browse and install skills, powers, workflows, prompts, and agents for Kiro, Claude Code, Copilot, Cursor, Windsurf, Cline, and Q Developer.",
       "version": "0.1.0",
       "author": {
         "name": "Steven J. Miklovic"
@@ -19,7 +19,8 @@
       "tags": [
         "knowledge", "skills", "powers", "kiro", "claude-code",
         "copilot", "cursor", "ai-coding", "context", "bazaar",
-        "writing", "developer-workflow"
+        "writing", "developer-workflow",
+        "semantic-search", "vector-search", "solr"
       ]
     }
   ],
