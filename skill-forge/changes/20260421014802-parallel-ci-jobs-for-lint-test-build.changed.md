@@ -1,1 +1,0 @@
-Split CI into parallel jobs (`lint-and-typecheck`, `test`, `validate-and-build`) so lint, tests, and artifact validation run concurrently

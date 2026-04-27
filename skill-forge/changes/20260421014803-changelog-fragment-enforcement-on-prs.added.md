@@ -1,1 +1,0 @@
-Added `changelog-check` CI job that enforces a changelog fragment exists for PRs touching source files, with `skip-changelog` label escape hatch

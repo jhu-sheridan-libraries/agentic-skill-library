@@ -1,1 +1,0 @@
-Added Overview, Examples, Troubleshooting, and Steering Files listing sections to all eight byron-powers artifacts (novelist, fantasy-novelist, scifi-novelist, mystery-series-novelist, series-continuity, book-agent-publicist, technical-author, proofreader-review-checklist) per Kiro Power best practices.
