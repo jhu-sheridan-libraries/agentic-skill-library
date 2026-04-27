@@ -1,1 +1,0 @@
-Admin API endpoints for capabilities (GET /api/capabilities), temper (POST /api/temper), import scan/execute (POST /api/import), versions/upgrade (GET/POST /api/versions, /api/upgrade), workspace (GET/PUT /api/workspace), dependency graph (GET /api/graph), and build trigger/status (POST /api/build, GET /api/build/status)

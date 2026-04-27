@@ -1,1 +1,0 @@
-Added daily `dist-drift.yml` scheduled workflow that rebuilds artifacts and MCP bridge on `main` and warns if `dist/` or `bridge/` have drifted from source

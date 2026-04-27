@@ -1,1 +1,0 @@
-Added event-driven hooks to five neon-caravan artifacts (commit-craft, review-ritual, type-guardian, debug-journal, karpathy-mode) and added missing Overview, Examples, and Troubleshooting sections to all knowledge artifacts per Kiro Power best practices.

@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-04-27
+
+### Added
+- Added MCP bridge compilation smoke test to CI (`bun run build:bridge` + `node bridge/mcp-server.cjs --version`)
+- Added ADR-0031 documenting Souk Compass as a standalone MCP server for Solr-backed semantic search with pluggable embedding providers and multi-tier caching.
+- ADR-0030: authoring-level version embedding and manifests
+- Multi-harness `forge import --harness` command supporting all 7 harness-native formats (Kiro, Claude Code, Copilot, Cursor, Windsurf, Cline, Q Developer) with auto-detection, --force, and --dry-run
+- Admin UI components in Browse SPA: capability badges with color-coded matrix grid, inline temper preview panel, import modal with file scanner, version display with upgrade button, workspace tab with project management, interactive dependency graph (inline SVG with force-directed layout), and build dashboard with config persistence and history
+- Interactive `forge temper` command for previewing the compiled AI experience per artifact-harness pair, with terminal output, JSON mode, side-by-side comparison (--compare), and web preview (--web)
+- Admin API endpoints for capabilities (GET /api/capabilities), temper (POST /api/temper), import scan/execute (POST /api/import), versions/upgrade (GET/POST /api/versions, /api/upgrade), workspace (GET/PUT /api/workspace), dependency graph (GET /api/graph), and build trigger/status (POST /api/build, GET /api/build/status)
+- Comprehensive unit test suite for Souk Compass MCP server — 191 tests across 9 files covering SoukVectorClient, embedding provider factory, tool handlers, MCP error boundary, CachedEmbeddingProvider, chunker, serialization, workspace profiler, and hook/plugin validation.
+- Added `changelog-check` CI job that enforces a changelog fragment exists for PRs touching source files, with `skip-changelog` label escape hatch
+- Added daily `dist-drift.yml` scheduled workflow that rebuilds artifacts and MCP bridge on `main` and warns if `dist/` or `bridge/` have drifted from source
+- Harness capability matrix declaring support levels (full/partial/none) for 8 capabilities across all 7 harnesses, with configurable degradation strategies (inline/comment/omit) applied automatically during build
+- Added promptfoo eval suites for codeshop (routing, skill-quality, shared-concepts), all 8 byron-powers artifacts, ADR (workflow-correctness, template-quality, generate-from-diff, health-check), and karpathy-mode (principle-enforcement, tradeoff-awareness) — 71 tests total
+- Multi-repo and monorepo workspace support via forge.config.yaml with multiple knowledge sources, per-project harness/artifact configuration, workspace-aware build and install, and --project flag
+- Artifact versioning with semver version embedding in compiled output, .forge-manifest.json sidecar files, `forge upgrade` command with migration script support, --force, and --dry-run
+
+### Changed
+- Updated README with complete CLI command reference, project structure, capability matrix, and development instructions
+- Trimmed knowledge artifact keywords to 6-19 per artifact, removed keyword/category overlaps, established canonical 10-category taxonomy, and added 'writing' to CategoryEnum in schemas.ts
+- Added Bun dependency caching (`~/.bun/install/cache` + `node_modules`) keyed on `bun.lock` hash to all GitHub Actions workflows (CI, release, audit, pages)
+- Added event-driven hooks to five neon-caravan artifacts (commit-craft, review-ritual, type-guardian, debug-journal, karpathy-mode) and added missing Overview, Examples, and Troubleshooting sections to all knowledge artifacts per Kiro Power best practices.
+- Switched Souk Compass local Solr from standalone mode to SolrCloud (1 node + ZooKeeper), enabling the Collections API for programmatic collection management and configset-based schema deployment. Updated health check to use ping endpoint for mode-agnostic operation.
+- Added Overview, Examples, Troubleshooting, and Steering Files listing sections to all eight byron-powers artifacts (novelist, fantasy-novelist, scifi-novelist, mystery-series-novelist, series-continuity, book-agent-publicist, technical-author, proofreader-review-checklist) per Kiro Power best practices.
+- Updated the Hello test artifact with a fun onboarding section that greets users in 20 languages and bumped version to 0.2.0.
+- Split CI into parallel jobs (`lint-and-typecheck`, `test`, `validate-and-build`) so lint, tests, and artifact validation run concurrently
+- Added `concurrency` group with `cancel-in-progress: true` to CI so rapid pushes to a PR cancel stale in-progress runs
+- Rewrote top-level README with current collection counts, full repo structure, and complete Quick Start
+- Replaced stub skill-forge CONTRIBUTING with code-level guide covering module map, adapter/backend patterns, testing conventions, and common pitfalls
+- Overhauled CLI help metadata with thorough examples, option groups, and coverage for all commands including catalog export, guild, and collection
+- Updated the knowledge.md scaffold template to include skeleton Overview, Best Practices, Examples, and Troubleshooting sections so new artifacts start with the recommended Kiro Power structure.
+
+### Fixed
+- Fixed the CI eval job to use the eval suite's Bedrock credentials, and skip forked pull request runs where the required secrets are unavailable.
+- Fixed all Biome lint errors and TypeScript type-check failures: resolved Bun Dirent type incompatibility in versioning.ts, tightened mapKiroEvent return type to CanonicalEvent, added missing changelog/migrations fields to CatalogEntry test factories, added buildHistory to BrowseState test fixtures, removed unused imports, applied Biome formatting, and suppressed intentional ANSI escape regex checks
+- Updated GitHub workflows to install Node 22 and run repository automation from the `skill-forge` directory so CI, audit, CodeQL, and release jobs target the actual project files.
+- Fixed SQLite BLOB deserialization in CachedEmbeddingProvider — Bun's bun:sqlite returns Uint8Array for BLOB columns, now uses TextDecoder instead of toString() for correct embedding recovery.
+- Removed hardcoded test count from PR template checklist to prevent staleness
+- Static catalog export: use replacer function in generateStaticHtmlPage to prevent String.replace dollar-sign corruption of embedded JSON
+
+
 ## [0.2.0] - 2026-04-20
 
 ### Added
