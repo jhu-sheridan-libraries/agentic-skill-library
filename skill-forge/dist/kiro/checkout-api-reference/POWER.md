@@ -3,7 +3,7 @@
 name: checkout-api-reference
 displayName: Checkout.com Global Payments
 description: Access Checkout.com's comprehensive API documentation with intelligent search and detailed operation information for payments, customers, disputes, and more.
-keywords: ["checkout","payments","api","documentation","openapi","fintech","payment processing","customers","disputes","issuing","workflows","identity verification","mcp","reference"]
+keywords: ["checkout","payments","openapi","fintech","payment processing","disputes","issuing","identity verification"]
 author: Checkout.com
 ---
 

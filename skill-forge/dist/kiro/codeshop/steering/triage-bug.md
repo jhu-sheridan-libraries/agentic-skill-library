@@ -1,4 +1,4 @@
-<!-- forge:version 0.1.5 -->
+<!-- forge:version 0.1.6 -->
 # Triage Bug
 
 Investigate a reported problem, find its root cause, and create a GitHub issue with a TDD fix plan. This is a mostly hands-off workflow — minimize questions to the user.

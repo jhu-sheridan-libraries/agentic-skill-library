@@ -10,7 +10,6 @@ keywords:
   - aws
   - azure
   - gcp
-  - devops
   - deployment
 author: StackGen
 version: 0.1.0

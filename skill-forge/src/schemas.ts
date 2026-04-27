@@ -144,6 +144,7 @@ export const CATEGORIES = [
 	"debugging",
 	"performance",
 	"accessibility",
+	"writing",
 ] as const;
 
 export const CategoryEnum = z.enum(CATEGORIES);

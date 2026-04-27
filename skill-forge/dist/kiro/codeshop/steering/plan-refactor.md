@@ -1,4 +1,4 @@
-<!-- forge:version 0.1.5 -->
+<!-- forge:version 0.1.6 -->
 # Plan Refactor
 
 Create a detailed refactor plan with tiny commits via user interview, then file it as a GitHub issue.

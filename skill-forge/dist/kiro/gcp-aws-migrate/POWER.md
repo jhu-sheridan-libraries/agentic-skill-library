@@ -3,7 +3,7 @@
 name: gcp-aws-migrate
 displayName: GCP to AWS Migration Advisor
 description: Expert guidance for migrating workloads from Google Cloud Platform to AWS. This no-cost tool assesses your current cloud provider's usage, geography, and billing data to estimate and compare AWS services and pricing, and recommends migration or continued use of your current provider. AWS pricing is based on current published pricing and may vary over time. The tool may generate a .migration folder containing comparison and migration execution data, which you may delete upon completion or use to migrate to AWS.
-keywords: ["gcp","aws","migration","cloud migration","terraform","re-platform","cost estimation","architecture"]
+keywords: ["gcp","aws","migration","cloud migration","terraform","re-platform","cost estimation"]
 author: AWS
 ---
 

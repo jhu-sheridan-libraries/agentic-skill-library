@@ -8,7 +8,6 @@ keywords:
   - interface-design
   - test-driven-development
   - refactoring
-  - architecture
   - domain-modeling
   - issue-triage
   - prd
@@ -23,7 +22,7 @@ keywords:
   - commit-messages
   - debugging-methodology
 author: Steven J. Miklovic
-version: 0.1.5
+version: 0.1.6
 harnesses:
   - kiro
 type: power
@@ -32,7 +31,7 @@ categories:
   - architecture
   - testing
   - documentation
-ecosystem: [kiro]
+ecosystem: []
 depends: []
 enhances: []
 maturity: experimental

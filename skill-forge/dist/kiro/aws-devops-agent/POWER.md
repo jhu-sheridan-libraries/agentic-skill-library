@@ -3,7 +3,7 @@
 name: aws-devops-agent
 displayName: AWS DevOps Agent
 description: AI agent for AWS operational intelligence via the AWS MCP Server. Investigate incidents, optimize costs, review architecture, map topology, and get remediation — using the aws___call_aws tool with DevOps Agent APIs.
-keywords: ["devops","investigation","incident","troubleshoot","root-cause","operational","alarm","cloudwatch","mitigation","outage","latency","cost","optimize","topology","architecture","review","knowledge","runbooks"]
+keywords: ["incident","troubleshoot","root-cause","cloudwatch","outage","latency","cost","topology","runbooks"]
 author: AWS
 ---
 

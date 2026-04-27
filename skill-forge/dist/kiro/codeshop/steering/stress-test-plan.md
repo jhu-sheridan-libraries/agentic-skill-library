@@ -1,4 +1,4 @@
-<!-- forge:version 0.1.5 -->
+<!-- forge:version 0.1.6 -->
 # Stress-Test Plan
 
 Interview the user relentlessly about every aspect of their plan until reaching a shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one by one. For each question, provide your recommended answer.

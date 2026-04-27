@@ -10,8 +10,6 @@ keywords:
   - troubleshooting
   - pyspark
   - scala
-  - performance
-  - debugging
   - aws
 author: AWS
 version: 0.1.0

@@ -3,7 +3,7 @@
 name: aws-mcp
 displayName: Work with AWS
 description: Perform complex, multi-step AWS tasks by combining real-time access to AWS documentation, syntactically correct API calls and executions, and pre-built workflows called Agent SOPs that follow AWS best practices
-keywords: ["aws","aws-mcp","aws-automation","aws-best-practices","agent-sops","aws-workflows","aws-troubleshooting","aws-resource-management","aws-cost-management","aws-cli-alternative","aws-security","aws-docs","aws-cli","aws-apis","multi-step-aws-tasks","aws-tasks","security","aws-sops"]
+keywords: ["aws","aws-mcp","agent-sops","aws-automation","aws-troubleshooting","aws-security","aws-cli","aws-docs","aws-cost-management","aws-best-practices"]
 author: AWS
 ---
 

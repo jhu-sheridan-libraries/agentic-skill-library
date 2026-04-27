@@ -3,7 +3,7 @@
 name: adr
 displayName: Architecture Decision Records
 description: Create, maintain, and cross-reference Architecture Decision Records (ADRs) using MADR format. Infers decisions from git context, detects duplicates, manages supersession chains, and keeps an index file up to date.
-keywords: ["adr","architecture-decision-record","madr","architecture","decision-log"]
+keywords: ["adr","architecture-decision-record","madr","decision-log"]
 author: Steven J. Miklovic
 ---
 

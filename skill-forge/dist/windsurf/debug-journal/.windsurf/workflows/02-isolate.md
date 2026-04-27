@@ -1,4 +1,4 @@
-<!-- forge:version 0.1.0 -->
+<!-- forge:version 0.1.1 -->
 # Isolate
 
 Shrink the problem surface. A bug in 10 lines is easier to see than a bug in 1000.

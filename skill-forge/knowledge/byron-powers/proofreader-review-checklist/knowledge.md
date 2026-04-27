@@ -21,15 +21,11 @@ type: power
 inclusion: manual
 categories:
   - documentation
+  - writing
 ecosystem: []
 depends: []
 enhances: []
 maturity: stable
-trust: community
-audience: intermediate
-model-assumptions: []
-collections:
-  - byron-powers
 inherit-hooks: false
 ---
 # Proofreader Review Checklist

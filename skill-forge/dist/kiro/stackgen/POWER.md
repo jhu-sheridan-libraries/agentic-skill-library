@@ -3,7 +3,7 @@
 name: stackgen
 displayName: StackGen Infrastructure as Code
 description: Design, manage, and deploy cloud infrastructure with StackGen - create appstacks, manage resources, configure environments, and push IaC to Git
-keywords: ["infrastructure","iac","cloud","terraform","aws","azure","gcp","devops","deployment"]
+keywords: ["infrastructure","iac","cloud","terraform","aws","azure","gcp","deployment"]
 author: StackGen
 ---
 

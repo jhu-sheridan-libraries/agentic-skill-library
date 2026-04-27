@@ -7,7 +7,7 @@ author: skill-forge
 version: 0.1.0
 type: skill
 inclusion: always
-categories: [testing, architecture]
+categories: [testing]
 ecosystem: []
 collections: [neon-caravan]
 maturity: stable

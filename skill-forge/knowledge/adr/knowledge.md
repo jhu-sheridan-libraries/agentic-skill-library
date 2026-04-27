@@ -6,7 +6,6 @@ keywords:
   - adr
   - architecture-decision-record
   - madr
-  - architecture
   - decision-log
 author: Steven J. Miklovic
 version: 0.2.0

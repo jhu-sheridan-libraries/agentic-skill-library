@@ -5,7 +5,6 @@ description: Automate API testing and collection management with Postman - creat
 keywords:
   - postman
   - api
-  - testing
   - collections
   - rest
   - http

@@ -3,7 +3,7 @@
 name: spark-troubleshooting-agent
 displayName: Troubleshoot Spark applications on AWS
 description: Troubleshoot Spark applications on AWS EMR, Glue, and SageMaker - analyze failures, identify bottlenecks, get code recommendations. For more info, please see: https://docs.aws.amazon.com/emr/latest/ReleaseGuide/spark-troubleshoot.html
-keywords: ["spark","emr","glue","sagemaker","troubleshooting","pyspark","scala","performance","debugging","aws"]
+keywords: ["spark","emr","glue","sagemaker","troubleshooting","pyspark","scala","aws"]
 author: AWS
 ---
 

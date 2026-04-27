@@ -10,7 +10,6 @@ keywords:
   - terraform
   - re-platform
   - cost estimation
-  - architecture
 author: AWS
 version: 0.1.0
 harnesses:

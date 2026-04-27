@@ -3,7 +3,7 @@
 name: aws-amplify
 displayName: Build full-stack apps with AWS Amplify
 description: Build and extend full-stack applications with AWS Amplify Gen 2 using type-safe TypeScript, guided workflows, and best practices. Covers adding features to existing Amplify backends, authentication, data models, storage, serverless functions, and AI/ML integration.
-keywords: ["amplify","aws-amplify","amplify gen 2","gen2","fullstack","full-stack","lambda","graphql","cognito","sandbox","backend","auth","authentication","storage","data model","react","nextjs","next.js","vue","nuxt","angular","react native","flutter","swift","android","ios","deploy","deployment","production"]
+keywords: ["amplify","amplify gen 2","fullstack","graphql","cognito","lambda","authentication","storage","data model","react","next.js","flutter","deployment"]
 author: AWS
 ---
 

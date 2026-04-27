@@ -1,4 +1,4 @@
-<!-- forge:version 0.1.5 -->
+<!-- forge:version 0.1.6 -->
 # Drive Tests
 
 Test-driven development with red-green-refactor vertical slices. Build features or fix bugs by writing one test at a time, implementing just enough code to pass, then refactoring.

@@ -5,22 +5,14 @@ description: Perform complex, multi-step AWS tasks by combining real-time access
 keywords:
   - aws
   - aws-mcp
-  - aws-automation
-  - aws-best-practices
   - agent-sops
-  - aws-workflows
+  - aws-automation
   - aws-troubleshooting
-  - aws-resource-management
-  - aws-cost-management
-  - aws-cli-alternative
   - aws-security
-  - aws-docs
   - aws-cli
-  - aws-apis
-  - multi-step-aws-tasks
-  - aws-tasks
-  - security
-  - aws-sops
+  - aws-docs
+  - aws-cost-management
+  - aws-best-practices
 author: AWS
 version: 0.1.0
 harnesses:

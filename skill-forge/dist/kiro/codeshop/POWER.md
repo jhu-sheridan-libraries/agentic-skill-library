@@ -1,9 +1,9 @@
-<!-- forge:version 0.1.5 -->
+<!-- forge:version 0.1.6 -->
 ---
 name: Codeshop
 displayName: Codeshop
 description: A collection of 19 developer workflow skills covering planning, design, development, testing, writing, and knowledge management. Actionable, phase-driven workflows with shared vocabulary and natural chaining. Consolidates proven practices for TDD, architecture review, domain modeling, issue triage, and documentation into a single activatable 'skill router'.
-keywords: ["codeshop","planning","interface-design","test-driven-development","refactoring","architecture","domain-modeling","issue-triage","prd","vertical-slices","codebase-architecture","bug-triage","qa-session","skill-authoring","article-editing","living-documentation","code-review-craft","commit-messages","debugging-methodology"]
+keywords: ["codeshop","planning","interface-design","test-driven-development","refactoring","domain-modeling","issue-triage","prd","vertical-slices","codebase-architecture","bug-triage","qa-session","skill-authoring","article-editing","living-documentation","code-review-craft","commit-messages","debugging-methodology"]
 author: Steven J. Miklovic
 ---
 
