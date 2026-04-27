@@ -1,7 +1,7 @@
 {
   "name": "context-bazaar",
   "version": "0.1.0",
-  "description": "A typed, discoverable knowledge bazaar for AI coding harness configurations — skills, powers, workflows, prompts, and agents for Kiro, Claude Code, Copilot, Cursor, and more.",
+  "description": "A typed, discoverable knowledge bazaar for AI coding harness configurations with Solr-backed semantic search — skills, powers, workflows, prompts, and agents for Kiro, Claude Code, Copilot, Cursor, and more.",
   "author": {
     "name": "Steven J. Miklovic"
   },
@@ -11,7 +11,8 @@
   "keywords": [
     "claude-code", "kiro", "copilot", "cursor", "windsurf",
     "knowledge", "skills", "powers", "workflows", "prompts",
-    "ai-coding", "context", "bazaar"
+    "ai-coding", "context", "bazaar",
+    "semantic-search", "vector-search", "solr", "embeddings"
   ],
   "skills": "./skill-forge/dist/claude-code/",
   "mcpServers": "./.mcp.json"

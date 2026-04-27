@@ -1,9 +1,15 @@
-<!-- forge:version 0.2.0 -->
+<!-- forge:version 0.3.0 -->
 ---
 inclusion: manual
 ---
 
 # ADR Power
+
+## Overview
+
+Architecture Decision Records (ADRs) capture significant architectural choices — the context, the decision, and the consequences. This power automates ADR creation, maintenance, and cross-referencing using MADR format. It infers decisions from git context, detects duplicates, manages supersession chains, and keeps an index file up to date.
+
+Use this power when your project makes architectural choices that future contributors need to understand: new module structures, integration patterns, technology selections, or data flow changes.
 
 ## Steering Files
 - **workflow** — Create, update, review, cross-reference
@@ -129,6 +135,32 @@ These patterns cause hooks to be ignored during autonomous sessions:
 | "Suggest ADR if needed" | Agent interprets "suggest" as optional | "Check if covered. If not, create the ADR." |
 | No explicit termination condition | Agent doesn't know when the hook is satisfied | End with "Either create missing ADRs or confirm coverage" |
 | Passive voice ("ADRs should be reviewed") | No clear actor or action | Active imperative ("Review ADRs. Create if missing.") |
+
+## Examples
+
+**Creating an ADR after introducing a new module:**
+```
+You added src/backends/s3.ts — a new S3 backend for artifact publishing.
+→ Create ADR: "0018-s3-backend-for-artifact-publishing.md"
+→ Update README.md index table
+→ Create changelog fragment
+```
+
+**Superseding an existing ADR:**
+```
+ADR-012 chose global type fields. ADR-014 repurposes type as taxonomy.
+→ ADR-012 status changes to "Superseded by ADR-014"
+→ ADR-014 links back to ADR-012
+→ Both index rows updated
+```
+
+## Troubleshooting
+
+**ADR directory not found:** The power searches `docs/adr/`, `docs/decisions/`, `docs/architecture/decisions/`, then `docs/`. If none exist, it proposes `docs/adr/` and asks for confirmation before creating.
+
+**Duplicate ADR detected:** If a new ADR covers the same decision as an existing one, the power flags the overlap. Either supersede the old one or merge the content.
+
+**Index out of sync:** Run the health-check steering workflow to detect missing index entries, stale statuses, and dangling cross-references.
 
 ## Changelog
 

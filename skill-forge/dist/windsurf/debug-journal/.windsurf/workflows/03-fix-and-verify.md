@@ -1,4 +1,4 @@
-<!-- forge:version 0.1.0 -->
+<!-- forge:version 0.2.0 -->
 # Fix and Verify
 
 Apply the fix, then verify it actually solves the root cause — not just the symptom.

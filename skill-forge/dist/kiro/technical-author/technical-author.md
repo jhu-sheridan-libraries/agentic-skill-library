@@ -1,4 +1,4 @@
-<!-- forge:version 0.1.0 -->
+<!-- forge:version 0.2.0 -->
 ---
 inclusion: manual
 ---
@@ -10,6 +10,25 @@ inclusion: manual
 Technical Author is a comprehensive power for writing technical books. It breaks the book-writing process into discrete, manageable phases — each with its own steering file — so you can focus on one aspect of craft at a time while keeping the big picture in view.
 
 Whether you're pitching a vague idea to an acquisitions editor or polishing a manuscript for production, Technical Author meets you where you are.
+
+## Steering Files
+
+This power has fourteen workflow files across three tracks:
+
+- **concept-and-audience** — Define book concept and target audience
+- **technology-landscape** — Research the technology landscape
+- **book-architecture** — Design book structure and chapter flow
+- **proposal-and-pitch** — Write proposals and pitch to publishers
+- **chapter-drafting** — Draft individual chapters
+- **code-examples** — Design and test code examples
+- **running-example** — Manage the book's running example project
+- **explanation-craft** — Write clear technical explanations
+- **voice-and-style** — Develop technical writing voice
+- **visuals-and-diagrams** — Create figures and diagrams
+- **technical-review** — Manage technical review process
+- **revision-and-polish** — Revise and polish the manuscript
+- **production-prep** — Prepare manuscript for production
+- **launch-and-marketing** — Plan book launch and marketing
 
 ## Getting Started
 
@@ -113,6 +132,31 @@ If the user selects the Full Journey, guide them through all fourteen phases in 
 - When stuck, try jumping to a different phase for fresh perspective
 - You can switch between tracks at any time — the boundaries are guides, not walls
 - Technical books are living documents — plan for updates from the start
+
+## Examples
+
+**Good code listing (follows standards):**
+> Listing 3-4: Validating user input with Zod
+> ```typescript
+> const UserSchema = z.object({
+>   name: z.string().min(1),
+>   email: z.string().email(),
+> });
+> // ❶ Parse throws on invalid input
+> const user = UserSchema.parse(rawInput);
+> ```
+> Callout ❶ explains the key behavior. The listing is under 10 lines, has a title, and is copy-paste runnable.
+
+**Bad code listing:**
+> Here's some code: (no title, no number, no callouts, 80 lines of unexplained implementation)
+
+## Troubleshooting
+
+**Agent produces code listings that don't compile:** Every listing must be tested. Use the code-examples workflow to verify listings against the running example's current state.
+
+**Prose-code balance is off:** If there's more than ~1000 words without a code example, or ~50 lines of code without prose explanation, rebalance. Technical readers need both.
+
+**Chapter dependencies are unclear:** Use the dependency graph from the chapter brief. If Chapter 7 assumes knowledge from Chapter 4, that dependency must be explicit in the brief.
 
 ## Book Architecture
 

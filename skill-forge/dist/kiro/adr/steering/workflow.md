@@ -1,4 +1,4 @@
-<!-- forge:version 0.2.0 -->
+<!-- forge:version 0.3.0 -->
 # ADR Workflow
 
 Directory, naming, status, git context, index, cross-referencing, changelog, templates, and rules are defined in POWER.md. This file covers mode-specific workflows only.

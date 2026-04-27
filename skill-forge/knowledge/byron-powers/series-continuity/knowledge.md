@@ -14,7 +14,7 @@ keywords:
   - world-bible
   - canon
 author: Steven J. Miklovic
-version: 0.1.0
+version: 0.2.0
 harnesses:
   - kiro
 type: power
@@ -247,3 +247,19 @@ Track what each character and the reader knows at each point:
 
 This is critical for any story with secrets, reveals, or information asymmetry — not just mysteries. Romance, thriller, literary fiction, and sci-fi all use information asymmetry as a narrative tool.
 
+
+## Examples
+
+**Good continuity catch:**
+> Chapter 12: Sarah mentions her brother's blue eyes. Chapter 3 established her brother has brown eyes. Severity: high (physical description contradiction). Recommendation: check which is correct and update the other.
+
+**Good information state tracking:**
+> At end of Chapter 8: Detective knows about the forged will (learned Ch. 6). Detective does NOT know about the second victim (revealed to reader in Ch. 7 via different POV). Any dialogue in Ch. 9 where the detective references the second victim is an information leak.
+
+## Troubleshooting
+
+**Continuity log becomes unwieldy:** Focus on facts that could contradict — physical descriptions, timeline markers, character knowledge, and location details. Don't track every adjective.
+
+**Series bible conflicts with current book:** The current book's content is canon. If it contradicts the series bible, update the bible and note the change in Known Continuity Issues.
+
+**Agent flags intentional continuity breaks:** Some "errors" are deliberate — an unreliable narrator, a character who lies, or a retcon. Mark these as intentional in the continuity log so they aren't flagged again.

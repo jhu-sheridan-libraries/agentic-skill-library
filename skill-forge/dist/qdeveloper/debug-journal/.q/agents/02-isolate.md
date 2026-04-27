@@ -1,4 +1,4 @@
-<!-- forge:version 0.1.0 -->
+<!-- forge:version 0.2.0 -->
 
 # Isolate
 

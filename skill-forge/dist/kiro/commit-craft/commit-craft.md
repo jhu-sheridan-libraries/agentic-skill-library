@@ -1,7 +1,11 @@
-<!-- forge:version 0.1.0 -->
+<!-- forge:version 0.2.0 -->
 ---
 inclusion: manual
 ---
+
+## Overview
+
+Commit Craft is a prompt that guides you toward commit messages that tell the story of *why*, not just *what*. Use it when committing code to any git repository. It enforces the conventional commit format with a focus on motivation over mechanics.
 
 Every commit message is a letter to the next engineer — often yourself six months later.
 
@@ -58,3 +62,11 @@ sets maturity: experimental by default.
 - `misc fixes` — be specific; if there are many fixes, write many commits
 - Past tense ("added X") — use imperative ("add X")
 - Summarising the diff ("changed foo to bar") — explain the motivation
+
+## Troubleshooting
+
+**Subject line too vague:** If your subject could apply to any commit in any codebase ("fix bug", "update code"), rewrite it. A good subject makes sense without the diff.
+
+**Body repeats the diff:** The body should explain *why* the change was made. The diff already shows *what* changed. If your body reads like a changelog, rewrite it as motivation.
+
+**Too many changes in one commit:** If you need "and" in your subject line, split the commit. Each commit should be one logical change.

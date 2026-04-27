@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  Souk Compass — Solr Configuration
+  Optimized for semantic search over a small-to-medium knowledge artifact catalog
+  (~100s-low 1000s of documents) with 1024-dim dense vector fields.
+-->
+<config>
+  <luceneMatchVersion>9.0</luceneMatchVersion>
+
+  <dataDir>${solr.data.dir:}</dataDir>
+
+  <directoryFactory name="DirectoryFactory"
+    class="${solr.directoryFactory:solr.NRTCachingDirectoryFactory}" />
+
+  <schemaFactory class="ClassicIndexSchemaFactory" />
+
+  <!-- =======================================================================
+       Codec: Use Lucene99 for HNSW vector indexing
+       ======================================================================= -->
+  <codecFactory class="solr.SchemaCodecFactory" />
+
+  <!-- =======================================================================
+       Index Configuration
+       Tuned for small catalogs with dense vectors. Merge policy keeps segment
+       count low to improve kNN search performance (fewer segments = fewer
+       HNSW graphs to traverse).
+       ======================================================================= -->
+  <indexConfig>
+    <ramBufferSizeMB>64</ramBufferSizeMB>
+    <maxBufferedDocs>1000</maxBufferedDocs>
+
+    <mergePolicyFactory class="org.apache.solr.index.TieredMergePolicyFactory">
+      <!-- Keep segments merged aggressively — fewer segments means fewer
+           HNSW graphs to search across during kNN queries -->
+      <int name="maxMergeAtOnce">5</int>
+      <int name="segmentsPerTier">5</int>
+      <double name="maxMergedSegmentMB">256</double>
+    </mergePolicyFactory>
+
+    <mergeScheduler class="org.apache.lucene.index.ConcurrentMergeScheduler">
+      <int name="maxMergeCount">2</int>
+      <int name="maxThreadCount">1</int>
+    </mergeScheduler>
+  </indexConfig>
+
+  <!-- =======================================================================
+       Update Handler
+       - Hard commit every 15s (flushes to disk, does NOT open new searcher)
+       - Soft commit every 3s (makes docs visible for search)
+       Soft commit at 3s is a good balance for a dev tool — docs appear quickly
+       without the overhead of constant hard commits.
+       ======================================================================= -->
+  <updateHandler class="solr.DirectUpdateHandler2">
+    <updateLog>
+      <str name="dir">${solr.ulog.dir:}</str>
+    </updateLog>
+
+    <autoCommit>
+      <maxTime>${solr.autoCommit.maxTime:15000}</maxTime>
+      <openSearcher>false</openSearcher>
+    </autoCommit>
+
+    <autoSoftCommit>
+      <maxTime>${solr.autoSoftCommit.maxTime:3000}</maxTime>
+    </autoSoftCommit>
+  </updateHandler>
+
+  <!-- =======================================================================
+       Query Section
+       ======================================================================= -->
+  <query>
+    <!-- Filter cache: caches filter query results (fq params).
+         Souk Compass uses fq for artifact_type, collection_names, maturity,
+         and doc_source filters. Small cache is sufficient for the limited
+         number of distinct filter combinations. -->
+    <filterCache class="solr.CaffeineCache"
+      size="64"
+      initialSize="16"
+      autowarmCount="8" />
+
+    <!-- Query result cache: caches ordered doc ID lists for repeated queries.
+         Useful when the same search is run multiple times (e.g., recall with
+         same context). -->
+    <queryResultCache class="solr.CaffeineCache"
+      size="128"
+      initialSize="32"
+      autowarmCount="16" />
+
+    <!-- Document cache: caches stored field values by doc ID.
+         Helps when the same documents appear across multiple queries. -->
+    <documentCache class="solr.CaffeineCache"
+      size="128"
+      initialSize="32" />
+
+    <!-- Lazy field loading: only load stored fields when accessed.
+         The vector field is large (1024 floats) — skip loading it unless
+         explicitly requested. -->
+    <enableLazyFieldLoading>true</enableLazyFieldLoading>
+
+    <!-- Max boolean clauses — needed for complex hybrid queries -->
+    <maxBooleanClauses>${solr.max.booleanClauses:1024}</maxBooleanClauses>
+
+    <!-- Query result window: pre-fetch this many results beyond the requested
+         rows. Small window since topK is typically 3-10. -->
+    <queryResultWindowSize>20</queryResultWindowSize>
+  </query>
+
+  <!-- =======================================================================
+       Request Handlers
+       ======================================================================= -->
+
+  <!-- Primary search handler — used for all compass_search queries -->
+  <requestHandler name="/select" class="solr.SearchHandler">
+    <lst name="defaults">
+      <str name="echoParams">explicit</str>
+      <str name="wt">json</str>
+      <str name="df">text</str>
+      <int name="rows">10</int>
+
+      <!-- Highlighting defaults for keyword/hybrid search snippets -->
+      <str name="hl.fl">text</str>
+      <int name="hl.snippets">1</int>
+      <int name="hl.fragsize">200</int>
+      <str name="hl.encoder">html</str>
+      <str name="hl.simple.pre"><![CDATA[<em>]]></str>
+      <str name="hl.simple.post"><![CDATA[</em>]]></str>
+    </lst>
+
+    <arr name="last-components">
+      <str>highlight</str>
+    </arr>
+  </requestHandler>
+
+  <!-- JSON update handler -->
+  <requestHandler name="/update" class="solr.UpdateRequestHandler" />
+
+  <!-- Health check endpoint -->
+  <requestHandler name="/admin/ping" class="solr.PingRequestHandler">
+    <lst name="invariants">
+      <str name="q">*:*</str>
+      <str name="rows">0</str>
+    </lst>
+    <lst name="defaults">
+      <str name="echoParams">all</str>
+    </lst>
+  </requestHandler>
+
+  <!-- =======================================================================
+       Search Components
+       ======================================================================= -->
+
+  <!-- Highlighting component for keyword/hybrid search snippets -->
+  <searchComponent name="highlight" class="solr.HighlightComponent">
+    <highlighting>
+      <fragmenter name="gap" default="true" class="solr.highlight.GapFragmenter">
+        <lst name="defaults">
+          <int name="hl.fragsize">200</int>
+        </lst>
+      </fragmenter>
+
+      <formatter name="html" default="true" class="solr.highlight.HtmlFormatter">
+        <lst name="defaults">
+          <str name="hl.simple.pre"><![CDATA[<em>]]></str>
+          <str name="hl.simple.post"><![CDATA[</em>]]></str>
+        </lst>
+      </formatter>
+    </highlighting>
+  </searchComponent>
+
+  <!-- =======================================================================
+       Request Dispatcher
+       ======================================================================= -->
+  <requestDispatcher>
+    <requestParsers enableRemoteStreaming="false"
+      multipartUploadLimitInKB="-1"
+      formdataUploadLimitInKB="-1"
+      addHttpRequestToContext="false" />
+  </requestDispatcher>
+</config>

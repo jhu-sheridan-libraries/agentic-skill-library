@@ -22,3 +22,10 @@ audit-results.json
 
 # Coverage reports
 coverage/
+
+# TypeScript compilation artifacts in dist/ (harness .md output is tracked)
+dist/**/*.js
+dist/**/*.js.map
+dist/**/*.d.ts
+dist/**/*.d.ts.map
+dist/__tests__/

@@ -1,9 +1,13 @@
-<!-- forge:version 0.1.0 -->
+<!-- forge:version 0.2.0 -->
 ---
 inclusion: manual
 ---
 
 # Mystery Series Novelist
+
+## Overview
+
+Genre-specific companion to the Novelist power for writing mystery and detective fiction series. Provides clue architecture, suspect management, fair-play validation, series continuity tracking, and subgenre-aware plotting. Activate alongside the Novelist and Series Continuity powers for the full creative writing stack.
 
 ## Relationship to Novelist
 
@@ -240,6 +244,23 @@ Act 3 (15-20%): Solution
 ```
 
 The midpoint false solution is the structural element most specific to mystery. It is the moment where the reader's theory is validated and then destroyed, creating the drive to find the real answer.
+
+
+## Examples
+
+**Good fair-play clue placement:**
+> Chapter 3: The detective notices the victim's watch stopped at 2:15 AM. Chapter 7: A witness mentions hearing the grandfather clock chime twice. Chapter 12: The detective realizes the watch was set to a different timezone — the victim was killed at 2:15 AM *Eastern*, not local time.
+
+**Bad red herring:**
+> The gardener acts suspiciously for six chapters, then turns out to have no connection to the crime at all. (Dishonest — the reader invested attention for nothing.)
+
+## Troubleshooting
+
+**Agent reveals the solution too early:** Remind it of the revelation sequence in the clue bible. Clues must be planted before the solution is revealed, and the reader should be able to solve it one step ahead of the detective.
+
+**All suspects feel equally suspicious:** Differentiate by giving each suspect a different *type* of suspicion — one has means, another has motive, a third has opportunity. The reader should suspect different people for different reasons.
+
+**Series continuity conflicts with standalone mystery:** The standalone mystery must resolve completely. Series arcs advance but don't require previous books to understand. Use the Series Continuity power for cross-book tracking.
 
 ## Clue Architecture
 

@@ -1,0 +1,1 @@
+Comprehensive unit test suite for Souk Compass MCP server — 191 tests across 9 files covering SoukVectorClient, embedding provider factory, tool handlers, MCP error boundary, CachedEmbeddingProvider, chunker, serialization, workspace profiler, and hook/plugin validation.

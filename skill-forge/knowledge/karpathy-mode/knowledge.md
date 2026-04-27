@@ -1,11 +1,7 @@
 ---
 name: karpathy-mode
 displayName: Karpathy Mode
-version: 0.1.0
-description: >-
-  Behavioral guidelines to reduce common LLM coding mistakes. Use when writing,
-  reviewing, or refactoring code to avoid overcomplication, make surgical changes,
-  surface assumptions, and define verifiable success criteria.
+description: Behavioral guidelines to reduce common LLM coding mistakes. Use when writing, reviewing, or refactoring code to avoid overcomplication, make surgical changes, surface assumptions, and define verifiable success criteria.
 keywords:
   - karpathy
   - coding-guidelines
@@ -15,32 +11,32 @@ keywords:
   - llm-behavior
   - best-practices
 author: Andrej Karpathy (packaged by Forrest Chang)
-license: MIT
-upstream: https://github.com/forrestchang/andrej-karpathy-skills
-type: reference-pack
-inclusion: always
-categories:
-  - code-style
+version: 0.2.0
 harnesses:
   - kiro
   - claude-code
+  - copilot
+  - cursor
+  - windsurf
+  - cline
+  - qdeveloper
+type: skill
+inclusion: always
+categories:
+  - code-style
 ecosystem: []
 depends: []
 enhances: []
-maturity: stable
-trust: community
-audience: intermediate
+maturity: experimental
 model-assumptions: []
-collections:
-  - neon-caravan
+collections: []
 inherit-hooks: false
-harness-config:
-  kiro:
-    format: power
 ---
 # Karpathy Mode
 
-Behavioral guidelines to reduce common LLM coding mistakes, derived from [Andrej Karpathy's observations](https://x.com/karpathy/status/2015883857489522876) on LLM coding pitfalls.
+## Overview
+
+Behavioral guidelines to reduce common LLM coding mistakes, derived from [Andrej Karpathy's observations](https://x.com/karpathy/status/2015883857489522876) on LLM coding pitfalls. Use when writing, reviewing, or refactoring code to avoid overcomplication, make surgical changes, surface assumptions, and define verifiable success criteria.
 
 **Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
@@ -116,3 +112,29 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ## Key Insight
 
 Good code is code that solves today's problem simply, not tomorrow's problem prematurely. LLMs are exceptionally good at looping until they meet specific goals — don't tell them what to do, give them success criteria and watch them go.
+
+## Examples
+
+**Good goal-driven execution:**
+```
+Task: "Fix the date parsing bug"
+Plan:
+1. Write a test that reproduces the bug → verify: test fails
+2. Fix the parser to handle the edge case → verify: test passes
+3. Run full suite → verify: no regressions
+```
+
+**Bad goal-driven execution:**
+```
+Task: "Fix the date parsing bug"
+Action: Rewrite the entire date module with a new API, add timezone support,
+        refactor all callers, update documentation
+```
+
+## Troubleshooting
+
+**Agent keeps adding unrequested features:** Restate the task with explicit boundaries: "Only change X. Do not modify Y or Z."
+
+**Agent reformats adjacent code:** Remind it of the surgical changes principle: every changed line must trace to the user's request.
+
+**Agent can't define success criteria:** The task is too vague. Break it into smaller, verifiable steps.
