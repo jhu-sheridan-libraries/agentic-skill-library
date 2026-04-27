@@ -26,7 +26,7 @@ ecosystem: [dynatrace]
 depends: []
 enhances: []
 maturity: stable
-trust: community
+trust: partner
 audience: intermediate
 model-assumptions: []
 collections:

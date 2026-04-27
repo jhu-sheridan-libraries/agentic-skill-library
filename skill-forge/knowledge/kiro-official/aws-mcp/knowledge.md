@@ -33,7 +33,7 @@ ecosystem: [aws]
 depends: []
 enhances: []
 maturity: stable
-trust: community
+trust: partner
 audience: intermediate
 model-assumptions: []
 collections:
