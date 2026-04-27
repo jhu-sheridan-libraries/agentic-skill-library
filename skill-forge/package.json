@@ -10,6 +10,7 @@
 		"dev": "bun run src/cli.ts",
 		"build": "bun build src/cli.ts --compile --outfile forge",
 		"build:bridge": "bun build src/mcp-bridge.ts --outfile bridge/mcp-server.cjs --target node --format cjs",
+		"build:souk-compass": "bun build mcp-servers/souk-compass/src/index.ts --target=node --outfile=mcp-servers/souk-compass/dist/mcp-server.cjs --format=cjs",
 		"test": "bun test",
 		"lint": "biome check .",
 		"lint:fix": "biome check --write .",
@@ -17,7 +18,8 @@
 		"changelog:new": "bun run scripts/changelog-fragment.ts",
 		"changelog:compile": "bun run scripts/changelog-compile.ts",
 		"changelog:draft": "bun run scripts/changelog-compile.ts --draft",
-		"release": "bun run scripts/release-tag.ts"
+		"release": "bun run scripts/release-tag.ts",
+		"bundle:analyze": "rollup --config rollup.config.js"
 	},
 	"dependencies": {
 		"@clack/prompts": "^1.2.0",
@@ -30,11 +32,15 @@
 		"zod": "^4.3.6"
 	},
 	"devDependencies": {
+		"@biomejs/biome": "^2.4.12",
+		"@codecov/rollup-plugin": "^2.0.1",
+		"@rollup/plugin-node-resolve": "^16.0.3",
+		"@rollup/plugin-typescript": "^12.3.0",
 		"@types/bun": "^1.3.12",
 		"@types/js-yaml": "^4.0.9",
 		"@types/nunjucks": "^3.2.6",
-		"@biomejs/biome": "^2.4.12",
 		"fast-check": "^4.7.0",
+		"rollup": "^4.60.2",
 		"typescript": "^6.0.3"
 	},
 	"license": "MIT",
