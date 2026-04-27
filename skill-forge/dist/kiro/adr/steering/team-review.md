@@ -1,4 +1,4 @@
-<!-- forge:version 0.4.0 -->
+<!-- forge:version 0.4.1 -->
 # Team Decision Workflow
 
 Review checklist, reviewer suggestions, promotion. Uses shared rules from POWER.md (index, cross-referencing, changelog).

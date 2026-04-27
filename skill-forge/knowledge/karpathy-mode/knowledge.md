@@ -11,7 +11,7 @@ keywords:
   - llm-behavior
   - best-practices
 author: Andrej Karpathy (packaged by Forrest Chang)
-version: 0.2.0
+version: 0.2.1
 harnesses:
   - kiro
   - claude-code
@@ -27,6 +27,7 @@ categories:
 ecosystem: []
 depends: []
 enhances: []
+trust: community
 maturity: experimental
 model-assumptions: []
 collections: [jhu, neon-caravan]

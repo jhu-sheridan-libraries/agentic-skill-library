@@ -1,4 +1,4 @@
-<!-- forge:version 0.4.0 -->
+<!-- forge:version 0.4.1 -->
 # ADR ↔ Specs Integration
 
 Uses shared rules from POWER.md (git context, duplicate check, index, cross-referencing, changelog).
