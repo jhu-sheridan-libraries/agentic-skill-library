@@ -8,7 +8,7 @@ keywords:
   - madr
   - decision-log
 author: Steven J. Miklovic
-version: 0.4.0
+version: 0.4.1
 harnesses:
   - kiro
 type: power
