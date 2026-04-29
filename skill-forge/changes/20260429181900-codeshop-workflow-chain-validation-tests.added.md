@@ -1,0 +1,1 @@
+Structural validation tests for codeshop workflow phase sequencing, chain validity, and entry/exit criteria alignment — 11 tests covering dangling references, linear phase ordering, orphan detection, chain-to-router consistency, and phase numbering.
