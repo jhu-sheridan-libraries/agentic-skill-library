@@ -14,14 +14,14 @@ prompts:
   - file://dist/kiro/codeshop/steering/triage-bug.md
 
 providers:
-  - id: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
     config:
       region: us-east-1
       temperature: 0
 
 defaultTest:
   options:
-    provider: bedrock:us.anthropic.claude-sonnet-4-20250514-v1:0
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
 
 tests:
   - description: "Vertical slices concept is referenced where expected"

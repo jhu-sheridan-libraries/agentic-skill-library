@@ -306,7 +306,7 @@ prompts:
   - file://dist/kiro/${artifactName}/steering/${artifactName}.md
 
 providers:
-  - id: bedrock:anthropic.claude-sonnet-4-20250514-v1:0
+  - id: bedrock:anthropic.claude-sonnet-4-6
 
 tests:
   - description: "Should provide relevant guidance"

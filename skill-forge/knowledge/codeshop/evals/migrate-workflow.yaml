@@ -1,0 +1,166 @@
+# Eval: migrate workflow — multi-turn phase progression
+#
+# Simulates an agent progressing through the 5-phase migrate workflow.
+# Verifies checksum discipline is applied at every phase transition,
+# rollback criteria are defined, and dry-run precedes execution.
+#
+# Run:  bun run dev eval codeshop
+
+description: "migrate workflow — multi-turn phase progression and checksum discipline"
+
+prompts:
+  - file://dist/kiro/codeshop/POWER.md
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  # --- Turn 1: Entry → Inventory ---
+  - description: "T1: Migration request triggers migrate skill and loads inventory phase"
+    vars:
+      _conversation:
+        - role: user
+          content: "We need to migrate the users table to a new schema that splits name into first_name and last_name."
+    assert:
+      - type: icontains
+        value: "migrate"
+      - type: icontains-any
+        value:
+          - "inventory"
+          - "baseline"
+          - "checksum"
+          - "row count"
+          - "catalog"
+      - type: llm-rubric
+        value: >
+          The agent should identify this as a data migration and begin
+          the Inventory phase: cataloging the users table (row counts,
+          columns, constraints, indexes), establishing baseline checksums,
+          and identifying what should/shouldn't be migrated. PASS if it
+          starts with inventory and baseline checksums. FAIL if it jumps
+          to writing migration code.
+
+  # --- Turn 2: Inventory → Plan ---
+  - description: "T2: After inventory, agent defines migration plan with rollback criteria"
+    vars:
+      _conversation:
+        - role: user
+          content: "Migrate users table: split name into first_name and last_name."
+        - role: assistant
+          content: >
+            Inventory complete. users table: 50,000 rows, columns: id (PK),
+            name (varchar), email (unique), created_at. Baseline checksums:
+            COUNT=50000, SUM(id)=1250025000, COUNT(DISTINCT email)=50000.
+            Foreign keys: orders.user_id references users.id (12,000 rows).
+        - role: user
+          content: "Inventory looks good. Plan the migration."
+    assert:
+      - type: icontains-any
+        value:
+          - "rollback"
+          - "dependency order"
+          - "checkpoint"
+          - "verification"
+      - type: llm-rubric
+        value: >
+          The agent should enter the Plan phase: defining migration steps
+          in dependency order, with per-step rollback criteria, transformation
+          rules (splitting name into first_name/last_name), and verification
+          checkpoints. PASS if the plan includes rollback criteria and
+          verification checkpoints. FAIL if it produces steps without
+          rollback or verification.
+
+  # --- Turn 3: Plan → Dry-Run ---
+  - description: "T3: After planning, agent insists on dry-run before production"
+    vars:
+      _conversation:
+        - role: user
+          content: "Migrate users table."
+        - role: assistant
+          content: >
+            Migration plan: Step 1: Add first_name, last_name columns.
+            Step 2: Populate from name using split logic. Step 3: Verify
+            checksums. Step 4: Drop name column. Rollback: reverse each step.
+        - role: user
+          content: "Plan approved. Let's run it."
+    assert:
+      - type: icontains-any
+        value:
+          - "dry-run"
+          - "dry run"
+          - "staging"
+          - "copy"
+          - "rehearsal"
+      - type: llm-rubric
+        value: >
+          The agent MUST insist on a dry-run before production execution.
+          This is a core principle of the migrate workflow — skipping
+          dry-run is an explicit anti-pattern. PASS if the agent proposes
+          running against a copy/staging first. FAIL if it proceeds
+          directly to production execution.
+
+  # --- Turn 4: Dry-Run → Execute ---
+  - description: "T4: After successful dry-run, agent proceeds to execute with checkpoints"
+    vars:
+      _conversation:
+        - role: user
+          content: "Migrate users table."
+        - role: assistant
+          content: >
+            Dry-run complete against staging copy. All checksums match:
+            50,000 rows migrated, SUM(id) preserved, all foreign keys
+            resolve. Execution time: 45 seconds (within 2-minute window).
+            No discrepancies found.
+        - role: user
+          content: "Dry-run passed. Execute against production."
+    assert:
+      - type: icontains-any
+        value:
+          - "backup"
+          - "checkpoint"
+          - "step by step"
+          - "audit"
+          - "log"
+      - type: llm-rubric
+        value: >
+          The agent should enter the Execute phase: verifying backup exists,
+          executing step by step with checkpoints at each boundary, logging
+          with timestamps. PASS if it mentions backup verification and
+          per-step checkpoints. FAIL if it runs the migration as a single
+          unmonitored operation.
+
+  # --- Turn 5: Execute → Verify ---
+  - description: "T5: After execution, agent performs full reconciliation"
+    vars:
+      _conversation:
+        - role: user
+          content: "Migrate users table."
+        - role: assistant
+          content: >
+            Execution complete. All 4 steps passed checkpoints.
+            Backup verified before start. Timestamps logged.
+        - role: user
+          content: "Migration executed. Verify it."
+    assert:
+      - type: icontains-any
+        value:
+          - "checksum"
+          - "reconciliation"
+          - "integrity"
+          - "smoke test"
+          - "sign-off"
+      - type: llm-rubric
+        value: >
+          The agent should enter the Verify phase: full checksum
+          reconciliation (not just row counts), referential integrity
+          validation, application-level smoke tests, and performance
+          comparison. PASS if it performs multi-dimensional verification
+          beyond row counts. FAIL if it only checks row counts or
+          declares success without verification.

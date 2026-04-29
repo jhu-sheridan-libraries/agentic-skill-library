@@ -1,0 +1,159 @@
+# Eval: integrate workflow — multi-turn phase progression
+#
+# Simulates an agent progressing through the 5-phase integrate workflow.
+# Each test is a multi-turn conversation where the system prompt is the
+# steering file and the user messages simulate phase transitions.
+# Verifies the agent loads correct phases, applies contract-first
+# methodology, and respects entry/exit criteria.
+#
+# Run:  bun run dev eval codeshop
+
+description: "integrate workflow — multi-turn phase progression and methodology"
+
+prompts:
+  - file://dist/kiro/codeshop/POWER.md
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  # --- Turn 1: Entry → Discover ---
+  - description: "T1: User request triggers integrate skill and loads discover phase"
+    vars:
+      _conversation:
+        - role: user
+          content: "I need to wire up the Stripe webhook endpoint to our payment service."
+    assert:
+      - type: icontains
+        value: "integrate"
+      - type: llm-rubric
+        value: >
+          The agent should identify this as an integration task and begin
+          the Discover phase: identifying the target system (Stripe),
+          protocol (REST/webhooks), data flows, callers, and failure modes.
+          PASS if the response begins discovery by asking about or mapping
+          the integration boundary. FAIL if it skips to implementation
+          or loads a different skill.
+
+  # --- Turn 2: Discover → Contract ---
+  - description: "T2: After discovery, agent transitions to contract phase"
+    vars:
+      _conversation:
+        - role: user
+          content: "Wire up the Stripe webhook endpoint to our payment service."
+        - role: assistant
+          content: >
+            I'll start with the Discover phase. The integration target is
+            Stripe webhooks (REST/HTTPS). Data flows: Stripe sends POST
+            requests with event payloads to our endpoint. Callers: our
+            PaymentService consumes the parsed events. Known failure modes:
+            webhook signature verification failures, duplicate event delivery,
+            Stripe outages. No existing adapter found in the codebase.
+        - role: user
+          content: "Good. The boundary is mapped. What's next?"
+    assert:
+      - type: icontains-any
+        value:
+          - "contract"
+          - "interface"
+          - "request/response"
+          - "types"
+      - type: llm-rubric
+        value: >
+          The agent should transition to the Contract phase: defining
+          request/response shapes, error codes, authentication (webhook
+          signature verification), and the adapter's public interface
+          BEFORE writing implementation. PASS if it defines the contract
+          first. FAIL if it starts writing code or skips to wiring.
+
+  # --- Turn 3: Contract → Wire ---
+  - description: "T3: After contract, agent transitions to wire phase with anti-corruption layer"
+    vars:
+      _conversation:
+        - role: user
+          content: "Wire up the Stripe webhook endpoint."
+        - role: assistant
+          content: >
+            Discovery complete. Target: Stripe webhooks, REST/HTTPS.
+        - role: user
+          content: "Contract is defined: StripeEvent type, WebhookError union, signature verification. Now implement it."
+    assert:
+      - type: icontains-any
+        value:
+          - "adapter"
+          - "anti-corruption"
+          - "test"
+          - "vertical slice"
+      - type: llm-rubric
+        value: >
+          The agent should enter the Wire phase: implementing an
+          anti-corruption layer adapter with integration tests using
+          test doubles. It should build one vertical slice (happy path)
+          first. PASS if it creates an adapter with tests against
+          test doubles. FAIL if it writes code without tests or
+          calls the Stripe API directly without an adapter layer.
+
+  # --- Turn 4: Wire → Harden ---
+  - description: "T4: After wiring, agent transitions to harden phase"
+    vars:
+      _conversation:
+        - role: user
+          content: "Wire up Stripe webhooks."
+        - role: assistant
+          content: >
+            Wire phase complete. StripeWebhookAdapter implemented with
+            passing integration tests against test doubles for the happy path.
+        - role: user
+          content: "Happy path works. Now harden it."
+    assert:
+      - type: icontains-any
+        value:
+          - "retry"
+          - "timeout"
+          - "circuit"
+          - "error handling"
+          - "degradation"
+      - type: llm-rubric
+        value: >
+          The agent should enter the Harden phase: adding retries with
+          backoff, circuit breaker, timeouts, and graceful degradation.
+          Each concern should get its own test. PASS if it addresses
+          at least 3 of: retries, timeouts, circuit breaker, degradation,
+          each with a dedicated test. FAIL if it adds error handling
+          without tests or only handles one failure mode.
+
+  # --- Turn 5: Harden → Verify ---
+  - description: "T5: After hardening, agent transitions to verify phase"
+    vars:
+      _conversation:
+        - role: user
+          content: "Wire up Stripe webhooks."
+        - role: assistant
+          content: >
+            Harden phase complete. Added retry with exponential backoff,
+            30s timeout, circuit breaker, and graceful degradation.
+            All error handling tests pass.
+        - role: user
+          content: "Error handling is solid. Let's verify against the real service."
+    assert:
+      - type: icontains-any
+        value:
+          - "smoke test"
+          - "staging"
+          - "real service"
+          - "contract compliance"
+          - "end-to-end"
+      - type: llm-rubric
+        value: >
+          The agent should enter the Verify phase: running an end-to-end
+          smoke test against the real Stripe service or staging environment.
+          It should check contract compliance and latency. PASS if it
+          proposes verification against a real/staging endpoint. FAIL if
+          it considers the work done without real-service verification.

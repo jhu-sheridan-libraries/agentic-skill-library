@@ -1,0 +1,123 @@
+# Eval: Workflow chain transitions — agent suggests the correct next workflow
+#
+# When a workflow completes, the POWER.md Workflow Composition section
+# defines natural chains. These tests verify the agent suggests the
+# correct next workflow after a workflow completes.
+#
+# Run:  bun run dev eval codeshop
+
+description: "Workflow chain transitions — correct next-workflow suggestions"
+
+prompts:
+  - file://dist/kiro/codeshop/POWER.md
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  # --- Integration Chain: integrate → drive-tests ---
+  - description: "After integrate completes, agent suggests drive-tests"
+    vars:
+      _conversation:
+        - role: user
+          content: "I just finished wiring up the Stripe webhook adapter. All phases complete — discovery, contract, wiring, hardening, and verification all passed."
+        - role: assistant
+          content: "The integrate workflow is complete. Your Stripe webhook adapter is wired, hardened, and verified."
+        - role: user
+          content: "What should I do next?"
+    assert:
+      - type: icontains
+        value: "drive-tests"
+      - type: llm-rubric
+        value: >
+          Per the Integration Chain (design-interface → integrate →
+          drive-tests), the natural next step after integrate is
+          drive-tests. PASS if the agent suggests TDD / drive-tests
+          as the next workflow. FAIL if it suggests an unrelated
+          workflow or doesn't reference the chain.
+
+  # --- Migration Chain: migrate → drive-tests ---
+  - description: "After migrate completes, agent suggests drive-tests"
+    vars:
+      _conversation:
+        - role: user
+          content: "Migration is done. All checksums match, integrity validated, smoke tests pass."
+        - role: assistant
+          content: "The migrate workflow is complete with full verification."
+        - role: user
+          content: "What's the natural next step?"
+    assert:
+      - type: icontains-any
+        value:
+          - "drive-tests"
+          - "TDD"
+          - "test"
+      - type: llm-rubric
+        value: >
+          Per the Migration Chain (migrate → drive-tests → review-changes),
+          the next step after migrate is drive-tests to add regression
+          tests. PASS if drive-tests or TDD is suggested. FAIL otherwise.
+
+  # --- Bug-Fix Chain: triage-bug → drive-tests ---
+  - description: "After triage-bug completes, agent suggests drive-tests"
+    vars:
+      _conversation:
+        - role: user
+          content: "Bug triaged. Root cause identified, GitHub issue filed with TDD fix plan."
+        - role: assistant
+          content: "The triage-bug workflow is complete. Issue filed."
+        - role: user
+          content: "What workflow should I use to implement the fix?"
+    assert:
+      - type: icontains
+        value: "drive-tests"
+      - type: llm-rubric
+        value: >
+          Per the Bug-Fix Chain (triage-bug → drive-tests), the fix
+          should be implemented via TDD. PASS if drive-tests is
+          suggested. FAIL if it suggests a different approach.
+
+  # --- Commit Chain: drive-tests → review-changes ---
+  - description: "After drive-tests completes, agent suggests review-changes"
+    vars:
+      _conversation:
+        - role: user
+          content: "All TDD cycles complete. Tests pass, code is refactored."
+        - role: assistant
+          content: "The drive-tests workflow is complete."
+        - role: user
+          content: "What's next in the delivery chain?"
+    assert:
+      - type: icontains
+        value: "review"
+      - type: llm-rubric
+        value: >
+          Per the Commit Chain (drive-tests → review-changes → craft-commits),
+          the next step is review-changes. PASS if code review is
+          suggested. FAIL otherwise.
+
+  # --- Architecture Chain: refactor-architecture → plan-refactor ---
+  - description: "After refactor-architecture completes, agent suggests plan-refactor"
+    vars:
+      _conversation:
+        - role: user
+          content: "Architecture review done. Found 3 shallow modules that need deepening."
+        - role: assistant
+          content: "The refactor-architecture workflow identified refactoring candidates."
+        - role: user
+          content: "How should I proceed with the refactoring?"
+    assert:
+      - type: icontains
+        value: "plan-refactor"
+      - type: llm-rubric
+        value: >
+          Per the Architecture Chain (refactor-architecture → plan-refactor
+          → compose-issues), the next step is plan-refactor. PASS if
+          plan-refactor is suggested. FAIL otherwise.
