@@ -1,7 +1,7 @@
 ---
-name: Codeshop
+name: codeshop
 displayName: Codeshop 
-description: A collection of 19 developer workflow skills covering planning, design, development, testing, writing, and knowledge management. Actionable, phase-driven workflows with shared vocabulary and natural chaining. Consolidates proven practices for TDD, architecture review, domain modeling, issue triage, and documentation into a single activatable 'skill router'.
+description: A collection of 21 developer workflow skills covering planning, design, development, testing, writing, and knowledge management. Actionable, phase-driven workflows with shared vocabulary and natural chaining. Consolidates proven practices for TDD, architecture review, domain modeling, issue triage, and documentation into a single activatable 'skill router'.
 keywords:
   - codeshop
   - planning
@@ -12,7 +12,7 @@ keywords:
   - issue-triage
   - prd
   - vertical-slices
-  - codebase-architecture
+  - architecture
   - bug-triage
   - qa-session
   - skill-authoring
@@ -152,7 +152,7 @@ harness-config:
 
 ## Onboarding
 
-Codeshop is a collection of 19 developer workflow skills covering planning, design, development, testing, writing, and knowledge management. Each skill is either a multi-phase Workflow Skill (with step-by-step phases you progress through) or a flat Knowledge Skill (a behavioral mode or reference you load once). Together they give you structured, opinionated workflows for tasks like TDD, architecture review, domain modeling, issue triage, PRD drafting, and documentation.
+Codeshop is a collection of 21 developer workflow skills covering planning, design, development, testing, writing, and knowledge management. Each skill is either a multi-phase Workflow Skill (with step-by-step phases you progress through) or a flat Knowledge Skill (a behavioral mode or reference you load once). Together they give you structured, opinionated workflows for tasks like TDD, architecture review, domain modeling, issue triage, PRD drafting, and documentation.
 
 ### How it works
 
@@ -199,6 +199,8 @@ Match the user's request to the right steering file. Each skill is either a **Wo
 | review-changes (review-ritual catalog) | Workflow | `review-changes.md` | "review PR", "code review", "review changes" | Code review as a craft — read with intent, comment with purpose, approve with confidence. |
 | refactor-architecture (improve-codebase-architecture) | Workflow | `refactor-architecture.md` | "architecture review", "improve architecture", "codebase architecture" | Surface architectural friction and propose deepening opportunities — refactors that turn shallow modules into deep ones. |
 | challenge-domain-model (domain-model) | Workflow | `challenge-domain-model.md` | "domain model", "challenge model", "domain grilling" | Grilling session that challenges your plan against the existing domain model, sharpens terminology, and updates CONTEXT.md and ADRs inline. |
+| integrate (wire-systems) | Workflow | `integrate.md` | "integrate with", "wire up", "connect to", "API integration" | Wire an external system through a contract-first adapter with hardened error handling and end-to-end verification. |
+| migrate (data-migration) | Workflow | `migrate.md` | "migrate data", "schema migration", "data migration" | Reliable data migration with checksum verification — inventory, plan, dry-run, execute, verify. |
 
 ### Writing and Knowledge
 
@@ -374,6 +376,26 @@ those are deferrals, not rejections.
 
 Referenced by: `triage-bug`, `run-qa-session`, `compose-issues`.
 
+### Contract-First Integration
+
+Define the interface contract — request/response shapes, error codes, authentication mechanism, rate limits — before writing implementation code. The contract is the specification; the adapter is the implementation. This prevents "integration by discovery" where you learn the API's behavior through trial and error in production.
+
+When integrating with an external system, the adapter should be an anti-corruption layer: our codebase talks to our adapter interface (which uses our domain language), and the adapter translates to the external API's shape. This keeps the external system's vocabulary and quirks from leaking into our domain model.
+
+Ask: "Could I swap the external system for a different provider without changing any caller code?" If yes, the adapter is well-isolated. If callers need to know about the external system's error codes, pagination format, or authentication mechanism, the abstraction is leaking.
+
+Referenced by: `integrate`, `design-interface`.
+
+### Migration Checksum Discipline
+
+Every migration step has a verification checkpoint. Checksums are not just row counts — they include aggregate hashes of key columns, referential integrity snapshots, and application-level smoke tests. Verification happens at three points: before (baseline), during (per-step checkpoints), and after (full reconciliation).
+
+A migration without checksums is a hope, not a plan. Row counts alone don't catch data corruption — 1000 rows in source and 1000 rows in destination means nothing if half the values are wrong. Aggregate checksums (SUM of IDs, COUNT DISTINCT of unique fields) catch corruption that row counts miss. Referential integrity checks catch orphaned records. Application-level smoke tests catch transformation errors that are invisible at the database level.
+
+Rollback criteria must be defined per-step, not just for the overall migration. Each step should have a clear condition that triggers rollback and a documented procedure for reversing that specific step.
+
+Referenced by: `migrate`.
+
 ### Living Documentation Principles
 
 Living documentation is documentation that is collaborative, insightful, reliable, and low-effort. It derives from authoritative sources in the codebase (tests, types, configuration, ADRs, code structure) rather than being written as standalone prose that drifts out of sync.
@@ -466,6 +488,24 @@ Triage-bug loads the debugging methodology for bugfix spec tasks and narrows the
 
 **Note:** The Spec-Driven Development Chain and Spec Bugfix Chain are activated automatically by spec-hooks during spec task execution. Unlike the manually-invoked chains above, these chains are triggered by `preTaskExecution` and `postTaskExecution` hook events — the developer does not need to invoke them explicitly.
 
+### Integration Chain
+
+`design-interface` → `integrate` → `drive-tests`
+
+Interface design defines the module boundary, integrate wires the external system through a contract-first adapter, and TDD verifies the integration with tests at every layer.
+
+### Migration Chain
+
+`migrate` → `drive-tests` → `review-changes`
+
+Migration executes with checksum verification at every step, TDD adds regression tests proving the migrated data works correctly in the application, and review validates the migration code and verification approach.
+
+### Full Delivery Chain
+
+`compose-issues` → `integrate` → `drive-tests` → `review-changes` → `craft-commits`
+
+Issues define integration work as vertical slices, integrate wires each slice's external dependency, TDD proves correctness, review validates quality, and commits capture rationale.
+
 ---
 
 When a workflow completes, reference this section to suggest the natural next workflow in the chain. If the completed workflow appears as a step in one of these chains, offer to continue with the next workflow in the sequence.
@@ -479,6 +519,10 @@ These external powers complement codeshop but are NOT bundled — they are activ
 - **type-guardian** — TypeScript type discipline: strict mode enforcement, discriminated unions, utility types, and type-safe patterns. Suggest activating for TypeScript codebases when using `drive-tests` or `review-changes`.
 
 - **karpathy-mode** — Surgical changes and simplicity-first behavioral guidelines for development workflows. Suggest activating when the user wants to enforce coding discipline: small diffs, minimal abstractions, and deliberate simplicity.
+
+- **release-manager** — Release lifecycle management: assess changes, draft changelogs and release notes, cut tagged releases, and announce. Tool-agnostic methodology with detection logic for whatever release tooling the project uses. Suggest activating when `craft-commits` has been used consistently and the project is ready to cut a release.
+
+- **secure-by-default** — Application security discipline: STRIDE threat modeling, auth/authz flow review, and secure coding patterns (OWASP, input validation, secret hygiene). Suggest activating when `design-interface` or `review-changes` involves authentication, authorization, or sensitive data handling.
 
 
 ## Troubleshooting

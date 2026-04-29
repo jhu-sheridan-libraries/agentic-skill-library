@@ -136,3 +136,25 @@ tests:
         value: >
           Should route to write-living-docs. PASS if write-living-docs
           is selected. FAIL otherwise.
+
+  - description: "Integration trigger routes to integrate, not design-interface"
+    vars:
+      user_query: "Wire up the Stripe webhook endpoint"
+    assert:
+      - type: llm-rubric
+        value: >
+          The user wants to connect to an external service (Stripe),
+          not design an internal interface. Should route to integrate.
+          PASS if integrate is selected. FAIL if design-interface
+          or another skill is chosen.
+
+  - description: "Migration trigger routes to migrate, not plan-refactor"
+    vars:
+      user_query: "Migrate the user table to the new schema"
+    assert:
+      - type: llm-rubric
+        value: >
+          The user wants to migrate data between schemas, not plan
+          a code refactor. Should route to migrate.
+          PASS if migrate is selected. FAIL if plan-refactor
+          or another skill is chosen.

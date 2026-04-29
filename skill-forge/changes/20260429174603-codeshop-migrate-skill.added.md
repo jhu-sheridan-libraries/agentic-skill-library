@@ -1,0 +1,1 @@
+Codeshop skill #21: `migrate` — reliable data migration with checksum verification across 5 phases (Inventory, Plan, Dry-Run, Execute, Verify). Adds Migration Checksum Discipline shared concept and Migration Chain to workflow composition.
