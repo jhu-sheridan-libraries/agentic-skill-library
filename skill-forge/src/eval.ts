@@ -1,5 +1,6 @@
-import { exists, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { appendFile, exists, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { basename, join, resolve } from "node:path";
+import { execSync } from "node:child_process";
 import chalk from "chalk";
 import yaml from "js-yaml";
 import type { HarnessName } from "./schemas";
@@ -14,6 +15,8 @@ export interface EvalOptions {
 	provider?: string;
 	noContext?: boolean;
 	init?: string;
+	record?: boolean;
+	trend?: boolean;
 }
 
 export interface EvalTestResult {
@@ -332,6 +335,143 @@ tests:
 	console.error(`  2. Run \`forge eval ${artifactName}\` to execute`);
 }
 
+export interface HistoryEntry {
+	ts: string;
+	sha: string;
+	artifact: string;
+	scores: Record<string, number>;
+	total: { passed: number; failed: number; score: number };
+}
+
+const HISTORY_FILE = "evals/history.jsonl";
+
+function gitSha(): string {
+	try {
+		return execSync("git rev-parse --short HEAD", { encoding: "utf-8" }).trim();
+	} catch {
+		return "unknown";
+	}
+}
+
+export async function recordResults(results: EvalResult[]): Promise<void> {
+	if (results.length === 0) return;
+
+	await mkdir("evals", { recursive: true });
+
+	const artifact = results[0].artifactName;
+	const scores: Record<string, number> = {};
+	let totalPassed = 0;
+	let totalFailed = 0;
+
+	for (const r of results) {
+		const label = basename(r.configFile, ".yaml");
+		scores[label] = r.score;
+		totalPassed += r.passed;
+		totalFailed += r.failed;
+	}
+
+	const totalTests = totalPassed + totalFailed;
+	const entry: HistoryEntry = {
+		ts: new Date().toISOString(),
+		sha: gitSha(),
+		artifact,
+		scores,
+		total: {
+			passed: totalPassed,
+			failed: totalFailed,
+			score: totalTests > 0 ? totalPassed / totalTests : 0,
+		},
+	};
+
+	await appendFile(HISTORY_FILE, `${JSON.stringify(entry)}\n`, "utf-8");
+	console.error(chalk.green(`✓ Recorded to ${HISTORY_FILE}`));
+}
+
+export async function showTrend(artifactName?: string): Promise<void> {
+	if (!(await exists(HISTORY_FILE))) {
+		console.error(chalk.yellow("No history found. Run evals with --record first."));
+		return;
+	}
+
+	const raw = await readFile(HISTORY_FILE, "utf-8");
+	const lines = raw.trim().split("\n").filter(Boolean);
+	let entries: HistoryEntry[] = lines.map((l) => JSON.parse(l));
+
+	if (artifactName) {
+		entries = entries.filter((e) => e.artifact === artifactName);
+	}
+
+	if (entries.length === 0) {
+		console.error(chalk.yellow(`No history for ${artifactName ?? "any artifact"}.`));
+		return;
+	}
+
+	// Group by artifact
+	const byArtifact = new Map<string, HistoryEntry[]>();
+	for (const e of entries) {
+		if (!byArtifact.has(e.artifact)) byArtifact.set(e.artifact, []);
+		byArtifact.get(e.artifact)!.push(e);
+	}
+
+	const col = 72;
+	const rule = () => chalk.dim("─".repeat(col));
+
+	for (const [artifact, runs] of byArtifact) {
+		console.error("");
+		console.error(rule());
+		console.error(`  ${chalk.bold(artifact)}  ${chalk.dim(`${runs.length} runs`)}`);
+		console.error(rule());
+
+		// Collect all score keys across runs
+		const allKeys = new Set<string>();
+		for (const r of runs) {
+			for (const k of Object.keys(r.scores)) allKeys.add(k);
+		}
+
+		// Print header
+		const keyList = [...allKeys];
+		console.error(
+			`  ${chalk.dim("date".padEnd(12))}${chalk.dim("sha".padEnd(10))}${keyList.map((k) => chalk.dim(k.slice(0, 14).padEnd(16))).join("")}${chalk.dim("total")}`,
+		);
+
+		// Print each run
+		for (const run of runs) {
+			const date = run.ts.slice(0, 10);
+			const sha = run.sha.padEnd(10);
+			const scoreCells = keyList.map((k) => {
+				const s = run.scores[k];
+				if (s === undefined) return chalk.dim("—".padEnd(16));
+				const pct = `${Math.round(s * 100)}%`;
+				const color = s >= 0.8 ? chalk.green : s >= 0.5 ? chalk.yellow : chalk.red;
+				return color(pct.padEnd(16));
+			});
+			const totalPct = `${Math.round(run.total.score * 100)}%`;
+			const totalColor =
+				run.total.score >= 0.8 ? chalk.green : run.total.score >= 0.5 ? chalk.yellow : chalk.red;
+
+			console.error(`  ${date}  ${chalk.dim(sha)}${scoreCells.join("")}${totalColor(totalPct)}`);
+		}
+
+		// Sparkline for total score
+		if (runs.length >= 2) {
+			const sparks = "▁▂▃▄▅▆▇█";
+			const scores = runs.map((r) => r.total.score);
+			const min = Math.min(...scores);
+			const max = Math.max(...scores);
+			const range = max - min || 1;
+			const sparkline = scores
+				.map((s) => sparks[Math.round(((s - min) / range) * (sparks.length - 1))])
+				.join("");
+			const delta = scores[scores.length - 1] - scores[0];
+			const deltaStr = delta >= 0 ? chalk.green(`+${Math.round(delta * 100)}%`) : chalk.red(`${Math.round(delta * 100)}%`);
+			console.error("");
+			console.error(`  ${chalk.dim("trend")}  ${sparkline}  ${deltaStr}`);
+		}
+	}
+
+	console.error("");
+}
+
 export async function evalCommand(
 	artifact?: string,
 	options?: Record<string, unknown>,
@@ -341,6 +481,12 @@ export async function evalCommand(
 	// Handle --init
 	if (opts.init) {
 		await scaffoldEvals(opts.init as string);
+		return;
+	}
+
+	// Handle --trend
+	if (opts.trend) {
+		await showTrend(artifact);
 		return;
 	}
 
@@ -450,6 +596,11 @@ export async function evalCommand(
 			"utf-8",
 		);
 		console.error(chalk.green(`Results written to ${opts.output}`));
+	}
+
+	// Record to history ledger if requested
+	if (opts.record) {
+		await recordResults(results);
 	}
 
 	if (hasFailures) {

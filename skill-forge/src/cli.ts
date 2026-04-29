@@ -306,6 +306,8 @@ if (import.meta.main !== false) {
 		.option("--provider <name>", "Run against a single provider")
 		.option("--no-context", "Skip harness context wrapping")
 		.option("--init <artifact>", "Scaffold eval suite for an artifact")
+		.option("--record", "Append results to evals/history.jsonl for trend tracking")
+		.option("--trend", "Show score progression from evals/history.jsonl")
 		.action(evalCommand);
 
 	program
