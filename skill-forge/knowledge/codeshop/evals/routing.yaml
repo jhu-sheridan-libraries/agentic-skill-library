@@ -1,12 +1,9 @@
 # Eval: Skill Router dispatches user intents to correct steering files
 #
-# The POWER.md contains the skill router table. These tests verify that
-# an LLM reading the router correctly maps natural-language requests to
-# the intended skill and steering file.
-#
-# Each test combines a fast deterministic assertion (icontains) to verify
-# the correct skill name appears in the response, with a semantic rubric
-# to verify the routing rationale is sound.
+# Each test combines:
+# - icontains-any: fast check that the correct skill appears
+# - not-icontains: fast check that the most likely wrong skill is absent
+# - llm-rubric: semantic check that the routing rationale is sound
 #
 # Run:  bun run dev eval codeshop
 
@@ -29,215 +26,179 @@ defaultTest:
     provider: bedrock:us.anthropic.claude-sonnet-4-6
 
 tests:
-  - description: "TDD trigger routes to drive-tests"
+  - description: "TDD trigger routes to drive-tests, not review-changes"
     vars:
       user_query: "Let's do TDD on the payment module"
     assert:
       - type: icontains-any
-        value:
-          - "drive-tests"
-          - "TDD"
-          - "red-green"
-          - "test-driven"
+        value: ["drive-tests", "TDD", "red-green", "test-driven"]
+      - type: not-icontains
+        value: "review-changes"
       - type: llm-rubric
         value: >
-          Given the POWER.md skill router, the agent should identify
-          drive-tests as the correct skill. PASS if the response clearly
-          selects drive-tests/TDD. FAIL if it routes to a different skill.
+          Should select drive-tests/TDD. PASS if drive-tests is chosen.
+          FAIL if it routes to a different skill.
 
   - description: "Bug report routes to triage-bug, not journal-debug"
     vars:
       user_query: "Users can't submit forms after the last deploy"
     assert:
       - type: icontains-any
-        value:
-          - "triage-bug"
-          - "triage"
-          - "investigate"
-          - "root cause"
+        value: ["triage-bug", "triage", "investigate", "root cause"]
+      - type: not-icontains
+        value: "journal-debug"
       - type: llm-rubric
         value: >
-          The agent should route to triage-bug (not journal-debug).
-          PASS if triage-bug is selected. FAIL if journal-debug
-          or another skill is chosen.
+          Reported problem with unknown root cause → triage-bug.
+          PASS if triage-bug. FAIL if journal-debug.
 
   - description: "Ambiguous 'review' routes to review-changes, not refactor-architecture"
     vars:
       user_query: "Review my PR"
     assert:
       - type: icontains-any
-        value:
-          - "review-changes"
-          - "code review"
-          - "review"
+        value: ["review-changes", "code review"]
+      - type: not-icontains
+        value: "refactor-architecture"
+      - type: not-icontains
+        value: "plan-refactor"
       - type: llm-rubric
         value: >
-          'Review my PR' should route to review-changes (code review),
-          not refactor-architecture. PASS if review-changes is selected.
-          FAIL otherwise.
+          PR review → review-changes. PASS if review-changes.
+          FAIL if refactor-architecture or plan-refactor.
 
-  - description: "Grill me routes to stress-test-plan"
+  - description: "Grill me routes to stress-test-plan, not challenge-domain-model"
     vars:
       user_query: "Grill me on this design"
     assert:
       - type: icontains-any
-        value:
-          - "stress-test-plan"
-          - "grill"
-          - "challenge"
-          - "stress test"
+        value: ["stress-test-plan", "grill", "stress test"]
+      - type: not-icontains
+        value: "challenge-domain-model"
       - type: llm-rubric
         value: >
-          Should route to stress-test-plan. PASS if stress-test-plan
-          is selected. FAIL otherwise.
+          Grilling a design → stress-test-plan. PASS if stress-test-plan.
+          FAIL if challenge-domain-model.
 
-  - description: "Domain model trigger is unambiguous"
+  - description: "Domain model trigger routes to challenge-domain-model, not stress-test-plan"
     vars:
       user_query: "Challenge my domain model"
     assert:
       - type: icontains-any
-        value:
-          - "challenge-domain-model"
-          - "domain model"
-          - "domain grilling"
+        value: ["challenge-domain-model", "domain model", "domain grilling"]
+      - type: not-icontains
+        value: "stress-test-plan"
       - type: llm-rubric
         value: >
-          Should route to challenge-domain-model. PASS if
-          challenge-domain-model is selected. FAIL otherwise.
+          Domain model challenge → challenge-domain-model. PASS if
+          challenge-domain-model. FAIL if stress-test-plan.
 
-  - description: "PRD trigger routes to draft-prd"
+  - description: "PRD trigger routes to draft-prd, not compose-issues"
     vars:
       user_query: "Write a PRD for the notification system"
     assert:
       - type: icontains-any
-        value:
-          - "draft-prd"
-          - "PRD"
-          - "product requirements"
+        value: ["draft-prd", "PRD", "product requirements"]
+      - type: not-icontains
+        value: "compose-issues"
       - type: llm-rubric
         value: >
-          Should route to draft-prd. PASS if draft-prd is selected.
-          FAIL if it routes to compose-issues or another skill.
+          Writing a PRD → draft-prd. PASS if draft-prd.
+          FAIL if compose-issues.
 
-  - description: "Issue creation routes to compose-issues"
+  - description: "Issue creation routes to compose-issues, not draft-prd"
     vars:
       user_query: "Break this plan into GitHub issues"
     assert:
       - type: icontains-any
-        value:
-          - "compose-issues"
-          - "issues"
-          - "vertical slices"
+        value: ["compose-issues", "issues", "vertical slices"]
+      - type: not-icontains
+        value: "draft-prd"
       - type: llm-rubric
         value: >
-          Should route to compose-issues. PASS if compose-issues is
-          selected. FAIL if it routes to draft-prd or triage-bug.
+          Breaking into issues → compose-issues. PASS if compose-issues.
+          FAIL if draft-prd.
 
-  - description: "Debugging session routes to journal-debug"
+  - description: "Debugging session routes to journal-debug, not triage-bug"
     vars:
       user_query: "I need to isolate why the cache is returning stale data"
     assert:
       - type: icontains-any
-        value:
-          - "journal-debug"
-          - "debug journal"
-          - "isolate"
-          - "articulate"
+        value: ["journal-debug", "debug journal", "isolate", "articulate"]
+      - type: not-icontains
+        value: "triage-bug"
       - type: llm-rubric
         value: >
-          The user is actively debugging (isolating a known symptom).
-          Should route to journal-debug. PASS if journal-debug is
-          selected. FAIL if triage-bug or another skill is chosen.
+          Active debugging (isolating) → journal-debug. PASS if
+          journal-debug. FAIL if triage-bug.
 
   - description: "Commit message trigger routes to craft-commits"
     vars:
       user_query: "Help me write a good commit message for this change"
     assert:
       - type: icontains-any
-        value:
-          - "craft-commits"
-          - "commit"
-          - "conventional"
+        value: ["craft-commits", "commit", "conventional"]
       - type: llm-rubric
         value: >
-          Should route to craft-commits. PASS if craft-commits is
-          selected. FAIL otherwise.
+          Should route to craft-commits. PASS if craft-commits.
 
-  - description: "Architecture review routes to refactor-architecture"
+  - description: "Architecture review routes to refactor-architecture, not review-changes"
     vars:
       user_query: "This module feels too coupled, can you review the architecture?"
     assert:
       - type: icontains-any
-        value:
-          - "refactor-architecture"
-          - "architecture review"
-          - "shallow module"
-          - "deep module"
+        value: ["refactor-architecture", "architecture review", "shallow module", "deep module"]
+      - type: not-icontains
+        value: "review-changes"
+      - type: not-icontains
+        value: "plan-refactor"
       - type: llm-rubric
         value: >
-          Should route to refactor-architecture, not review-changes
-          or plan-refactor. PASS if refactor-architecture is selected.
-          FAIL otherwise.
+          Architecture coupling → refactor-architecture. PASS if
+          refactor-architecture. FAIL if review-changes or plan-refactor.
 
   - description: "Laconic mode trigger routes to laconic-output"
     vars:
       user_query: "Be brief from now on"
     assert:
       - type: icontains-any
-        value:
-          - "laconic"
-          - "spartan"
-          - "terse"
-          - "brief"
+        value: ["laconic", "spartan", "terse", "brief"]
       - type: llm-rubric
         value: >
-          Should route to laconic-output. PASS if laconic-output is
-          selected. FAIL otherwise.
+          Should route to laconic-output. PASS if laconic-output.
 
   - description: "Living docs trigger routes to write-living-docs"
     vars:
       user_query: "Audit the docs in this repo and harvest what's missing"
     assert:
       - type: icontains-any
-        value:
-          - "write-living-docs"
-          - "living doc"
-          - "harvest"
-          - "documentation audit"
+        value: ["write-living-docs", "living doc", "harvest", "documentation audit"]
       - type: llm-rubric
         value: >
-          Should route to write-living-docs. PASS if write-living-docs
-          is selected. FAIL otherwise.
+          Should route to write-living-docs. PASS if write-living-docs.
 
-  - description: "Integration trigger routes to integrate, not design-interface"
+  - description: "Integration routes to integrate, not design-interface"
     vars:
       user_query: "Wire up the Stripe webhook endpoint"
     assert:
       - type: icontains-any
-        value:
-          - "integrate"
-          - "wire"
-          - "adapter"
-          - "contract-first"
+        value: ["integrate", "wire", "adapter", "contract-first"]
+      - type: not-icontains
+        value: "design-interface"
       - type: llm-rubric
         value: >
-          The user wants to connect to an external service (Stripe),
-          not design an internal interface. Should route to integrate.
-          PASS if integrate is selected. FAIL if design-interface
-          or another skill is chosen.
+          External service wiring → integrate. PASS if integrate.
+          FAIL if design-interface.
 
-  - description: "Migration trigger routes to migrate, not plan-refactor"
+  - description: "Migration routes to migrate, not plan-refactor"
     vars:
       user_query: "Migrate the user table to the new schema"
     assert:
       - type: icontains-any
-        value:
-          - "migrate"
-          - "migration"
-          - "checksum"
-          - "inventory"
+        value: ["migrate", "migration", "checksum", "inventory"]
+      - type: not-icontains
+        value: "plan-refactor"
       - type: llm-rubric
         value: >
-          The user wants to migrate data between schemas, not plan
-          a code refactor. Should route to migrate. PASS if migrate
-          is selected. FAIL if plan-refactor or another skill is chosen.
+          Data migration → migrate. PASS if migrate.
+          FAIL if plan-refactor.

@@ -1,0 +1,84 @@
+# Eval: Temperature sensitivity — routing stability at temp 0.3
+#
+# The same routing tests from routing.yaml but at temperature 0.3.
+# A robust steering file should produce consistent routing at non-zero
+# temperatures. Tests that fail here but pass at temp 0 indicate
+# brittle prompt phrasing that depends on greedy decoding.
+#
+# Run:  bun run dev eval codeshop
+
+description: "Temperature sensitivity — routing stability at temp 0.3"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/codeshop/POWER.md
+    - role: user
+      content: "{{user_query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0.3
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "temp0.3: TDD routes to drive-tests"
+    vars:
+      user_query: "Let's do TDD on the payment module"
+    assert:
+      - type: icontains-any
+        value: ["drive-tests", "TDD", "red-green", "test-driven"]
+
+  - description: "temp0.3: Bug report routes to triage-bug"
+    vars:
+      user_query: "Users can't submit forms after the last deploy"
+    assert:
+      - type: icontains-any
+        value: ["triage-bug", "triage", "investigate", "root cause"]
+      - type: not-icontains
+        value: "journal-debug"
+
+  - description: "temp0.3: PR review routes to review-changes"
+    vars:
+      user_query: "Review my PR"
+    assert:
+      - type: icontains-any
+        value: ["review-changes", "code review"]
+      - type: not-icontains
+        value: "refactor-architecture"
+
+  - description: "temp0.3: Grill routes to stress-test-plan"
+    vars:
+      user_query: "Grill me on this design"
+    assert:
+      - type: icontains-any
+        value: ["stress-test-plan", "grill", "stress test"]
+
+  - description: "temp0.3: Domain model routes to challenge-domain-model"
+    vars:
+      user_query: "Challenge my domain model"
+    assert:
+      - type: icontains-any
+        value: ["challenge-domain-model", "domain model"]
+
+  - description: "temp0.3: Integration routes to integrate"
+    vars:
+      user_query: "Wire up the Stripe webhook endpoint"
+    assert:
+      - type: icontains-any
+        value: ["integrate", "wire", "adapter", "contract-first"]
+      - type: not-icontains
+        value: "design-interface"
+
+  - description: "temp0.3: Migration routes to migrate"
+    vars:
+      user_query: "Migrate the user table to the new schema"
+    assert:
+      - type: icontains-any
+        value: ["migrate", "migration", "checksum", "inventory"]
+      - type: not-icontains
+        value: "plan-refactor"

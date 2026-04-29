@@ -1,0 +1,62 @@
+# Eval: Prompt efficiency — cost per eval call
+#
+# Tracks token cost to detect context bloat. If a steering file edit
+# improves scores but doubles cost, that's a regression. The threshold
+# is generous — the goal is catching runaway growth, not penny-pinching.
+#
+# Run:  bun run dev eval codeshop
+
+description: "Prompt efficiency — cost per routing call stays bounded"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/codeshop/POWER.md
+    - role: user
+      content: "{{user_query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Routing call cost stays under $0.10"
+    vars:
+      user_query: "Let's do TDD on the payment module"
+    assert:
+      - type: cost
+        threshold: 0.10
+      - type: icontains-any
+        value: ["drive-tests", "TDD", "red-green", "test-driven"]
+
+  - description: "Complex routing call cost stays under $0.10"
+    vars:
+      user_query: "This module feels too coupled, can you review the architecture?"
+    assert:
+      - type: cost
+        threshold: 0.10
+      - type: icontains-any
+        value: ["refactor-architecture", "architecture review", "shallow module"]
+
+  - description: "Integration routing cost stays under $0.10"
+    vars:
+      user_query: "Wire up the Stripe webhook endpoint"
+    assert:
+      - type: cost
+        threshold: 0.10
+      - type: icontains-any
+        value: ["integrate", "wire", "adapter"]
+
+  - description: "Migration workflow entry cost stays under $0.10"
+    vars:
+      user_query: "Migrate the user table to the new schema"
+    assert:
+      - type: cost
+        threshold: 0.10
+      - type: icontains-any
+        value: ["migrate", "migration", "checksum", "inventory"]
