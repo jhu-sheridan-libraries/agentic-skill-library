@@ -1,17 +1,17 @@
-# Eval: Shared concepts are applied consistently across skills
+# Eval: Shared concept adherence — scenarios that test concept application
 #
-# Codeshop defines cross-cutting concepts (vertical slices, deep modules,
-# durable issues, domain language discipline) in POWER.md. Skills that
-# reference these concepts should apply them correctly.
+# Each test provides a scenario and checks that the response applies
+# the correct shared concept from POWER.md, not just references it.
 #
 # Run:  bun run dev eval codeshop
 
-description: "Shared concepts are applied consistently across skills"
+description: "Shared concept adherence — scenarios test correct application"
 
 prompts:
-  - file://dist/kiro/codeshop/steering/drive-tests.md
-  - file://dist/kiro/codeshop/steering/compose-issues.md
-  - file://dist/kiro/codeshop/steering/triage-bug.md
+  - - role: system
+      content: file://dist/kiro/codeshop/POWER.md
+    - role: user
+      content: "{{scenario}}"
 
 providers:
   - id: bedrock:us.anthropic.claude-sonnet-4-6
@@ -24,34 +24,128 @@ defaultTest:
     provider: bedrock:us.anthropic.claude-sonnet-4-6
 
 tests:
-  - description: "Vertical slices concept is referenced where expected"
+  # --- Vertical Slices ---
+  - description: "Issue breakdown uses vertical slices, not horizontal layers"
+    vars:
+      scenario: >
+        Break this feature into issues: Add user profile editing with
+        avatar upload, bio field, and display name. The system has a
+        React frontend, Express API, and PostgreSQL database.
     assert:
+      - type: not-icontains
+        value: "database schema for all"
       - type: llm-rubric
         value: >
-          These steering files should reference or apply the concept
-          of vertical slices / tracer bullets when breaking work into
-          units. PASS if the guidance encourages slicing vertically
-          (end-to-end through layers) rather than horizontally
-          (one layer at a time). FAIL if it encourages horizontal
-          layering or doesn't address slicing strategy at all.
+          The response should break work into VERTICAL slices (each
+          touching all layers end-to-end) not HORIZONTAL layers (all
+          DB first, then all API, then all UI). PASS if each issue
+          is a thin end-to-end slice like "user can edit display name"
+          or "user can upload avatar". FAIL if issues are layered
+          like "create all database tables" then "build all API
+          endpoints" then "create all UI components".
 
-  - description: "Durable issues concept is applied in issue-filing skills"
+  - description: "TDD uses vertical slices, not test-all-then-implement-all"
+    vars:
+      scenario: >
+        I want to do TDD for a shopping cart feature. It needs:
+        add item, remove item, calculate total, apply discount.
     assert:
       - type: llm-rubric
         value: >
-          Skills that file GitHub issues should produce durable issues
-          — describing behaviors and interfaces, not file paths or
-          line numbers. PASS if the guidance explicitly steers toward
-          behavior-based descriptions. FAIL if it encourages
-          referencing specific file paths or line numbers.
+          The response should propose one RED-GREEN cycle at a time
+          (vertical: test1→impl1, test2→impl2) not all tests first
+          then all implementation (horizontal: test1,test2,test3,test4
+          then impl1,impl2,impl3,impl4). PASS if it proposes
+          sequential RED→GREEN cycles. FAIL if it writes all tests
+          first.
 
-  - description: "Agent brief format is used for GitHub issues"
+  # --- Deep Modules ---
+  - description: "Interface design prefers deep modules over shallow ones"
+    vars:
+      scenario: >
+        Design the interface for a caching module. It needs to support
+        get, set, delete, TTL, and cache invalidation patterns.
     assert:
       - type: llm-rubric
         value: >
-          Skills that create GitHub issues should use or reference the
-          Agent Brief format — a structured comment with Category,
-          Summary, Current/Desired behavior, Key interfaces, Acceptance
-          criteria, and Out of scope sections. PASS if the guidance
-          references this format or produces structurally equivalent
-          output. FAIL if issues are filed as unstructured prose.
+          The response should prefer a DEEP module design — a small
+          interface hiding significant complexity. PASS if the proposed
+          interface has few public methods (e.g., get/set/delete with
+          TTL as a config option) that hide invalidation complexity
+          internally. FAIL if it exposes many methods for every
+          invalidation pattern, making the interface as complex as
+          the implementation.
+
+  # --- Durable Issues ---
+  - description: "Filed issues describe behaviors, not file paths"
+    vars:
+      scenario: >
+        File a GitHub issue for this bug: the login form at
+        src/components/LoginForm.tsx line 42 has a race condition
+        where the submit handler fires twice because the onClick
+        handler in handleSubmit doesn't debounce.
+    assert:
+      - type: not-icontains
+        value: "line 42"
+      - type: llm-rubric
+        value: >
+          The response should describe the bug in DURABLE terms —
+          behaviors and outcomes, not file paths or line numbers.
+          PASS if the issue describes "users can submit the login
+          form twice" or "double submission on login" without
+          referencing specific file paths or line numbers. FAIL if
+          it says "fix line 42 in LoginForm.tsx".
+
+  # --- Contract-First Integration ---
+  - description: "Integration starts with contract, not implementation"
+    vars:
+      scenario: >
+        I need to integrate with the SendGrid email API. Let's start
+        building the email sender.
+    assert:
+      - type: icontains-any
+        value: ["contract", "interface", "types", "shape", "define"]
+      - type: llm-rubric
+        value: >
+          The response should insist on defining the contract BEFORE
+          writing implementation — request/response types, error
+          shapes, auth mechanism. PASS if it starts with contract
+          definition or asks about the API contract. FAIL if it
+          immediately starts writing an email sending function.
+
+  # --- Migration Checksum Discipline ---
+  - description: "Migration includes checksum verification, not just row counts"
+    vars:
+      scenario: >
+        I need to migrate 100K user records from the old schema to
+        the new one. How should I verify the migration worked?
+    assert:
+      - type: icontains-any
+        value: ["checksum", "integrity", "hash", "aggregate"]
+      - type: llm-rubric
+        value: >
+          The response should recommend verification BEYOND row counts —
+          aggregate checksums, referential integrity checks, and
+          application-level smoke tests. PASS if it mentions at least
+          2 of: checksums/hashes, referential integrity, application
+          smoke tests. FAIL if it only suggests comparing row counts.
+
+  # --- Domain Language Discipline ---
+  - description: "Response uses project terminology consistently"
+    vars:
+      scenario: >
+        Our project uses these terms: "artifact" (not "asset" or
+        "resource"), "harness" (not "target" or "platform"), and
+        "steering file" (not "config" or "rule"). Help me write
+        documentation for how artifacts compile to harnesses.
+    assert:
+      - type: not-icontains
+        value: "asset"
+      - type: llm-rubric
+        value: >
+          The response should use the project's canonical terms
+          consistently: "artifact" not "asset/resource", "harness"
+          not "target/platform", "steering file" not "config/rule".
+          PASS if it uses the provided terms without introducing
+          synonyms. FAIL if it substitutes any canonical term with
+          a synonym.
