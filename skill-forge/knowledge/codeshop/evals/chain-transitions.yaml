@@ -9,7 +9,10 @@
 description: "Workflow chain transitions — correct next-workflow suggestions"
 
 prompts:
-  - file://dist/kiro/codeshop/POWER.md
+  - - role: system
+      content: file://dist/kiro/codeshop/POWER.md
+    - role: user
+      content: "{{query}}"
 
 providers:
   - id: bedrock:us.anthropic.claude-sonnet-4-6
@@ -22,16 +25,12 @@ defaultTest:
     provider: bedrock:us.anthropic.claude-sonnet-4-6
 
 tests:
-  # --- Integration Chain: integrate → drive-tests ---
   - description: "After integrate completes, agent suggests drive-tests"
     vars:
-      _conversation:
-        - role: user
-          content: "I just finished wiring up the Stripe webhook adapter. All phases complete — discovery, contract, wiring, hardening, and verification all passed."
-        - role: assistant
-          content: "The integrate workflow is complete. Your Stripe webhook adapter is wired, hardened, and verified."
-        - role: user
-          content: "What should I do next?"
+      query: >
+        I just finished the integrate workflow for Stripe webhooks — all
+        5 phases complete (discover, contract, wire, harden, verify).
+        What codeshop workflow should I use next?
     assert:
       - type: icontains
         value: "drive-tests"
@@ -39,20 +38,14 @@ tests:
         value: >
           Per the Integration Chain (design-interface → integrate →
           drive-tests), the natural next step after integrate is
-          drive-tests. PASS if the agent suggests TDD / drive-tests
-          as the next workflow. FAIL if it suggests an unrelated
-          workflow or doesn't reference the chain.
+          drive-tests. PASS if the agent suggests TDD / drive-tests.
+          FAIL if it suggests an unrelated workflow.
 
-  # --- Migration Chain: migrate → drive-tests ---
   - description: "After migrate completes, agent suggests drive-tests"
     vars:
-      _conversation:
-        - role: user
-          content: "Migration is done. All checksums match, integrity validated, smoke tests pass."
-        - role: assistant
-          content: "The migrate workflow is complete with full verification."
-        - role: user
-          content: "What's the natural next step?"
+      query: >
+        Migration is done — all checksums match, integrity validated,
+        smoke tests pass. What codeshop workflow should I use next?
     assert:
       - type: icontains-any
         value:
@@ -65,16 +58,12 @@ tests:
           the next step after migrate is drive-tests to add regression
           tests. PASS if drive-tests or TDD is suggested. FAIL otherwise.
 
-  # --- Bug-Fix Chain: triage-bug → drive-tests ---
   - description: "After triage-bug completes, agent suggests drive-tests"
     vars:
-      _conversation:
-        - role: user
-          content: "Bug triaged. Root cause identified, GitHub issue filed with TDD fix plan."
-        - role: assistant
-          content: "The triage-bug workflow is complete. Issue filed."
-        - role: user
-          content: "What workflow should I use to implement the fix?"
+      query: >
+        Bug triaged — root cause identified, GitHub issue filed with
+        TDD fix plan. What codeshop workflow should I use to implement
+        the fix?
     assert:
       - type: icontains
         value: "drive-tests"
@@ -84,16 +73,11 @@ tests:
           should be implemented via TDD. PASS if drive-tests is
           suggested. FAIL if it suggests a different approach.
 
-  # --- Commit Chain: drive-tests → review-changes ---
   - description: "After drive-tests completes, agent suggests review-changes"
     vars:
-      _conversation:
-        - role: user
-          content: "All TDD cycles complete. Tests pass, code is refactored."
-        - role: assistant
-          content: "The drive-tests workflow is complete."
-        - role: user
-          content: "What's next in the delivery chain?"
+      query: >
+        All TDD cycles complete, tests pass, code is refactored.
+        What's the next codeshop workflow in the delivery chain?
     assert:
       - type: icontains
         value: "review"
@@ -103,16 +87,12 @@ tests:
           the next step is review-changes. PASS if code review is
           suggested. FAIL otherwise.
 
-  # --- Architecture Chain: refactor-architecture → plan-refactor ---
   - description: "After refactor-architecture completes, agent suggests plan-refactor"
     vars:
-      _conversation:
-        - role: user
-          content: "Architecture review done. Found 3 shallow modules that need deepening."
-        - role: assistant
-          content: "The refactor-architecture workflow identified refactoring candidates."
-        - role: user
-          content: "How should I proceed with the refactoring?"
+      query: >
+        Architecture review done — found 3 shallow modules that need
+        deepening. What codeshop workflow should I use to plan the
+        refactoring?
     assert:
       - type: icontains
         value: "plan-refactor"
