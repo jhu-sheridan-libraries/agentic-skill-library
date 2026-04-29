@@ -263,8 +263,9 @@ describe("Catalog metadata evolution - validation extensions", () => {
 			"debugging",
 			"performance",
 			"accessibility",
+			"writing",
 		];
-		expect(CATEGORIES).toHaveLength(9);
+		expect(CATEGORIES).toHaveLength(10);
 		for (const cat of expected) {
 			expect(CATEGORIES).toContain(cat as Category);
 		}

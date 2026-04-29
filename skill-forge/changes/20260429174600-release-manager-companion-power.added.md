@@ -1,0 +1,1 @@
+New `release-manager` companion power — tool-agnostic release lifecycle management with 4-phase cut-release workflow (Assess, Draft, Cut, Announce). Multi-harness support. Detects whatever release tooling the project uses.
