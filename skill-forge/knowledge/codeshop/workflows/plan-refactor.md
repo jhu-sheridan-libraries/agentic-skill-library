@@ -12,6 +12,7 @@ Create a detailed refactor plan with tiny commits via user interview, then file 
 
 - A clear idea of the problem area to refactor
 - `gh` CLI installed and authenticated (for filing the refactor plan as a GitHub issue)
+- **Test coverage assessment**: Before planning any refactoring steps, always ask about or assess existing test coverage for the affected code. Refactoring without a test safety net is reckless — if coverage is insufficient, address that first.
 
 ## Adaptation Notes
 
@@ -24,7 +25,7 @@ Ask the user for a long, detailed description of the problem they want to solve 
 → Load `plan-refactor-capture.md`
 
 ### Phase 2 — Explore
-Explore the repo to verify the user's assertions and understand the current state of the codebase.
+Explore the repo to verify the user's assertions and understand the current state of the codebase. **Critically, assess existing test coverage for the affected code** — ask "What tests exist for this code?" or check test files directly. If coverage is insufficient, flag this as a risk before proceeding.
 → Load `plan-refactor-explore.md`
 
 ### Phase 3 — Interview
