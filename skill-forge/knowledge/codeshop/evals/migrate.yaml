@@ -1,0 +1,67 @@
+# Eval: migrate — data migration with checksum discipline
+#
+# Tests the migrate steering file directly for inventory-first
+# approach, checksum discipline, and dry-run requirement.
+# (Complements migrate-workflow.yaml which tests multi-turn via POWER.md)
+#
+# Run:  bun run dev eval codeshop
+
+description: "migrate — data migration with checksum discipline"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/codeshop/steering/migrate.md
+    - role: user
+      content: "{{query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Starts with inventory and baseline checksums"
+    vars:
+      query: >
+        I need to migrate the orders table to add a status column
+        with default values. Let's do it.
+    assert:
+      - type: icontains-any
+        value: ["inventory", "baseline", "checksum", "row count", "catalog"]
+      - type: llm-rubric
+        value: >
+          The migrate workflow starts with inventory: cataloging the
+          table, establishing baseline checksums. PASS if the agent
+          starts with inventory. FAIL if it writes migration SQL.
+
+  - description: "Requires dry-run before production"
+    vars:
+      query: >
+        Migration plan ready. Let's run it against production now.
+    assert:
+      - type: icontains-any
+        value: ["dry-run", "dry run", "staging", "copy", "rehearsal"]
+      - type: llm-rubric
+        value: >
+          The migrate workflow MUST insist on a dry-run before
+          production. PASS if the agent refuses to go directly to
+          production. FAIL if it proceeds without a dry-run.
+
+  - description: "Verification goes beyond row counts"
+    vars:
+      query: >
+        Migration executed. Row counts match. Are we done?
+    assert:
+      - type: icontains-any
+        value: ["checksum", "integrity", "smoke test", "reconciliation"]
+      - type: llm-rubric
+        value: >
+          Verification must go beyond row counts — checksums,
+          referential integrity, application smoke tests. PASS if
+          the agent requires multi-dimensional verification. FAIL
+          if it says matching row counts is sufficient.

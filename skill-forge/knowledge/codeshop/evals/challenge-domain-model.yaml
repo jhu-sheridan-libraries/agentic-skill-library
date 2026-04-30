@@ -1,0 +1,72 @@
+# Eval: challenge-domain-model — domain model grilling and CONTEXT.md
+#
+# Tests that the steering file challenges domain model assumptions,
+# produces CONTEXT.md format, and maintains domain language discipline.
+#
+# Run:  bun run dev eval codeshop
+
+description: "challenge-domain-model — domain model grilling and context format"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/codeshop/steering/challenge-domain-model.md
+    - role: user
+      content: "{{query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Challenges domain assumptions, not rubber-stamps"
+    vars:
+      query: >
+        Here's my domain model: User has many Orders, Order has many
+        LineItems, LineItem references a Product. Challenge it.
+    assert:
+      - type: not-icontains
+        value: "looks good"
+      - type: llm-rubric
+        value: >
+          The agent should challenge assumptions: Is User the right
+          aggregate root? Should Order own LineItems or reference them?
+          Is Product an entity or value object? PASS if it asks at
+          least 2 probing questions about the model. FAIL if it
+          accepts the model without challenge.
+
+  - description: "Produces or references CONTEXT.md format"
+    vars:
+      query: >
+        We've agreed on the domain model. How should I document it?
+    assert:
+      - type: icontains-any
+        value: ["CONTEXT.md", "context", "bounded context", "aggregate"]
+      - type: llm-rubric
+        value: >
+          The agent should reference the CONTEXT.md format for
+          documenting domain models. PASS if it proposes a structured
+          format with bounded contexts, aggregates, and relationships.
+          FAIL if it suggests a free-form document.
+
+  - description: "Identifies bounded context boundaries"
+    vars:
+      query: >
+        Our system handles user registration, order processing,
+        inventory management, and shipping. Is this one bounded
+        context or multiple?
+    assert:
+      - type: icontains-any
+        value: ["bounded context", "boundary", "separate", "distinct"]
+      - type: llm-rubric
+        value: >
+          The agent should identify that these are likely separate
+          bounded contexts (identity, ordering, inventory, fulfillment)
+          with different ubiquitous languages. PASS if it proposes
+          splitting into multiple contexts. FAIL if it treats
+          everything as one context.

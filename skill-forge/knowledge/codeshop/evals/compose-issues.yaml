@@ -1,0 +1,70 @@
+# Eval: compose-issues — vertical slice issue decomposition
+#
+# Tests that the steering file produces durable, vertical-slice
+# issues rather than horizontal-layer decomposition.
+#
+# Run:  bun run dev eval codeshop
+
+description: "compose-issues — vertical slice issue decomposition"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/codeshop/steering/compose-issues.md
+    - role: user
+      content: "{{query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Decomposes into vertical slices, not horizontal layers"
+    vars:
+      query: >
+        Break this feature into issues: Add a shopping cart with
+        add item, remove item, and checkout. We have a React frontend,
+        Express API, and PostgreSQL database.
+    assert:
+      - type: not-icontains
+        value: "create all database tables"
+      - type: llm-rubric
+        value: >
+          Issues should be vertical slices (each touching all layers
+          end-to-end) not horizontal layers (all DB, then all API,
+          then all UI). PASS if each issue is a thin feature slice
+          like "user can add item to cart". FAIL if issues are
+          layered like "set up database schema" then "build API".
+
+  - description: "Issues describe behaviors, not file paths"
+    vars:
+      query: >
+        Create GitHub issues for adding email notifications when an
+        order ships. The code is in src/services/notification.ts and
+        src/templates/email/.
+    assert:
+      - type: llm-rubric
+        value: >
+          Durable issues describe behaviors that survive refactors.
+          PASS if issues describe user-facing behaviors ("customer
+          receives shipping notification email"). FAIL if issues
+          reference specific file paths.
+
+  - description: "Gathers context before drafting issues"
+    vars:
+      query: >
+        I need to break the authentication overhaul into issues. Go.
+    assert:
+      - type: icontains-any
+        value: ["context", "scope", "what", "current", "understand"]
+      - type: llm-rubric
+        value: >
+          Compose-issues starts by gathering context about the current
+          state and scope. PASS if the agent asks clarifying questions
+          or explores context before drafting. FAIL if it immediately
+          produces issues without understanding scope.

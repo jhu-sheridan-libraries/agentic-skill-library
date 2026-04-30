@@ -1,0 +1,71 @@
+# Eval: plan-refactor — refactoring plan with test coverage and commit plan
+#
+# Tests that the steering file produces structured refactoring plans
+# with scope, test coverage assessment, and atomic commit strategy.
+#
+# Run:  bun run dev eval codeshop
+
+description: "plan-refactor — structured refactoring with test coverage and commits"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/codeshop/steering/plan-refactor.md
+    - role: user
+      content: "{{query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Captures current state before proposing changes"
+    vars:
+      query: >
+        I want to refactor the payment module. It's a mess. Plan it.
+    assert:
+      - type: icontains-any
+        value: ["capture", "current", "understand", "explore", "what"]
+      - type: llm-rubric
+        value: >
+          Plan-refactor starts by capturing the current state — what
+          exists, what's wrong, what the constraints are. PASS if the
+          agent explores before planning. FAIL if it immediately
+          proposes refactoring steps.
+
+  - description: "Assesses test coverage before refactoring"
+    vars:
+      query: >
+        Current state captured: the UserService has 500 lines, mixes
+        auth logic with profile management, and has 3 callers. I want
+        to split it into AuthService and ProfileService.
+    assert:
+      - type: icontains-any
+        value: ["test", "coverage", "safety net", "existing tests"]
+      - type: llm-rubric
+        value: >
+          Before refactoring, the plan must assess test coverage to
+          ensure a safety net exists. PASS if the agent asks about
+          or assesses test coverage. FAIL if it plans the split
+          without mentioning tests.
+
+  - description: "Produces atomic commit plan"
+    vars:
+      query: >
+        Refactoring plan approved: split UserService into AuthService
+        and ProfileService. Tests exist for all public methods. How
+        should I execute this?
+    assert:
+      - type: icontains-any
+        value: ["commit", "step", "atomic", "incremental"]
+      - type: llm-rubric
+        value: >
+          The execution plan should use atomic commits — each commit
+          leaves the codebase in a working state. PASS if the plan
+          breaks the refactor into small, independently-committable
+          steps. FAIL if it proposes one big-bang commit.

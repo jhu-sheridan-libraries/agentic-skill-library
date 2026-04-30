@@ -1,0 +1,68 @@
+# Eval: map-context — codebase context mapping and dependency graphs
+#
+# Tests that the steering file produces concrete dependency maps
+# with actual module names, not summaries.
+#
+# Run:  bun run dev eval codeshop
+
+description: "map-context — codebase context mapping and dependency graphs"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/codeshop/steering/map-context.md
+    - role: user
+      content: "{{query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Shows dependency graph, not a summary"
+    vars:
+      query: >
+        Map the context around a UserService class that handles
+        authentication, profile updates, and password resets. It's
+        called by the API routes and calls the database layer.
+    assert:
+      - type: icontains-any
+        value: ["calls", "called by", "depends", "inbound", "outbound"]
+      - type: llm-rubric
+        value: >
+          Map-context should show actual dependency relationships
+          (who calls this, what does this call) not a prose summary.
+          PASS if the response shows concrete caller/callee
+          relationships. FAIL if it summarizes what UserService does.
+
+  - description: "Includes both inbound and outbound relationships"
+    vars:
+      query: >
+        Zoom out on the PaymentProcessor module. It validates payment
+        data, calls Stripe API, and updates the order status.
+    assert:
+      - type: llm-rubric
+        value: >
+          The map should include both inbound (who calls PaymentProcessor)
+          and outbound (what PaymentProcessor calls) relationships.
+          PASS if both directions are shown. FAIL if only one direction
+          is mapped.
+
+  - description: "Shows layer boundaries when spanning multiple layers"
+    vars:
+      query: >
+        Map the context for the order creation flow. It goes from
+        the HTTP handler through validation, business logic, database
+        writes, and event publishing.
+    assert:
+      - type: llm-rubric
+        value: >
+          When the area spans multiple layers, the map should show
+          layer boundaries explicitly. PASS if the response identifies
+          distinct layers (HTTP, business logic, persistence, events).
+          FAIL if it presents a flat list without layer structure.

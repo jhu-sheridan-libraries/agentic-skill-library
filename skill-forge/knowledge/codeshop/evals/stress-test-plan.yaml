@@ -1,0 +1,69 @@
+# Eval: stress-test-plan — plan grilling and assumption challenging
+#
+# Tests that the steering file challenges assumptions, finds gaps,
+# and stress-tests plans rather than rubber-stamping them.
+#
+# Run:  bun run dev eval codeshop
+
+description: "stress-test-plan — plan grilling and assumption challenging"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/codeshop/steering/stress-test-plan.md
+    - role: user
+      content: "{{query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Challenges assumptions rather than agreeing"
+    vars:
+      query: >
+        Here's my plan: We'll use a single PostgreSQL database for
+        everything — user data, analytics events, and real-time
+        notifications. It'll be simple and fast. Grill me.
+    assert:
+      - type: not-icontains
+        value: "looks good"
+      - type: llm-rubric
+        value: >
+          Stress-test-plan should challenge assumptions aggressively.
+          This plan has obvious scaling issues (analytics volume,
+          real-time notifications in a relational DB). PASS if the
+          agent identifies at least 2 concrete risks or assumptions
+          to challenge. FAIL if it agrees or gives mild feedback.
+
+  - description: "Finds gaps in the plan"
+    vars:
+      query: >
+        Plan: Build a REST API with JWT auth, deploy to AWS Lambda,
+        use DynamoDB for storage. Ship in 2 weeks. Grill me.
+    assert:
+      - type: llm-rubric
+        value: >
+          The agent should find gaps: no mention of error handling,
+          monitoring, cold starts, token refresh, or testing strategy.
+          PASS if it identifies at least 2 missing concerns. FAIL if
+          it only discusses what's already in the plan.
+
+  - description: "Asks probing questions, not just lists problems"
+    vars:
+      query: >
+        Plan: Migrate from monolith to microservices. Start with the
+        user service, then orders, then payments. Grill me.
+    assert:
+      - type: llm-rubric
+        value: >
+          Good grilling asks probing questions that force the planner
+          to think deeper ("What happens to transactions that span
+          user and orders?"). PASS if the agent asks at least 2
+          pointed questions. FAIL if it only lists problems without
+          engaging the planner.

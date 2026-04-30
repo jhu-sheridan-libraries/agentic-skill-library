@@ -1,0 +1,72 @@
+# Eval: review-changes — code review methodology and comment taxonomy
+#
+# Tests that the steering file produces structured reviews with
+# proper comment classification and tests-first reading order.
+#
+# Run:  bun run dev eval codeshop
+
+description: "review-changes — code review methodology and comment taxonomy"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/codeshop/steering/review-changes.md
+    - role: user
+      content: "{{query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Review starts by reading tests first"
+    vars:
+      query: >
+        Review this PR. It adds a new UserService class with create,
+        update, and delete methods. The PR includes both implementation
+        in src/services/user.ts and tests in src/__tests__/user.test.ts.
+        Where do you start?
+    assert:
+      - type: icontains-any
+        value: ["test", "spec", "read tests first", "tests first"]
+      - type: llm-rubric
+        value: >
+          The review-changes workflow reads tests first because they
+          explain expected behavior. PASS if the agent starts with
+          tests. FAIL if it starts with implementation.
+
+  - description: "Uses comment taxonomy: must address, should address, nit"
+    vars:
+      query: >
+        Review this code: The function catches all exceptions with a
+        bare catch block, the variable is named 'x', and there's a
+        missing trailing comma.
+    assert:
+      - type: icontains-any
+        value: ["must address", "should address", "nit"]
+      - type: llm-rubric
+        value: >
+          The agent should classify findings using the taxonomy:
+          "must address" (bare catch block — blocks merge),
+          "should address" (poor variable name), "nit" (trailing comma).
+          PASS if it uses at least 2 of the 3 categories. FAIL if
+          all findings are treated equally.
+
+  - description: "Approval requires ability to explain the code"
+    vars:
+      query: >
+        I've reviewed the PR and all tests pass. The code looks fine
+        to me. Should I approve?
+    assert:
+      - type: llm-rubric
+        value: >
+          The review-changes workflow says approve only when you could
+          explain the code to a colleague. PASS if the agent asks
+          whether the reviewer understands the code well enough to
+          explain it, not just whether tests pass. FAIL if it says
+          passing tests alone is sufficient for approval.

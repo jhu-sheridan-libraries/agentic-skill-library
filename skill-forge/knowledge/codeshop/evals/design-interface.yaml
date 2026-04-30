@@ -1,0 +1,68 @@
+# Eval: design-interface — interface design with deep module preference
+#
+# Tests that the steering file produces deep module designs with
+# multiple alternatives and structured comparison.
+#
+# Run:  bun run dev eval codeshop
+
+description: "design-interface — deep module design and structured comparison"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/codeshop/steering/design-interface.md
+    - role: user
+      content: "{{query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Gathers requirements before generating designs"
+    vars:
+      query: >
+        Design an interface for a notification service.
+    assert:
+      - type: icontains-any
+        value: ["requirement", "constraint", "caller", "consumer", "use case"]
+      - type: llm-rubric
+        value: >
+          Design-interface starts with requirements: who calls it,
+          what constraints exist, what use cases matter. PASS if the
+          agent asks about requirements before proposing designs.
+          FAIL if it immediately produces an interface.
+
+  - description: "Prefers deep modules over shallow ones"
+    vars:
+      query: >
+        Design an interface for a caching module. Requirements: get,
+        set, delete, TTL support, cache invalidation by pattern,
+        and cache warming on startup.
+    assert:
+      - type: llm-rubric
+        value: >
+          The design should prefer deep modules — small public interface
+          hiding significant complexity. PASS if the proposed interface
+          has few public methods with configuration options that hide
+          invalidation and warming internally. FAIL if it exposes a
+          method for every concern.
+
+  - description: "Generates multiple alternatives for comparison"
+    vars:
+      query: >
+        Design an interface for a rate limiter. Requirements: per-user
+        limits, per-endpoint limits, sliding window, and burst allowance.
+        Show me options.
+    assert:
+      - type: llm-rubric
+        value: >
+          Design-interface generates multiple alternatives and compares
+          them. PASS if the agent produces at least 2 distinct design
+          options with tradeoff analysis. FAIL if it produces only one
+          design without alternatives.

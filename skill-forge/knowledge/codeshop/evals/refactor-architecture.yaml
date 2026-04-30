@@ -1,0 +1,71 @@
+# Eval: refactor-architecture — architecture review and deep module analysis
+#
+# Tests that the steering file identifies shallow modules, proposes
+# deepening strategies, and uses the grilling loop.
+#
+# Run:  bun run dev eval codeshop
+
+description: "refactor-architecture — architecture review and deep module analysis"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/codeshop/steering/refactor-architecture.md
+    - role: user
+      content: "{{query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Explores codebase before proposing changes"
+    vars:
+      query: >
+        The codebase feels messy. Review the architecture.
+    assert:
+      - type: icontains-any
+        value: ["explore", "understand", "current", "structure", "module"]
+      - type: llm-rubric
+        value: >
+          Refactor-architecture starts with exploration: understanding
+          the current module structure before proposing changes. PASS
+          if the agent explores first. FAIL if it immediately proposes
+          refactoring.
+
+  - description: "Identifies shallow modules and proposes deepening"
+    vars:
+      query: >
+        Here's the module structure: ConfigManager has 15 public methods
+        (getDbHost, getDbPort, getDbName, getRedisHost, getRedisPort,
+        getApiKey, getApiSecret, ...). Each method is 2 lines. Review.
+    assert:
+      - type: icontains-any
+        value: ["shallow", "deep", "interface", "complexity"]
+      - type: llm-rubric
+        value: >
+          ConfigManager is a classic shallow module — many public methods,
+          trivial implementation. The agent should identify this and
+          propose deepening (e.g., typed config objects, validation,
+          environment-aware defaults). PASS if it identifies the shallow
+          module pattern. FAIL if it accepts the design.
+
+  - description: "Uses grilling loop to challenge proposals"
+    vars:
+      query: >
+        I propose splitting the monolithic OrderService into
+        OrderCreationService, OrderValidationService, and
+        OrderPersistenceService. Good idea?
+    assert:
+      - type: llm-rubric
+        value: >
+          The grilling loop should challenge this proposal — splitting
+          by technical concern (creation/validation/persistence) creates
+          shallow services. PASS if the agent challenges the split and
+          suggests domain-oriented alternatives. FAIL if it agrees
+          with the technical decomposition.

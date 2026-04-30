@@ -1,0 +1,70 @@
+# Eval: edit-article — technical article editing and improvement
+#
+# Tests that the steering file provides structural and clarity
+# feedback on technical writing, not just grammar fixes.
+#
+# Run:  bun run dev eval codeshop
+
+description: "edit-article — technical article editing and improvement"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/codeshop/steering/edit-article.md
+    - role: user
+      content: "{{query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Provides structural feedback, not just grammar"
+    vars:
+      query: >
+        Edit this article intro: "So basically React hooks are really
+        cool and they let you do a lot of stuff. In this article I'm
+        going to talk about useState and useEffect and how they work
+        together to make your components better."
+    assert:
+      - type: llm-rubric
+        value: >
+          The agent should address structural issues (weak opening,
+          vague promise, no hook for the reader) not just grammar.
+          PASS if it suggests a stronger opening with a concrete
+          value proposition. FAIL if it only fixes grammar/spelling.
+
+  - description: "Identifies unclear technical explanations"
+    vars:
+      query: >
+        Edit this paragraph: "The event loop processes things in order.
+        First it does the synchronous stuff, then it checks the other
+        things like timers and I/O. It keeps going until there's
+        nothing left to do."
+    assert:
+      - type: llm-rubric
+        value: >
+          The agent should flag vague terms ("things", "stuff", "other
+          things") and suggest precise technical language. PASS if it
+          identifies at least 2 vague terms and proposes specific
+          replacements. FAIL if it accepts the vague language.
+
+  - description: "Preserves author voice while improving clarity"
+    vars:
+      query: >
+        Edit this but keep my casual tone: "Look, dependency injection
+        isn't some scary enterprise pattern. It's literally just passing
+        stuff in instead of creating it inside. That's it. That's the
+        tweet."
+    assert:
+      - type: llm-rubric
+        value: >
+          The agent should improve clarity while preserving the casual,
+          direct voice. PASS if edits maintain the conversational tone
+          while tightening the explanation. FAIL if it rewrites into
+          formal academic prose.
