@@ -1,0 +1,72 @@
+# Eval: drive-tests — TDD methodology and phase progression
+#
+# Tests that the steering file enforces red-green-refactor cycles,
+# vertical slices, and tracer bullet approach.
+#
+# Run:  bun run dev eval codeshop
+
+description: "drive-tests — TDD methodology and phase progression"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/codeshop/steering/drive-tests.md
+    - role: user
+      content: "{{query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Starts with planning phase before writing tests"
+    vars:
+      query: >
+        I want to do TDD for a new authentication module with login,
+        logout, and token refresh. Let's start.
+    assert:
+      - type: icontains-any
+        value: ["plan", "planning", "tracer bullet", "slice", "scope"]
+      - type: llm-rubric
+        value: >
+          The drive-tests workflow starts with a planning phase to
+          identify the tracer bullet (thinnest end-to-end slice).
+          PASS if the agent plans before writing tests. FAIL if it
+          immediately writes a test.
+
+  - description: "Enforces red-green-refactor cycle, not all-tests-first"
+    vars:
+      query: >
+        I have 5 features to implement. Should I write all the tests
+        first and then implement them all?
+    assert:
+      - type: icontains-any
+        value: ["red-green", "one at a time", "incremental", "cycle"]
+      - type: not-icontains
+        value: "write all tests first"
+      - type: llm-rubric
+        value: >
+          TDD uses sequential red-green-refactor cycles (vertical),
+          not all-tests-then-all-implementation (horizontal). PASS if
+          the agent insists on one cycle at a time. FAIL if it
+          endorses writing all tests first.
+
+  - description: "Tracer bullet is a thin end-to-end slice"
+    vars:
+      query: >
+        What should my first TDD cycle cover for a REST API with
+        database, service layer, and HTTP handler?
+    assert:
+      - type: icontains-any
+        value: ["tracer bullet", "end-to-end", "thin slice", "vertical"]
+      - type: llm-rubric
+        value: >
+          The first cycle should be a tracer bullet — a thin slice
+          through all layers (handler → service → DB). PASS if it
+          proposes one thin end-to-end path. FAIL if it suggests
+          starting with just the DB layer or just unit tests.

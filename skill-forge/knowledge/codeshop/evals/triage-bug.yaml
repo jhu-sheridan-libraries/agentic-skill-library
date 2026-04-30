@@ -1,0 +1,68 @@
+# Eval: triage-bug — bug triage methodology and issue filing
+#
+# Tests that the steering file captures symptoms before diagnosing,
+# produces durable issues, and plans TDD fixes.
+#
+# Run:  bun run dev eval codeshop
+
+description: "triage-bug — bug triage methodology and issue filing"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/codeshop/steering/triage-bug.md
+    - role: user
+      content: "{{query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Captures symptoms before jumping to diagnosis"
+    vars:
+      query: >
+        The checkout page is broken after the last deploy. Fix it.
+    assert:
+      - type: icontains-any
+        value: ["capture", "symptom", "reproduce", "what happened", "expected"]
+      - type: llm-rubric
+        value: >
+          Triage-bug starts with capture: gathering symptoms, expected
+          vs actual behavior, and reproduction steps. PASS if the agent
+          asks clarifying questions before diagnosing. FAIL if it
+          immediately proposes a fix.
+
+  - description: "Files durable issues describing behaviors, not file paths"
+    vars:
+      query: >
+        Root cause found: the race condition in src/checkout.ts line 42
+        causes double charges. Draft a GitHub issue for this.
+    assert:
+      - type: not-icontains
+        value: "line 42"
+      - type: llm-rubric
+        value: >
+          Issues must be durable — describe behaviors, not file paths
+          or line numbers. PASS if the issue describes "double charges
+          during checkout" without referencing specific lines. FAIL if
+          it says "fix line 42 in checkout.ts".
+
+  - description: "Plans TDD fix approach after diagnosis"
+    vars:
+      query: >
+        Bug diagnosed: the payment webhook handler doesn't deduplicate
+        events, causing duplicate order records. What's the fix approach?
+    assert:
+      - type: icontains-any
+        value: ["test", "TDD", "red-green", "regression"]
+      - type: llm-rubric
+        value: >
+          Triage-bug plans a TDD fix: write a failing test that
+          reproduces the bug, then fix it. PASS if the approach
+          starts with a test. FAIL if it jumps to implementation.

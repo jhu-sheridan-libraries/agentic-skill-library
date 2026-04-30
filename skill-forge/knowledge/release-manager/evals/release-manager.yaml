@@ -1,0 +1,73 @@
+# Eval: release-manager — release lifecycle and tooling detection
+#
+# Tests that the power detects existing release tooling, applies
+# semver correctly, and follows the assess-draft-cut-announce flow.
+#
+# Run:  bun run dev eval release-manager
+
+description: "release-manager — release lifecycle and tooling detection"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/release-manager/POWER.md
+    - role: user
+      content: "{{query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Detects existing release tooling before imposing new tools"
+    vars:
+      query: >
+        I want to cut a release for this project. It has a
+        .changeset/ directory and uses pnpm. How do I proceed?
+    assert:
+      - type: icontains-any
+        value: ["changeset", "detect", "existing"]
+      - type: not-icontains
+        value: "semantic-release"
+      - type: llm-rubric
+        value: >
+          The agent should detect changesets as the release tool and
+          use its native commands. PASS if it works with changesets.
+          FAIL if it suggests installing a different release tool.
+
+  - description: "Applies semver decision tree correctly"
+    vars:
+      query: >
+        Since the last tag, we have these commits:
+        feat: add user search endpoint
+        fix: correct pagination offset
+        feat!: remove deprecated v1 API
+        What version bump should this be?
+    assert:
+      - type: icontains
+        value: "major"
+      - type: llm-rubric
+        value: >
+          The feat! commit has a breaking change indicator, so this
+          must be a major bump. PASS if the agent identifies major.
+          FAIL if it suggests minor or patch.
+
+  - description: "Follows assess-draft-cut-announce flow"
+    vars:
+      query: >
+        Help me prepare a release. What's the process?
+    assert:
+      - type: icontains-any
+        value: ["assess", "draft", "cut", "announce"]
+      - type: llm-rubric
+        value: >
+          The release-manager follows a 4-phase flow: Assess (review
+          changes since last tag), Draft (changelog and release notes),
+          Cut (tag and publish), Announce (notify stakeholders). PASS
+          if the agent describes this structured flow. FAIL if it
+          jumps to tagging without assessment.

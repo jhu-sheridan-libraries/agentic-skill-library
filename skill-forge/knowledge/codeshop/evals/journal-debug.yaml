@@ -1,0 +1,70 @@
+# Eval: journal-debug — debugging methodology and three-sentence rule
+#
+# Tests that the steering file enforces the articulate-isolate-fix
+# methodology with the three-sentence rule.
+#
+# Run:  bun run dev eval codeshop
+
+description: "journal-debug — debugging methodology and three-sentence rule"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/codeshop/steering/journal-debug.md
+    - role: user
+      content: "{{query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Enforces three-sentence rule before proceeding"
+    vars:
+      query: >
+        My API is returning 500 errors. Help me debug it.
+    assert:
+      - type: icontains-any
+        value: ["expected", "actually happened", "already know", "three sentence", "articulate"]
+      - type: llm-rubric
+        value: >
+          The journal-debug workflow requires three sentences before
+          proceeding: (1) what I expected, (2) what actually happened,
+          (3) what I already know it is not. PASS if the agent asks
+          for or produces these three statements. FAIL if it skips
+          to debugging.
+
+  - description: "Isolate phase uses binary search to shrink problem surface"
+    vars:
+      query: >
+        Articulated: (1) Expected the /users endpoint to return 200,
+        (2) it returns 500 with no error body, (3) it's not a database
+        connection issue — DB queries work in the REPL. Now what?
+    assert:
+      - type: icontains-any
+        value: ["isolate", "binary search", "narrow", "minimal", "reproduce"]
+      - type: llm-rubric
+        value: >
+          The isolate phase shrinks the problem surface using binary
+          search, minimal reproduction, or one-variable-at-a-time.
+          PASS if the agent proposes systematic narrowing. FAIL if
+          it guesses at the fix.
+
+  - description: "Fix phase includes regression test"
+    vars:
+      query: >
+        Isolated: the middleware throws when the auth header is missing.
+        The fix is to add a null check. Should I just add the check?
+    assert:
+      - type: icontains-any
+        value: ["regression test", "test", "verify", "re-run"]
+      - type: llm-rubric
+        value: >
+          The fix-and-verify phase requires a regression test and
+          checking for the same mistake elsewhere. PASS if the agent
+          insists on a test. FAIL if it says just add the null check.

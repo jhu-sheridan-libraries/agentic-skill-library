@@ -1,0 +1,68 @@
+# Eval: integrate — contract-first integration methodology
+#
+# Tests the integrate steering file directly for contract-first
+# discipline, anti-corruption layers, and hardening.
+# (Complements integrate-workflow.yaml which tests multi-turn via POWER.md)
+#
+# Run:  bun run dev eval codeshop
+
+description: "integrate — contract-first integration methodology"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/codeshop/steering/integrate.md
+    - role: user
+      content: "{{query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Starts with discovery, not implementation"
+    vars:
+      query: >
+        I need to integrate with the Twilio SMS API. Let's build it.
+    assert:
+      - type: icontains-any
+        value: ["discover", "boundary", "protocol", "data flow", "failure"]
+      - type: llm-rubric
+        value: >
+          The integrate workflow starts with discovery: identifying
+          the target system, protocol, data flows, and failure modes.
+          PASS if the agent begins with discovery. FAIL if it starts
+          writing code.
+
+  - description: "Defines contract before implementation"
+    vars:
+      query: >
+        Discovery done: Twilio REST API, POST to send SMS, webhook
+        for delivery status. Auth via API key. What's next?
+    assert:
+      - type: icontains-any
+        value: ["contract", "interface", "types", "shape"]
+      - type: llm-rubric
+        value: >
+          After discovery, the agent must define the contract (types,
+          error shapes, auth) BEFORE writing implementation. PASS if
+          it defines types first. FAIL if it starts coding the adapter.
+
+  - description: "Insists on anti-corruption layer with test doubles"
+    vars:
+      query: >
+        Contract defined. Now implement the Twilio adapter.
+    assert:
+      - type: icontains-any
+        value: ["adapter", "anti-corruption", "test double", "test"]
+      - type: llm-rubric
+        value: >
+          The wire phase builds an anti-corruption layer adapter with
+          integration tests using test doubles. PASS if the agent
+          creates an adapter with tests. FAIL if it calls the API
+          directly without an adapter layer.

@@ -1,0 +1,63 @@
+# Eval: laconic-output — terse communication discipline
+#
+# Tests that the steering file produces minimal, precise output
+# without filler, hedging, or pleasantries.
+#
+# Run:  bun run dev eval codeshop
+
+description: "laconic-output — terse communication discipline"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/codeshop/steering/laconic-output.md
+    - role: user
+      content: "{{query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Response is terse — no filler or pleasantries"
+    vars:
+      query: "Why is my React component re-rendering?"
+    assert:
+      - type: not-icontains
+        value: "Great question"
+      - type: not-icontains
+        value: "Happy to help"
+      - type: llm-rubric
+        value: >
+          Laconic mode demands minimal output. PASS if the response
+          is 1-3 sentences with a direct answer and no filler words
+          (so/well/basically), no pleasantries (sure/certainly/of course),
+          and no preamble. FAIL if the response is verbose or contains
+          throat-clearing.
+
+  - description: "Technical precision preserved despite brevity"
+    vars:
+      query: "What's the difference between useEffect and useLayoutEffect?"
+    assert:
+      - type: llm-rubric
+        value: >
+          Laconic mode cuts words but keeps technical terms exact.
+          PASS if the response correctly distinguishes the two hooks
+          (paint timing) in ≤3 sentences. FAIL if it sacrifices
+          accuracy for brevity or expands into a tutorial.
+
+  - description: "Persistence — stays laconic without being asked again"
+    vars:
+      query: "Explain the event loop in Node.js"
+    assert:
+      - type: llm-rubric
+        value: >
+          Laconic mode is persistent — active every response once
+          triggered. PASS if the response explains the event loop
+          in ≤4 sentences without drifting into verbose explanation.
+          FAIL if it produces a multi-paragraph tutorial.

@@ -1,0 +1,69 @@
+# Eval: define-glossary — domain terminology extraction and formalization
+#
+# Tests that the steering file extracts terms, identifies ambiguity,
+# and produces a structured UBIQUITOUS_LANGUAGE.md file.
+#
+# Run:  bun run dev eval codeshop
+
+description: "define-glossary — domain terminology extraction and formalization"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/codeshop/steering/define-glossary.md
+    - role: user
+      content: "{{query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Identifies ambiguous or overloaded terms"
+    vars:
+      query: >
+        In our codebase we use "order" to mean both a customer purchase
+        and a sort direction. We also call the same thing "item",
+        "product", and "SKU" interchangeably. Define the glossary.
+    assert:
+      - type: icontains-any
+        value: ["ambig", "overloaded", "synonym", "canonical"]
+      - type: llm-rubric
+        value: >
+          The agent should identify "order" as ambiguous (two meanings)
+          and item/product/SKU as synonyms needing a canonical choice.
+          PASS if it flags both problems. FAIL if it defines terms
+          without noting the ambiguity.
+
+  - description: "Produces UBIQUITOUS_LANGUAGE.md format"
+    vars:
+      query: >
+        Define a glossary for an e-commerce domain with these concepts:
+        cart, checkout, payment, fulfillment, and shipping.
+    assert:
+      - type: icontains
+        value: "UBIQUITOUS_LANGUAGE"
+      - type: llm-rubric
+        value: >
+          The output should be a structured UBIQUITOUS_LANGUAGE.md file
+          with a table containing Term, Definition, and Aliases to Avoid
+          columns. PASS if it produces the structured format. FAIL if
+          it produces a prose description instead.
+
+  - description: "Groups terms by domain context"
+    vars:
+      query: >
+        Define glossary terms for: User, Account, Subscription, Plan,
+        Invoice, Payment Method, Trial, Cancellation, Renewal.
+    assert:
+      - type: llm-rubric
+        value: >
+          Terms should be grouped by domain context (e.g., "Billing
+          lifecycle", "Account management") not listed alphabetically.
+          PASS if terms are grouped by related concepts. FAIL if
+          they are in a flat alphabetical list.

@@ -1,0 +1,74 @@
+# Eval: secure-by-default — STRIDE threat modeling and secure coding
+#
+# Tests that the power applies STRIDE methodology, identifies OWASP
+# categories, and enforces secure coding patterns.
+#
+# Run:  bun run dev eval secure-by-default
+
+description: "secure-by-default — STRIDE threat modeling and secure coding"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/secure-by-default/POWER.md
+    - role: user
+      content: "{{query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Applies STRIDE categories to threat analysis"
+    vars:
+      query: >
+        I'm building a user registration endpoint that accepts email
+        and password, creates an account, and sends a verification
+        email. What are the security threats?
+    assert:
+      - type: icontains-any
+        value: ["spoofing", "tampering", "information disclosure", "STRIDE"]
+      - type: llm-rubric
+        value: >
+          The agent should apply STRIDE categories systematically:
+          Spoofing (fake registrations), Tampering (modified requests),
+          Information Disclosure (password in logs), etc. PASS if it
+          uses at least 3 STRIDE categories. FAIL if it gives generic
+          security advice without structured analysis.
+
+  - description: "Identifies OWASP Top 10 risks in code"
+    vars:
+      query: >
+        Review this code for security:
+        const user = await db.query(`SELECT * FROM users WHERE id = ${req.params.id}`);
+        res.json(user);
+    assert:
+      - type: icontains-any
+        value: ["injection", "A03", "parameterized", "prepared statement"]
+      - type: llm-rubric
+        value: >
+          This is a textbook SQL injection (OWASP A03). PASS if the
+          agent identifies the injection vulnerability and recommends
+          parameterized queries. FAIL if it misses the injection.
+
+  - description: "Scopes to application security, not infrastructure"
+    vars:
+      query: >
+        Threat model my application. It's a Node.js Express API
+        deployed on AWS ECS with an RDS PostgreSQL database behind
+        a VPC. Focus on the application layer.
+    assert:
+      - type: not-icontains
+        value: "security group"
+      - type: llm-rubric
+        value: >
+          Secure-by-default is scoped to application security, not
+          infrastructure. PASS if the analysis focuses on auth flows,
+          input validation, session management, and data handling.
+          FAIL if it drifts into VPC configuration, security groups,
+          or IAM policies.

@@ -1,0 +1,71 @@
+# Eval: craft-commits — commit message quality and conventional format
+#
+# Tests that the steering file produces well-structured conventional
+# commits with meaningful subjects and why-focused bodies.
+#
+# Run:  bun run dev eval codeshop
+
+description: "craft-commits — commit message quality and conventional format"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/codeshop/steering/craft-commits.md
+    - role: user
+      content: "{{query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Produces conventional commit format with type and scope"
+    vars:
+      query: >
+        Write a commit message for this change: I added pagination to
+        the /users API endpoint using cursor-based pagination. The
+        response now includes a next_cursor field.
+    assert:
+      - type: icontains
+        value: "feat"
+      - type: llm-rubric
+        value: >
+          The commit message must use conventional commit format:
+          type(scope): subject. PASS if it has a type prefix (feat/fix/etc),
+          a meaningful subject, and a body explaining WHY pagination was
+          added. FAIL if it uses a vague subject like "add feature" or
+          omits the body.
+
+  - description: "Rejects vague commit messages and suggests improvements"
+    vars:
+      query: >
+        Is this a good commit message? "fix bug"
+    assert:
+      - type: icontains-any
+        value: ["vague", "rewrite", "specific", "what bug", "which"]
+      - type: llm-rubric
+        value: >
+          The agent should reject "fix bug" as too vague and explain
+          why — it could apply to any commit in any codebase. PASS if
+          it identifies the problem and suggests a more specific
+          alternative. FAIL if it accepts the message as adequate.
+
+  - description: "Body explains why, not what"
+    vars:
+      query: >
+        Write a commit message: I changed the retry logic in the HTTP
+        client from 3 retries to 5 retries with exponential backoff
+        because we were seeing transient 503 errors from the payment
+        gateway during peak hours.
+    assert:
+      - type: llm-rubric
+        value: >
+          The commit body should explain WHY (transient 503 errors
+          during peak hours) not just WHAT (changed retries from 3 to 5).
+          PASS if the body focuses on the motivation. FAIL if it only
+          restates the diff.

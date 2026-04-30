@@ -1,0 +1,72 @@
+# Eval: write-living-docs — living documentation methodology
+#
+# Tests that the steering file applies Martraire's principles:
+# audit, classify, harvest from authoritative sources, and reconcile.
+#
+# Run:  bun run dev eval codeshop
+
+description: "write-living-docs — living documentation methodology"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/codeshop/steering/write-living-docs.md
+    - role: user
+      content: "{{query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Starts with audit, not writing"
+    vars:
+      query: >
+        The docs in this repo are outdated. Help me fix them.
+    assert:
+      - type: icontains-any
+        value: ["audit", "inventory", "existing", "sources"]
+      - type: llm-rubric
+        value: >
+          Write-living-docs starts with an audit phase: inventorying
+          existing documentation sources and identifying what's
+          authoritative vs stale. PASS if the agent audits before
+          writing. FAIL if it starts writing new docs immediately.
+
+  - description: "Classifies docs using Martraire's three principles"
+    vars:
+      query: >
+        Audit complete. We have: README, API docs, inline comments,
+        a wiki with meeting notes, and a design doc from 2 years ago.
+        What should we keep?
+    assert:
+      - type: icontains-any
+        value: ["evergreen", "living", "long-period", "audience", "valuable"]
+      - type: llm-rubric
+        value: >
+          Classification should apply Martraire's principles: long-period
+          interest, large audience, valuable/critical. PASS if the agent
+          categorizes docs by these criteria (e.g., README is evergreen,
+          meeting notes are conversation). FAIL if it treats all docs
+          equally.
+
+  - description: "Harvests from authoritative sources, not duplicating"
+    vars:
+      query: >
+        I need to document the API endpoints. We have TypeScript types,
+        test files with example requests, and OpenAPI spec. What's the
+        approach?
+    assert:
+      - type: icontains-any
+        value: ["harvest", "authoritative", "source of truth", "derive"]
+      - type: llm-rubric
+        value: >
+          Living docs harvest from authoritative sources (types, tests,
+          specs) rather than writing duplicate prose. PASS if the agent
+          proposes deriving docs from existing sources. FAIL if it
+          suggests writing docs from scratch that duplicate the types.
