@@ -7,7 +7,7 @@ on:
     paths:
       - "skill-forge/knowledge/**"
       - "skill-forge/src/**"
-      - "skill-forge/catalog.json"
+      - "skill-forge/templates/**"
   workflow_dispatch:
 
 permissions:

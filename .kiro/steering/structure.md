@@ -58,8 +58,8 @@ context-bazaar/                    # Root repo
 │   │   ├── knowledge/             # Scaffold templates for `forge new`
 │   │   └── eval-contexts/         # Harness context simulation for evals
 │   ├── bridge/                    # Compiled MCP server (CJS)
-│   ├── dist/                      # Compiled harness output (generated, gitignored per-harness)
-│   ├── catalog.json               # Generated artifact index
+│   ├── dist/                      # Compiled harness output (generated, gitignored)
+│   ├── catalog.json               # Generated artifact index (gitignored, built in CI)
 │   ├── docs/adr/                  # Architecture Decision Records
 │   ├── changes/                   # Towncrier-style changelog fragments
 │   └── evals/                     # Cross-artifact eval configs
@@ -75,5 +75,5 @@ context-bazaar/                    # Root repo
 - **One adapter per harness**: Each file in `src/adapters/` handles a single harness. Registered in `adapters/index.ts`.
 - **One backend per protocol**: Each file in `src/backends/` handles a single install/publish backend type.
 - **Tests colocated**: All tests live in `src/__tests__/`. Property-based tests use `.property.test.ts` suffix.
-- **Generated output**: `dist/` and `catalog.json` are build artifacts — never edit manually.
+- **Generated output**: `dist/` and `catalog.json` are build artifacts — gitignored, built in CI, attached to releases.
 - **ADRs for decisions**: Architectural choices are documented in `docs/adr/` with sequential numbering.
