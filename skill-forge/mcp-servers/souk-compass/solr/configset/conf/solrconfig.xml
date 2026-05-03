@@ -41,9 +41,6 @@
     <mergeScheduler class="org.apache.lucene.index.ConcurrentMergeScheduler">
       <int name="maxMergeCount">2</int>
       <int name="maxThreadCount">1</int>
-      <!-- Solr 10 changed autoIOThrottle default to false; re-enable it
-           to prevent merges from saturating I/O on small dev machines -->
-      <bool name="autoIOThrottle">true</bool>
     </mergeScheduler>
   </indexConfig>
 

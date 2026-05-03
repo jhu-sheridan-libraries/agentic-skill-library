@@ -43,6 +43,7 @@ ADRs document significant architectural decisions made during the project's deve
 | [031](0031-souk-compass-standalone-mcp-server-for-semantic-search.md) | Souk Compass — standalone MCP server for semantic search | Proposed | 2026-04-24 |
 | [032](0032-solrcloud-mode-for-souk-compass.md) | SolrCloud mode for Souk Compass local development | Accepted | 2026-04-24 |
 | [033](0033-hash-based-deep-links-in-browse-spa.md) | Hash-based deep links in browse SPA | Accepted | 2026-04-27 |
+| [034](0034-solr-10-upgrade-with-scalar-quantization.md) | Upgrade Souk Compass to Solr 10 with scalar quantized vectors | Accepted | 2026-05-03 |
 
 ## Creating a New ADR
 
