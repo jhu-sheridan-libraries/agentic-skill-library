@@ -1,1 +1,0 @@
-Fix codeshop frontmatter: `name` field to lowercase `codeshop`, keyword `codebase-architecture` to `architecture`. Fix CategoryEnum test to include `writing` category (10 categories).

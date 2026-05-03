@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-05-03
+
+### Added
+- Add 4 eval dimensions: negative routing disambiguation (`not-icontains` on 10 routing tests), temperature sensitivity (7 tests at temp 0.3), prompt efficiency (4 tests with `cost` assertions at $0.10 threshold), and scenario-based shared concept adherence (7 tests covering vertical slices, deep modules, durable issues, contract-first, checksum discipline, domain language).
+- Hash-based deep links in browse SPA — artifacts are now bookmarkable and shareable via `#artifact/<name>` URL fragments. Browser back/forward navigation supported.
+- Codeshop skill #21: `migrate` — reliable data migration with checksum verification across 5 phases (Inventory, Plan, Dry-Run, Execute, Verify). Adds Migration Checksum Discipline shared concept and Migration Chain to workflow composition.
+- Add `--record` and `--trend` flags to `forge eval` for evolutionary prompt improvement tracking. `--record` appends per-run scores to `evals/history.jsonl`; `--trend` prints a table with sparkline showing score progression over time.
+- Upgrade Souk Compass from Solr 9 to Solr 10 with scalar quantized dense vectors (~4x memory reduction), ACORN filtered search support, and enhanced kNN query parameters. Requires reindexing after upgrade.
+- New `release-manager` companion power — tool-agnostic release lifecycle management with 4-phase cut-release workflow (Assess, Draft, Cut, Announce). Multi-harness support. Detects whatever release tooling the project uses.
+- Multi-turn workflow evals for `integrate` (5 tests) and `migrate` (5 tests) simulating phase progression with deterministic + semantic assertions. Chain transition evals (5 tests) verifying correct next-workflow suggestions. Deterministic `icontains` assertions added to all 14 routing eval tests. All evals upgraded from Claude Sonnet 4 to Claude Sonnet 4.6.
+- Codeshop skill #20: `integrate` — wire external systems through contract-first adapters with 5-phase workflow (Discover, Contract, Wire, Harden, Verify). Adds Contract-First Integration shared concept and Integration Chain to workflow composition.
+- New `secure-by-default` companion power — STRIDE threat modeling, auth/authz flow review, and secure coding reference (OWASP, input validation, secret hygiene). Multi-harness support. User-invoked only.
+- Structural validation tests for codeshop workflow phase sequencing, chain validity, and entry/exit criteria alignment — 11 tests covering dangling references, linear phase ordering, orphan detection, chain-to-router consistency, and phase numbering.
+
+### Changed
+- Revised ADR power (v0.4.0): expanded troubleshooting section, added configuration section, broadened changelog tool detection guidance, improved steering file descriptions with when-to-use context, added hook portability notes.
+- Bump promptfoo dependency from ^0.121.5 to ^0.121.9.
+- Remove `dist/` and `catalog.json` from git tracking. Both are now gitignored and built fresh in CI — dist is uploaded as a CI artifact on every PR and attached as a tarball to GitHub Releases. The `dist-drift` workflow is removed.
+
+### Fixed
+- Place forge:version comment after YAML frontmatter instead of before it, fixing Kiro power metadata parsing
+- Fix codeshop frontmatter: `name` field to lowercase `codeshop`, keyword `codebase-architecture` to `architecture`. Fix CategoryEnum test to include `writing` category (10 categories).
+
+
 ## [0.3.0] - 2026-04-27
 
 ### Added
