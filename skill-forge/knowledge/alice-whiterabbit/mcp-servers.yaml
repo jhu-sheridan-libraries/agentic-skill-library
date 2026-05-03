@@ -1,0 +1,23 @@
+- name: strands-agents
+  description: >-
+    Strands Agents SDK documentation server. Provides search and retrieval of
+    Strands agent framework docs for building AI agents with AWS Bedrock.
+  command: uvx
+  args:
+    - strands-agents-mcp-server
+  env:
+    FASTMCP_LOG_LEVEL: ERROR
+  autoApprove:
+    - search_docs
+    - fetch_doc
+
+- name: bedrock-agentcore-mcp-server
+  description: >-
+    Amazon Bedrock AgentCore MCP server. Provides tools for deploying and
+    managing AgentCore agents, complementing the alice compose wizard.
+  command: uvx
+  args:
+    - awslabs.amazon-bedrock-agentcore-mcp-server@latest
+  env:
+    FASTMCP_LOG_LEVEL: ERROR
+  autoApprove: []
