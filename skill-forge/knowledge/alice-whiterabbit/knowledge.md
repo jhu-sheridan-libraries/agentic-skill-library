@@ -33,7 +33,7 @@ keywords:
   - preserve
   - mint
 author: Steven J Miklovic, Johns Hopkins DRCC
-version: 0.1.0
+version: 0.1.1
 harnesses:
   - kiro
   - claude-code
