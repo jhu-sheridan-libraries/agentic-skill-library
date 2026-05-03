@@ -21,6 +21,13 @@ export interface SoukVectorClientOptions {
 	earlyTermination?: boolean;
 	/** Multiplier for HNSW candidate count (default: 1.0) */
 	efSearchScaleFactor?: number;
+	/**
+	 * ACORN filtered search threshold (Solr 10+). When set, enables the
+	 * ACORN algorithm for combined filter + vector queries. The value is
+	 * an integer 0–100 representing the percentage of documents matching
+	 * the filter below which ACORN kicks in. Recommended value: 60.
+	 */
+	filteredSearchThreshold?: number;
 }
 
 export class SoukVectorClient {
@@ -28,6 +35,7 @@ export class SoukVectorClient {
 	private readonly collection: string;
 	private readonly earlyTermination: boolean;
 	private readonly efSearchScaleFactor: number;
+	private readonly filteredSearchThreshold?: number;
 
 	constructor(
 		baseUrl: string,
@@ -39,6 +47,7 @@ export class SoukVectorClient {
 		this.collection = collection;
 		this.earlyTermination = options?.earlyTermination ?? true;
 		this.efSearchScaleFactor = options?.efSearchScaleFactor ?? 1.0;
+		this.filteredSearchThreshold = options?.filteredSearchThreshold;
 	}
 
 	// -------------------------------------------------------------------------
@@ -249,8 +258,8 @@ export class SoukVectorClient {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Build the kNN query parser parameter string with earlyTermination
-	 * and efSearchScaleFactor defaults applied.
+	 * Build the kNN query parser parameter string with earlyTermination,
+	 * efSearchScaleFactor, and filteredSearchThreshold (Solr 10 ACORN).
 	 */
 	private buildKnnParams(topK: number): string {
 		let params = `f=vector topK=${topK}`;
@@ -259,6 +268,9 @@ export class SoukVectorClient {
 		}
 		if (this.efSearchScaleFactor !== 1.0) {
 			params += ` efSearchScaleFactor=${this.efSearchScaleFactor}`;
+		}
+		if (this.filteredSearchThreshold != null) {
+			params += ` filteredSearchThreshold=${this.filteredSearchThreshold}`;
 		}
 		return params;
 	}

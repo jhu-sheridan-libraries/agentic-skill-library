@@ -5,7 +5,7 @@
   (~100s-low 1000s of documents) with 1024-dim dense vector fields.
 -->
 <config>
-  <luceneMatchVersion>9.0</luceneMatchVersion>
+  <luceneMatchVersion>10.0</luceneMatchVersion>
 
   <dataDir>${solr.data.dir:}</dataDir>
 
@@ -15,7 +15,8 @@
   <schemaFactory class="ClassicIndexSchemaFactory" />
 
   <!-- =======================================================================
-       Codec: Use Lucene99 for HNSW vector indexing
+       Codec: Use Lucene 10 codec for HNSW vector indexing and optional
+       scalar/binary quantization support
        ======================================================================= -->
   <codecFactory class="solr.SchemaCodecFactory" />
 
@@ -40,6 +41,9 @@
     <mergeScheduler class="org.apache.lucene.index.ConcurrentMergeScheduler">
       <int name="maxMergeCount">2</int>
       <int name="maxThreadCount">1</int>
+      <!-- Solr 10 changed autoIOThrottle default to false; re-enable it
+           to prevent merges from saturating I/O on small dev machines -->
+      <bool name="autoIOThrottle">true</bool>
     </mergeScheduler>
   </indexConfig>
 
@@ -173,7 +177,6 @@
   <requestDispatcher>
     <requestParsers enableRemoteStreaming="false"
       multipartUploadLimitInKB="-1"
-      formdataUploadLimitInKB="-1"
-      addHttpRequestToContext="false" />
+      formdataUploadLimitInKB="-1" />
   </requestDispatcher>
 </config>
