@@ -1,0 +1,1 @@
+Remove `dist/` and `catalog.json` from git tracking. Both are now gitignored and built fresh in CI — dist is uploaded as a CI artifact on every PR and attached as a tarball to GitHub Releases. The `dist-drift` workflow is removed.

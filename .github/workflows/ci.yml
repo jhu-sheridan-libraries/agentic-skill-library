@@ -163,13 +163,23 @@ jobs:
         if: ${{ !inputs.skip-build }}
         run: bun run dev build
 
+      - name: Generate catalog
+        if: ${{ !inputs.skip-build }}
+        run: bun run dev catalog generate
+
       - name: Export static catalog
         if: ${{ !inputs.skip-build }}
         run: bun run dev catalog export --output /tmp/web-export
 
-      - name: Verify dist is up to date
+      - name: Upload dist artifact
         if: ${{ !inputs.skip-build }}
-        run: git diff --exit-code -- dist/
+        uses: actions/upload-artifact@v7
+        with:
+          name: dist-${{ github.sha }}
+          path: |
+            skill-forge/dist/
+            skill-forge/catalog.json
+          retention-days: 30
 
       - name: Verify MCP bridge compiles
         if: ${{ !inputs.skip-build }}

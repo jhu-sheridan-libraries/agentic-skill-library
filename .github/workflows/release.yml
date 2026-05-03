@@ -154,6 +154,12 @@ jobs:
         id: version
         run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
 
+      - name: Build dist and catalog
+        run: |
+          bun run dev build
+          bun run dev catalog generate
+          tar -czf dist-${{ steps.version.outputs.version }}.tar.gz dist/ catalog.json
+
       - name: Compile changelog for this release
         run: |
           bun run changelog:compile -- \
@@ -193,7 +199,9 @@ jobs:
           name: ${{ github.ref_name }}
           body_path: skill-forge/release-notes.md
           prerelease: ${{ steps.prerelease.outputs.flag }}
-          files: binaries/*.tar.gz
+          files: |
+            binaries/*.tar.gz
+            skill-forge/dist-${{ steps.version.outputs.version }}.tar.gz
           generate_release_notes: false
 
       # Commit the updated CHANGELOG.md back to main so the repo stays in sync
