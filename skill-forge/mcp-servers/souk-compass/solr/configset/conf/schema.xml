@@ -48,10 +48,15 @@
       <filter class="solr.LowerCaseFilterFactory" />
     </analyzer>
   </fieldType>
-  <fieldType name="knn_vector_1024" class="solr.DenseVectorField"
+  <!-- Vector field type: scalar-quantized 1024-dim dense vectors (Solr 10+).
+       Quantization reduces each float32 dimension to 7-bit unsigned byte,
+       cutting in-memory footprint ~4x with minimal recall loss for cosine
+       similarity on our catalog-scale data (~100s–low 1000s of documents).
+       The raw float32 vector is still stored when stored="true". -->
+  <fieldType name="knn_vector_1024" class="solr.ScalarQuantizedDenseVectorField"
     vectorDimension="1024"
     similarityFunction="cosine"
     knnAlgorithm="hnsw"
-    hnswMaxConnections="16"
-    hnswBeamWidth="100" />
+    hnswM="16"
+    hnswEfConstruction="100" />
 </schema>

@@ -21,6 +21,8 @@ export const SoukCompassConfigSchema = z.object({
 	embedCacheSize: z.number().int().positive().default(1000),
 	defaultMinScore: z.number().min(0).max(1).optional(),
 	efSearchScaleFactor: z.number().positive().default(1.0),
+	/** ACORN filtered search threshold (Solr 10+). Integer 0–100. */
+	filteredSearchThreshold: z.number().int().min(0).max(100).optional(),
 });
 
 export type SoukCompassConfig = z.infer<typeof SoukCompassConfigSchema>;

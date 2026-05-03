@@ -1,6 +1,6 @@
 services:
   solr:
-    image: solr:9
+    image: solr:10
     container_name: souk-compass-solr
     ports:
       - "8983:8983"

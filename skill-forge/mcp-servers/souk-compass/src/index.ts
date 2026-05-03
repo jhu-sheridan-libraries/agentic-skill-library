@@ -76,10 +76,17 @@ const config = loadConfig();
 
 const rawProvider = await createEmbeddingProvider(config);
 
-const solrClient = new SoukVectorClient(config.solrUrl, config.solrCollection);
+const solrClient = new SoukVectorClient(config.solrUrl, config.solrCollection, {
+	efSearchScaleFactor: config.efSearchScaleFactor,
+	filteredSearchThreshold: config.filteredSearchThreshold,
+});
 const userSolrClient = new SoukVectorClient(
 	config.solrUrl,
 	config.userCollection,
+	{
+		efSearchScaleFactor: config.efSearchScaleFactor,
+		filteredSearchThreshold: config.filteredSearchThreshold,
+	},
 );
 
 const embeddingProvider = new CachedEmbeddingProvider({

@@ -22,6 +22,9 @@ export function loadConfig(): SoukCompassConfig {
 		efSearchScaleFactor: process.env.SOUK_COMPASS_EF_SEARCH_SCALE
 			? Number(process.env.SOUK_COMPASS_EF_SEARCH_SCALE)
 			: undefined,
+		filteredSearchThreshold: process.env.SOUK_COMPASS_FILTERED_SEARCH_THRESHOLD
+			? Number(process.env.SOUK_COMPASS_FILTERED_SEARCH_THRESHOLD)
+			: undefined,
 	};
 
 	// Remove undefined values so Zod defaults apply
