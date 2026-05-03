@@ -1,1 +1,0 @@
-Codeshop skill #20: `integrate` — wire external systems through contract-first adapters with 5-phase workflow (Discover, Contract, Wire, Harden, Verify). Adds Contract-First Integration shared concept and Integration Chain to workflow composition.

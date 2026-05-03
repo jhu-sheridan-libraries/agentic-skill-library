@@ -1,1 +1,0 @@
-Multi-turn workflow evals for `integrate` (5 tests) and `migrate` (5 tests) simulating phase progression with deterministic + semantic assertions. Chain transition evals (5 tests) verifying correct next-workflow suggestions. Deterministic `icontains` assertions added to all 14 routing eval tests. All evals upgraded from Claude Sonnet 4 to Claude Sonnet 4.6.

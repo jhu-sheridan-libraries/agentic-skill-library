@@ -1,1 +1,0 @@
-New `secure-by-default` companion power — STRIDE threat modeling, auth/authz flow review, and secure coding reference (OWASP, input validation, secret hygiene). Multi-harness support. User-invoked only.

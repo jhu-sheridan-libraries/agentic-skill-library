@@ -1,1 +1,0 @@
-Add `--record` and `--trend` flags to `forge eval` for evolutionary prompt improvement tracking. `--record` appends per-run scores to `evals/history.jsonl`; `--trend` prints a table with sparkline showing score progression over time.

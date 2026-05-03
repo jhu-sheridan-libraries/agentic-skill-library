@@ -1,1 +1,0 @@
-Upgrade Souk Compass from Solr 9 to Solr 10 with scalar quantized dense vectors (~4x memory reduction), ACORN filtered search support, and enhanced kNN query parameters. Requires reindexing after upgrade.

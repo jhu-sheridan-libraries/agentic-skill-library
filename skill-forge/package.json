@@ -1,6 +1,6 @@
 {
 	"name": "@jhu-sheridan-libraries/skill-forge",
-	"version": "0.3.0",
+	"version": "0.4.0",
 	"description": "Write knowledge once, compile to every AI coding assistant harness",
 	"type": "module",
 	"bin": {
