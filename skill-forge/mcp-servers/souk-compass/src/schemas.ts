@@ -186,6 +186,21 @@ export const ToolInputSchemas = {
 		snippetLength: z.number().int().positive().default(300),
 		minScore: z.number().min(0).max(1).optional(),
 	}),
+
+	compass_reindex_folder: z.object({
+		path: z.string(),
+		include: z.array(z.string()).default(["**/*"]),
+		exclude: z.array(z.string()).default([
+			"**/node_modules/**",
+			"**/.git/**",
+			"**/dist/**",
+			"**/build/**",
+			"**/*.lock",
+			"**/package-lock.json",
+		]),
+		maxFileSize: z.number().int().positive().default(100_000),
+		chunkMaxLength: z.number().int().positive().default(2000),
+	}),
 } as const;
 
 // Inferred types for each tool input (using z.input for pre-default types)
@@ -225,4 +240,7 @@ export type CompassIndexFolderInput = z.input<
 >;
 export type CompassSearchCodebaseInput = z.input<
 	typeof ToolInputSchemas.compass_search_codebase
+>;
+export type CompassReindexFolderInput = z.input<
+	typeof ToolInputSchemas.compass_reindex_folder
 >;

@@ -1,0 +1,12 @@
+{
+  "name": "Codebase Index Freshness Check",
+  "version": "1.0.0",
+  "description": "At session start, checks if the codebase collection has documents. If empty or stale, suggests running compass_reindex_folder to update the semantic code search index.",
+  "when": {
+    "type": "promptSubmit"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Check compass_status for the codebase collection. If it has 0 documents and the user is working in a project directory, suggest running compass_index_folder to enable semantic code search. If it already has documents, suggest compass_reindex_folder for an incremental update. Only mention this once per session — do not repeat on every prompt."
+  }
+}

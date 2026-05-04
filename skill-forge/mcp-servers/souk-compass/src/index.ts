@@ -4,7 +4,7 @@
  * Souk Compass MCP server
  *
  * Provides Solr-backed semantic search over context-bazaar knowledge artifacts
- * and user document collections. Exposes thirteen tools via stdio transport:
+ * and user document collections. Exposes fourteen tools via stdio transport:
  *
  *   compass_setup              — manage local Solr instance
  *   compass_index_artifacts    — index catalog artifacts into Solr
@@ -12,6 +12,7 @@
  *   compass_index_document     — index a user document into Solr
  *   compass_index_folder       — index a folder/codebase into Solr
  *   compass_search_codebase    — semantic search over indexed codebase
+ *   compass_reindex_folder     — incremental re-index of a folder
  *   compass_reindex            — detect and re-index changed artifacts
  *   compass_status             — document counts and collection status
  *   compass_health             — Solr connectivity check
@@ -42,6 +43,7 @@ import type {
 	CompassProfileWorkspaceInput,
 	CompassRecallInput,
 	CompassRecallMemoryInput,
+	CompassReindexFolderInput,
 	CompassReindexInput,
 	CompassRememberInput,
 	CompassSearchCodebaseInput,
@@ -58,6 +60,7 @@ import { handleCompassProfileWorkspace } from "./tools/compass-profile-workspace
 import { handleCompassRecall } from "./tools/compass-recall.js";
 import { handleCompassRecallMemory } from "./tools/compass-recall-memory.js";
 import { handleCompassReindex } from "./tools/compass-reindex.js";
+import { handleCompassReindexFolder } from "./tools/compass-reindex-folder.js";
 import { handleCompassRemember } from "./tools/compass-remember.js";
 import { handleCompassSearch } from "./tools/compass-search.js";
 import { handleCompassSearchCodebase } from "./tools/compass-search-codebase.js";
@@ -515,6 +518,43 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 				},
 			},
 		},
+		{
+			name: "compass_reindex_folder",
+			description:
+				"Incrementally re-index a folder by detecting changes since the last index. Compares content hashes to skip unchanged files, re-embeds modified files, adds new files, and removes documents for deleted files. Much faster than a full re-index for large codebases.",
+			inputSchema: {
+				type: "object" as const,
+				required: ["path"],
+				properties: {
+					path: {
+						type: "string",
+						description: "Absolute or relative path to the folder to re-index.",
+					},
+					include: {
+						type: "array",
+						items: { type: "string" },
+						description:
+							'Glob patterns for files to include (default: ["**/*"]).',
+					},
+					exclude: {
+						type: "array",
+						items: { type: "string" },
+						description:
+							'Glob patterns for files to exclude (default: ["**/node_modules/**", "**/.git/**", "**/dist/**", "**/build/**", "**/*.lock", "**/package-lock.json"]).',
+					},
+					maxFileSize: {
+						type: "number",
+						description:
+							"Maximum file size in bytes to index (default: 100000).",
+					},
+					chunkMaxLength: {
+						type: "number",
+						description:
+							"Maximum chunk size in characters (default: 2000).",
+					},
+				},
+			},
+		},
 	],
 }));
 
@@ -604,6 +644,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 			case "compass_search_codebase":
 				result = await handleCompassSearchCodebase(
 					args as CompassSearchCodebaseInput,
+					toolContext,
+				);
+				break;
+			case "compass_reindex_folder":
+				result = await handleCompassReindexFolder(
+					args as CompassReindexFolderInput,
 					toolContext,
 				);
 				break;

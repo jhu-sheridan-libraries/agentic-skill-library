@@ -54,6 +54,7 @@ function makeConfig(overrides?: Partial<SoukCompassConfig>): SoukCompassConfig {
 		solrUrl: "http://localhost:8983",
 		solrCollection: "context-bazaar",
 		userCollection: "context-bazaar-user-docs",
+		codebaseCollection: "context-bazaar-codebase",
 		embedProvider: "local",
 		embedDimensions: 1024,
 		cacheTiers: ["memory", "sqlite", "solr"],
@@ -68,6 +69,7 @@ function makeCtx(overrides?: Partial<ToolContext>): ToolContext {
 	return {
 		solrClient: makeMockSolrClient(),
 		userSolrClient: makeMockSolrClient(),
+		codebaseSolrClient: makeMockSolrClient(),
 		embeddingProvider: makeMockEmbeddingProvider(),
 		config: makeConfig(),
 		pluginRoot: "/fake/plugin/root",
@@ -106,7 +108,7 @@ describe("compass_setup handler", () => {
 			solrClient: makeMockSolrClient({ health: async () => true }),
 		});
 
-		// Mock fetch for collection info queries (two collections)
+		// Mock fetch for collection info queries (three collections)
 		fetchSpy
 			.mockResolvedValueOnce(
 				new Response(JSON.stringify({ response: { numFound: 42 } }), {
@@ -115,6 +117,11 @@ describe("compass_setup handler", () => {
 			)
 			.mockResolvedValueOnce(
 				new Response(JSON.stringify({ response: { numFound: 5 } }), {
+					status: 200,
+				}),
+			)
+			.mockResolvedValueOnce(
+				new Response(JSON.stringify({ response: { numFound: 3 } }), {
 					status: 200,
 				}),
 			);
@@ -126,7 +133,7 @@ describe("compass_setup handler", () => {
 		expect(data).toHaveProperty("solrUrl", "http://localhost:8983");
 		expect(data).toHaveProperty("collections");
 		expect(Array.isArray(data.collections)).toBe(true);
-		expect((data.collections as unknown[]).length).toBe(2);
+		expect((data.collections as unknown[]).length).toBe(3);
 	});
 
 	test("check action defaults when no action provided", async () => {
@@ -198,6 +205,11 @@ describe("compass_setup handler", () => {
 				status: 200,
 			}),
 		);
+		fetchSpy.mockResolvedValueOnce(
+			new Response(JSON.stringify({ responseHeader: { status: 0 } }), {
+				status: 200,
+			}),
+		);
 
 		const result = await handleCompassSetup(
 			{ action: "create_collections" },
@@ -205,15 +217,18 @@ describe("compass_setup handler", () => {
 		);
 		const data = parseResult(result);
 
-		expect(fetchSpy).toHaveBeenCalledTimes(2);
+		expect(fetchSpy).toHaveBeenCalledTimes(3);
 
-		// Verify both calls target the Solr Collections API
+		// Verify all calls target the Solr Collections API
 		const url1 = fetchSpy.mock.calls[0][0] as string;
 		const url2 = fetchSpy.mock.calls[1][0] as string;
+		const url3 = fetchSpy.mock.calls[2][0] as string;
 		expect(url1).toContain("/solr/admin/collections");
 		expect(url1).toContain("context-bazaar");
 		expect(url2).toContain("/solr/admin/collections");
 		expect(url2).toContain("context-bazaar-user-docs");
+		expect(url3).toContain("/solr/admin/collections");
+		expect(url3).toContain("context-bazaar-codebase");
 
 		const collections = data.collections as Array<{
 			name: string;
@@ -221,6 +236,7 @@ describe("compass_setup handler", () => {
 		}>;
 		expect(collections[0].created).toBe(true);
 		expect(collections[1].created).toBe(true);
+		expect(collections[2].created).toBe(true);
 	});
 
 	test("create_collections handles already-existing collection", async () => {
@@ -975,7 +991,7 @@ describe("compass_status handler", () => {
 		const handleCompassStatus = await importHandler();
 		const ctx = makeCtx();
 
-		// Mock fetch for two collection queries + memory note query
+		// Mock fetch for three collection queries + memory note query
 		fetchSpy
 			.mockResolvedValueOnce(
 				new Response(JSON.stringify({ response: { numFound: 42 } }), {
@@ -984,6 +1000,11 @@ describe("compass_status handler", () => {
 			)
 			.mockResolvedValueOnce(
 				new Response(JSON.stringify({ response: { numFound: 7 } }), {
+					status: 200,
+				}),
+			)
+			.mockResolvedValueOnce(
+				new Response(JSON.stringify({ response: { numFound: 10 } }), {
 					status: 200,
 				}),
 			)
@@ -1001,10 +1022,11 @@ describe("compass_status handler", () => {
 			name: string;
 			docCount: number | null;
 		}>;
-		expect(collections.length).toBe(2);
+		expect(collections.length).toBe(3);
 		expect(collections[0].docCount).toBe(42);
 		expect(collections[1].docCount).toBe(7);
-		expect(data.totalDocs).toBe(49);
+		expect(collections[2].docCount).toBe(10);
+		expect(data.totalDocs).toBe(59);
 		expect(data.memoryNotes).toBe(3);
 	});
 
