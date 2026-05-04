@@ -44,6 +44,7 @@ ADRs document significant architectural decisions made during the project's deve
 | [032](0032-solrcloud-mode-for-souk-compass.md) | SolrCloud mode for Souk Compass local development | Accepted | 2026-04-24 |
 | [033](0033-hash-based-deep-links-in-browse-spa.md) | Hash-based deep links in browse SPA | Accepted | 2026-04-27 |
 | [034](0034-solr-10-upgrade-with-scalar-quantization.md) | Upgrade Souk Compass to Solr 10 with scalar quantized vectors | Accepted | 2026-05-03 |
+| [035](0035-codebase-indexing-as-separate-collection.md) | Codebase indexing as separate collection in Souk Compass | Proposed | 2026-05-04 |
 
 ## Creating a New ADR
 
