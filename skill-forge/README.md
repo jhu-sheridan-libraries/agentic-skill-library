@@ -4,35 +4,52 @@ Write knowledge once, compile to every AI coding assistant harness.
 
 Skill Forge is a CLI tool that lets you author **knowledge artifacts** (skills, powers, rules, workflows, prompts, agents, templates, reference packs) in a single canonical format and compile them to any supported AI coding assistant.
 
+## Install
+
+Requires [Bun](https://bun.sh) ≥ 1.0.
+
+```bash
+# Install globally from npm
+bun add -g @thinkingsage/skill-forge
+
+# Or run without installing
+bunx @thinkingsage/skill-forge <command>
+
+# Or clone and run from source
+git clone https://github.com/thinkingsage/context-bazaar.git
+cd context-bazaar/skill-forge
+bun install
+bun run dev <command>
+```
+
 ## Quick Start
 
 ```bash
-# Clone and install
-git clone https://github.com/jhu-sheridan-libraries/skill-forge.git
-cd skill-forge
-bun install
-
 # Build all artifacts for all harnesses
-bun run dev build
+forge build
 
 # Build for a single harness
-bun run dev build --harness kiro
+forge build --harness kiro
 
 # Validate artifacts (including security checks)
-bun run dev validate
-bun run dev validate --security
+forge validate
+forge validate --security
 
 # Browse the catalog in your browser
-bun run dev catalog browse
+forge catalog browse
 
 # Install into your project
-bun run dev install my-artifact --harness kiro --source .
+forge install my-artifact --harness kiro --source .
 
 # Scaffold a new knowledge artifact
-bun run dev new my-artifact
+forge new my-artifact
 
 # Guided walkthrough for first-time authors
-bun run dev tutorial
+forge tutorial
+
+# Team-mode: sync shared artifacts across a team
+forge guild init my-artifact --version "^1.0.0"
+forge guild sync
 ```
 
 ## CLI Commands
@@ -48,7 +65,7 @@ bun run dev tutorial
 | `forge catalog browse` | Browse the catalog in a local web UI |
 | `forge catalog export` | Export a self-contained static site for GitHub Pages |
 | `forge collection` | Manage knowledge collections (status, new, build) |
-| `forge import <path>` | Import from external sources (Kiro powers/skills) |
+| `forge import <path>` | Import from external sources (Kiro powers/skills, Cursor rules, etc.) |
 | `forge publish` | Publish compiled artifacts to a release backend (GitHub, S3, HTTP) |
 | `forge eval [artifact]` | Run eval tests against compiled artifacts |
 | `forge guild` | Team-mode artifact distribution (init, sync, status, hook) |
@@ -95,7 +112,8 @@ skill-forge/
 │   └── eval-contexts/     # Harness context simulation for evals
 ├── dist/                  # Compiled per-harness output (generated)
 ├── bridge/                # Compiled MCP server bridge (CJS, for Claude Code plugin)
-├── mcp-servers/           # Shared MCP server definitions
+├── mcp-servers/
+│   └── souk-compass/      # Semantic search MCP server (Solr-backed)
 ├── evals/                 # Cross-artifact eval configs
 ├── changes/               # Towncrier-style changelog fragments
 ├── docs/adr/              # Architecture Decision Records
@@ -122,16 +140,27 @@ skill-forge/
 │   ├── guild/             #   Manifest-driven distribution and sync
 │   ├── importers/         #   Multi-harness import parsers
 │   ├── help/              #   CLI help rendering
-│   └── __tests__/         #   All tests
+│   └── __tests__/         #   All tests (unit, integration, property-based)
 ├── catalog.json           # Machine-readable artifact catalog (generated)
 ├── forge.config.yaml      # Forge configuration (backends, workspace)
 └── package.json
 ```
 
+## Souk Compass
+
+Souk Compass is a standalone MCP server that provides semantic search over the artifact catalog. It uses Solr for vector and keyword search, with support for hybrid queries, chunked indexing, and an embedding cache.
+
+```bash
+# Build the Souk Compass MCP server
+bun run build:souk-compass
+
+# Configure in your MCP client (see .mcp.json for example)
+```
+
 ## Development
 
 ```bash
-# Run tests (all must pass)
+# Run tests (1164 tests across 81 files)
 bun test
 
 # Type check
@@ -154,7 +183,7 @@ bun run changelog:compile
 
 ## Architecture Decisions
 
-Key design choices are documented as [Architecture Decision Records](docs/adr/README.md) (30 ADRs and counting).
+Key design choices are documented as [Architecture Decision Records](docs/adr/README.md) (34 ADRs and counting).
 
 ## License
 
