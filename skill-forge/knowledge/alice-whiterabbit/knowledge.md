@@ -87,6 +87,7 @@ Built with Click, boto3, Rich, and Textual. Packaged with Poetry. Requires Pytho
 | **research-prompts** | manual | `#research-prompts` in chat | Prompt recipes for summarization, literature reviews, metadata, citations, batch |
 | **preservation** | fileMatch | `alice-cli/src/**/preserve/**` | OAIS lifecycle, BagIt packaging, PREMIS events, format identification, ingest pipeline, backlog/appraisal |
 | **doi-minting** | fileMatch | `alice-cli/src/**/mint/**` | DOI lifecycle, DataCite metadata, citation formatting, versioning, batch minting |
+| **tutorials** | manual | `#tutorials` in chat | First-time user walkthroughs for cite, preserve, and teaparty with step-by-step examples |
 
 ## Current Development
 

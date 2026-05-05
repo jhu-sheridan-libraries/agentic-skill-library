@@ -5,5 +5,8 @@ inclusion: {{ artifact.frontmatter.inclusion | default("always") }}
 {% if artifact.frontmatter.inclusion == "fileMatch" and harnessConfig.fileMatchPattern %}
 fileMatchPattern: "{{ harnessConfig.fileMatchPattern }}"
 {% endif %}
+{% if artifact.frontmatter.description %}
+description: {{ artifact.frontmatter.description | dump | safe }}
+{% endif %}
 ---
 {% endblock %}
