@@ -238,7 +238,9 @@ describe("embedVersion", () => {
 	test("embeds version comment after frontmatter in markdown with frontmatter", () => {
 		const content = "---\nname: test\n---\n# Hello";
 		const result = embedVersion(content, "1.2.3", "markdown");
-		expect(result).toBe("---\nname: test\n---\n<!-- forge:version 1.2.3 -->\n# Hello");
+		expect(result).toBe(
+			"---\nname: test\n---\n<!-- forge:version 1.2.3 -->\n# Hello",
+		);
 	});
 
 	test("embeds _forgeVersion field in JSON", () => {

@@ -1,6 +1,13 @@
-import { appendFile, exists, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
-import { basename, join, resolve } from "node:path";
 import { execSync } from "node:child_process";
+import {
+	appendFile,
+	exists,
+	mkdir,
+	readdir,
+	readFile,
+	writeFile,
+} from "node:fs/promises";
+import { basename, join, resolve } from "node:path";
 import chalk from "chalk";
 import yaml from "js-yaml";
 import type { HarnessName } from "./schemas";
@@ -389,7 +396,9 @@ export async function recordResults(results: EvalResult[]): Promise<void> {
 
 export async function showTrend(artifactName?: string): Promise<void> {
 	if (!(await exists(HISTORY_FILE))) {
-		console.error(chalk.yellow("No history found. Run evals with --record first."));
+		console.error(
+			chalk.yellow("No history found. Run evals with --record first."),
+		);
 		return;
 	}
 
@@ -402,7 +411,9 @@ export async function showTrend(artifactName?: string): Promise<void> {
 	}
 
 	if (entries.length === 0) {
-		console.error(chalk.yellow(`No history for ${artifactName ?? "any artifact"}.`));
+		console.error(
+			chalk.yellow(`No history for ${artifactName ?? "any artifact"}.`),
+		);
 		return;
 	}
 
@@ -419,7 +430,9 @@ export async function showTrend(artifactName?: string): Promise<void> {
 	for (const [artifact, runs] of byArtifact) {
 		console.error("");
 		console.error(rule());
-		console.error(`  ${chalk.bold(artifact)}  ${chalk.dim(`${runs.length} runs`)}`);
+		console.error(
+			`  ${chalk.bold(artifact)}  ${chalk.dim(`${runs.length} runs`)}`,
+		);
 		console.error(rule());
 
 		// Collect all score keys across runs
@@ -442,14 +455,21 @@ export async function showTrend(artifactName?: string): Promise<void> {
 				const s = run.scores[k];
 				if (s === undefined) return chalk.dim("—".padEnd(16));
 				const pct = `${Math.round(s * 100)}%`;
-				const color = s >= 0.8 ? chalk.green : s >= 0.5 ? chalk.yellow : chalk.red;
+				const color =
+					s >= 0.8 ? chalk.green : s >= 0.5 ? chalk.yellow : chalk.red;
 				return color(pct.padEnd(16));
 			});
 			const totalPct = `${Math.round(run.total.score * 100)}%`;
 			const totalColor =
-				run.total.score >= 0.8 ? chalk.green : run.total.score >= 0.5 ? chalk.yellow : chalk.red;
+				run.total.score >= 0.8
+					? chalk.green
+					: run.total.score >= 0.5
+						? chalk.yellow
+						: chalk.red;
 
-			console.error(`  ${date}  ${chalk.dim(sha)}${scoreCells.join("")}${totalColor(totalPct)}`);
+			console.error(
+				`  ${date}  ${chalk.dim(sha)}${scoreCells.join("")}${totalColor(totalPct)}`,
+			);
 		}
 
 		// Sparkline for total score
@@ -460,10 +480,15 @@ export async function showTrend(artifactName?: string): Promise<void> {
 			const max = Math.max(...scores);
 			const range = max - min || 1;
 			const sparkline = scores
-				.map((s) => sparks[Math.round(((s - min) / range) * (sparks.length - 1))])
+				.map(
+					(s) => sparks[Math.round(((s - min) / range) * (sparks.length - 1))],
+				)
 				.join("");
 			const delta = scores[scores.length - 1] - scores[0];
-			const deltaStr = delta >= 0 ? chalk.green(`+${Math.round(delta * 100)}%`) : chalk.red(`${Math.round(delta * 100)}%`);
+			const deltaStr =
+				delta >= 0
+					? chalk.green(`+${Math.round(delta * 100)}%`)
+					: chalk.red(`${Math.round(delta * 100)}%`);
 			console.error("");
 			console.error(`  ${chalk.dim("trend")}  ${sparkline}  ${deltaStr}`);
 		}

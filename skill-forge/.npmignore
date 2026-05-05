@@ -1,0 +1,49 @@
+# Tests
+**/__tests__/
+**/*.test.ts
+**/*.spec.ts
+coverage/
+evals/
+
+# Knowledge artifacts (not bundled in npm — install separately)
+knowledge/
+collections/
+upstream/
+
+# Build artifacts (generated, not needed for npm)
+dist/
+build/
+*.tgz
+
+# Dev tooling
+.forge/
+.forge-publish/
+.kiro/
+docs/
+changes/
+scripts/
+mcp-servers/
+
+# Config files not needed by consumers
+biome.json
+bunfig.toml
+rollup.config.js
+bun.lock
+catalog.json
+forge.config.yaml
+
+# CI/CD
+.github/
+.gitignore
+.gitleaks.toml
+
+# Misc
+.env
+.env.local
+eval-results.json
+audit-results.json
+release-manifest.json
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
+SECURITY.md
+CITATION.cff

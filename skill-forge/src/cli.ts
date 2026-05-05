@@ -1,4 +1,14 @@
 #!/usr/bin/env bun
+
+if (typeof globalThis.Bun === "undefined") {
+	console.error(
+		"Error: Skill Forge requires Bun (https://bun.sh) to run.\n" +
+			"Install it with: curl -fsSL https://bun.sh/install | bash\n" +
+			"Then run: bunx @jhu-sheridan-libraries/skill-forge <command>",
+	);
+	process.exit(1);
+}
+
 import chalk from "chalk";
 import { Command } from "commander";
 import { browseCommand, exportCommand } from "./browse";
@@ -306,7 +316,10 @@ if (import.meta.main !== false) {
 		.option("--provider <name>", "Run against a single provider")
 		.option("--no-context", "Skip harness context wrapping")
 		.option("--init <artifact>", "Scaffold eval suite for an artifact")
-		.option("--record", "Append results to evals/history.jsonl for trend tracking")
+		.option(
+			"--record",
+			"Append results to evals/history.jsonl for trend tracking",
+		)
 		.option("--trend", "Show score progression from evals/history.jsonl")
 		.action(evalCommand);
 

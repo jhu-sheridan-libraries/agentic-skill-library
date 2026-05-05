@@ -28,13 +28,8 @@ describe("codeshop workflows — phase sequencing", () => {
 	test("every → Load reference points to a file that exists in workflows/", () => {
 		const failures: string[] = [];
 		for (const file of allWorkflowFiles) {
-			const content = fs.readFileSync(
-				path.join(WORKFLOWS_DIR, file),
-				"utf-8",
-			);
-			const refs = [...content.matchAll(/→ Load `([^`]+)`/g)].map(
-				(m) => m[1],
-			);
+			const content = fs.readFileSync(path.join(WORKFLOWS_DIR, file), "utf-8");
+			const refs = [...content.matchAll(/→ Load `([^`]+)`/g)].map((m) => m[1]);
 			for (const ref of refs) {
 				if (!allWorkflowFiles.includes(ref)) {
 					failures.push(`${file}: references ${ref} which does not exist`);
@@ -56,15 +51,12 @@ describe("codeshop workflows — phase sequencing", () => {
 
 		const failures: string[] = [];
 		for (const main of workflowMains) {
-			const content = fs.readFileSync(
-				path.join(WORKFLOWS_DIR, main),
-				"utf-8",
-			);
-			const refs = [...content.matchAll(/→ Load `([^`]+)`/g)].map(
-				(m) => m[1],
-			);
+			const content = fs.readFileSync(path.join(WORKFLOWS_DIR, main), "utf-8");
+			const refs = [...content.matchAll(/→ Load `([^`]+)`/g)].map((m) => m[1]);
 			if (refs.length < 2) {
-				failures.push(`${main}: only ${refs.length} phase references (need ≥2)`);
+				failures.push(
+					`${main}: only ${refs.length} phase references (need ≥2)`,
+				);
 			}
 		}
 		expect(failures).toEqual([]);
@@ -115,13 +107,8 @@ describe("codeshop workflows — phase sequencing", () => {
 	test("no phase file references itself", () => {
 		const failures: string[] = [];
 		for (const file of allWorkflowFiles) {
-			const content = fs.readFileSync(
-				path.join(WORKFLOWS_DIR, file),
-				"utf-8",
-			);
-			const refs = [...content.matchAll(/→ Load `([^`]+)`/g)].map(
-				(m) => m[1],
-			);
+			const content = fs.readFileSync(path.join(WORKFLOWS_DIR, file), "utf-8");
+			const refs = [...content.matchAll(/→ Load `([^`]+)`/g)].map((m) => m[1]);
 			if (refs.includes(file)) {
 				failures.push(`${file}: references itself`);
 			}
@@ -165,7 +152,9 @@ describe("codeshop workflows — phase sequencing", () => {
 					});
 					if (referencedBy.length === 0) {
 						// Not referenced by any phase AND doesn't reference any — orphan
-						failures.push(`${file}: orphan phase (not referenced by any phase, doesn't reference any)`);
+						failures.push(
+							`${file}: orphan phase (not referenced by any phase, doesn't reference any)`,
+						);
 					}
 				}
 			}
@@ -177,9 +166,7 @@ describe("codeshop workflows — phase sequencing", () => {
 describe("codeshop workflows — chain validity", () => {
 	// Extract chains: lines matching `skill` → `skill` → ...
 	const chainLines = [
-		...powerBody.matchAll(
-			/^`([a-z-]+)`(?: → `([a-z-]+)`)+/gm,
-		),
+		...powerBody.matchAll(/^`([a-z-]+)`(?: → `([a-z-]+)`)+/gm),
 	];
 
 	// Parse each chain into an array of skill names
@@ -214,9 +201,7 @@ describe("codeshop workflows — chain validity", () => {
 			for (const skill of chain.skills) {
 				const file = `${skill}.md`;
 				if (!allWorkflowFiles.includes(file)) {
-					failures.push(
-						`chain "${chain.line}": no workflow file ${file}`,
-					);
+					failures.push(`chain "${chain.line}": no workflow file ${file}`);
 				}
 			}
 		}
@@ -242,10 +227,7 @@ describe("codeshop workflows — entry/exit criteria alignment", () => {
 	test("every phase file's Exit Criteria section exists when Entry Criteria exists", () => {
 		const failures: string[] = [];
 		for (const file of allWorkflowFiles) {
-			const content = fs.readFileSync(
-				path.join(WORKFLOWS_DIR, file),
-				"utf-8",
-			);
+			const content = fs.readFileSync(path.join(WORKFLOWS_DIR, file), "utf-8");
 			const hasEntry = /## Entry Criteria/i.test(content);
 			const hasExit = /## Exit Criteria/i.test(content);
 			if (hasEntry && !hasExit) {
