@@ -19,10 +19,10 @@ const templateEnv = createTemplateEnv(TEMPLATES_DIR);
 /** Non-empty string safe for hook names — words separated by spaces */
 const hookNameArb = () =>
 	fc
-		.array(
-			fc.stringMatching(/^[A-Za-z][a-zA-Z0-9]{0,9}$/),
-			{ minLength: 1, maxLength: 4 },
-		)
+		.array(fc.stringMatching(/^[A-Za-z][a-zA-Z0-9]{0,9}$/), {
+			minLength: 1,
+			maxLength: 4,
+		})
 		.map((parts) => parts.join(" "));
 
 /** Non-empty safe string for descriptions and prompts */
@@ -52,9 +52,7 @@ const specHookEntryArb = fc.record({
  * Build a KnowledgeArtifact with the given spec-hooks in harness-config.
  * Uses format: "power" so the adapter processes the full kiro path.
  */
-function buildArtifactWithSpecHooks(
-	specHooks: Array<Record<string, unknown>>,
-) {
+function buildArtifactWithSpecHooks(specHooks: Array<Record<string, unknown>>) {
 	return makeArtifact({
 		name: "test-spec-hooks",
 		frontmatter: makeFrontmatter({
@@ -256,8 +254,7 @@ describe("Codeshop spec-hook compilation properties", () => {
 					// Derive expected canonical filenames from the generated hooks
 					const canonicalFilenames = new Set(
 						canonicalHooks.map(
-							(h) =>
-								h.name.toLowerCase().replace(/\s+/g, "-") + ".kiro.hook",
+							(h) => h.name.toLowerCase().replace(/\s+/g, "-") + ".kiro.hook",
 						),
 					);
 
@@ -271,9 +268,7 @@ describe("Codeshop spec-hook compilation properties", () => {
 						.sort((a, b) => a.relativePath.localeCompare(b.relativePath));
 
 					// Same number of canonical hook files in both cases
-					expect(canonicalFilesWith.length).toBe(
-						canonicalFilesWithout.length,
-					);
+					expect(canonicalFilesWith.length).toBe(canonicalFilesWithout.length);
 
 					// Each canonical hook file is identical in both outputs
 					for (let i = 0; i < canonicalFilesWithout.length; i++) {

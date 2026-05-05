@@ -124,8 +124,9 @@ describe("codeshop spec-hooks — example-based tests", () => {
 				const prompt = hook!.then.prompt;
 
 				// Match branch: "If the task matches" or "If the task is the first task"
-				const hasMatchBranch =
-					/if the task (matches|is the first)/i.test(prompt);
+				const hasMatchBranch = /if the task (matches|is the first)/i.test(
+					prompt,
+				);
 				expect(hasMatchBranch).toBe(true);
 
 				// No-match branch: "If the task does not match" or "If the task is not the first"
@@ -218,11 +219,14 @@ describe("codeshop spec-hooks — build pipeline integration", () => {
 	function ensureBuild() {
 		if (buildRan) return;
 		buildRan = true;
-		const result = Bun.spawnSync(["bun", "run", "dev", "build", "--harness", "kiro"], {
-			cwd: SKILL_FORGE_ROOT,
-			stdout: "pipe",
-			stderr: "pipe",
-		});
+		const result = Bun.spawnSync(
+			["bun", "run", "dev", "build", "--harness", "kiro"],
+			{
+				cwd: SKILL_FORGE_ROOT,
+				stdout: "pipe",
+				stderr: "pipe",
+			},
+		);
 		if (result.exitCode !== 0) {
 			buildError = result.stderr.toString();
 		}
@@ -235,9 +239,9 @@ describe("codeshop spec-hooks — build pipeline integration", () => {
 
 	test(`dist/kiro/codeshop/ contains all ${expectedAllFiles.length} hook files (${expectedCanonicalFiles.length} canonical + ${expectedSpecFiles.length} spec)`, () => {
 		ensureBuild();
-		const files = fs.readdirSync(DIST_CODESHOP).filter((f) =>
-			f.endsWith(".kiro.hook"),
-		);
+		const files = fs
+			.readdirSync(DIST_CODESHOP)
+			.filter((f) => f.endsWith(".kiro.hook"));
 		const fileSet = new Set(files);
 
 		// Verify every expected file is present
@@ -251,9 +255,9 @@ describe("codeshop spec-hooks — build pipeline integration", () => {
 
 	test("each .kiro.hook file contains valid JSON", () => {
 		ensureBuild();
-		const hookFiles = fs.readdirSync(DIST_CODESHOP).filter((f) =>
-			f.endsWith(".kiro.hook"),
-		);
+		const hookFiles = fs
+			.readdirSync(DIST_CODESHOP)
+			.filter((f) => f.endsWith(".kiro.hook"));
 
 		for (const file of hookFiles) {
 			const content = fs.readFileSync(path.join(DIST_CODESHOP, file), "utf-8");
