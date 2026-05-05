@@ -1,5 +1,5 @@
 {
-	"name": "@jhu-sheridan-libraries/skill-forge",
+	"name": "@thinkingsage/skill-forge",
 	"version": "0.4.1",
 	"description": "Write knowledge once, compile to every AI coding assistant harness",
 	"type": "module",
