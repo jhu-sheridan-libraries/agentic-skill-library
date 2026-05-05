@@ -1,1 +1,7 @@
-[]
+- name: arm-mcp
+  transport: stdio
+  command: sh
+  args:
+  - -c
+  - docker run --rm -i -v "$(pwd)":/workspace armlimited/arm-mcp:latest
+  timeout: 180000

@@ -1,1 +1,3 @@
-[]
+- name: postman
+  transport: sse
+  url: https://mcp.postman.com/minimal

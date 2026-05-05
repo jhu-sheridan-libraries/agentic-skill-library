@@ -1,1 +1,6 @@
-[]
+- name: dynatrace
+  transport: sse
+  url: YOUR_DT_URL
+  autoApprove:
+  - create-dql
+  - execute-dql

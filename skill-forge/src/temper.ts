@@ -17,7 +17,7 @@ import type {
 	TemperOutput,
 	TemperSection,
 } from "./schemas";
-import { SUPPORTED_HARNESSES } from "./schemas";
+import { isStdioServer, SUPPORTED_HARNESSES } from "./schemas";
 import { createTemplateEnv } from "./template-engine";
 
 export interface TemperOptions {
@@ -268,12 +268,16 @@ export async function renderTemper(
 	if (artifact.mcpServers.length > 0) {
 		const mcpContent = artifact.mcpServers
 			.map((server) => {
-				const args = server.args.length > 0 ? ` ${server.args.join(" ")}` : "";
-				const envStr =
-					Object.keys(server.env).length > 0
-						? `\n    env: ${JSON.stringify(server.env)}`
-						: "";
-				return `- ${server.name}: ${server.command}${args}${envStr}`;
+				if (isStdioServer(server)) {
+					const args =
+						server.args.length > 0 ? ` ${server.args.join(" ")}` : "";
+					const envStr =
+						Object.keys(server.env).length > 0
+							? `\n    env: ${JSON.stringify(server.env)}`
+							: "";
+					return `- ${server.name}: ${server.command}${args}${envStr}`;
+				}
+				return `- ${server.name}: ${server.url}`;
 			})
 			.join("\n");
 		sections.push({

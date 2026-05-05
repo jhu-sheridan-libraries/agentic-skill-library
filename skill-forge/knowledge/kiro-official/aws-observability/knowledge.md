@@ -1,7 +1,7 @@
 ---
 name: aws-observability
 displayName: AWS Observability
-description: Comprehensive AWS observability platform combining CloudWatch Logs, Metrics, Alarms, Application Signals (APM), CloudTrail security auditing, and automated codebase observability gap analysis, for complete monitoring, troubleshooting, and optimization.
+description: Comprehensive AWS observability platform combining CloudWatch Logs, Metrics, Alarms, Application Signals (APM), CloudTrail security auditing, Amazon Managed Prometheus (AMP) metric querying, and automated codebase observability gap analysis, for complete monitoring, troubleshooting, and optimization.
 keywords:
   - cloudwatch
   - observability
@@ -22,6 +22,10 @@ keywords:
   - cloudtrail
   - synthetic monitoring
   - service map
+  - prometheus
+  - promql
+  - amp
+  - amazon managed prometheus
 author: AWS
 version: 0.1.0
 harnesses:
@@ -91,6 +95,13 @@ harness-config:
 - "security audit", "compliance", "CloudTrail"
 - "who did what", "track changes", "API activity"
 - "IAM changes", "unauthorized access"
+
+### 📈 Prometheus / AMP Metrics → `prometheus-metrics.md`
+
+**Load when user mentions:**
+- "prometheus", "promql", "AMP", "managed prometheus"
+- "prometheus metrics", "prometheus query", "prometheus workspace"
+- "PromQL range query", "list metrics"
 
 ### 🔍 Observability Gaps → `observability-gap-analysis.md`
 

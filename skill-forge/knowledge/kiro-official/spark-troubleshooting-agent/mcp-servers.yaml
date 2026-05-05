@@ -1,1 +1,30 @@
-[]
+- name: sagemaker-unified-studio-mcp-troubleshooting
+  transport: stdio
+  command: uvx
+  args:
+  - mcp-proxy-for-aws@latest
+  - https://sagemaker-unified-studio-mcp.{AWS_REGION}.api.aws/spark-troubleshooting/mcp
+  - --service
+  - sagemaker-unified-studio-mcp
+  - --profile
+  - smus-mcp-profile
+  - --region
+  - '{AWS_REGION}'
+  - --read-timeout
+  - '180'
+  timeout: 180000
+- name: sagemaker-unified-studio-mcp-code-rec
+  transport: stdio
+  command: uvx
+  args:
+  - mcp-proxy-for-aws@latest
+  - https://sagemaker-unified-studio-mcp.{AWS_REGION}.api.aws/spark-code-recommendation/mcp
+  - --service
+  - sagemaker-unified-studio-mcp
+  - --profile
+  - smus-mcp-profile
+  - --region
+  - '{AWS_REGION}'
+  - --read-timeout
+  - '180'
+  timeout: 180000

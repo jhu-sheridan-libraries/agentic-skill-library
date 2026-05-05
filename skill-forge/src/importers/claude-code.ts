@@ -98,22 +98,50 @@ async function parseMcpJson(filePath: string): Promise<ImportedFile> {
 	if (data.mcpServers && typeof data.mcpServers === "object") {
 		for (const [name, config] of Object.entries(data.mcpServers)) {
 			const cfg = config as Record<string, unknown>;
-			mcpServers.push({
-				name,
-				command: (cfg.command as string) || "",
-				args: (cfg.args as string[]) || [],
-				env: (cfg.env as Record<string, string>) || {},
-			});
+			if (cfg.url) {
+				// URL-based server (SSE or HTTP)
+				const transport =
+					cfg.type === "http" ? "http" as const : "sse" as const;
+				mcpServers.push({
+					name,
+					transport,
+					url: cfg.url as string,
+					env: (cfg.env as Record<string, string>) || {},
+					...(cfg.timeout ? { timeout: cfg.timeout as number } : {}),
+					...(cfg.autoApprove ? { autoApprove: cfg.autoApprove as string[] } : {}),
+				});
+			} else {
+				// Stdio-based server
+				mcpServers.push({
+					name,
+					transport: "stdio" as const,
+					command: (cfg.command as string) || "",
+					args: (cfg.args as string[]) || [],
+					env: (cfg.env as Record<string, string>) || {},
+					...(cfg.timeout ? { timeout: cfg.timeout as number } : {}),
+					...(cfg.autoApprove ? { autoApprove: cfg.autoApprove as string[] } : {}),
+				});
+			}
 		}
 	} else if (Array.isArray(data)) {
 		for (const entry of data) {
-			if (entry && typeof entry === "object" && entry.name && entry.command) {
-				mcpServers.push({
-					name: entry.name,
-					command: entry.command,
-					args: entry.args || [],
-					env: entry.env || {},
-				});
+			if (entry && typeof entry === "object" && entry.name) {
+				if (entry.url) {
+					mcpServers.push({
+						name: entry.name,
+						transport: entry.transport === "http" ? "http" as const : "sse" as const,
+						url: entry.url,
+						env: entry.env || {},
+					});
+				} else if (entry.command) {
+					mcpServers.push({
+						name: entry.name,
+						transport: "stdio" as const,
+						command: entry.command,
+						args: entry.args || [],
+						env: entry.env || {},
+					});
+				}
 			}
 		}
 	} else {

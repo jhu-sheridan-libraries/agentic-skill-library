@@ -1,1 +1,7 @@
-[]
+- name: strands-agents
+  transport: stdio
+  command: uvx
+  args:
+  - strands-agents-mcp-server
+  env:
+    FASTMCP_LOG_LEVEL: INFO
