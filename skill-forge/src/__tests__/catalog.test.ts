@@ -173,6 +173,7 @@ describe("Catalog generation", () => {
 			"depends",
 			"enhances",
 			"formatByHarness",
+			"features",
 			"maturity",
 			"model-assumptions",
 			"collections",

@@ -35,6 +35,15 @@ async function loadArtifactEntry(
 		formatByHarness[harness] = format;
 	}
 
+	// Derive feature flags from artifact content
+	const features = {
+		hooks: artifact.hooks.length > 0,
+		mcp: artifact.mcpServers.length > 0,
+		workflows: artifact.workflows.length > 0,
+		conditionalInclusion:
+			fm.inclusion === "fileMatch" || fm.inclusion === "manual",
+	};
+
 	return {
 		name: fm.name,
 		displayName: fm.displayName || fm.name,
@@ -53,6 +62,7 @@ async function loadArtifactEntry(
 		depends: fm.depends,
 		enhances: fm.enhances,
 		formatByHarness,
+		features,
 		id: fm.id,
 		license: fm.license,
 		maturity: fm.maturity,

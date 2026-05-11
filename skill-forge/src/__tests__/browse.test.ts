@@ -354,10 +354,10 @@ describe("browse SPA format integration", () => {
 		server.stop();
 	});
 
-	test("generated HTML page contains format-filter div", async () => {
+	test("generated HTML page contains features-filter div", async () => {
 		const res = await fetch(`${baseUrl}/`);
 		const html = await res.text();
-		expect(html).toContain('id="format-filter"');
+		expect(html).toContain('id="features-filter"');
 	});
 
 	test("generated HTML page does not contain type filter checkboxes", async () => {
@@ -373,13 +373,13 @@ describe("browse SPA format integration", () => {
 		const html = await res.text();
 		// The JS should contain the formatByHarness check for card rendering
 		expect(html).toContain("entry.formatByHarness");
-		expect(html).toContain("format-cb");
+		expect(html).toContain("features-cb");
 	});
 
-	test("generated HTML contains populateFormatFilter function", async () => {
+	test("generated HTML contains populateFeaturesFilter function", async () => {
 		const res = await fetch(`${baseUrl}/`);
 		const html = await res.text();
-		expect(html).toContain("populateFormatFilter");
+		expect(html).toContain("populateFeaturesFilter");
 	});
 
 	test("generated HTML contains merged targets section in detail view", async () => {

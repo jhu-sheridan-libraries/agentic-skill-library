@@ -352,6 +352,15 @@ export const CatalogEntrySchema = z.object({
 	formatByHarness: z.record(z.string(), z.string()).optional(),
 	changelog: z.boolean().default(false),
 	migrations: z.boolean().default(false),
+	// Feature flags — derived from artifact content at catalog generation time
+	features: z
+		.object({
+			hooks: z.boolean().default(false),
+			mcp: z.boolean().default(false),
+			workflows: z.boolean().default(false),
+			conditionalInclusion: z.boolean().default(false),
+		})
+		.default({}),
 	// Bazaar manifest fields
 	id: z.string().optional(),
 	license: z.string().optional(),
