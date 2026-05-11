@@ -53,6 +53,7 @@ function makeConfig(overrides?: Partial<SoukCompassConfig>): SoukCompassConfig {
 		solrUrl: "http://localhost:8983",
 		solrCollection: "context-bazaar",
 		userCollection: "context-bazaar-user-docs",
+		codebaseCollection: "context-bazaar-codebase",
 		embedProvider: "local",
 		embedDimensions: 1024,
 		cacheTiers: ["memory", "sqlite", "solr"],
@@ -67,6 +68,7 @@ function makeCtx(overrides?: Partial<ToolContext>): ToolContext {
 	return {
 		solrClient: makeMockSolrClient(),
 		userSolrClient: makeMockSolrClient(),
+		codebaseSolrClient: makeMockSolrClient(),
 		embeddingProvider: makeMockEmbeddingProvider(),
 		config: makeConfig(),
 		pluginRoot: "/fake/plugin/root",

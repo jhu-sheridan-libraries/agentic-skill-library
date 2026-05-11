@@ -5,6 +5,7 @@ import type { SoukVectorClient } from "../solr-client.js";
 export interface ToolContext {
 	solrClient: SoukVectorClient;
 	userSolrClient: SoukVectorClient;
+	codebaseSolrClient: SoukVectorClient;
 	embeddingProvider: EmbeddingProvider;
 	config: SoukCompassConfig;
 	pluginRoot: string;

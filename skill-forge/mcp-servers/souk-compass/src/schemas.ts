@@ -10,6 +10,7 @@ export const SoukCompassConfigSchema = z.object({
 	solrUrl: z.string().url().default("http://localhost:8983"),
 	solrCollection: z.string().min(1).default("context-bazaar"),
 	userCollection: z.string().min(1).default("context-bazaar-user-docs"),
+	codebaseCollection: z.string().min(1).default("context-bazaar-codebase"),
 	embedProvider: z.enum(["local", "bedrock-titan"]).default("local"),
 	embedDimensions: z.number().int().positive().default(1024),
 	cacheTiers: z
@@ -44,7 +45,7 @@ export const SolrDocumentSchema = z
 		keywords: z.union([z.string(), z.array(z.string())]).optional(),
 		author: z.string().optional(),
 		version: z.string().optional(),
-		doc_source: z.enum(["artifact", "user", "memory"]),
+		doc_source: z.enum(["artifact", "user", "memory", "codebase"]),
 		content_hash: z.string().optional(),
 		chunk_index: z.number().int().nonnegative().optional(),
 		parent_artifact: z.string().optional(),
@@ -67,7 +68,7 @@ export const SearchResultSchema = z.object({
 	text: z.string().optional(),
 	maturity: z.string().optional(),
 	collections: z.array(z.string()).optional(),
-	docSource: z.enum(["artifact", "user", "memory"]),
+	docSource: z.enum(["artifact", "user", "memory", "codebase"]),
 	snippet: z.string().optional(),
 	chunkIndex: z.number().int().nonnegative().optional(),
 	parentArtifact: z.string().optional(),
@@ -158,6 +159,48 @@ export const ToolInputSchemas = {
 		minScore: z.number().min(0).max(1).default(0.4),
 		persist: z.boolean().default(false),
 	}),
+
+	compass_index_folder: z.object({
+		path: z.string(),
+		include: z.array(z.string()).default(["**/*"]),
+		exclude: z.array(z.string()).default([
+			"**/node_modules/**",
+			"**/.git/**",
+			"**/dist/**",
+			"**/build/**",
+			"**/*.lock",
+			"**/package-lock.json",
+		]),
+		maxFileSize: z.number().int().positive().default(100_000),
+		chunked: z.boolean().default(true),
+		chunkMaxLength: z.number().int().positive().default(2000),
+		clear: z.boolean().default(false),
+	}),
+
+	compass_search_codebase: z.object({
+		query: z.string(),
+		topK: z.number().int().positive().default(10),
+		path: z.string().optional(),
+		mode: z.enum(["vector", "keyword", "hybrid"]).default("hybrid"),
+		hybridWeight: z.number().min(0).max(1).default(0.5),
+		snippetLength: z.number().int().positive().default(300),
+		minScore: z.number().min(0).max(1).optional(),
+	}),
+
+	compass_reindex_folder: z.object({
+		path: z.string(),
+		include: z.array(z.string()).default(["**/*"]),
+		exclude: z.array(z.string()).default([
+			"**/node_modules/**",
+			"**/.git/**",
+			"**/dist/**",
+			"**/build/**",
+			"**/*.lock",
+			"**/package-lock.json",
+		]),
+		maxFileSize: z.number().int().positive().default(100_000),
+		chunkMaxLength: z.number().int().positive().default(2000),
+	}),
 } as const;
 
 // Inferred types for each tool input (using z.input for pre-default types)
@@ -191,4 +234,13 @@ export type CompassRecallMemoryInput = z.input<
 >;
 export type CompassProfileWorkspaceInput = z.input<
 	typeof ToolInputSchemas.compass_profile_workspace
+>;
+export type CompassIndexFolderInput = z.input<
+	typeof ToolInputSchemas.compass_index_folder
+>;
+export type CompassSearchCodebaseInput = z.input<
+	typeof ToolInputSchemas.compass_search_codebase
+>;
+export type CompassReindexFolderInput = z.input<
+	typeof ToolInputSchemas.compass_reindex_folder
 >;

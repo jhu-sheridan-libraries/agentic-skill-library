@@ -36,6 +36,7 @@ function makeConfig(
 		solrUrl: "http://localhost:8983",
 		solrCollection: "context-bazaar",
 		userCollection: "context-bazaar-user-docs",
+		codebaseCollection: "context-bazaar-codebase",
 		embedProvider: "local",
 		embedDimensions: 1024,
 		cacheTiers: ["memory", "sqlite", "solr"],
@@ -67,6 +68,7 @@ function makeCtx(overrides: Partial<ToolContext> = {}): ToolContext {
 	return {
 		solrClient: makeMockSolrClient(),
 		userSolrClient: makeMockSolrClient(),
+		codebaseSolrClient: makeMockSolrClient(),
 		embeddingProvider: {
 			name: "mock",
 			dimensions: 1024,
@@ -134,14 +136,14 @@ describe("compass_setup — check action (extended)", () => {
 			exists: boolean;
 			docCount: null | number;
 		}>;
-		expect(cols).toHaveLength(2);
+		expect(cols).toHaveLength(3);
 		for (const c of cols) {
 			expect(c.exists).toBe(false);
 			expect(c.docCount).toBeNull();
 		}
 	});
 
-	test("missingCollections lists both names when Solr is unreachable", async () => {
+	test("missingCollections lists all names when Solr is unreachable", async () => {
 		const ctx = makeCtx({
 			solrClient: makeMockSolrClient({ health: async () => false }),
 		});
@@ -149,16 +151,17 @@ describe("compass_setup — check action (extended)", () => {
 		const data = parseResult(await handler({ action: "check" }, ctx));
 
 		const missing = data.missingCollections as string[];
-		expect(missing).toHaveLength(2);
+		expect(missing).toHaveLength(3);
 		expect(missing).toContain("context-bazaar");
 		expect(missing).toContain("context-bazaar-user-docs");
+		expect(missing).toContain("context-bazaar-codebase");
 	});
 
-	test("missingCollections is empty when both collections exist", async () => {
+	test("missingCollections is empty when all collections exist", async () => {
 		const ctx = makeCtx({
 			solrClient: makeMockSolrClient({ health: async () => true }),
 		});
-		// Both collections return 200 with numFound
+		// All three collections return 200 with numFound
 		fetchSpy
 			.mockResolvedValueOnce(
 				new Response(JSON.stringify({ response: { numFound: 10 } }), {
@@ -167,6 +170,11 @@ describe("compass_setup — check action (extended)", () => {
 			)
 			.mockResolvedValueOnce(
 				new Response(JSON.stringify({ response: { numFound: 5 } }), {
+					status: 200,
+				}),
+			)
+			.mockResolvedValueOnce(
+				new Response(JSON.stringify({ response: { numFound: 3 } }), {
 					status: 200,
 				}),
 			);
@@ -186,6 +194,12 @@ describe("compass_setup — check action (extended)", () => {
 			// Second collection exists
 			.mockResolvedValueOnce(
 				new Response(JSON.stringify({ response: { numFound: 7 } }), {
+					status: 200,
+				}),
+			)
+			// Third collection exists
+			.mockResolvedValueOnce(
+				new Response(JSON.stringify({ response: { numFound: 2 } }), {
 					status: 200,
 				}),
 			);
@@ -212,6 +226,11 @@ describe("compass_setup — check action (extended)", () => {
 			.mockRejectedValueOnce(new TypeError("Network failure"))
 			.mockResolvedValueOnce(
 				new Response(JSON.stringify({ response: { numFound: 3 } }), {
+					status: 200,
+				}),
+			)
+			.mockResolvedValueOnce(
+				new Response(JSON.stringify({ response: { numFound: 1 } }), {
 					status: 200,
 				}),
 			);
@@ -242,6 +261,11 @@ describe("compass_setup — check action (extended)", () => {
 				new Response(JSON.stringify({ response: { numFound: 0 } }), {
 					status: 200,
 				}),
+			)
+			.mockResolvedValueOnce(
+				new Response(JSON.stringify({ response: { numFound: 8 } }), {
+					status: 200,
+				}),
 			);
 
 		const handler = await importSetup();
@@ -255,14 +279,19 @@ describe("compass_setup — check action (extended)", () => {
 		const ctx = makeCtx({
 			solrClient: makeMockSolrClient({ health: async () => true }),
 		});
-		// First exists, second doesn't (404)
+		// First exists, second doesn't (404), third exists
 		fetchSpy
 			.mockResolvedValueOnce(
 				new Response(JSON.stringify({ response: { numFound: 1 } }), {
 					status: 200,
 				}),
 			)
-			.mockResolvedValueOnce(new Response("Not Found", { status: 404 }));
+			.mockResolvedValueOnce(new Response("Not Found", { status: 404 }))
+			.mockResolvedValueOnce(
+				new Response(JSON.stringify({ response: { numFound: 4 } }), {
+					status: 200,
+				}),
+			);
 
 		const handler = await importSetup();
 		const data = parseResult(await handler({ action: "check" }, ctx));
@@ -270,6 +299,7 @@ describe("compass_setup — check action (extended)", () => {
 		expect(missing).toHaveLength(1);
 		expect(missing).toContain("context-bazaar-user-docs");
 		expect(missing).not.toContain("context-bazaar");
+		expect(missing).not.toContain("context-bazaar-codebase");
 	});
 });
 

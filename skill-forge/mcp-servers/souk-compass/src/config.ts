@@ -5,6 +5,7 @@ export function loadConfig(): SoukCompassConfig {
 		solrUrl: process.env.SOUK_COMPASS_SOLR_URL,
 		solrCollection: process.env.SOUK_COMPASS_SOLR_COLLECTION,
 		userCollection: process.env.SOUK_COMPASS_USER_COLLECTION,
+		codebaseCollection: process.env.SOUK_COMPASS_CODEBASE_COLLECTION,
 		embedProvider: process.env.SOUK_COMPASS_EMBED_PROVIDER,
 		embedDimensions: process.env.SOUK_COMPASS_EMBED_DIMENSIONS
 			? Number(process.env.SOUK_COMPASS_EMBED_DIMENSIONS)

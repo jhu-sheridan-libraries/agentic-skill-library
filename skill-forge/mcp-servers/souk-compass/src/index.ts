@@ -4,12 +4,15 @@
  * Souk Compass MCP server
  *
  * Provides Solr-backed semantic search over context-bazaar knowledge artifacts
- * and user document collections. Exposes eleven tools via stdio transport:
+ * and user document collections. Exposes fourteen tools via stdio transport:
  *
  *   compass_setup              — manage local Solr instance
  *   compass_index_artifacts    — index catalog artifacts into Solr
  *   compass_search             — semantic search over indexed artifacts
  *   compass_index_document     — index a user document into Solr
+ *   compass_index_folder       — index a folder/codebase into Solr
+ *   compass_search_codebase    — semantic search over indexed codebase
+ *   compass_reindex_folder     — incremental re-index of a folder
  *   compass_reindex            — detect and re-index changed artifacts
  *   compass_status             — document counts and collection status
  *   compass_health             — Solr connectivity check
@@ -36,11 +39,14 @@ import type {
 	CompassHealthInput,
 	CompassIndexArtifactsInput,
 	CompassIndexDocumentInput,
+	CompassIndexFolderInput,
 	CompassProfileWorkspaceInput,
 	CompassRecallInput,
 	CompassRecallMemoryInput,
+	CompassReindexFolderInput,
 	CompassReindexInput,
 	CompassRememberInput,
+	CompassSearchCodebaseInput,
 	CompassSearchInput,
 	CompassSetupInput,
 	CompassStatusInput,
@@ -49,12 +55,15 @@ import { SoukVectorClient } from "./solr-client.js";
 import { handleCompassHealth } from "./tools/compass-health.js";
 import { handleCompassIndexArtifacts } from "./tools/compass-index.js";
 import { handleCompassIndexDocument } from "./tools/compass-index-doc.js";
+import { handleCompassIndexFolder } from "./tools/compass-index-folder.js";
 import { handleCompassProfileWorkspace } from "./tools/compass-profile-workspace.js";
 import { handleCompassRecall } from "./tools/compass-recall.js";
 import { handleCompassRecallMemory } from "./tools/compass-recall-memory.js";
 import { handleCompassReindex } from "./tools/compass-reindex.js";
+import { handleCompassReindexFolder } from "./tools/compass-reindex-folder.js";
 import { handleCompassRemember } from "./tools/compass-remember.js";
 import { handleCompassSearch } from "./tools/compass-search.js";
+import { handleCompassSearchCodebase } from "./tools/compass-search-codebase.js";
 import { handleCompassSetup } from "./tools/compass-setup.js";
 import { handleCompassStatus } from "./tools/compass-status.js";
 import type { ToolContext, ToolResult } from "./tools/types.js";
@@ -89,6 +98,15 @@ const userSolrClient = new SoukVectorClient(
 	},
 );
 
+const codebaseSolrClient = new SoukVectorClient(
+	config.solrUrl,
+	config.codebaseCollection,
+	{
+		efSearchScaleFactor: config.efSearchScaleFactor,
+		filteredSearchThreshold: config.filteredSearchThreshold,
+	},
+);
+
 const embeddingProvider = new CachedEmbeddingProvider({
 	inner: rawProvider,
 	tiers: config.cacheTiers,
@@ -100,6 +118,7 @@ const embeddingProvider = new CachedEmbeddingProvider({
 const toolContext: ToolContext = {
 	solrClient,
 	userSolrClient,
+	codebaseSolrClient,
 	embeddingProvider,
 	config,
 	pluginRoot: PLUGIN_ROOT,
@@ -408,6 +427,134 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 				},
 			},
 		},
+		{
+			name: "compass_index_folder",
+			description:
+				"Index source files from a folder (e.g. a project codebase) into Solr for semantic code search. Walks the directory, reads text files, chunks them, generates embeddings, and stores vectors in a dedicated codebase collection separate from the skill index.",
+			inputSchema: {
+				type: "object" as const,
+				required: ["path"],
+				properties: {
+					path: {
+						type: "string",
+						description: "Absolute or relative path to the folder to index.",
+					},
+					include: {
+						type: "array",
+						items: { type: "string" },
+						description:
+							'Glob patterns for files to include (default: ["**/*"]).',
+					},
+					exclude: {
+						type: "array",
+						items: { type: "string" },
+						description:
+							'Glob patterns for files to exclude (default: ["**/node_modules/**", "**/.git/**", "**/dist/**", "**/build/**", "**/*.lock", "**/package-lock.json"]).',
+					},
+					maxFileSize: {
+						type: "number",
+						description:
+							"Maximum file size in bytes to index (default: 100000).",
+					},
+					chunked: {
+						type: "boolean",
+						description:
+							"Split large files into chunks before indexing (default: true).",
+					},
+					chunkMaxLength: {
+						type: "number",
+						description:
+							"Maximum chunk size in characters (default: 2000).",
+					},
+					clear: {
+						type: "boolean",
+						description:
+							"Clear all existing codebase documents before indexing (default: false).",
+					},
+				},
+			},
+		},
+		{
+			name: "compass_search_codebase",
+			description:
+				"Search indexed codebase files by meaning using natural language queries. Returns relevant code snippets with file paths and line numbers. Use after compass_index_folder to search project source code.",
+			inputSchema: {
+				type: "object" as const,
+				required: ["query"],
+				properties: {
+					query: {
+						type: "string",
+						description: "Natural language search query describing the code you are looking for.",
+					},
+					topK: {
+						type: "number",
+						description: "Number of results to return (default: 10).",
+					},
+					path: {
+						type: "string",
+						description: "Filter results to files under this path prefix.",
+					},
+					mode: {
+						type: "string",
+						enum: ["vector", "keyword", "hybrid"],
+						description:
+							"Search mode: vector (kNN), keyword (BM25), or hybrid (default: hybrid).",
+					},
+					hybridWeight: {
+						type: "number",
+						description:
+							"Weight given to vector results vs keyword results in hybrid mode, 0–1 (default: 0.5).",
+					},
+					snippetLength: {
+						type: "number",
+						description:
+							"Maximum character length of code snippets in results (default: 300).",
+					},
+					minScore: {
+						type: "number",
+						description:
+							"Minimum relevance score threshold, 0–1. Omit to return all results.",
+					},
+				},
+			},
+		},
+		{
+			name: "compass_reindex_folder",
+			description:
+				"Incrementally re-index a folder by detecting changes since the last index. Compares content hashes to skip unchanged files, re-embeds modified files, adds new files, and removes documents for deleted files. Much faster than a full re-index for large codebases.",
+			inputSchema: {
+				type: "object" as const,
+				required: ["path"],
+				properties: {
+					path: {
+						type: "string",
+						description: "Absolute or relative path to the folder to re-index.",
+					},
+					include: {
+						type: "array",
+						items: { type: "string" },
+						description:
+							'Glob patterns for files to include (default: ["**/*"]).',
+					},
+					exclude: {
+						type: "array",
+						items: { type: "string" },
+						description:
+							'Glob patterns for files to exclude (default: ["**/node_modules/**", "**/.git/**", "**/dist/**", "**/build/**", "**/*.lock", "**/package-lock.json"]).',
+					},
+					maxFileSize: {
+						type: "number",
+						description:
+							"Maximum file size in bytes to index (default: 100000).",
+					},
+					chunkMaxLength: {
+						type: "number",
+						description:
+							"Maximum chunk size in characters (default: 2000).",
+					},
+				},
+			},
+		},
 	],
 }));
 
@@ -485,6 +632,24 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 			case "compass_profile_workspace":
 				result = await handleCompassProfileWorkspace(
 					args as CompassProfileWorkspaceInput,
+					toolContext,
+				);
+				break;
+			case "compass_index_folder":
+				result = await handleCompassIndexFolder(
+					args as CompassIndexFolderInput,
+					toolContext,
+				);
+				break;
+			case "compass_search_codebase":
+				result = await handleCompassSearchCodebase(
+					args as CompassSearchCodebaseInput,
+					toolContext,
+				);
+				break;
+			case "compass_reindex_folder":
+				result = await handleCompassReindexFolder(
+					args as CompassReindexFolderInput,
 					toolContext,
 				);
 				break;
