@@ -32,3 +32,6 @@ Baseline the current state before making any changes.
 - Baseline numbers recorded and displayed to user
 - Scope confirmed (user agrees on which files/directories to analyze)
 - Ready to proceed to detection phase
+
+## Next Phase
+→ Load `trim-tests-detect.md`

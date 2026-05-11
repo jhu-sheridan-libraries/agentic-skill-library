@@ -6,6 +6,7 @@
  */
 
 import type { CatalogEntry } from "./schemas";
+import { CAPABILITY_MATRIX } from "./adapters/capabilities";
 
 /**
  * Escapes HTML special characters to prevent XSS in embedded content.
@@ -2660,6 +2661,9 @@ function generateClientScript(): string {
 
       if (Object.keys(_capabilityCache).length > 0) {
         renderCaps(_capabilityCache);
+      } else if (window.__CAPABILITY_MATRIX__) {
+        _capabilityCache = window.__CAPABILITY_MATRIX__;
+        renderCaps(_capabilityCache);
       } else {
         fetch('/api/capabilities')
           .then(function(res) { return res.ok ? res.json() : {}; })
@@ -3686,7 +3690,8 @@ export function generateStaticHtmlPage(
 	contentMap: Record<string, string>,
 ): string {
 	const dataScript = `<script>window.__CATALOG_DATA__ = ${safeJsonEmbed(entries)};
-window.__ARTIFACT_CONTENT__ = ${safeJsonEmbed(contentMap)};</script>`;
+window.__ARTIFACT_CONTENT__ = ${safeJsonEmbed(contentMap)};
+window.__CAPABILITY_MATRIX__ = ${safeJsonEmbed(CAPABILITY_MATRIX)};</script>`;
 	// Use a replacer function instead of a replacement string to avoid
 	// String.replace interpreting $-sequences (e.g. $`, $') in the JSON data.
 	return generateHtmlPage().replace("</head>", () => `${dataScript}\n</head>`);

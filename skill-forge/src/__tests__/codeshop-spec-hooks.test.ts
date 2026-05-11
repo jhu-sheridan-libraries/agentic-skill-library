@@ -176,8 +176,8 @@ describe("codeshop spec-hooks — example-based tests", () => {
 
 	// ── Canonical hooks in hooks.yaml are unchanged ────────────────────
 	describe("canonical hooks in hooks.yaml are preserved", () => {
-		test("hooks.yaml has exactly 8 canonical hooks", () => {
-			expect(canonicalHooks.length).toBe(8);
+		test("hooks.yaml has exactly 9 canonical hooks", () => {
+			expect(canonicalHooks.length).toBe(9);
 		});
 
 		test("all 8 canonical hook names are present", () => {

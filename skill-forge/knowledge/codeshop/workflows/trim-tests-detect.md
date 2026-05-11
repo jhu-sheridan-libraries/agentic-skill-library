@@ -39,3 +39,6 @@ Scan the test scope for duplication and anti-patterns.
 
 - Detection report compiled with pattern, affected files, test count, and confidence level
 - Ready to present plan to user
+
+## Next Phase
+→ Load `trim-tests-plan.md`

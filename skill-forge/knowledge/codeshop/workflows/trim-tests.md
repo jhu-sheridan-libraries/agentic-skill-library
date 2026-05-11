@@ -61,7 +61,7 @@ Tests written to guard a specific migration that has long since completed. The m
 
 ## Approval Gate
 
-After Phase 3, present the plan and wait for one of:
+After the Plan phase, present the plan and wait for one of:
 
 1. **APPROVE** — execute the full plan
 2. **APPROVE WITH EXCLUSIONS** — list specific rows to skip

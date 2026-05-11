@@ -40,3 +40,6 @@ Present the consolidation plan and wait for approval.
 - If REJECT: save report, workflow ends
 - If REPLAN: return to Phase 2 with adjusted constraints
 - If APPROVE/APPROVE WITH EXCLUSIONS: proceed to Phase 4 with the approved rows
+
+## Next Phase
+→ Load `trim-tests-apply.md`
