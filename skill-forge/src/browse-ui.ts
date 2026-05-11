@@ -1174,11 +1174,11 @@ function generateClientScript(): string {
         populateMaturityFilter(catalogData);
         populateCollectionFilter(catalogData);
 
-        // In static mode, pre-select the "jhu" collection filter if it exists
+        // In static mode, pre-select the "jh-drcc" collection filter if it exists
         if (isStaticMode) {
-          var jhuCb = document.querySelector('.collection-cb[value="jhu"]');
-          if (jhuCb) {
-            jhuCb.checked = true;
+          var defaultCb = document.querySelector('.collection-cb[value="jh-drcc"]');
+          if (defaultCb) {
+            defaultCb.checked = true;
           }
         }
 

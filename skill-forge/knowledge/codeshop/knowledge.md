@@ -30,7 +30,7 @@ keywords:
   - test-optimization
   - vertical-slices
 author: Steven J. Miklovic
-version: 0.2.2
+version: 0.2.3
 harnesses:
   - kiro
 type: power
@@ -46,7 +46,7 @@ maturity: experimental
 trust: official
 audience: intermediate
 model-assumptions: []
-collections: [jhu, neon-caravan]
+collections: [jh-drcc, neon-caravan]
 inherit-hooks: false
 harness-config:
   kiro:

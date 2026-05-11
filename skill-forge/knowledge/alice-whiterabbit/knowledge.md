@@ -1,13 +1,13 @@
 ---
 name: alice-whiterabbit
-displayName: JHU White Rabbit
+displayName: JH White Rabbit
 description: Guide to ALICE (AWS Language Intelligence and Cognitive Exploration) — manage Bedrock credentials, invoke LLMs, use AI research utilities, mint DOIs, and run digital preservation workflows at Johns Hopkins. Covers CLI commands, infrastructure, TUI development, testing patterns, model selection, research prompt recipes, OAIS lifecycle, and format identification.
 keywords:
   - alice-cli
   - alice
   - bedrock
   - llm-research
-  - jhu
+  - jh-drcc
   - poetry
   - pytest
   - ruff
@@ -55,7 +55,7 @@ trust: community
 audience: intermediate
 model-assumptions: []
 collections:
-  - jhu
+  - jh-drcc
 inherit-hooks: false
 harness-config:
   kiro:

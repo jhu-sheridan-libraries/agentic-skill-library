@@ -25,7 +25,7 @@ audience: intermediate
 model-assumptions: []
 collections:
   - neon-caravan
-  - jhu
+  - jh-drcc
 inherit-hooks: false
 harness-config:
   kiro:
