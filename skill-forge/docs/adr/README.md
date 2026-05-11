@@ -46,6 +46,7 @@ ADRs document significant architectural decisions made during the project's deve
 | [034](0034-solr-10-upgrade-with-scalar-quantization.md) | Upgrade Souk Compass to Solr 10 with scalar quantized vectors | Accepted | 2026-05-03 |
 | [035](0035-codebase-indexing-as-separate-collection.md) | Codebase indexing as separate collection in Souk Compass | Proposed | 2026-05-04 |
 | [036](0036-transport-discriminated-mcp-server-schema.md) | Transport-discriminated MCP server schema with shared config builder | Accepted | 2026-05-05 |
+| [037](0037-features-filter-replaces-format-filter.md) | Features filter replaces Format filter in browse UI | Accepted | 2026-05-11 |
 
 ## Creating a New ADR
 
