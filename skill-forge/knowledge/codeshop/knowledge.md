@@ -1,28 +1,36 @@
 ---
 name: codeshop
 displayName: Codeshop 
-description: A collection of 21 developer workflow skills covering planning, design, development, testing, writing, and knowledge management. Actionable, phase-driven workflows with shared vocabulary and natural chaining. Consolidates proven practices for TDD, architecture review, domain modeling, issue triage, and documentation into a single activatable 'skill router'.
+description: A collection of 25 developer workflow skills covering planning, design, development, testing, writing, and knowledge management. Actionable, phase-driven workflows with shared vocabulary and natural chaining.
 keywords:
-  - codeshop
-  - planning
-  - interface-design
-  - test-driven-development
-  - refactoring
-  - domain-modeling
-  - issue-triage
-  - prd
-  - vertical-slices
+  - api-integration
   - architecture
-  - bug-triage
-  - qa-session
-  - skill-authoring
   - article-editing
-  - living-documentation
+  - brainstorm
+  - bug-triage
+  - churn-analysis
   - code-review-craft
+  - codeshop
   - commit-messages
+  - data-migration
   - debugging-methodology
+  - divergent-thinking
+  - domain-modeling
+  - hotspot-analysis
+  - interface-design
+  - issue-triage
+  - living-documentation
+  - plan-stress-test
+  - planning
+  - prd
+  - qa-session
+  - refactoring
+  - skill-authoring
+  - test-driven-development
+  - test-optimization
+  - vertical-slices
 author: Steven J. Miklovic
-version: 0.1.8
+version: 0.2.3
 harnesses:
   - kiro
 type: power
@@ -38,7 +46,7 @@ maturity: experimental
 trust: official
 audience: intermediate
 model-assumptions: []
-collections: [jhu, neon-caravan]
+collections: [jh-drcc, neon-caravan]
 inherit-hooks: false
 harness-config:
   kiro:
@@ -152,7 +160,7 @@ harness-config:
 
 ## Onboarding
 
-Codeshop is a collection of 21 developer workflow skills covering planning, design, development, testing, writing, and knowledge management. Each skill is either a multi-phase Workflow Skill (with step-by-step phases you progress through) or a flat Knowledge Skill (a behavioral mode or reference you load once). Together they give you structured, opinionated workflows for tasks like TDD, architecture review, domain modeling, issue triage, PRD drafting, and documentation.
+Codeshop is a collection of 25 developer workflow skills covering planning, design, development, testing, writing, and knowledge management. Each skill is either a multi-phase Workflow Skill (with step-by-step phases you progress through) or a flat Knowledge Skill (a behavioral mode or reference you load once). Together they give you structured, opinionated workflows for tasks like TDD, architecture review, domain modeling, issue triage, PRD drafting, and documentation.
 
 ### How it works
 
@@ -182,6 +190,7 @@ Match the user's request to the right steering file. Each skill is either a **Wo
 
 | Skill | Type | Steering File | Triggers | Description |
 |---|---|---|---|---|
+| diverge-options (nWave-inspired) | Knowledge | `diverge-options.md` | "what are my options", "explore approaches", "diverge", "brainstorm solutions", "compare alternatives", "different ways to" | Generate 3-5 radically different approaches to a problem before converging. Structured brainstorming that prevents premature commitment to the first idea. |
 | stress-test-plan (grill-me) | Knowledge | `stress-test-plan.md` | "grill me", "stress test", "challenge my plan" | Interview the user relentlessly about a plan or design until reaching shared understanding, resolving each branch of the decision tree. |
 | draft-prd (to-prd) | Workflow | `draft-prd.md` | "write a PRD", "product requirements", "draft PRD" | Turn the current conversation context and codebase understanding into a PRD, then submit it as a GitHub issue. |
 | compose-issues (to-issues) | Workflow | `compose-issues.md` | "create issues", "break into issues", "file issues" | Break a plan, spec, or PRD into independently-grabbable GitHub issues using tracer-bullet vertical slices. |
@@ -199,8 +208,10 @@ Match the user's request to the right steering file. Each skill is either a **Wo
 | review-changes (review-ritual catalog) | Workflow | `review-changes.md` | "review PR", "code review", "review changes" | Code review as a craft — read with intent, comment with purpose, approve with confidence. |
 | refactor-architecture (improve-codebase-architecture) | Workflow | `refactor-architecture.md` | "architecture review", "improve architecture", "codebase architecture" | Surface architectural friction and propose deepening opportunities — refactors that turn shallow modules into deep ones. |
 | challenge-domain-model (domain-model) | Workflow | `challenge-domain-model.md` | "domain model", "challenge model", "domain grilling" | Grilling session that challenges your plan against the existing domain model, sharpens terminology, and updates CONTEXT.md and ADRs inline. |
-| integrate (wire-systems) | Workflow | `integrate.md` | "integrate with", "wire up", "connect to", "API integration" | Wire an external system through a contract-first adapter with hardened error handling and end-to-end verification. |
-| migrate (data-migration) | Workflow | `migrate.md` | "migrate data", "schema migration", "data migration" | Reliable data migration with checksum verification — inventory, plan, dry-run, execute, verify. |
+| integrate (wire-systems) | Workflow | `integrate.md` | "integrate with", "wire up", "connect to", "API integration", "external service", "third-party API", "build an adapter" | Wire an external system through a contract-first adapter with hardened error handling and end-to-end verification. |
+| migrate (data-migration) | Workflow | `migrate.md` | "migrate data", "schema migration", "data migration", "move data", "database migration" | Reliable data migration with checksum verification — inventory, plan, dry-run, execute, verify. |
+| trim-tests (nWave-inspired) | Workflow | `trim-tests.md` | "trim tests", "optimize tests", "reduce test count", "test bloat", "too many tests", "test suite slow", "clean up tests" | Minimize test count while preserving coverage — detect duplication, inflation, and anti-patterns, then consolidate with explicit approval. |
+| analyze-hotspots (nWave-inspired) | Knowledge | `analyze-hotspots.md` | "hotspots", "churn analysis", "most changed files", "code crime scene", "what changes most", "high-churn files", "where should I focus" | Git change-frequency analysis to identify high-churn files. Use as a pre-filter to scope refactoring or a post-filter to prioritize findings. |
 
 ### Writing and Knowledge
 
@@ -212,6 +223,7 @@ Match the user's request to the right steering file. Each skill is either a **Wo
 | craft-commits (commit-craft catalog) | Knowledge | `craft-commits.md` | "commit message", "craft commit", "conventional commit" | Write commit messages that tell the story of why, not just what — conventional commit format with motivation over mechanics. |
 | map-context (zoom-out) | Knowledge | `map-context.md` | "zoom out", "map context", "show dependencies" | Zoom out to a higher level of abstraction and map all relevant modules and callers for an unfamiliar area of code. |
 | laconic-output (caveman) | Knowledge | `laconic-output.md` | "be brief", "laconic mode", "terse output", "spartan mode" | Spartan communication mode — every word earns its place or gets cut. Grammar stays intact, sentences stripped to their load-bearing minimum. No warmth, no hedging, no filler. |
+| list-skills (new) | Knowledge | `list-skills.md` | "list skills", "what can codeshop do", "show available workflows", "show the menu" | Present the complete codeshop skill index formatted by category with trigger phrases — a quick-reference card for all 24 workflows. |
 | author-knowledge (write-a-skill) | Workflow | `author-knowledge.md` | "write a skill", "author knowledge", "create artifact" | Author canonical knowledge artifacts with proper structure, frontmatter, and optional workflows — Skill Forge handles compilation to any harness. |
 
 ### Spec Mode Integration
@@ -487,6 +499,24 @@ Stress-test-plan fires before the first spec task to validate the design and sur
 Triage-bug loads the debugging methodology for bugfix spec tasks and narrows the search space, journal-debug provides systematic isolation of the root cause through articulation and binary search, and drive-tests implements the fix using TDD with a regression test that prevents recurrence.
 
 **Note:** The Spec-Driven Development Chain and Spec Bugfix Chain are activated automatically by spec-hooks during spec task execution. Unlike the manually-invoked chains above, these chains are triggered by `preTaskExecution` and `postTaskExecution` hook events — the developer does not need to invoke them explicitly.
+
+### Exploration Chain
+
+`diverge-options` → `stress-test-plan` → `draft-prd` → `compose-issues`
+
+Diverge generates 3-5 radically different approaches before committing to one, stress-test-plan grills the chosen approach to expose gaps, the PRD formalizes the refined plan, and issues break it into vertical slices.
+
+### Test Hygiene Chain
+
+`drive-tests` → `trim-tests` → `analyze-hotspots`
+
+TDD implements features with tests, trim-tests removes accumulated bloat (duplicates, inflation, stale nets) after the feature lands, and hotspot analysis identifies which high-churn files need the most attention next.
+
+### Hotspot-Driven Refactoring Chain
+
+`analyze-hotspots` → `refactor-architecture` → `plan-refactor`
+
+Hotspot analysis identifies the most-changed files (likely pain points), architecture review evaluates whether those hotspots are shallow modules worth deepening, and the refactor plan details the approach with scoped commits.
 
 ### Integration Chain
 

@@ -26,7 +26,7 @@ enhances: []
 trust: community
 maturity: experimental
 model-assumptions: []
-collections: [jhu, neon-caravan]
+collections: [jh-drcc, neon-caravan]
 inherit-hooks: false
 ---
 

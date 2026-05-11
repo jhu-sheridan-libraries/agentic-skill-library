@@ -1,0 +1,1 @@
+MCP server schema now supports URL-based transports (SSE, HTTP streamable) alongside stdio. A shared `buildMcpConfig` utility replaces duplicated MCP config generation across all adapters. See ADR-035.

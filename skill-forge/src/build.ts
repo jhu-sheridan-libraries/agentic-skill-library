@@ -18,7 +18,7 @@ import type {
 	WorkspaceConfig,
 	WorkspaceProject,
 } from "./schemas";
-import { SUPPORTED_HARNESSES } from "./schemas";
+import { isStdioServer, SUPPORTED_HARNESSES } from "./schemas";
 import { createTemplateEnv } from "./template-engine";
 import { embedVersion } from "./versioning";
 import { loadWorkspaceConfig, mergeKnowledgeSources } from "./workspace";
@@ -52,10 +52,7 @@ export interface BuildResult {
 }
 
 async function loadSharedMcpServers(mcpServersDir: string) {
-	const servers: Map<
-		string,
-		{ command: string; args: string[]; env: Record<string, string> }
-	> = new Map();
+	const servers: Map<string, Omit<McpServerDefinition, "name">> = new Map();
 	if (!(await exists(mcpServersDir))) return servers;
 
 	const entries = await readdir(mcpServersDir);
@@ -64,7 +61,8 @@ async function loadSharedMcpServers(mcpServersDir: string) {
 		const result = await parseMcpServersYaml(join(mcpServersDir, entry));
 		if (!isParseError(result)) {
 			for (const s of result.data) {
-				servers.set(s.name, { command: s.command, args: s.args, env: s.env });
+				const { name, ...rest } = s;
+				servers.set(name, rest);
 			}
 		}
 	}
@@ -347,7 +345,10 @@ async function buildWithWorkspace(
 			);
 			for (const [name, server] of sharedMcp) {
 				if (!localMcpNames.has(name)) {
-					projectArtifact.mcpServers.push({ name, ...server });
+					projectArtifact.mcpServers.push({
+						name,
+						...server,
+					} as McpServerDefinition);
 				}
 			}
 
@@ -567,7 +568,7 @@ export async function build(options: BuildOptions): Promise<BuildResult> {
 		const localMcpNames = new Set(artifact.mcpServers.map((s) => s.name));
 		for (const [name, server] of sharedMcp) {
 			if (!localMcpNames.has(name)) {
-				artifact.mcpServers.push({ name, ...server });
+				artifact.mcpServers.push({ name, ...server } as McpServerDefinition);
 			}
 		}
 

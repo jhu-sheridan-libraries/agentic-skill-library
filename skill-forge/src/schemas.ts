@@ -127,13 +127,72 @@ export const HooksFileSchema = z.array(CanonicalHookSchema);
 
 // --- MCP Server Definition ---
 
-export const McpServerDefinitionSchema = z.object({
+/**
+ * Stdio-based MCP server (command + args).
+ */
+export const StdioMcpServerSchema = z.object({
 	name: z.string().min(1),
+	transport: z.literal("stdio").default("stdio"),
 	command: z.string().min(1),
 	args: z.array(z.string()).default([]),
 	env: z.record(z.string(), z.string()).default({}),
+	timeout: z.number().optional(),
+	autoApprove: z.array(z.string()).optional(),
+	disabled: z.boolean().optional(),
 });
-export type McpServerDefinition = z.infer<typeof McpServerDefinitionSchema>;
+export type StdioMcpServer = z.infer<typeof StdioMcpServerSchema>;
+
+/**
+ * URL-based MCP server (SSE or HTTP streamable).
+ */
+export const UrlMcpServerSchema = z.object({
+	name: z.string().min(1),
+	transport: z.enum(["sse", "http"]),
+	url: z.string().url(),
+	env: z.record(z.string(), z.string()).default({}),
+	timeout: z.number().optional(),
+	autoApprove: z.array(z.string()).optional(),
+	disabled: z.boolean().optional(),
+});
+export type UrlMcpServer = z.infer<typeof UrlMcpServerSchema>;
+
+/**
+ * Preprocessor that infers transport from shape:
+ * - Has `url` → URL-based (default to "sse" if transport not specified)
+ * - Has `command` → stdio (default to "stdio" if transport not specified)
+ */
+const McpServerPreprocess = z.preprocess((val) => {
+	if (val && typeof val === "object" && !Array.isArray(val)) {
+		const obj = val as Record<string, unknown>;
+		if (!obj.transport) {
+			if ("url" in obj) {
+				return { ...obj, transport: "sse" };
+			}
+			return { ...obj, transport: "stdio" };
+		}
+	}
+	return val;
+}, z.union([StdioMcpServerSchema, UrlMcpServerSchema]));
+
+/**
+ * Union of stdio and URL-based MCP server definitions.
+ * Accepts objects without `transport` — infers from shape.
+ */
+export const McpServerDefinitionSchema = McpServerPreprocess;
+export type McpServerDefinition = StdioMcpServer | UrlMcpServer;
+
+/** Type guard: is this a stdio-based server? */
+export function isStdioServer(server: McpServerDefinition): server is StdioMcpServer {
+	// Handle objects that bypass Zod parsing (e.g. test fixtures without transport)
+	const s = server as Record<string, unknown>;
+	if (!s.transport || s.transport === "stdio") return "command" in s;
+	return false;
+}
+
+/** Type guard: is this a URL-based server? */
+export function isUrlServer(server: McpServerDefinition): server is UrlMcpServer {
+	return server.transport === "sse" || server.transport === "http";
+}
 
 export const McpServersFileSchema = z.array(McpServerDefinitionSchema);
 
@@ -293,6 +352,15 @@ export const CatalogEntrySchema = z.object({
 	formatByHarness: z.record(z.string(), z.string()).optional(),
 	changelog: z.boolean().default(false),
 	migrations: z.boolean().default(false),
+	// Feature flags — derived from artifact content at catalog generation time
+	features: z
+		.object({
+			hooks: z.boolean().default(false),
+			mcp: z.boolean().default(false),
+			workflows: z.boolean().default(false),
+			conditionalInclusion: z.boolean().default(false),
+		})
+		.default({}),
 	// Bazaar manifest fields
 	id: z.string().optional(),
 	license: z.string().optional(),

@@ -1,1 +1,3 @@
-[]
+- name: stackgen
+  transport: sse
+  url: https://cloud.stackgen.com/api/mcp/sse

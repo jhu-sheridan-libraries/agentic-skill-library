@@ -32,7 +32,7 @@ trust: official
 audience: intermediate
 model-assumptions: []
 collections:
-  - jhu
+  - jh-drcc
   - neon-caravan
 inherit-hooks: false
 harness-config:

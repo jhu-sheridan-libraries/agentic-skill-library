@@ -1,1 +1,10 @@
-[]
+- name: awslabs.aws-serverless-mcp-server
+  transport: stdio
+  command: uvx
+  args:
+  - awslabs.aws-serverless-mcp-server@latest
+- name: fetch
+  transport: stdio
+  command: uvx
+  args:
+  - mcp-server-fetch

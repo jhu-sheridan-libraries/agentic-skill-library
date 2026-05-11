@@ -3,6 +3,7 @@ import { renderTemplate } from "../template-engine";
 import type { HarnessCapabilityName } from "./capabilities";
 import { applyDegradation } from "./degradation";
 import type { AdapterWarning, HarnessAdapter, OutputFile } from "./types";
+import { buildMcpConfig } from "./types";
 
 const SUPPORTED_CLAUDE_EVENTS = new Set(["agent_stop"]);
 
@@ -98,14 +99,7 @@ export const claudeCodeAdapter: HarnessAdapter = (
 
 	// Generate .claude/mcp.json
 	if (artifact.mcpServers.length > 0) {
-		const mcpConfig: Record<string, unknown> = { mcpServers: {} };
-		for (const server of artifact.mcpServers) {
-			(mcpConfig.mcpServers as Record<string, unknown>)[server.name] = {
-				command: server.command,
-				args: server.args,
-				env: server.env,
-			};
-		}
+		const mcpConfig = buildMcpConfig(artifact.mcpServers);
 		const mcpContent = renderTemplate(templateEnv, "claude-code/mcp.json.njk", {
 			mcpConfig,
 		});

@@ -1,1 +1,43 @@
-[]
+- name: awslabs.cloudwatch-mcp-server
+  transport: stdio
+  command: uvx
+  args:
+  - awslabs.cloudwatch-mcp-server@latest
+  env:
+    AWS_PROFILE: default
+    AWS_REGION: us-east-1
+    FASTMCP_LOG_LEVEL: ERROR
+- name: awslabs.cloudwatch-applicationsignals-mcp-server
+  transport: stdio
+  command: uvx
+  args:
+  - awslabs.cloudwatch-applicationsignals-mcp-server@latest
+  env:
+    AWS_PROFILE: default
+    AWS_REGION: us-east-1
+    FASTMCP_LOG_LEVEL: ERROR
+- name: awslabs.cloudtrail-mcp-server
+  transport: stdio
+  command: uvx
+  args:
+  - awslabs.cloudtrail-mcp-server@latest
+  env:
+    AWS_PROFILE: default
+    AWS_REGION: us-east-1
+    FASTMCP_LOG_LEVEL: ERROR
+- name: awslabs.prometheus-mcp-server
+  transport: stdio
+  command: uvx
+  args:
+  - awslabs.prometheus-mcp-server@latest
+  env:
+    AWS_PROFILE: default
+    AWS_REGION: us-east-1
+    FASTMCP_LOG_LEVEL: ERROR
+- name: awslabs.aws-documentation-mcp-server
+  transport: stdio
+  command: uvx
+  args:
+  - awslabs.aws-documentation-mcp-server@latest
+  env:
+    FASTMCP_LOG_LEVEL: ERROR

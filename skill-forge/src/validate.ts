@@ -14,6 +14,7 @@ import {
 	parseMcpServersYaml,
 } from "./parser";
 import {
+	isStdioServer,
 	SUPPORTED_HARNESSES,
 	type ValidationError,
 	type ValidationResult,
@@ -169,13 +170,15 @@ export async function validateArtifactSecurity(
 		const mcpResult = await parseMcpServersYaml(mcpPath);
 		if (!isParseError(mcpResult)) {
 			for (const server of mcpResult.data) {
-				for (const { pattern, message } of DANGEROUS_MCP_PATTERNS) {
-					if (pattern.test(server.command)) {
-						warnings.push({
-							field: `mcp-servers[${server.name}].command`,
-							message,
-							filePath: mcpPath,
-						});
+				if (isStdioServer(server)) {
+					for (const { pattern, message } of DANGEROUS_MCP_PATTERNS) {
+						if (pattern.test(server.command)) {
+							warnings.push({
+								field: `mcp-servers[${server.name}].command`,
+								message,
+								filePath: mcpPath,
+							});
+						}
 					}
 				}
 				// Flag servers with env vars that look like credentials
