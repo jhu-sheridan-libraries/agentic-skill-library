@@ -1,7 +1,7 @@
 {
   "name": "context-bazaar",
   "version": "0.1.0",
-  "description": "A typed, discoverable knowledge bazaar for AI coding harness configurations with Solr-backed semantic search — skills, powers, workflows, prompts, and agents for Kiro, Claude Code, Copilot, Cursor, and more.",
+  "description": "A typed, discoverable knowledge bazaar for AI coding harness configurations with Solr-backed semantic search — skills, powers, workflows, prompts, and agents for Kiro, Claude Code, Codex, Copilot, Cursor, and more. Includes Factory Harness, a team-architecture meta-skill that turns a domain into an agent team and the skills they use.",
   "author": {
     "name": "Steven J. Miklovic"
   },
@@ -9,9 +9,10 @@
   "homepage": "https://github.com/thinkingsage/context-bazaar",
   "license": "BSL-1.0",
   "keywords": [
-    "claude-code", "kiro", "copilot", "cursor", "windsurf",
+    "claude-code", "kiro", "codex", "copilot", "cursor", "windsurf",
     "knowledge", "skills", "powers", "workflows", "prompts",
     "ai-coding", "context", "bazaar",
+    "harness", "agent-team", "team-architecture", "meta-skill", "orchestration", "multi-agent",
     "semantic-search", "vector-search", "solr", "embeddings"
   ],
   "skills": "./skill-forge/dist/claude-code/",

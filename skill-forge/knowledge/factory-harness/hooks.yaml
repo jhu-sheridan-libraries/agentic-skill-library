@@ -1,0 +1,23 @@
+- name: Harness Audit
+  description: Manually audit the current harness — detect drift between the agent/skill files and the orchestrator roster, and report it.
+  event: user_triggered
+  action:
+    type: ask_agent
+    prompt: >-
+      Run the Factory Harness maintenance audit (Phase 0). Read the harness's
+      native locations for this harness (agents, skills, the always-loaded
+      pointer file, hooks, and specs). Compare the actual files against what the
+      orchestrator and pointer claim, list any drift, and report a remediation
+      plan. Do not change anything until I confirm.
+
+- name: Validate Generated Harness
+  description: After a task completes, structure-check any harness artifacts that were generated or modified.
+  event: post_task
+  action:
+    type: ask_agent
+    prompt: >-
+      If this task generated or modified harness artifacts, run Factory Harness
+      Phase 6 structure validation: confirm every agent/role file is in the
+      correct native location, every skill has valid frontmatter (name +
+      description), agent/skill cross-references are consistent, and the
+      data-handoff path has no dead links. Report any failures.

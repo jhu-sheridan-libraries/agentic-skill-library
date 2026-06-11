@@ -89,6 +89,7 @@ forge guild sync
 |---------|---------------|
 | **Kiro** | Steering files, hooks, powers, skills |
 | **Claude Code** | CLAUDE.md, settings.json, MCP config |
+| **Codex** | AGENTS.md, repo-local skills, MCP config (config.toml) |
 | **GitHub Copilot** | Instructions, path-scoped instructions, AGENTS.md |
 | **Cursor** | Rules, MCP config |
 | **Windsurf** | Rules, workflows, MCP config |
