@@ -47,6 +47,8 @@ ADRs document significant architectural decisions made during the project's deve
 | [035](0035-codebase-indexing-as-separate-collection.md) | Codebase indexing as separate collection in Souk Compass | Proposed | 2026-05-04 |
 | [036](0036-transport-discriminated-mcp-server-schema.md) | Transport-discriminated MCP server schema with shared config builder | Accepted | 2026-05-05 |
 | [037](0037-features-filter-replaces-format-filter.md) | Features filter replaces Format filter in browse UI | Accepted | 2026-05-11 |
+| [038](0038-codex-as-first-class-harness.md) | Codex as a first-class harness | Accepted | 2026-06-11 |
+| [039](0039-visibility-and-priority-catalog-governance-metadata.md) | Visibility and priority catalog governance metadata | Proposed | 2026-05-11 |
 
 ## Creating a New ADR
 
