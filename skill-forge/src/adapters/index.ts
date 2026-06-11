@@ -2,6 +2,7 @@ import type { HarnessName } from "../schemas";
 import { SUPPORTED_HARNESSES } from "../schemas";
 import { claudeCodeAdapter } from "./claude-code";
 import { clineAdapter } from "./cline";
+import { codexAdapter } from "./codex";
 import { copilotAdapter } from "./copilot";
 import { cursorAdapter } from "./cursor";
 import { kiroAdapter } from "./kiro";
@@ -15,6 +16,7 @@ export { SUPPORTED_HARNESSES };
 export const adapterRegistry: Record<HarnessName, HarnessAdapter> = {
 	kiro: kiroAdapter,
 	"claude-code": claudeCodeAdapter,
+	codex: codexAdapter,
 	copilot: copilotAdapter,
 	cursor: cursorAdapter,
 	windsurf: windsurfAdapter,

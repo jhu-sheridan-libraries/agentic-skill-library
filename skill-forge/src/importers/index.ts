@@ -7,6 +7,7 @@ import type { HarnessName } from "../schemas";
 import { SUPPORTED_HARNESSES } from "../schemas";
 import { parseClaudeCode } from "./claude-code";
 import { parseCline } from "./cline";
+import { parseCodex } from "./codex";
 import { parseCopilot } from "./copilot";
 import { parseCursor } from "./cursor";
 import { parseKiro } from "./kiro";
@@ -23,6 +24,7 @@ import { parseWindsurf } from "./windsurf";
 export const HARNESS_NATIVE_PATHS: Record<HarnessName, string[]> = {
 	kiro: [".kiro/steering/*.md", ".kiro/skills/*/SKILL.md"],
 	"claude-code": ["CLAUDE.md", ".claude/settings.json"],
+	codex: ["AGENTS.md", ".codex/skills/*/SKILL.md", ".agents/skills/*/SKILL.md"],
 	copilot: [
 		".github/copilot-instructions.md",
 		".github/instructions/*.instructions.md",
@@ -46,6 +48,10 @@ export const importerRegistry: ImporterRegistry = {
 	"claude-code": {
 		nativePaths: HARNESS_NATIVE_PATHS["claude-code"],
 		parse: parseClaudeCode,
+	},
+	codex: {
+		nativePaths: HARNESS_NATIVE_PATHS.codex,
+		parse: parseCodex,
 	},
 	copilot: {
 		nativePaths: HARNESS_NATIVE_PATHS.copilot,
@@ -148,6 +154,7 @@ export async function detectHarnessFiles(
 	const result: Record<HarnessName, string[]> = {
 		kiro: [],
 		"claude-code": [],
+		codex: [],
 		copilot: [],
 		cursor: [],
 		windsurf: [],

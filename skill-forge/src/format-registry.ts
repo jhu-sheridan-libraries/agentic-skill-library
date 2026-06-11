@@ -10,6 +10,7 @@ export const HARNESS_FORMAT_REGISTRY: Record<HarnessName, HarnessFormatDef> = {
 	cursor: { formats: ["rule"], default: "rule" },
 	copilot: { formats: ["instructions", "agent"], default: "instructions" },
 	"claude-code": { formats: ["claude-md"], default: "claude-md" },
+	codex: { formats: ["agents-md", "skill"], default: "agents-md" },
 	windsurf: { formats: ["rule"], default: "rule" },
 	cline: { formats: ["rule"], default: "rule" },
 	qdeveloper: { formats: ["rule", "agent"], default: "rule" },

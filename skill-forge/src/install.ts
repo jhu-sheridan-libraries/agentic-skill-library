@@ -60,6 +60,7 @@ export interface InstallPlan {
 const HARNESS_INSTALL_PATHS: Record<HarnessName, string> = {
 	kiro: ".kiro",
 	"claude-code": ".",
+	codex: ".",
 	copilot: ".",
 	cursor: ".",
 	windsurf: ".",
@@ -194,6 +195,7 @@ const HARNESS_DETECT_PATHS: Partial<Record<HarnessName, string>> = {
 	cursor: ".cursor",
 	windsurf: ".windsurf",
 	"claude-code": ".claude",
+	codex: ".codex",
 	cline: ".clinerules",
 	qdeveloper: ".q",
 	copilot: ".github",

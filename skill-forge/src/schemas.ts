@@ -6,6 +6,7 @@ import { HARNESS_FORMAT_REGISTRY } from "./format-registry";
 export const SUPPORTED_HARNESSES = [
 	"kiro",
 	"claude-code",
+	"codex",
 	"copilot",
 	"cursor",
 	"windsurf",

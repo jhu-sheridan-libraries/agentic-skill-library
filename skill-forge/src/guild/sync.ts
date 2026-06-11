@@ -80,6 +80,7 @@ export interface SyncLockEntry {
 const HARNESS_INSTALL_PATHS: Record<HarnessName, string> = {
 	kiro: ".kiro",
 	"claude-code": ".",
+	codex: ".",
 	copilot: ".",
 	cursor: ".",
 	windsurf: ".",

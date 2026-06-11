@@ -199,6 +199,7 @@ export async function promptFrontmatter(
 		cursor: "Rule files for Cursor",
 		copilot: "Instructions or agents for GitHub Copilot",
 		"claude-code": "CLAUDE.md for Claude Code",
+		codex: "AGENTS.md and skills for OpenAI Codex",
 		windsurf: "Rule files for Windsurf",
 		cline: "Rule files for Cline",
 		qdeveloper: "Rules or agents for Amazon Q Developer",
@@ -224,6 +225,10 @@ export async function promptFrontmatter(
 		copilot: {
 			instructions: "A copilot-instructions.md file for GitHub Copilot",
 			agent: "An AGENTS.md file for GitHub Copilot agents",
+		},
+		codex: {
+			"agents-md": "An AGENTS.md repo guide loaded into every Codex session",
+			skill: "A discoverable skill under .codex/skills/<name>/SKILL.md",
 		},
 		qdeveloper: {
 			rule: "A rule file in .q/rules/",

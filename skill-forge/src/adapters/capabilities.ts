@@ -51,6 +51,22 @@ export const CAPABILITY_MATRIX: CapabilityMatrix = {
 		file_match_inclusion: { support: "none", degradation: "omit" },
 		system_prompt_merging: { support: "full" },
 	},
+	codex: {
+		// Codex has no canonical event-hook system (only the notify shell hook).
+		hooks: { support: "none", degradation: "inline" },
+		// MCP servers are first-class via ~/.codex/config.toml [mcp_servers].
+		mcp: { support: "full" },
+		// Directory scoping is via nested AGENTS.md, not glob file patterns.
+		path_scoping: { support: "none", degradation: "comment" },
+		// Workflows map naturally onto skill phase files under references/.
+		workflows: { support: "full" },
+		toggleable_rules: { support: "none", degradation: "omit" },
+		// Sub-agents exist via profiles / `codex exec`, but not as declarative files.
+		agents: { support: "partial", degradation: "inline" },
+		file_match_inclusion: { support: "none", degradation: "omit" },
+		// AGENTS.md is merged into the system prompt every session.
+		system_prompt_merging: { support: "full" },
+	},
 	copilot: {
 		hooks: { support: "none", degradation: "inline" },
 		mcp: { support: "none", degradation: "comment" },
