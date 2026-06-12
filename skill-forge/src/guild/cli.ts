@@ -299,6 +299,7 @@ interface GuildSyncOptions {
 	throttle?: string;
 	dryRun?: boolean;
 	harness?: string;
+	force?: boolean;
 }
 
 async function guildSync(opts: GuildSyncOptions): Promise<void> {
@@ -310,6 +311,7 @@ async function guildSync(opts: GuildSyncOptions): Promise<void> {
 		throttleMinutes,
 		dryRun: opts.dryRun,
 		harness: opts.harness,
+		force: opts.force,
 	});
 
 	for (const w of result.warnings) {
@@ -561,6 +563,10 @@ export function registerGuildCommands(program: Command): void {
 		)
 		.option("--dry-run", "Show what would be synced without writing files")
 		.option("--harness <name>", "Materialize only for the specified harness")
+		.option(
+			"--force",
+			"Proceed despite outcome collisions (downgrade to warnings)",
+		)
 		.action(async (opts: GuildSyncOptions) => {
 			await guildSync(opts);
 		});
