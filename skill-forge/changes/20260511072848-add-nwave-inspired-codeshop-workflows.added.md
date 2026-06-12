@@ -1,1 +1,0 @@
-Add three nWave-inspired workflows to codeshop: `analyze-hotspots` (git churn analysis), `trim-tests` (test suite optimization with approval gate), and `diverge-options` (structured brainstorming before convergence). Includes phase files for trim-tests and updated Skill Router, Workflow Composition, and keywords.

@@ -49,6 +49,9 @@ ADRs document significant architectural decisions made during the project's deve
 | [037](0037-features-filter-replaces-format-filter.md) | Features filter replaces Format filter in browse UI | Accepted | 2026-05-11 |
 | [038](0038-codex-as-first-class-harness.md) | Codex as a first-class harness | Accepted | 2026-06-11 |
 | [039](0039-visibility-and-priority-catalog-governance-metadata.md) | Visibility and priority catalog governance metadata | Proposed | 2026-05-11 |
+| [040](0040-des-style-hook-execution-with-gate-postcondition-state.md) | DES-style hook execution with gate / postcondition / state | Proposed | 2026-05-11 |
+| [041](0041-outcomes-registry-pure-core.md) | Outcomes registry as a pure-core / thin-I/O-shell | Proposed | 2026-06-12 |
+| [042](0042-mutation-testing-pure-operators-thin-runner.md) | Mutation testing as pure operators + delta/history core with a thin I/O runner | Proposed | 2026-06-12 |
 
 ## Creating a New ADR
 

@@ -95,6 +95,7 @@ async function importKiroPower(
 		"model-assumptions": [],
 		collections: opts.collections ?? [],
 		"inherit-hooks": false,
+		outcomes: [],
 		"harness-config": { kiro: { format: "power" } },
 	};
 
@@ -192,6 +193,7 @@ async function importKiroSkill(
 		"model-assumptions": [],
 		collections: opts.collections ?? [],
 		"inherit-hooks": false,
+		outcomes: [],
 	};
 
 	const frontmatterYaml = yaml.dump(fm, { lineWidth: -1 });
