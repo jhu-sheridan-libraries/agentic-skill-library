@@ -8,6 +8,7 @@ import type { AdapterWarning, HarnessAdapter, OutputFile } from "./types";
 
 const CURSOR_INCLUSION_MAP: Record<InclusionMode, string> = {
 	always: "always",
+	auto: "auto",
 	fileMatch: "auto",
 	manual: "agent-requested",
 };
