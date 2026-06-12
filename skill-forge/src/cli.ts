@@ -222,6 +222,10 @@ if (import.meta.main !== false) {
 		.command("browse")
 		.description("Browse the artifact catalog in your browser")
 		.option("--port <number>", "Port to serve on", "3131")
+		.option(
+			"--all",
+			"Include unlisted artifacts in the listing (private remain hidden)",
+		)
 		.action(browseCommand);
 
 	catalogCmd
@@ -321,6 +325,11 @@ if (import.meta.main !== false) {
 			"Append results to evals/history.jsonl for trend tracking",
 		)
 		.option("--trend", "Show score progression from evals/history.jsonl")
+		.option("--mutation", "Run mutation testing on adapter source files")
+		.option(
+			"--delta",
+			"Only mutate files changed since last mutation run (nightly-delta strategy)",
+		)
 		.action(evalCommand);
 
 	program
