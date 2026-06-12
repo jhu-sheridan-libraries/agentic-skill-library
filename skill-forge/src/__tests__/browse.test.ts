@@ -15,6 +15,7 @@ import {
 	type BrowseState,
 	escapeHtml,
 	exportCommand,
+	filterBrowseEntries,
 	generateHtmlPage,
 	generateStaticHtmlPage,
 	handleRequest,
@@ -132,6 +133,64 @@ describe("escapeHtml", () => {
 	});
 });
 
+describe("filterBrowseEntries", () => {
+	const publicEntry = makeCatalogEntry({
+		name: "public-skill",
+		visibility: "public",
+	});
+	const unlistedEntry = makeCatalogEntry({
+		name: "unlisted-skill",
+		visibility: "unlisted",
+	});
+	const privateEntry = makeCatalogEntry({
+		name: "private-skill",
+		visibility: "private",
+	});
+
+	test("default (all=false) hides unlisted entries", () => {
+		const result = filterBrowseEntries([publicEntry, unlistedEntry]);
+		expect(result.map((e) => e.name)).toEqual(["public-skill"]);
+	});
+
+	test("default (all=false) hides private entries", () => {
+		const result = filterBrowseEntries([publicEntry, privateEntry]);
+		expect(result.map((e) => e.name)).toEqual(["public-skill"]);
+	});
+
+	test("all=true shows unlisted entries", () => {
+		const result = filterBrowseEntries([publicEntry, unlistedEntry], {
+			all: true,
+		});
+		expect(result.map((e) => e.name)).toEqual([
+			"public-skill",
+			"unlisted-skill",
+		]);
+	});
+
+	test("all=true still hides private entries", () => {
+		const result = filterBrowseEntries(
+			[publicEntry, unlistedEntry, privateEntry],
+			{ all: true },
+		);
+		expect(result.map((e) => e.name)).toEqual([
+			"public-skill",
+			"unlisted-skill",
+		]);
+	});
+
+	test("entries without a visibility field are treated as visible", () => {
+		const noVisibility = makeCatalogEntry({ name: "legacy-skill" });
+		const result = filterBrowseEntries([noVisibility]);
+		expect(result.map((e) => e.name)).toEqual(["legacy-skill"]);
+	});
+
+	test("does not mutate the input array", () => {
+		const input = [publicEntry, unlistedEntry];
+		filterBrowseEntries(input);
+		expect(input.length).toBe(2);
+	});
+});
+
 describe("handleRequest", () => {
 	test("GET / returns 200 with HTML content", async () => {
 		const req = new Request("http://localhost/");
@@ -178,6 +237,44 @@ describe("handleRequest", () => {
 		expect(res.status).toBe(404);
 		const body = await res.json();
 		expect(body).toEqual({ error: "Not found" });
+	});
+
+	test("GET /api/catalog hides unlisted entries by default (BrowseState)", async () => {
+		const state: BrowseState = {
+			catalogEntries: [
+				makeCatalogEntry({ name: "pub", visibility: "public" }),
+				makeCatalogEntry({ name: "hidden", visibility: "unlisted" }),
+			],
+			collectionsDir: "collections",
+			forgeDir: ".forge",
+			knowledgeDir: "knowledge",
+			buildHistory: [],
+		};
+		const req = new Request("http://localhost/api/catalog");
+		const res = await handleRequest(req, state, mockHtml);
+		const body = await res.json();
+		expect(body.map((e: { name: string }) => e.name)).toEqual(["pub"]);
+	});
+
+	test("GET /api/catalog shows unlisted entries when state.all is true", async () => {
+		const state: BrowseState = {
+			catalogEntries: [
+				makeCatalogEntry({ name: "pub", visibility: "public" }),
+				makeCatalogEntry({ name: "hidden", visibility: "unlisted" }),
+			],
+			collectionsDir: "collections",
+			forgeDir: ".forge",
+			knowledgeDir: "knowledge",
+			buildHistory: [],
+			all: true,
+		};
+		const req = new Request("http://localhost/api/catalog");
+		const res = await handleRequest(req, state, mockHtml);
+		const body = await res.json();
+		expect(body.map((e: { name: string }) => e.name)).toEqual([
+			"pub",
+			"hidden",
+		]);
 	});
 });
 
