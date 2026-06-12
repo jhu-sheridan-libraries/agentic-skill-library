@@ -44,6 +44,8 @@ const KNOWN_FRONTMATTER_FIELDS = new Set([
 	"changelog",
 	"collections",
 	"inherit-hooks",
+	"visibility",
+	"priority",
 ]);
 
 export interface ParseResult<T> {
