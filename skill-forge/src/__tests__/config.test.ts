@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
 	type ForgeConfig,
+	ForgeConfigSchema,
 	loadForgeConfig,
 	resolveBackendConfigs,
 } from "../config";
@@ -245,5 +246,65 @@ describe("resolveBackendConfigs", () => {
 		expect(s3.prefix).toBe("skills/");
 		expect(s3.region).toBe("us-east-1");
 		expect(s3.endpoint).toBe("https://s3.example.com");
+	});
+});
+
+
+// ── ForgeConfigSchema kiro.progressiveSteering parsing ─────────────────────────
+
+describe("ForgeConfigSchema kiro.progressiveSteering", () => {
+	test("no kiro block → kiro is undefined", () => {
+		const result = ForgeConfigSchema.safeParse({});
+		expect(result.success).toBe(true);
+		if (!result.success) throw new Error("parse failed");
+		expect(result.data.kiro).toBeUndefined();
+	});
+
+	test("empty kiro block defaults alwaysWarnThreshold to 0.5", () => {
+		const result = ForgeConfigSchema.safeParse({ kiro: {} });
+		expect(result.success).toBe(true);
+		if (!result.success) throw new Error("parse failed");
+		expect(result.data.kiro?.progressiveSteering.alwaysWarnThreshold).toBe(0.5);
+	});
+
+	test("explicit alwaysWarnThreshold of 0.8 is preserved", () => {
+		const result = ForgeConfigSchema.safeParse({
+			kiro: { progressiveSteering: { alwaysWarnThreshold: 0.8 } },
+		});
+		expect(result.success).toBe(true);
+		if (!result.success) throw new Error("parse failed");
+		expect(result.data.kiro?.progressiveSteering.alwaysWarnThreshold).toBe(0.8);
+	});
+
+	test("alwaysWarnThreshold of 1 is valid (upper bound)", () => {
+		const result = ForgeConfigSchema.safeParse({
+			kiro: { progressiveSteering: { alwaysWarnThreshold: 1 } },
+		});
+		expect(result.success).toBe(true);
+		if (!result.success) throw new Error("parse failed");
+		expect(result.data.kiro?.progressiveSteering.alwaysWarnThreshold).toBe(1);
+	});
+
+	test("alwaysWarnThreshold of 0 is valid (lower bound)", () => {
+		const result = ForgeConfigSchema.safeParse({
+			kiro: { progressiveSteering: { alwaysWarnThreshold: 0 } },
+		});
+		expect(result.success).toBe(true);
+		if (!result.success) throw new Error("parse failed");
+		expect(result.data.kiro?.progressiveSteering.alwaysWarnThreshold).toBe(0);
+	});
+
+	test("alwaysWarnThreshold of 1.5 is rejected (exceeds max 1)", () => {
+		const result = ForgeConfigSchema.safeParse({
+			kiro: { progressiveSteering: { alwaysWarnThreshold: 1.5 } },
+		});
+		expect(result.success).toBe(false);
+	});
+
+	test("alwaysWarnThreshold of -0.1 is rejected (below min 0)", () => {
+		const result = ForgeConfigSchema.safeParse({
+			kiro: { progressiveSteering: { alwaysWarnThreshold: -0.1 } },
+		});
+		expect(result.success).toBe(false);
 	});
 });

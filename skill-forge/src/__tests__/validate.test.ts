@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { ASSET_CONVENTION_RULES } from "../asset-conventions";
 import { CATEGORIES, type Category, FrontmatterSchema } from "../schemas";
 import { validateAll, validateArtifact } from "../validate";
 
@@ -449,5 +450,263 @@ Body content.`,
 			expect(r.valid).toBe(true);
 			expect(r.warnings).toBeUndefined();
 		}
+	});
+});
+
+describe("Kiro Progressive Steering validation rules", () => {
+	/**
+	 * Validates: Requirement 1.3
+	 * Invalid harness-config.kiro.inclusion value is rejected by zod with a
+	 * validation error naming the field.
+	 */
+	test("invalid inclusion enum value produces error via zod", async () => {
+		const artifactDir = join(tempDir, "invalid-inclusion");
+		await mkdir(artifactDir, { recursive: true });
+		await writeFile(
+			join(artifactDir, "knowledge.md"),
+			`---
+name: invalid-inclusion
+harnesses:
+  - kiro
+harness-config:
+  kiro:
+    inclusion: bogus
+---
+Body content.`,
+		);
+
+		const result = await validateArtifact(artifactDir);
+		expect(result.valid).toBe(false);
+		const inclusionError = result.errors.find(
+			(e) =>
+				e.field === "harness-config.kiro.inclusion" ||
+				e.message.includes("inclusion"),
+		);
+		expect(inclusionError).toBeDefined();
+	});
+
+	/**
+	 * Validates: Requirement 1.4
+	 * inclusion: "fileMatch" without fileMatchPattern produces a validation error.
+	 */
+	test("fileMatch without fileMatchPattern produces error", async () => {
+		const artifactDir = join(tempDir, "filematch-no-pattern");
+		await mkdir(artifactDir, { recursive: true });
+		await writeFile(
+			join(artifactDir, "knowledge.md"),
+			`---
+name: filematch-no-pattern
+harnesses:
+  - kiro
+harness-config:
+  kiro:
+    inclusion: fileMatch
+---
+Body content.`,
+		);
+
+		const result = await validateArtifact(artifactDir);
+		expect(result.valid).toBe(false);
+		const fmpError = result.errors.find(
+			(e) => e.field === "harness-config.kiro.fileMatchPattern",
+		);
+		expect(fmpError).toBeDefined();
+		expect(fmpError?.message).toContain("fileMatchPattern");
+		expect(fmpError?.message).toContain("fileMatch");
+	});
+
+	/**
+	 * Validates: Requirement 1.5
+	 * inclusion: "always" with a fileMatchPattern produces a warning.
+	 */
+	test("always with fileMatchPattern produces warning", async () => {
+		const artifactDir = join(tempDir, "always-with-pattern");
+		await mkdir(artifactDir, { recursive: true });
+		await writeFile(
+			join(artifactDir, "knowledge.md"),
+			`---
+name: always-with-pattern
+harnesses:
+  - kiro
+harness-config:
+  kiro:
+    inclusion: always
+    fileMatchPattern: "src/**"
+---
+Body content.`,
+		);
+
+		const result = await validateArtifact(artifactDir);
+		expect(result.valid).toBe(true);
+		const fmpWarning = result.warnings?.find(
+			(w) => w.field === "harness-config.kiro.fileMatchPattern",
+		);
+		expect(fmpWarning).toBeDefined();
+		expect(fmpWarning?.message).toContain("ignored");
+	});
+
+	/**
+	 * Validates: Requirement 4.1
+	 * reference-pack with resolved Kiro inclusion "always" produces a warning
+	 * citing reference-pack-must-be-manual.
+	 */
+	test("reference-pack with resolved always produces warning", async () => {
+		const artifactDir = join(tempDir, "ref-pack-always");
+		await mkdir(artifactDir, { recursive: true });
+		await writeFile(
+			join(artifactDir, "knowledge.md"),
+			`---
+name: ref-pack-always
+type: reference-pack
+harnesses:
+  - kiro
+harness-config:
+  kiro:
+    inclusion: always
+---
+Body content.`,
+		);
+
+		const result = await validateArtifact(artifactDir);
+		expect(result.valid).toBe(true);
+		const refPackWarning = result.warnings?.find(
+			(w) =>
+				w.message ===
+				ASSET_CONVENTION_RULES["reference-pack-must-be-manual"],
+		);
+		expect(refPackWarning).toBeDefined();
+	});
+
+	/**
+	 * Validates: Requirement 4.2
+	 * power-format with resolved inclusion "always" produces kiro-power-should-be-progressive warning.
+	 */
+	test("power-format with resolved always produces progressive warning", async () => {
+		const artifactDir = join(tempDir, "power-always");
+		await mkdir(artifactDir, { recursive: true });
+		await writeFile(
+			join(artifactDir, "knowledge.md"),
+			`---
+name: power-always
+harnesses:
+  - kiro
+harness-config:
+  kiro:
+    format: power
+    inclusion: always
+---
+Body content.`,
+		);
+
+		const result = await validateArtifact(artifactDir);
+		expect(result.valid).toBe(true);
+		const powerWarning = result.warnings?.find(
+			(w) =>
+				w.message ===
+				ASSET_CONVENTION_RULES["kiro-power-should-be-progressive"],
+		);
+		expect(powerWarning).toBeDefined();
+	});
+
+	/**
+	 * Validates: Requirement 4.3
+	 * power-format with workflows and resolved always produces
+	 * kiro-power-workflow-should-be-progressive warning.
+	 */
+	test("power-format with workflows and resolved always produces workflow warning", async () => {
+		const artifactDir = join(tempDir, "power-workflow-always");
+		await mkdir(artifactDir, { recursive: true });
+		const workflowsDir = join(artifactDir, "workflows");
+		await mkdir(workflowsDir, { recursive: true });
+		await writeFile(
+			join(workflowsDir, "step-1.md"),
+			`---
+name: step-1
+---
+Workflow step content.`,
+		);
+		await writeFile(
+			join(artifactDir, "knowledge.md"),
+			`---
+name: power-workflow-always
+harnesses:
+  - kiro
+harness-config:
+  kiro:
+    format: power
+    inclusion: always
+---
+Body content.`,
+		);
+
+		const result = await validateArtifact(artifactDir);
+		expect(result.valid).toBe(true);
+		const workflowWarning = result.warnings?.find(
+			(w) =>
+				w.message ===
+				ASSET_CONVENTION_RULES["kiro-power-workflow-should-be-progressive"],
+		);
+		expect(workflowWarning).toBeDefined();
+	});
+
+	/**
+	 * Validates: Requirement 8.2
+	 * An artifact with top-level inclusion: "auto" (not a valid Kiro mode, treated as unset)
+	 * and no harness-config.kiro.inclusion falls through to source="default" and
+	 * produces an informational warning.
+	 */
+	test("default inclusion (source=default) produces informational warning", async () => {
+		const artifactDir = join(tempDir, "default-inclusion");
+		await mkdir(artifactDir, { recursive: true });
+		await writeFile(
+			join(artifactDir, "knowledge.md"),
+			`---
+name: default-inclusion
+inclusion: auto
+harnesses:
+  - kiro
+---
+Body content.`,
+		);
+
+		const result = await validateArtifact(artifactDir);
+		expect(result.valid).toBe(true);
+		const defaultWarning = result.warnings?.find(
+			(w) =>
+				w.message ===
+				ASSET_CONVENTION_RULES["kiro-default-inclusion-informational"],
+		);
+		expect(defaultWarning).toBeDefined();
+	});
+
+	/**
+	 * Validates: Requirement 8.3
+	 * Explicit harness-config.kiro.inclusion: "always" suppresses the default
+	 * informational warning (source is "harness-config", not "default").
+	 */
+	test("explicit inclusion always suppresses informational warning", async () => {
+		const artifactDir = join(tempDir, "explicit-always");
+		await mkdir(artifactDir, { recursive: true });
+		await writeFile(
+			join(artifactDir, "knowledge.md"),
+			`---
+name: explicit-always
+harnesses:
+  - kiro
+harness-config:
+  kiro:
+    inclusion: always
+---
+Body content.`,
+		);
+
+		const result = await validateArtifact(artifactDir);
+		expect(result.valid).toBe(true);
+		const defaultWarning = result.warnings?.find(
+			(w) =>
+				w.message ===
+				ASSET_CONVENTION_RULES["kiro-default-inclusion-informational"],
+		);
+		expect(defaultWarning).toBeUndefined();
 	});
 });

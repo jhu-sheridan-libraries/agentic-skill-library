@@ -67,6 +67,16 @@ export const ForgeConfigSchema = z.object({
 				.optional(),
 		})
 		.optional(),
+
+	kiro: z
+		.object({
+			progressiveSteering: z
+				.object({
+					alwaysWarnThreshold: z.number().min(0).max(1).default(0.5),
+				})
+				.default({ alwaysWarnThreshold: 0.5 }),
+		})
+		.optional(),
 });
 
 export type ForgeConfig = z.infer<typeof ForgeConfigSchema>;
