@@ -1,0 +1,44 @@
+[
+  {
+    "expectedFired": ["auth-rules"],
+    "openedFiles": ["src/auth/login.ts"],
+    "promptId": "open-auth-file",
+    "userReferences": []
+  },
+  {
+    "expectedFired": [],
+    "openedFiles": ["config/settings.yaml"],
+    "promptId": "open-config-file",
+    "userReferences": []
+  },
+  {
+    "expectedFired": ["security-refs"],
+    "openedFiles": [],
+    "promptId": "reference-security",
+    "userReferences": ["security-refs"]
+  },
+  {
+    "expectedFired": ["auth-rules"],
+    "openedFiles": ["src/utils/helpers.ts"],
+    "promptId": "open-src-utils",
+    "userReferences": []
+  },
+  {
+    "expectedFired": [],
+    "openedFiles": [],
+    "promptId": "bare-prompt",
+    "userReferences": []
+  },
+  {
+    "expectedFired": ["auth-rules"],
+    "openedFiles": ["src/middleware/auth.ts", "src/routes/api.ts"],
+    "promptId": "open-multiple-src-files",
+    "userReferences": []
+  },
+  {
+    "expectedFired": ["auth-rules", "security-refs"],
+    "openedFiles": ["src/services/user-service.ts"],
+    "promptId": "src-file-with-security-ref",
+    "userReferences": ["security-refs"]
+  }
+]

@@ -7,9 +7,14 @@ import {
 	readFile,
 	writeFile,
 } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
 import chalk from "chalk";
 import yaml from "js-yaml";
+import {
+	gradeProgressiveSteering,
+	type Workload,
+} from "./eval/rubrics/kiro-progressive-steering";
 import type { HarnessName } from "./schemas";
 import { type createTemplateEnv, renderTemplate } from "./template-engine";
 
@@ -515,13 +520,27 @@ export async function evalCommand(
 		return;
 	}
 
+	// ── Rubric dispatch ──────────────────────────────────────────────────────
+	// When --harness kiro is selected and no --rubric is provided, default to
+	// progressive-steering. When --rubric is explicitly provided, dispatch to
+	// the matching rubric grader.
+	const harness = opts.harness as HarnessName | undefined;
+	const rubric =
+		(opts.rubric as string | undefined) ??
+		(harness === "kiro" ? "progressive-steering" : undefined);
+
+	if (rubric === "progressive-steering") {
+		await runProgressiveSteeringRubric(opts);
+		return;
+	}
+
 	const threshold = opts.threshold
 		? Number.parseFloat(opts.threshold as string)
 		: 0.7;
 
 	const results = await runEvals({
 		artifactName: artifact,
-		harness: opts.harness as HarnessName | undefined,
+		harness,
 		threshold,
 		output: opts.output as string | undefined,
 		ci: opts.ci as boolean | undefined,
@@ -629,6 +648,225 @@ export async function evalCommand(
 	}
 
 	if (hasFailures) {
+		process.exit(1);
+	}
+}
+
+// ── Progressive Steering rubric runner ───────────────────────────────────────
+
+/**
+ * Serialise an object as canonical JSON: sorted keys at every nesting level,
+ * stable list order (lists are already stable-sorted by the grader).
+ */
+function canonicalJsonStringify(obj: unknown): string {
+	return JSON.stringify(
+		obj,
+		(_key, value) => {
+			if (value && typeof value === "object" && !Array.isArray(value)) {
+				const sorted: Record<string, unknown> = {};
+				for (const k of Object.keys(value).sort()) {
+					sorted[k] = (value as Record<string, unknown>)[k];
+				}
+				return sorted;
+			}
+			return value;
+		},
+		2,
+	);
+}
+
+/**
+ * Run the progressive-steering rubric against a compiled build.
+ *
+ * When --build is provided, uses it as the buildDir directly.
+ * Otherwise builds source artifacts into a tempdir.
+ *
+ * When --json is set, serialises ProgressiveSteeringResult as canonical JSON
+ * to --output path or stdout.
+ *
+ * Exit code: green/yellow → 0, red → 1.
+ */
+async function runProgressiveSteeringRubric(
+	opts: Record<string, unknown>,
+): Promise<void> {
+	const buildDir = opts.build as string | undefined;
+	const jsonOutput = opts.json as boolean | undefined;
+	const outputPath = opts.output as string | undefined;
+
+	// Determine the build directory to grade
+	let effectiveBuildDir: string;
+
+	if (buildDir) {
+		// Use the provided build directory
+		effectiveBuildDir = resolve(buildDir);
+		if (!(await exists(effectiveBuildDir))) {
+			console.error(
+				chalk.red(
+					`Error: Build directory does not exist: ${effectiveBuildDir}`,
+				),
+			);
+			process.exit(1);
+		}
+	} else {
+		// Build into a tempdir from source artifacts
+		const { build, SOURCE_DIRS } = await import("./build");
+		const tempDir = join(tmpdir(), `forge-eval-${Date.now()}`);
+		await mkdir(tempDir, { recursive: true });
+		const templatesDir = "templates/harness-adapters";
+		const mcpServersDir = "mcp-servers";
+
+		await build({
+			knowledgeDirs: [...SOURCE_DIRS],
+			distDir: tempDir,
+			templatesDir,
+			mcpServersDir,
+			harness: "kiro",
+		});
+
+		effectiveBuildDir = join(tempDir, "kiro");
+	}
+
+	// Load workload from the first discovered fixture that has a workload.json,
+	// or use an empty workload when none is found.
+	let workload: Workload[] = [];
+	const fixturesBase = "fixtures/eval/kiro-progressive-steering";
+	if (await exists(fixturesBase)) {
+		const scenarios = await readdir(fixturesBase, { withFileTypes: true });
+		for (const scenario of scenarios) {
+			if (!scenario.isDirectory()) continue;
+			const workloadPath = join(fixturesBase, scenario.name, "workload.json");
+			if (await exists(workloadPath)) {
+				const raw = await readFile(workloadPath, "utf-8");
+				workload = JSON.parse(raw) as Workload[];
+				break;
+			}
+		}
+	}
+
+	// Run the grader
+	const result = await gradeProgressiveSteering(effectiveBuildDir, workload);
+
+	// Output results
+	if (jsonOutput) {
+		const jsonStr = canonicalJsonStringify(result);
+		if (outputPath) {
+			await writeFile(outputPath, jsonStr, "utf-8");
+			console.error(chalk.green(`Rubric result written to ${outputPath}`));
+		} else {
+			console.log(jsonStr);
+		}
+	} else {
+		// Polished terminal output: banner, metric table, per-file details
+		const ratingColor =
+			result.rating === "green"
+				? chalk.green
+				: result.rating === "yellow"
+					? chalk.yellow
+					: chalk.red;
+		const ratingIcon =
+			result.rating === "green"
+				? "🟢"
+				: result.rating === "yellow"
+					? "🟡"
+					: "🔴";
+
+		// Rating banner
+		console.error("");
+		console.error(
+			ratingColor(
+				`  ${ratingIcon} Progressive Steering: ${result.rating.toUpperCase()}  (${result.score.toFixed(1)}/100)`,
+			),
+		);
+		console.error("");
+
+		// Metric table header
+		const hdr = `  ${"Metric".padEnd(8)} ${"Target".padEnd(10)} ${"Actual".padEnd(10)} Status`;
+		console.error(chalk.bold(hdr));
+		console.error(`  ${"─".repeat(42)}`);
+
+		// Green-gate targets per Design §3
+		const metrics: Array<{
+			name: string;
+			target: string;
+			actual: number;
+			pass: boolean;
+		}> = [
+			{
+				name: "AOCW",
+				target: "≤ 0.40",
+				actual: result.metrics.AOCW,
+				pass: result.metrics.AOCW <= 0.4,
+			},
+			{
+				name: "PR",
+				target: "≥ 0.60",
+				actual: result.metrics.PR,
+				pass: result.metrics.PR >= 0.6,
+			},
+			{
+				name: "FMP",
+				target: "≥ 0.75",
+				actual: result.metrics.FMP,
+				pass: result.metrics.FMP >= 0.75,
+			},
+			{
+				name: "MD",
+				target: "≥ 0.50",
+				actual: result.metrics.MD,
+				pass: result.metrics.MD >= 0.5,
+			},
+			{
+				name: "DER",
+				target: "≤ 0.50",
+				actual: result.metrics.DER,
+				pass: result.metrics.DER <= 0.5,
+			},
+			{
+				name: "WCA",
+				target: "≥ 0.50",
+				actual: result.metrics.WCA,
+				pass: result.metrics.WCA >= 0.5,
+			},
+		];
+
+		for (const m of metrics) {
+			const status = m.pass ? chalk.green("✓") : chalk.red("✗");
+			const actualStr = m.actual.toFixed(3);
+			console.error(
+				`  ${m.name.padEnd(8)} ${m.target.padEnd(10)} ${actualStr.padEnd(10)} ${status}`,
+			);
+		}
+		console.error("");
+
+		// Per-file details when rating ≠ Green
+		if (result.rating !== "green") {
+			const { defaultSourceArtifacts, misalignedWizardArtifacts } =
+				result.details;
+			if (defaultSourceArtifacts.length > 0) {
+				console.error(
+					chalk.yellow("  Artifacts using default inclusion (should be explicit):"),
+				);
+				for (const name of defaultSourceArtifacts) {
+					console.error(`    • ${name}`);
+				}
+				console.error("");
+			}
+			if (misalignedWizardArtifacts.length > 0) {
+				console.error(
+					chalk.yellow(
+						"  Power/reference-pack artifacts with always-on inclusion:",
+					),
+				);
+				for (const name of misalignedWizardArtifacts) {
+					console.error(`    • ${name}`);
+				}
+				console.error("");
+			}
+		}
+	}
+
+	// Propagate rating to exit code: green/yellow → 0, red → 1
+	if (result.rating === "red") {
 		process.exit(1);
 	}
 }

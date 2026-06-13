@@ -1,0 +1,43 @@
+---
+inclusion: always
+description: "General coding best practices and conventions for writing clean, maintainable code."
+---
+
+# General Coding Best Practices
+
+Follow these coding conventions to write clean, maintainable, and robust code across all projects.
+
+## Naming and Style
+
+- Use descriptive variable names that convey intent and purpose.
+- Prefer camelCase for variables and functions, PascalCase for classes and types.
+- Keep functions short and focused on a single responsibility.
+- Avoid deeply nested conditionals; prefer early returns and guard clauses.
+
+## Code Organization
+
+- Group related functionality into modules with clear boundaries.
+- Separate concerns: keep business logic distinct from I/O and presentation.
+- Use consistent file and directory naming conventions across the project.
+- Document public APIs with concise, accurate descriptions.
+
+## Error Handling
+
+- Always handle errors explicitly rather than swallowing them silently.
+- Use typed error classes to distinguish recoverable from unrecoverable failures.
+- Log errors with sufficient context for debugging: include the operation, input summary, and stack trace.
+- Prefer fail-fast behaviour in development; degrade gracefully in production.
+
+## Testing Practices
+
+- Write tests before or alongside implementation, not as an afterthought.
+- Cover the happy path, edge cases, and known failure modes.
+- Keep test assertions focused: one logical assertion per test case.
+- Use descriptive test names that explain the expected behaviour.
+
+## Code Review
+
+- Review for correctness, readability, and maintainability in that order.
+- Flag potential performance issues only when they are measurable.
+- Suggest improvements constructively; explain the reasoning behind each suggestion.
+- Approve when the code is correct and understandable, even if you would have written it differently.

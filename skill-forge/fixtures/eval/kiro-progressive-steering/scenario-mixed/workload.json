@@ -1,0 +1,227 @@
+[
+  {
+    "expectedFired": [],
+    "openedFiles": [],
+    "promptId": "bare-prompt-code-review",
+    "userReferences": []
+  },
+  {
+    "expectedFired": [],
+    "openedFiles": [],
+    "promptId": "bare-prompt-explain-concept",
+    "userReferences": []
+  },
+  {
+    "expectedFired": [],
+    "openedFiles": [],
+    "promptId": "bare-prompt-general-question",
+    "userReferences": []
+  },
+  {
+    "expectedFired": [],
+    "openedFiles": [],
+    "promptId": "bare-prompt-refactor-advice",
+    "userReferences": []
+  },
+  {
+    "expectedFired": [
+      "typescript-patterns"
+    ],
+    "openedFiles": [
+      "src/auth/login.ts"
+    ],
+    "promptId": "open-auth-login-ts",
+    "userReferences": []
+  },
+  {
+    "expectedFired": [],
+    "openedFiles": [
+      ".github/workflows/ci.yml"
+    ],
+    "promptId": "open-ci-yml-no-match",
+    "userReferences": []
+  },
+  {
+    "expectedFired": [
+      "typescript-patterns"
+    ],
+    "openedFiles": [
+      "src/components/button.ts"
+    ],
+    "promptId": "open-component-ts",
+    "userReferences": []
+  },
+  {
+    "expectedFired": [],
+    "openedFiles": [
+      "config/nginx.conf"
+    ],
+    "promptId": "open-config-no-match",
+    "userReferences": []
+  },
+  {
+    "expectedFired": [],
+    "openedFiles": [
+      "Dockerfile"
+    ],
+    "promptId": "open-dockerfile-no-match",
+    "userReferences": []
+  },
+  {
+    "expectedFired": [],
+    "openedFiles": [
+      "docs/architecture.md"
+    ],
+    "promptId": "open-docs-no-match",
+    "userReferences": []
+  },
+  {
+    "expectedFired": [
+      "python-patterns",
+      "typescript-patterns"
+    ],
+    "openedFiles": [
+      "scripts/deploy.py",
+      "src/config/settings.ts"
+    ],
+    "promptId": "open-mixed-ts-and-py",
+    "userReferences": []
+  },
+  {
+    "expectedFired": [
+      "typescript-patterns"
+    ],
+    "openedFiles": [
+      "src/models/user.ts",
+      "src/schemas/auth.ts"
+    ],
+    "promptId": "open-multiple-ts-files",
+    "userReferences": []
+  },
+  {
+    "expectedFired": [],
+    "openedFiles": [
+      "package.json"
+    ],
+    "promptId": "open-package-json-no-match",
+    "userReferences": []
+  },
+  {
+    "expectedFired": [
+      "python-patterns"
+    ],
+    "openedFiles": [
+      "lib/utils.py"
+    ],
+    "promptId": "open-python-lib",
+    "userReferences": []
+  },
+  {
+    "expectedFired": [
+      "python-patterns"
+    ],
+    "openedFiles": [
+      "scripts/migrate.py"
+    ],
+    "promptId": "open-python-script",
+    "userReferences": []
+  },
+  {
+    "expectedFired": [
+      "python-patterns"
+    ],
+    "openedFiles": [
+      "tests/test_auth.py"
+    ],
+    "promptId": "open-python-test",
+    "userReferences": []
+  },
+  {
+    "expectedFired": [],
+    "openedFiles": [
+      "README.md"
+    ],
+    "promptId": "open-readme-no-match",
+    "userReferences": []
+  },
+  {
+    "expectedFired": [
+      "typescript-patterns"
+    ],
+    "openedFiles": [
+      "src/utils/helpers.ts"
+    ],
+    "promptId": "open-utils-ts",
+    "userReferences": []
+  },
+  {
+    "expectedFired": [
+      "api-reference"
+    ],
+    "openedFiles": [],
+    "promptId": "ref-api-reference",
+    "userReferences": [
+      "api-reference"
+    ]
+  },
+  {
+    "expectedFired": [
+      "api-reference"
+    ],
+    "openedFiles": [
+      "docs/openapi.yaml"
+    ],
+    "promptId": "ref-api-with-non-matching-open",
+    "userReferences": [
+      "api-reference"
+    ]
+  },
+  {
+    "expectedFired": [
+      "api-reference",
+      "typescript-patterns"
+    ],
+    "openedFiles": [
+      "src/routes/users.ts"
+    ],
+    "promptId": "ref-api-with-ts-open",
+    "userReferences": [
+      "api-reference"
+    ]
+  },
+  {
+    "expectedFired": [
+      "api-reference",
+      "deployment-guide"
+    ],
+    "openedFiles": [],
+    "promptId": "ref-both-manual-files",
+    "userReferences": [
+      "api-reference",
+      "deployment-guide"
+    ]
+  },
+  {
+    "expectedFired": [
+      "deployment-guide",
+      "python-patterns"
+    ],
+    "openedFiles": [
+      "scripts/deploy.py"
+    ],
+    "promptId": "ref-deploy-with-py-open",
+    "userReferences": [
+      "deployment-guide"
+    ]
+  },
+  {
+    "expectedFired": [
+      "deployment-guide"
+    ],
+    "openedFiles": [],
+    "promptId": "ref-deployment-guide",
+    "userReferences": [
+      "deployment-guide"
+    ]
+  }
+]

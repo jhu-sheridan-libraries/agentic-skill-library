@@ -1,0 +1,32 @@
+[
+  {
+    "promptId": "bare-prompt-greeting",
+    "openedFiles": [],
+    "userReferences": [],
+    "expectedFired": []
+  },
+  {
+    "promptId": "bare-prompt-explain-concept",
+    "openedFiles": [],
+    "userReferences": [],
+    "expectedFired": []
+  },
+  {
+    "promptId": "bare-prompt-refactor-question",
+    "openedFiles": [],
+    "userReferences": [],
+    "expectedFired": []
+  },
+  {
+    "promptId": "bare-prompt-architecture-advice",
+    "openedFiles": [],
+    "userReferences": [],
+    "expectedFired": []
+  },
+  {
+    "promptId": "bare-prompt-debugging-help",
+    "openedFiles": [],
+    "userReferences": [],
+    "expectedFired": []
+  }
+]
