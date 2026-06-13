@@ -3,7 +3,17 @@ import type { CanonicalEvent, CanonicalHook } from "../schemas";
 import { renderTemplate } from "../template-engine";
 import type { HarnessCapabilityName } from "./capabilities";
 import { applyDegradation } from "./degradation";
-import type { AdapterWarning, HarnessAdapter, OutputFile } from "./types";
+import { parseKiroSteeringFile } from "./kiro-frontmatter";
+import {
+	type ResolvedKiroInclusion,
+	resolveKiroInclusion,
+} from "./kiro-inclusion";
+import type {
+	AdapterError,
+	AdapterWarning,
+	HarnessAdapter,
+	OutputFile,
+} from "./types";
 import { buildMcpConfig } from "./types";
 
 const KIRO_EVENT_MAP: Record<CanonicalEvent, string> = {
@@ -43,6 +53,17 @@ function buildKiroHook(hook: CanonicalHook): Record<string, unknown> {
 	};
 }
 
+/**
+ * Build the HTML audit comment for a resolved Kiro inclusion.
+ * Format: `<!-- forge:kiro-inclusion: <mode> [fileMatchPattern=<glob>] -->`
+ */
+function buildAuditComment(resolved: ResolvedKiroInclusion): string {
+	if (resolved.mode === "fileMatch" && resolved.fileMatchPattern) {
+		return `<!-- forge:kiro-inclusion: fileMatch fileMatchPattern=${resolved.fileMatchPattern} -->`;
+	}
+	return `<!-- forge:kiro-inclusion: ${resolved.mode} -->`;
+}
+
 export const kiroAdapter: HarnessAdapter = (
 	artifact,
 	templateEnv,
@@ -50,6 +71,7 @@ export const kiroAdapter: HarnessAdapter = (
 ) => {
 	const files: OutputFile[] = [];
 	const warnings: AdapterWarning[] = [];
+	const errors: AdapterError[] = [];
 
 	// Capability degradation checks
 	if (context) {
@@ -111,8 +133,39 @@ export const kiroAdapter: HarnessAdapter = (
 		});
 		files.push({ relativePath: "POWER.md", content });
 
-		// Copy workflows to steering/
+		// Copy workflows to steering/ with progressive inspection
 		for (const wf of artifact.workflows) {
+			const parseResult = parseKiroSteeringFile(wf.content, wf.filename);
+			const wfInclusion =
+				parseResult.ok && parseResult.frontmatter
+					? parseResult.frontmatter.inclusion
+					: undefined;
+
+			// Req 10.3: warn when inclusion is absent or "always"
+			if (!wfInclusion || wfInclusion === "always") {
+				const message = wfInclusion === "always"
+					? `Workflow file "${wf.filename}" has inclusion: always; workflow files should be disclosed progressively (fileMatch or manual).`
+					: `Workflow file "${wf.filename}" is missing an inclusion mode; workflow files should be disclosed progressively (fileMatch or manual).`;
+
+				warnings.push({
+					artifactName: artifact.name,
+					harnessName: "kiro",
+					message,
+				});
+
+				// Req 10.4: strict mode → error + omit file
+				if (kiroConfig.progressiveWorkflowsStrict === true) {
+					errors.push({
+						artifactName: artifact.name,
+						harnessName: "kiro",
+						message,
+						field: wf.filename,
+					});
+					// Do not add this workflow file to files[]
+					continue;
+				}
+			}
+
 			files.push({
 				relativePath: `steering/${wf.filename}`,
 				content: wf.content,
@@ -120,10 +173,16 @@ export const kiroAdapter: HarnessAdapter = (
 		}
 	}
 
+	// Resolve Kiro inclusion for steering template
+	const resolved = resolveKiroInclusion(artifact);
+
 	// Generate steering .md file
 	const steeringContent = renderTemplate(templateEnv, "kiro/steering.md.njk", {
 		artifact,
 		harnessConfig: kiroConfig,
+		inclusion: resolved.mode,
+		fileMatchPattern: resolved.fileMatchPattern,
+		auditComment: buildAuditComment(resolved),
 	});
 	const steeringPath =
 		format === "power" ? `steering/${artifact.name}.md` : `${artifact.name}.md`;
@@ -167,5 +226,5 @@ export const kiroAdapter: HarnessAdapter = (
 		files.push({ relativePath: "mcp.json", content: mcpContent });
 	}
 
-	return { files, warnings };
+	return { files, warnings, errors: errors.length > 0 ? errors : undefined };
 };
