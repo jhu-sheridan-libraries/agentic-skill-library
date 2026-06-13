@@ -25,6 +25,28 @@ export const InclusionModeSchema = z.enum([
 ]);
 export type InclusionMode = z.infer<typeof InclusionModeSchema>;
 
+// --- Kiro Progressive Inclusion ---
+
+export const KiroProgressiveInclusionSchema = z.enum([
+	"always",
+	"fileMatch",
+	"manual",
+]);
+export type KiroProgressiveInclusion = z.infer<
+	typeof KiroProgressiveInclusionSchema
+>;
+
+export const KiroHarnessConfigSchema = z
+	.object({
+		format: z.enum(["steering", "power"]).optional(),
+		power: z.boolean().optional(),
+		inclusion: KiroProgressiveInclusionSchema.optional(),
+		fileMatchPattern: z.string().min(1).optional(),
+		progressiveWorkflowsStrict: z.boolean().optional(),
+		"spec-hooks": z.array(z.record(z.string(), z.unknown())).optional(),
+	})
+	.passthrough();
+
 export const AssetTypeSchema = z.enum([
 	"skill",
 	"power",
@@ -305,6 +327,21 @@ export const FrontmatterSchema = z
 					path: ["harness-config", harness, "format"],
 					message: `Invalid format "${formatValue}" for harness "${harness}". Valid values: ${registryEntry.formats.join(", ")}`,
 				});
+			}
+		}
+
+		// Validate kiro-specific harness-config through KiroHarnessConfigSchema
+		const kiroConfig = harnessConfig.kiro;
+		if (kiroConfig && typeof kiroConfig === "object") {
+			const result = KiroHarnessConfigSchema.safeParse(kiroConfig);
+			if (!result.success) {
+				for (const issue of result.error.issues) {
+					ctx.addIssue({
+						code: z.ZodIssueCode.custom,
+						path: ["harness-config", "kiro", ...issue.path.map(String)],
+						message: issue.message,
+					});
+				}
 			}
 		}
 	});
