@@ -183,6 +183,11 @@ if (import.meta.main !== false) {
 		.option("--backend <name>", "Named backend from forge.config.yaml")
 		.option("--global", "Install artifact into the global cache")
 		.option("--project <name>", "Install into a specific workspace project")
+		.option(
+			"--max-always <N>",
+			"Max number of always-mode Kiro steering files to install (-1 = no limit)",
+			(val: string) => parseInt(val, 10),
+		)
 		.action(installCommand);
 
 	program
@@ -310,6 +315,15 @@ if (import.meta.main !== false) {
 		.command("eval [artifact]")
 		.description("Run eval tests against compiled artifacts")
 		.option("--harness <name>", "Run evals for a specific harness only")
+		.option(
+			"--rubric <name>",
+			"Run a named rubric (default: progressive-steering for kiro harness)",
+		)
+		.option(
+			"--build <dir>",
+			"Point the rubric grader at an already-compiled build directory",
+		)
+		.option("--json", "Output rubric result as canonical JSON")
 		.option("--threshold <score>", "Minimum passing score (0.0–1.0)", "0.7")
 		.option("--output <path>", "Write detailed results as JSON")
 		.option("--ci", "Machine-readable output for CI pipelines")
