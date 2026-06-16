@@ -30,6 +30,7 @@ depends: []
 enhances: []
 maturity: experimental
 trust: official
+license: BSL-1.0
 audience: intermediate
 model-assumptions: []
 collections:

@@ -290,6 +290,7 @@ export async function promptFrontmatter(
 		"model-assumptions": [],
 		collections: [],
 		"inherit-hooks": false,
+		outcomes: [],
 		...(Object.keys(harnessConfig).length > 0
 			? { "harness-config": harnessConfig }
 			: {}),

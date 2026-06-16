@@ -44,6 +44,7 @@ depends: []
 enhances: []
 maturity: experimental
 trust: official
+license: BSL-1.0
 audience: intermediate
 model-assumptions: []
 collections: [jh-drcc, neon-caravan]
@@ -191,6 +192,7 @@ Match the user's request to the right steering file. Each skill is either a **Wo
 | Skill | Type | Steering File | Triggers | Description |
 |---|---|---|---|---|
 | diverge-options (nWave-inspired) | Knowledge | `diverge-options.md` | "what are my options", "explore approaches", "diverge", "brainstorm solutions", "compare alternatives", "different ways to" | Generate 3-5 radically different approaches to a problem before converging. Structured brainstorming that prevents premature commitment to the first idea. |
+| tune-rigor (nWave-inspired) | Knowledge | `tune-rigor.md` | "how much rigor", "right level of testing", "over-engineering", "tune rigor", "lean vs thorough", "how much process", "do I need acceptance tests" | Choose the right rigor profile (lean/standard/thorough/exhaustive) for a task by scoring criticality, blast radius, reversibility, and audience. Avoids over-engineering trivial work and under-testing critical work. |
 | stress-test-plan (grill-me) | Knowledge | `stress-test-plan.md` | "grill me", "stress test", "challenge my plan" | Interview the user relentlessly about a plan or design until reaching shared understanding, resolving each branch of the decision tree. |
 | draft-prd (to-prd) | Workflow | `draft-prd.md` | "write a PRD", "product requirements", "draft PRD" | Turn the current conversation context and codebase understanding into a PRD, then submit it as a GitHub issue. |
 | compose-issues (to-issues) | Workflow | `compose-issues.md` | "create issues", "break into issues", "file issues" | Break a plan, spec, or PRD into independently-grabbable GitHub issues using tracer-bullet vertical slices. |
