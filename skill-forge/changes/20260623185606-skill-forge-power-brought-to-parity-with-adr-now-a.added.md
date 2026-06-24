@@ -1,0 +1,1 @@
+skill-forge power brought to parity with adr: now a source-generated knowledge artifact (knowledge/skill-forge) using the lean Kiro power flags, with License/Privacy/Support metadata, MIT license, jh-drcc collection correction, and eval coverage
