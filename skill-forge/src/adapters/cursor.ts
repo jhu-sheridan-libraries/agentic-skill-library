@@ -3,8 +3,8 @@ import type { InclusionMode } from "../schemas";
 import { renderTemplate } from "../template-engine";
 import type { HarnessCapabilityName } from "./capabilities";
 import { applyDegradation } from "./degradation";
-import { buildMcpConfig } from "./types";
 import type { AdapterWarning, HarnessAdapter, OutputFile } from "./types";
+import { buildMcpConfig } from "./types";
 
 const CURSOR_INCLUSION_MAP: Record<InclusionMode, string> = {
 	always: "always",

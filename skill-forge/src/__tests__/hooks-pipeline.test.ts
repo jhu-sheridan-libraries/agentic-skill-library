@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import type { CanonicalHook } from "../schemas";
 import {
 	type HookStepOutcome,
 	type PipelineResult,
 	type ResolvePredicates,
 	runPipeline,
 } from "../hooks/pipeline";
+import type { CanonicalHook } from "../schemas";
 
 /**
  * Unit tests for the pure DES-style hook pipeline (Req 3.2, 3.4, 3.8, 3.9).
@@ -18,7 +18,9 @@ import {
  */
 
 /** Build a minimal valid CanonicalHook, overlaying DES fields under test. */
-function makeHook(overrides: Partial<CanonicalHook> & { name: string }): CanonicalHook {
+function makeHook(
+	overrides: Partial<CanonicalHook> & { name: string },
+): CanonicalHook {
 	return {
 		event: "user_triggered",
 		action: { type: "run_command", command: "echo hi" },
@@ -27,9 +29,7 @@ function makeHook(overrides: Partial<CanonicalHook> & { name: string }): Canonic
 }
 
 /** Predicate resolver returning a fixed map regardless of hook/state. */
-function fixedPredicates(
-	values: Record<string, boolean>,
-): ResolvePredicates {
+function fixedPredicates(values: Record<string, boolean>): ResolvePredicates {
 	return () => values;
 }
 
@@ -148,7 +148,7 @@ describe("runPipeline — state threading across hooks in order (Req 3.9)", () =
 		const reader = makeHook({
 			name: "reader",
 			// Gate references state written by the earlier hook.
-			gate: 'state.build_ready == true',
+			gate: "state.build_ready == true",
 			state: { deployed: true },
 		});
 
@@ -242,7 +242,10 @@ describe("runPipeline — multiple hooks with mixed gate pass/fail", () => {
 		const byHook = new Map<string, HookStepOutcome>(
 			result.steps.map((s) => [s.hook, s]),
 		);
-		expect(byHook.get("passes")).toEqual({ hook: "passes", status: "executed" });
+		expect(byHook.get("passes")).toEqual({
+			hook: "passes",
+			status: "executed",
+		});
 		expect(byHook.get("fails")).toEqual({
 			hook: "fails",
 			status: "skipped",

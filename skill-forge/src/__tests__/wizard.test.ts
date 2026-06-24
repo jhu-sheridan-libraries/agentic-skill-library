@@ -304,11 +304,13 @@ describe("promptFrontmatter — Kiro inclusion mode", () => {
 		expect(patternCall).toBeDefined();
 
 		// Extract the validate function and test it rejects empty input
-		const opts = patternCall!.args[0] as { validate?: (val: string) => string | undefined };
+		const opts = patternCall?.args[0] as {
+			validate?: (val: string) => string | undefined;
+		};
 		expect(opts.validate).toBeDefined();
-		expect(opts.validate!("")).toBeTruthy(); // non-undefined = error
-		expect(opts.validate!("   ")).toBeTruthy(); // whitespace-only = error
-		expect(opts.validate!("src/**/*.ts")).toBeUndefined(); // valid = no error
+		expect(opts.validate?.("")).toBeTruthy(); // non-undefined = error
+		expect(opts.validate?.("   ")).toBeTruthy(); // whitespace-only = error
+		expect(opts.validate?.("src/**/*.ts")).toBeUndefined(); // valid = no error
 	});
 
 	/**
@@ -340,7 +342,7 @@ describe("promptFrontmatter — Kiro inclusion mode", () => {
 		);
 		expect(kiroInclusionCall).toBeDefined();
 
-		const opts = kiroInclusionCall!.args[0] as { initialValue?: string };
+		const opts = kiroInclusionCall?.args[0] as { initialValue?: string };
 		expect(opts.initialValue).toBe("manual");
 	});
 
@@ -373,7 +375,7 @@ describe("promptFrontmatter — Kiro inclusion mode", () => {
 		);
 		expect(kiroInclusionCall).toBeDefined();
 
-		const opts = kiroInclusionCall!.args[0] as { initialValue?: string };
+		const opts = kiroInclusionCall?.args[0] as { initialValue?: string };
 		expect(opts.initialValue).toBe("manual");
 	});
 
@@ -407,7 +409,7 @@ describe("promptFrontmatter — Kiro inclusion mode", () => {
 		);
 		expect(kiroInclusionCall).toBeDefined();
 
-		const opts = kiroInclusionCall!.args[0] as { initialValue?: string };
+		const opts = kiroInclusionCall?.args[0] as { initialValue?: string };
 		expect(opts.initialValue).toBe("always");
 	});
 

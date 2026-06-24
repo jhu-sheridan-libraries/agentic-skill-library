@@ -249,7 +249,6 @@ describe("resolveBackendConfigs", () => {
 	});
 });
 
-
 // ── ForgeConfigSchema kiro.progressiveSteering parsing ─────────────────────────
 
 describe("ForgeConfigSchema kiro.progressiveSteering", () => {

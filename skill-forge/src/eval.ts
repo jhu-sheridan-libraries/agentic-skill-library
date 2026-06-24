@@ -428,7 +428,7 @@ export async function showTrend(artifactName?: string): Promise<void> {
 	const byArtifact = new Map<string, HistoryEntry[]>();
 	for (const e of entries) {
 		if (!byArtifact.has(e.artifact)) byArtifact.set(e.artifact, []);
-		byArtifact.get(e.artifact)!.push(e);
+		byArtifact.get(e.artifact)?.push(e);
 	}
 
 	const col = 72;
@@ -998,7 +998,9 @@ async function runProgressiveSteeringRubric(
 				result.details;
 			if (defaultSourceArtifacts.length > 0) {
 				console.error(
-					chalk.yellow("  Artifacts using default inclusion (should be explicit):"),
+					chalk.yellow(
+						"  Artifacts using default inclusion (should be explicit):",
+					),
 				);
 				for (const name of defaultSourceArtifacts) {
 					console.error(`    • ${name}`);

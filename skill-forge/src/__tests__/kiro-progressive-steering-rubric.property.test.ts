@@ -3,12 +3,9 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import fc from "fast-check";
-import {
-	gradeProgressiveSteering,
-	type Workload,
-} from "../eval/rubrics/kiro-progressive-steering";
 import { printKiroFrontmatter } from "../adapters/kiro-frontmatter";
 import type { KiroInclusionMode } from "../adapters/kiro-inclusion";
+import { gradeProgressiveSteering } from "../eval/rubrics/kiro-progressive-steering";
 
 // --- Constants ---
 
@@ -30,10 +27,10 @@ const fileMatchPatternArb = fc
 
 /** Generate a safe body string for steering files (no frontmatter delimiters) */
 const bodyArb = fc
-	.array(
-		fc.stringMatching(/^[a-zA-Z0-9][a-zA-Z0-9 .,_-]{0,39}$/),
-		{ minLength: 1, maxLength: 5 },
-	)
+	.array(fc.stringMatching(/^[a-zA-Z0-9][a-zA-Z0-9 .,_-]{0,39}$/), {
+		minLength: 1,
+		maxLength: 5,
+	})
 	.map((lines) => lines.join("\n"));
 
 /** Generate a steering file config (mode + optional pattern + body) */
@@ -68,7 +65,7 @@ const filePathArb = fc
 		minLength: 1,
 		maxLength: 3,
 	})
-	.map((parts) => parts.join("/") + ".ts");
+	.map((parts) => `${parts.join("/")}.ts`);
 
 /** Generate a workload prompt given available steering file names */
 const workloadPromptArb = (availableNames: string[]) =>
@@ -100,7 +97,12 @@ afterEach(async () => {
  */
 async function writeSteeringFile(
 	dir: string,
-	config: { mode: KiroInclusionMode; fileMatchPattern: string; body: string; name: string },
+	config: {
+		mode: KiroInclusionMode;
+		fileMatchPattern: string;
+		body: string;
+		name: string;
+	},
 ): Promise<void> {
 	const fm = printKiroFrontmatter({
 		inclusion: config.mode,
@@ -138,9 +140,7 @@ describe("Kiro Progressive Steering rubric property tests", () => {
 		await fc.assert(
 			fc.asyncProperty(testArb, async ({ steeringFiles, workload }) => {
 				// Create a tmpdir with randomized steering files
-				const tmpBase = await mkdtemp(
-					join(tmpdir(), "forge-rubric-r1-"),
-				);
+				const tmpBase = await mkdtemp(join(tmpdir(), "forge-rubric-r1-"));
 				tempDirs.push(tmpBase);
 
 				const buildDir = join(tmpBase, "build");
@@ -152,14 +152,8 @@ describe("Kiro Progressive Steering rubric property tests", () => {
 				}
 
 				// Invoke the grader twice with the same inputs
-				const result1 = await gradeProgressiveSteering(
-					buildDir,
-					workload,
-				);
-				const result2 = await gradeProgressiveSteering(
-					buildDir,
-					workload,
-				);
+				const result1 = await gradeProgressiveSteering(buildDir, workload);
+				const result2 = await gradeProgressiveSteering(buildDir, workload);
 
 				// Assert structural deep-equality including stable list ordering
 				expect(result1.score).toBe(result2.score);

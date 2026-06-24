@@ -42,6 +42,7 @@ const specHookEntryArb = fc.record({
 		.map(([a, b, c]) => `${a}.${b}.${c}`),
 	description: safeString(),
 	when: fc.record({ type: kiroEventArb }),
+	// biome-ignore lint/suspicious/noThenProperty: 'then' is a valid hook schema field, not a Promise method
 	then: fc.record({
 		type: fc.constant("askAgent" as const),
 		prompt: safeString(),
@@ -218,8 +219,7 @@ describe("Codeshop spec-hook compilation properties", () => {
 				);
 				expect(hookFiles.length).toBe(1);
 
-				const expectedFilename =
-					specHook.name.toLowerCase().replace(/\s+/g, "-") + ".kiro.hook";
+				const expectedFilename = `${specHook.name.toLowerCase().replace(/\s+/g, "-")}.kiro.hook`;
 				expect(hookFiles[0].relativePath).toBe(expectedFilename);
 			}),
 			{ numRuns: 100 },
@@ -254,7 +254,7 @@ describe("Codeshop spec-hook compilation properties", () => {
 					// Derive expected canonical filenames from the generated hooks
 					const canonicalFilenames = new Set(
 						canonicalHooks.map(
-							(h) => h.name.toLowerCase().replace(/\s+/g, "-") + ".kiro.hook",
+							(h) => `${h.name.toLowerCase().replace(/\s+/g, "-")}.kiro.hook`,
 						),
 					);
 

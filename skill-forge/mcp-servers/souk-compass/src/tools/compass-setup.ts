@@ -39,7 +39,11 @@ async function checkStatus(ctx: ToolContext): Promise<ToolResult> {
 		docCount: number | null;
 	}> = [];
 
-	for (const name of [ctx.config.solrCollection, ctx.config.userCollection, ctx.config.codebaseCollection]) {
+	for (const name of [
+		ctx.config.solrCollection,
+		ctx.config.userCollection,
+		ctx.config.codebaseCollection,
+	]) {
 		if (solrReachable) {
 			const info = await getCollectionInfo(ctx, name);
 			collections.push(info);
@@ -127,7 +131,11 @@ async function startSolr(ctx: ToolContext): Promise<ToolResult> {
 async function createCollections(ctx: ToolContext): Promise<ToolResult> {
 	const results: Array<{ name: string; created: boolean; error?: string }> = [];
 
-	for (const name of [ctx.config.solrCollection, ctx.config.userCollection, ctx.config.codebaseCollection]) {
+	for (const name of [
+		ctx.config.solrCollection,
+		ctx.config.userCollection,
+		ctx.config.codebaseCollection,
+	]) {
 		try {
 			const url = `${ctx.config.solrUrl}/solr/admin/collections?action=CREATE&name=${encodeURIComponent(name)}&numShards=1&replicationFactor=1&collection.configName=souk-compass&wt=json`;
 			const response = await fetch(url);

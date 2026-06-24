@@ -1,14 +1,14 @@
 import { describe, expect, test } from "bun:test";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
-import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { computeKillRate, discoverAdapterFiles } from "../mutation/runner";
+import { join } from "node:path";
 import { selectDeltaTargets } from "../mutation/delta";
 import {
-	serializeRecord,
-	parseHistory,
 	type MutationRunRecord,
+	parseHistory,
+	serializeRecord,
 } from "../mutation/history";
+import { computeKillRate, discoverAdapterFiles } from "../mutation/runner";
 
 /**
  * Unit tests for mutation testing infrastructure (Req 5.2, 5.5, 5.6, 5.8, 5.10).
@@ -138,7 +138,9 @@ describe("selectDeltaTargets — intersection logic (Req 5.6)", () => {
 	test("returns all adapter files when fully overlapping", () => {
 		const adapterFiles = ["src/adapters/kiro.ts", "src/adapters/cursor.ts"];
 		const changedFiles = ["src/adapters/kiro.ts", "src/adapters/cursor.ts"];
-		expect(selectDeltaTargets(adapterFiles, changedFiles)).toEqual(adapterFiles);
+		expect(selectDeltaTargets(adapterFiles, changedFiles)).toEqual(
+			adapterFiles,
+		);
 	});
 
 	test("returns subset for partial overlap", () => {
@@ -220,7 +222,7 @@ describe("history serialization — round-trip (Req 5.8)", () => {
 	});
 
 	test("parseHistory handles empty lines gracefully", () => {
-		const content = serializeRecord(sampleRecord) + "\n\n" + serializeRecord(sampleRecord);
+		const content = `${serializeRecord(sampleRecord)}\n\n${serializeRecord(sampleRecord)}`;
 		const parsed = parseHistory(content);
 		expect(parsed).toHaveLength(2);
 	});

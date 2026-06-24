@@ -111,20 +111,20 @@ describe("validateAll — outcomes collision detection (Req 2F)", () => {
 			(r) => r.artifactName === "[outcomes-registry]",
 		);
 		expect(registryResult).toBeDefined();
-		expect(registryResult!.valid).toBe(false);
+		expect(registryResult?.valid).toBe(false);
 
 		// Should have at least one error for the collision
-		expect(registryResult!.errors.length).toBeGreaterThan(0);
-		const collisionError = registryResult!.errors.find(
+		expect(registryResult?.errors.length).toBeGreaterThan(0);
+		const collisionError = registryResult?.errors.find(
 			(e) => e.field === "outcomes",
 		);
 		expect(collisionError).toBeDefined();
 
 		// Error message should include both artifact names and outcome IDs
-		expect(collisionError!.message).toContain("artifact-a");
-		expect(collisionError!.message).toContain("artifact-b");
-		expect(collisionError!.message).toContain("out-transform-text");
-		expect(collisionError!.message).toContain("out-modify-text");
+		expect(collisionError?.message).toContain("artifact-a");
+		expect(collisionError?.message).toContain("artifact-b");
+		expect(collisionError?.message).toContain("out-transform-text");
+		expect(collisionError?.message).toContain("out-modify-text");
 	});
 
 	/**
@@ -172,14 +172,14 @@ describe("validateAll — outcomes collision detection (Req 2F)", () => {
 
 			// Should have a warning for the ambiguous overlap
 			expect(registryResult.warnings).toBeDefined();
-			expect(registryResult.warnings!.length).toBeGreaterThan(0);
-			const ambiguousWarning = registryResult.warnings!.find(
+			expect(registryResult.warnings?.length).toBeGreaterThan(0);
+			const ambiguousWarning = registryResult.warnings?.find(
 				(w) =>
 					w.message.includes("out-parse-json") &&
 					w.message.includes("out-decode-json"),
 			);
 			expect(ambiguousWarning).toBeDefined();
-			expect(ambiguousWarning!.message).toContain("Ambiguous");
+			expect(ambiguousWarning?.message).toContain("Ambiguous");
 		}
 	});
 
@@ -216,15 +216,15 @@ describe("validateAll — outcomes collision detection (Req 2F)", () => {
 			(r) => r.artifactName === "[outcomes-registry]",
 		);
 		expect(registryResult).toBeDefined();
-		expect(registryResult!.valid).toBe(false);
+		expect(registryResult?.valid).toBe(false);
 
-		const dupError = registryResult!.errors.find(
+		const dupError = registryResult?.errors.find(
 			(e) => e.message.includes("Duplicate") || e.message.includes("duplicate"),
 		);
 		expect(dupError).toBeDefined();
-		expect(dupError!.message).toContain("out-shared-id");
-		expect(dupError!.message).toContain("artifact-dup-a");
-		expect(dupError!.message).toContain("artifact-dup-b");
+		expect(dupError?.message).toContain("out-shared-id");
+		expect(dupError?.message).toContain("artifact-dup-a");
+		expect(dupError?.message).toContain("artifact-dup-b");
 	});
 
 	/**

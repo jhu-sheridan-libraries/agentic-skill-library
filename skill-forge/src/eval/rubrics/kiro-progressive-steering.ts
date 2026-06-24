@@ -12,15 +12,15 @@
  * Design §2 (AOCW data source): token counts feed the AOCW metric.
  */
 
-import { Tiktoken } from "tiktoken/lite";
-import cl100k_base from "tiktoken/encoders/cl100k_base";
-import { Glob } from "bun";
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { Glob } from "bun";
+import cl100k_base from "tiktoken/encoders/cl100k_base";
+import { Tiktoken } from "tiktoken/lite";
 import { parseKiroSteeringFile } from "../../adapters/kiro-frontmatter";
 import {
-	resolveKiroInclusion,
 	type KiroInclusionMode,
+	resolveKiroInclusion,
 } from "../../adapters/kiro-inclusion";
 import type { KnowledgeArtifact } from "../../schemas";
 
@@ -281,8 +281,7 @@ export function computeFMP(
 	if (!hasLabels) {
 		return {
 			value: 0,
-			warning:
-				"Workload lacks expectedFired[] labels; FMP defaults to 0",
+			warning: "Workload lacks expectedFired[] labels; FMP defaults to 0",
 			perFileMatchFile: fileMatchFiles.map((sf) => ({
 				name: sf.name,
 				firesNeeded: 0,
@@ -300,6 +299,7 @@ export function computeFMP(
 	let ratioSum = 0;
 
 	for (const sf of fileMatchFiles) {
+		// biome-ignore lint/style/noNonNullAssertion: fileMatchFiles are pre-filtered to have fileMatchPattern
 		const pattern = sf.fileMatchPattern!;
 		const artifactName = extractArtifactName(sf.name);
 		let firesNeeded = 0;
@@ -359,17 +359,101 @@ function tokenizeText(text: string): string[] {
  * These words carry no topical signal and would pollute top-N token lists.
  */
 const STOPWORDS = new Set([
-	"a", "an", "and", "are", "as", "at", "be", "been", "but", "by",
-	"can", "do", "for", "from", "had", "has", "have", "he", "her",
-	"his", "how", "i", "if", "in", "into", "is", "it", "its", "just",
-	"my", "no", "not", "of", "on", "only", "or", "other", "our",
-	"out", "over", "own", "s", "same", "she", "should", "so", "some",
-	"such", "t", "than", "that", "the", "their", "them", "then",
-	"there", "these", "they", "this", "those", "through", "to", "too",
-	"under", "up", "very", "was", "we", "were", "what", "when",
-	"where", "which", "while", "who", "whom", "why", "will", "with",
-	"would", "you", "your", "all", "also", "any", "both", "each",
-	"few", "more", "most", "no", "nor", "every", "must", "use",
+	"a",
+	"an",
+	"and",
+	"are",
+	"as",
+	"at",
+	"be",
+	"been",
+	"but",
+	"by",
+	"can",
+	"do",
+	"for",
+	"from",
+	"had",
+	"has",
+	"have",
+	"he",
+	"her",
+	"his",
+	"how",
+	"i",
+	"if",
+	"in",
+	"into",
+	"is",
+	"it",
+	"its",
+	"just",
+	"my",
+	"no",
+	"not",
+	"of",
+	"on",
+	"only",
+	"or",
+	"other",
+	"our",
+	"out",
+	"over",
+	"own",
+	"s",
+	"same",
+	"she",
+	"should",
+	"so",
+	"some",
+	"such",
+	"t",
+	"than",
+	"that",
+	"the",
+	"their",
+	"them",
+	"then",
+	"there",
+	"these",
+	"they",
+	"this",
+	"those",
+	"through",
+	"to",
+	"too",
+	"under",
+	"up",
+	"very",
+	"was",
+	"we",
+	"were",
+	"what",
+	"when",
+	"where",
+	"which",
+	"while",
+	"who",
+	"whom",
+	"why",
+	"will",
+	"with",
+	"would",
+	"you",
+	"your",
+	"all",
+	"also",
+	"any",
+	"both",
+	"each",
+	"few",
+	"more",
+	"most",
+	"no",
+	"nor",
+	"every",
+	"must",
+	"use",
 ]);
 
 /**
@@ -457,18 +541,25 @@ export function computeMD(steeringFiles: ParsedSteeringFile[]): MDResult {
 		const manualIdx = steeringFiles.indexOf(manualFile);
 		const scores = tfidfScores.get(manualIdx) ?? [];
 		// Filter out stopwords before selecting top-5 topical tokens
-		const filteredScores = scores.filter((s) => !STOPWORDS.has(s.token) && s.token.length > 2);
+		const filteredScores = scores.filter(
+			(s) => !STOPWORDS.has(s.token) && s.token.length > 2,
+		);
 		const top5Tokens = filteredScores.slice(0, 5).map((s) => s.token);
 
 		// Check discoverability: manual file is "covered" if either:
 		// 1. The manual file's artifact name appears in the always-mode body union, OR
 		// 2. At least 3 of the top-5 TF-IDF tokens appear in the always-mode body union
 		const artifactName = extractArtifactName(manualFile.name);
-		const nameInAlways = alwaysTokenSet.has(artifactName) ||
+		const nameInAlways =
+			alwaysTokenSet.has(artifactName) ||
 			alwaysTokenSet.has(artifactName.replace(/-/g, ""));
-		const tokenOverlap = top5Tokens.filter((token) => alwaysTokenSet.has(token)).length;
+		const tokenOverlap = top5Tokens.filter((token) =>
+			alwaysTokenSet.has(token),
+		).length;
 		const covered =
-			nameInAlways || (top5Tokens.length > 0 && tokenOverlap >= Math.ceil(top5Tokens.length * 0.6));
+			nameInAlways ||
+			(top5Tokens.length > 0 &&
+				tokenOverlap >= Math.ceil(top5Tokens.length * 0.6));
 
 		if (covered) coveredCount++;
 		perManualFile.push({ name: manualFile.name, top5Tokens, covered });
@@ -495,9 +586,7 @@ const AUDIT_COMMENT_RE =
  * Parse the source from an audit comment in a compiled file.
  * Returns "default" if no audit comment is found (conservative assumption).
  */
-function parseAuditCommentSource(
-	content: string,
-): "default" | "explicit" {
+function parseAuditCommentSource(content: string): "default" | "explicit" {
 	// The audit comment itself doesn't encode source directly.
 	// However, if the comment is present, the file was processed by the adapter.
 	// We look for explicit source markers. Since the audit comment format is
@@ -618,7 +707,6 @@ export function computeWCA(sourceArtifacts: KnowledgeArtifact[]): WCAResult {
 	};
 }
 
-
 // --- Result type ---
 
 export interface ProgressiveSteeringResult {
@@ -630,12 +718,12 @@ export interface ProgressiveSteeringResult {
 
 // --- Scoring weights ---
 
-const W1_AOCW = 0.30;
+const W1_AOCW = 0.3;
 const W2_PR = 0.15;
 const W3_FMP = 0.25;
-const W4_MD = 0.10;
-const W5_DER = 0.10;
-const W6_WCA = 0.10;
+const W4_MD = 0.1;
+const W5_DER = 0.1;
+const W6_WCA = 0.1;
 
 // --- Rating thresholds ---
 
@@ -645,11 +733,11 @@ function computeRating(
 	fmp: number,
 ): "green" | "yellow" | "red" {
 	// Green: Score >= 80 AND AOCW <= 0.40 AND FMP >= 0.75
-	if (score >= 80 && aocw <= 0.40 && fmp >= 0.75) {
+	if (score >= 80 && aocw <= 0.4 && fmp >= 0.75) {
 		return "green";
 	}
 	// Yellow: Score >= 60 AND AOCW <= 0.60 AND not Green
-	if (score >= 60 && aocw <= 0.60) {
+	if (score >= 60 && aocw <= 0.6) {
 		return "yellow";
 	}
 	// Red: anything below Yellow
@@ -746,9 +834,7 @@ export async function gradeProgressiveSteering(
 			a.name.localeCompare(b.name),
 		),
 		defaultSourceArtifacts: [...derResult.defaultSourceArtifacts].sort(),
-		misalignedWizardArtifacts: [
-			...wcaResult.misalignedWizardArtifacts,
-		].sort(),
+		misalignedWizardArtifacts: [...wcaResult.misalignedWizardArtifacts].sort(),
 	};
 
 	return { score, rating, metrics, details };

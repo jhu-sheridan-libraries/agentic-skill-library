@@ -95,7 +95,7 @@ describe("codeshop spec-hooks — example-based tests", () => {
 			test(`${expected.name} → ${expected.eventType}`, () => {
 				const hook = findHook(expected.name);
 				expect(hook).toBeDefined();
-				expect(hook!.when.type).toBe(expected.eventType);
+				expect(hook?.when.type).toBe(expected.eventType);
 			});
 		}
 	});
@@ -106,7 +106,7 @@ describe("codeshop spec-hooks — example-based tests", () => {
 			test(`${expected.name} prompt references ${expected.steeringFile}`, () => {
 				const hook = findHook(expected.name);
 				expect(hook).toBeDefined();
-				expect(hook!.then.prompt).toContain(expected.steeringFile);
+				expect(hook?.then.prompt).toContain(expected.steeringFile);
 			});
 		}
 	});
@@ -121,7 +121,7 @@ describe("codeshop spec-hooks — example-based tests", () => {
 			test(`${expected.name} has conditional branches`, () => {
 				const hook = findHook(expected.name);
 				expect(hook).toBeDefined();
-				const prompt = hook!.then.prompt;
+				const prompt = hook?.then.prompt;
 
 				// Match branch: "If the task matches" or "If the task is the first task"
 				const hasMatchBranch = /if the task (matches|is the first)/i.test(
@@ -150,7 +150,7 @@ describe("codeshop spec-hooks — example-based tests", () => {
 			test(`${expected.name} (pre-task) contains an either/or directive`, () => {
 				const hook = findHook(expected.name);
 				expect(hook).toBeDefined();
-				const prompt = hook!.then.prompt;
+				const prompt = hook?.then.prompt;
 
 				// Pre-task hooks have conditional logic and use "Either ... or ..."
 				expect(prompt.toLowerCase()).toContain("either");
@@ -161,12 +161,12 @@ describe("codeshop spec-hooks — example-based tests", () => {
 			test(`${expected.name} (post-task) ends with a concrete directive`, () => {
 				const hook = findHook(expected.name);
 				expect(hook).toBeDefined();
-				const prompt = hook!.then.prompt.trim();
+				const prompt = hook?.then.prompt.trim();
 
 				// Post-task hooks are unconditional — they end with a direct
 				// imperative like "Load the X workflow and confirm/present..."
 				// Extract the last line/paragraph as the closing directive
-				const lastParagraph = prompt.split("\n\n").pop()!.trim();
+				const lastParagraph = prompt.split("\n\n").pop()?.trim();
 				expect(lastParagraph.length).toBeGreaterThan(0);
 				// The closing directive should reference the steering file
 				expect(lastParagraph.toLowerCase()).toContain(expected.steeringFile);

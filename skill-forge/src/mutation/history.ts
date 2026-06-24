@@ -10,7 +10,7 @@
  * See ADR-0042 for the architectural rationale.
  */
 
-import { mkdir, appendFile } from "node:fs/promises";
+import { appendFile, mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
 
 /**

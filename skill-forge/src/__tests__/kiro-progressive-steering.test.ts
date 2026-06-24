@@ -180,6 +180,7 @@ describe("Build pipeline: Kiro inclusion summary and threshold warning", () => {
 	 */
 	test("all-always with strict mode promotes threshold warning to errors", async () => {
 		const opts = makeBuildOptions({ strict: true });
+		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir is set
 		await mkdir(opts.knowledgeDir!, { recursive: true });
 		await mkdir(opts.mcpServersDir, { recursive: true });
 
@@ -274,7 +275,6 @@ describe("Build pipeline: Kiro inclusion summary and threshold warning", () => {
 	});
 });
 
-
 describe("Install pipeline: --max-always and inclusion summary", () => {
 	let installDir: string;
 	let originalCwd: string;
@@ -296,7 +296,10 @@ describe("Install pipeline: --max-always and inclusion summary", () => {
 	 */
 	async function seedKiroDist(
 		artifact: string,
-		files: Record<string, { inclusion: string; fileMatchPattern?: string; body?: string }>,
+		files: Record<
+			string,
+			{ inclusion: string; fileMatchPattern?: string; body?: string }
+		>,
 	): Promise<void> {
 		for (const [relPath, config] of Object.entries(files)) {
 			const fullPath = join(installDir, "dist", "kiro", artifact, relPath);
@@ -380,8 +383,12 @@ describe("Install pipeline: --max-always and inclusion summary", () => {
 		});
 
 		// Files should have been written
-		expect(await exists(join(installDir, ".kiro", "steering", "alpha.md"))).toBe(true);
-		expect(await exists(join(installDir, ".kiro", "steering", "beta.md"))).toBe(true);
+		expect(
+			await exists(join(installDir, ".kiro", "steering", "alpha.md")),
+		).toBe(true);
+		expect(await exists(join(installDir, ".kiro", "steering", "beta.md"))).toBe(
+			true,
+		);
 	});
 
 	/**
@@ -472,8 +479,12 @@ describe("Install pipeline: --max-always and inclusion summary", () => {
 		expect(exitCode).toBe(1);
 
 		// Destination should be untouched
-		expect(await exists(join(installDir, ".kiro", "steering", "one.md"))).toBe(false);
-		expect(await exists(join(installDir, ".kiro", "steering", "two.md"))).toBe(false);
+		expect(await exists(join(installDir, ".kiro", "steering", "one.md"))).toBe(
+			false,
+		);
+		expect(await exists(join(installDir, ".kiro", "steering", "two.md"))).toBe(
+			false,
+		);
 	});
 
 	/**
@@ -515,7 +526,9 @@ describe("Install pipeline: --max-always and inclusion summary", () => {
 
 		// Files should have been written
 		expect(await exists(join(installDir, ".kiro", "test-skill.md"))).toBe(true);
-		expect(await exists(join(installDir, ".kiro", "steering", "progressive.md"))).toBe(true);
+		expect(
+			await exists(join(installDir, ".kiro", "steering", "progressive.md")),
+		).toBe(true);
 
 		// Inclusion summary should be printed (Req 7.1)
 		const output = stderrOutput.join("\n");

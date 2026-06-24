@@ -1,14 +1,14 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 import { resolve } from "node:path";
 import type nunjucks from "nunjucks";
-import type { AdapterResult } from "../adapters/types";
 import { claudeCodeAdapter } from "../adapters/claude-code";
+import { clineAdapter } from "../adapters/cline";
 import { copilotAdapter } from "../adapters/copilot";
 import { cursorAdapter } from "../adapters/cursor";
-import { windsurfAdapter } from "../adapters/windsurf";
-import { clineAdapter } from "../adapters/cline";
-import { qdeveloperAdapter } from "../adapters/qdeveloper";
 import { kiroAdapter } from "../adapters/kiro";
+import { qdeveloperAdapter } from "../adapters/qdeveloper";
+import type { AdapterResult } from "../adapters/types";
+import { windsurfAdapter } from "../adapters/windsurf";
 import { createTemplateEnv } from "../template-engine";
 import { makeArtifact } from "./test-helpers";
 
@@ -49,9 +49,9 @@ describe("AdapterResult backward compatibility", () => {
 			errors: [{ artifactName: "test", harnessName: "kiro", message: "err" }],
 		};
 		expect(result.errors).toHaveLength(1);
-		expect(result.errors![0].artifactName).toBe("test");
-		expect(result.errors![0].harnessName).toBe("kiro");
-		expect(result.errors![0].message).toBe("err");
+		expect(result.errors?.[0].artifactName).toBe("test");
+		expect(result.errors?.[0].harnessName).toBe("kiro");
+		expect(result.errors?.[0].message).toBe("err");
 	});
 
 	test("accepts AdapterError with optional field property", () => {
@@ -67,7 +67,7 @@ describe("AdapterResult backward compatibility", () => {
 				},
 			],
 		};
-		expect(result.errors![0].field).toBe("steering/setup.md");
+		expect(result.errors?.[0].field).toBe("steering/setup.md");
 	});
 
 	test("kiroAdapter returns AdapterResult satisfying the interface without errors", () => {

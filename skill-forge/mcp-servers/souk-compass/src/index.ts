@@ -463,8 +463,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 					},
 					chunkMaxLength: {
 						type: "number",
-						description:
-							"Maximum chunk size in characters (default: 2000).",
+						description: "Maximum chunk size in characters (default: 2000).",
 					},
 					clear: {
 						type: "boolean",
@@ -484,7 +483,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 				properties: {
 					query: {
 						type: "string",
-						description: "Natural language search query describing the code you are looking for.",
+						description:
+							"Natural language search query describing the code you are looking for.",
 					},
 					topK: {
 						type: "number",
@@ -549,8 +549,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 					},
 					chunkMaxLength: {
 						type: "number",
-						description:
-							"Maximum chunk size in characters (default: 2000).",
+						description: "Maximum chunk size in characters (default: 2000).",
 					},
 				},
 			},

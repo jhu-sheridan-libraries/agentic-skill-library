@@ -130,12 +130,12 @@ describe("CollectionSchema visibility/priority extension (Req 4.3)", () => {
 	});
 
 	test("rejects an invalid priority on a collection (Req 4.10)", () => {
-		expect(
-			CollectionSchema.safeParse({ ...base, priority: 0 }).success,
-		).toBe(false);
-		expect(
-			CollectionSchema.safeParse({ ...base, priority: 3.3 }).success,
-		).toBe(false);
+		expect(CollectionSchema.safeParse({ ...base, priority: 0 }).success).toBe(
+			false,
+		);
+		expect(CollectionSchema.safeParse({ ...base, priority: 3.3 }).success).toBe(
+			false,
+		);
 	});
 });
 

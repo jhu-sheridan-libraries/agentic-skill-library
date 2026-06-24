@@ -1,10 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import type { SoukCompassConfig } from "../schemas.js";
-import type { SoukVectorClient } from "../solr-client.js";
-import type { SolrSearchResponse } from "../solr-client.js";
 import type { EmbeddingProvider } from "../embedding-provider.js";
-import type { ToolContext, ToolResult } from "../tools/types.js";
+import type { SoukCompassConfig } from "../schemas.js";
+import type { SolrSearchResponse, SoukVectorClient } from "../solr-client.js";
 import { handleCompassSearchCodebase } from "../tools/compass-search-codebase.js";
+import type { ToolContext, ToolResult } from "../tools/types.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -38,9 +37,7 @@ function makeMockSolrClient(
 	} as unknown as SoukVectorClient;
 }
 
-function makeConfig(
-	overrides?: Partial<SoukCompassConfig>,
-): SoukCompassConfig {
+function makeConfig(overrides?: Partial<SoukCompassConfig>): SoukCompassConfig {
 	return {
 		solrUrl: "http://localhost:8983",
 		solrCollection: "context-bazaar",
@@ -203,10 +200,7 @@ describe("handleCompassSearchCodebase", () => {
 		});
 
 		const ctx = makeCtx({ codebaseSolrClient: mockClient });
-		await handleCompassSearchCodebase(
-			{ query: "test", topK: 3 },
-			ctx,
-		);
+		await handleCompassSearchCodebase({ query: "test", topK: 3 }, ctx);
 
 		expect(capturedTopK).toBe(3);
 	});
@@ -328,10 +322,7 @@ describe("handleCompassSearchCodebase", () => {
 		});
 
 		const ctx = makeCtx({ codebaseSolrClient: mockClient });
-		const result = await handleCompassSearchCodebase(
-			{ query: "test" },
-			ctx,
-		);
+		const result = await handleCompassSearchCodebase({ query: "test" }, ctx);
 		const data = parseResult(result);
 
 		expect(data.error).toContain("Solr is unreachable");

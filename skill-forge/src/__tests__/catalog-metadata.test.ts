@@ -36,7 +36,12 @@ function makeEntry(
 		version: "0.1.0",
 		maturity: "draft",
 		"model-assumptions": [],
-		features: { hooks: false, mcp: false, workflows: false, conditionalInclusion: false },
+		features: {
+			hooks: false,
+			mcp: false,
+			workflows: false,
+			conditionalInclusion: false,
+		},
 		...overrides,
 	} as unknown as CatalogEntry;
 }
@@ -97,7 +102,10 @@ async function writeArtifact(
 describe("Private artifact exclusion (Req 4.5)", () => {
 	test("generateCatalog excludes artifacts with visibility: private", async () => {
 		await writeArtifact(knowledgeDir, { name: "public-one" });
-		await writeArtifact(knowledgeDir, { name: "secret-internal", visibility: "private" });
+		await writeArtifact(knowledgeDir, {
+			name: "secret-internal",
+			visibility: "private",
+		});
 		await writeArtifact(knowledgeDir, { name: "public-two" });
 
 		const entries = await generateCatalog(knowledgeDir);
@@ -110,8 +118,14 @@ describe("Private artifact exclusion (Req 4.5)", () => {
 	});
 
 	test("multiple private artifacts are all excluded", async () => {
-		await writeArtifact(knowledgeDir, { name: "a-private", visibility: "private" });
-		await writeArtifact(knowledgeDir, { name: "b-private", visibility: "private" });
+		await writeArtifact(knowledgeDir, {
+			name: "a-private",
+			visibility: "private",
+		});
+		await writeArtifact(knowledgeDir, {
+			name: "b-private",
+			visibility: "private",
+		});
 		await writeArtifact(knowledgeDir, { name: "c-public" });
 
 		const entries = await generateCatalog(knowledgeDir);
@@ -127,7 +141,10 @@ describe("Private artifact exclusion (Req 4.5)", () => {
 
 describe("Unlisted artifact retention (Req 4.6)", () => {
 	test("unlisted artifacts appear in catalog with visibility field set", async () => {
-		await writeArtifact(knowledgeDir, { name: "unlisted-tool", visibility: "unlisted" });
+		await writeArtifact(knowledgeDir, {
+			name: "unlisted-tool",
+			visibility: "unlisted",
+		});
 		await writeArtifact(knowledgeDir, { name: "public-tool" });
 
 		const entries = await generateCatalog(knowledgeDir);
@@ -135,7 +152,7 @@ describe("Unlisted artifact retention (Req 4.6)", () => {
 		expect(entries.length).toBe(2);
 		const unlisted = entries.find((e) => e.name === "unlisted-tool");
 		expect(unlisted).toBeDefined();
-		expect(unlisted!.visibility).toBe("unlisted");
+		expect(unlisted?.visibility).toBe("unlisted");
 	});
 
 	test("public artifacts default to visibility: public in catalog", async () => {

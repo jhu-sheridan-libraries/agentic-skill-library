@@ -263,8 +263,7 @@ export async function promptFrontmatter(
 
 	// Kiro-specific inclusion mode prompt (Req 9.1–9.6)
 	if (selectedHarnesses.includes("kiro")) {
-		let kiroHarnessConfig: Record<string, unknown> =
-			harnessConfig.kiro ?? {};
+		let kiroHarnessConfig: Record<string, unknown> = harnessConfig.kiro ?? {};
 
 		const initialKiroInclusion: "always" | "fileMatch" | "manual" =
 			selectedType === "power" || selectedType === "reference-pack"

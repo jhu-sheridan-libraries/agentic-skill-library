@@ -5,8 +5,8 @@
  * lean. All CSS and JS are inlined in the generated HTML string.
  */
 
-import type { CatalogEntry } from "./schemas";
 import { CAPABILITY_MATRIX } from "./adapters/capabilities";
+import type { CatalogEntry } from "./schemas";
 
 /**
  * Escapes HTML special characters to prevent XSS in embedded content.

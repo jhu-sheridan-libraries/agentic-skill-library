@@ -53,8 +53,24 @@ describe("aggregateOutcomes", () => {
 describe("runRegistryCheck", () => {
 	test("clean set produces no findings and no errors", () => {
 		const refs = [
-			ref("a", outcome({ id: "out-a", inputShape: "string", outputShape: "number", keywords: ["alpha"] })),
-			ref("b", outcome({ id: "out-b", inputShape: "boolean", outputShape: "void", keywords: ["bravo"] })),
+			ref(
+				"a",
+				outcome({
+					id: "out-a",
+					inputShape: "string",
+					outputShape: "number",
+					keywords: ["alpha"],
+				}),
+			),
+			ref(
+				"b",
+				outcome({
+					id: "out-b",
+					inputShape: "boolean",
+					outputShape: "void",
+					keywords: ["bravo"],
+				}),
+			),
 		];
 		const report = runRegistryCheck(refs);
 		expect(report.findings).toEqual([]);
@@ -63,8 +79,14 @@ describe("runRegistryCheck", () => {
 
 	test("detects duplicate ids as an error", () => {
 		const refs = [
-			ref("a", outcome({ id: "out-dup", inputShape: "string", outputShape: "number" })),
-			ref("b", outcome({ id: "out-dup", inputShape: "boolean", outputShape: "void" })),
+			ref(
+				"a",
+				outcome({ id: "out-dup", inputShape: "string", outputShape: "number" }),
+			),
+			ref(
+				"b",
+				outcome({ id: "out-dup", inputShape: "boolean", outputShape: "void" }),
+			),
 		];
 		const report = runRegistryCheck(refs);
 		const dup = report.findings.filter((f) => f.kind === "duplicate-id");
@@ -162,7 +184,9 @@ describe("runRegistryCheck", () => {
 			),
 		];
 		const report = runRegistryCheck(refs);
-		expect(report.findings.map((f) => f.kind)).toEqual(["acknowledged-overlap"]);
+		expect(report.findings.map((f) => f.kind)).toEqual([
+			"acknowledged-overlap",
+		]);
 		expect(report.hasErrors).toBe(false);
 	});
 
@@ -222,12 +246,38 @@ describe("runRegistryCheck", () => {
 
 	test("evaluates each unordered pair once", () => {
 		const refs = [
-			ref("a", outcome({ id: "out-a", inputShape: "string", outputShape: "number", keywords: ["parse", "json", "user"] })),
-			ref("b", outcome({ id: "out-b", inputShape: "string", outputShape: "number", keywords: ["parse", "json", "user"] })),
-			ref("c", outcome({ id: "out-c", inputShape: "string", outputShape: "number", keywords: ["parse", "json", "user"] })),
+			ref(
+				"a",
+				outcome({
+					id: "out-a",
+					inputShape: "string",
+					outputShape: "number",
+					keywords: ["parse", "json", "user"],
+				}),
+			),
+			ref(
+				"b",
+				outcome({
+					id: "out-b",
+					inputShape: "string",
+					outputShape: "number",
+					keywords: ["parse", "json", "user"],
+				}),
+			),
+			ref(
+				"c",
+				outcome({
+					id: "out-c",
+					inputShape: "string",
+					outputShape: "number",
+					keywords: ["parse", "json", "user"],
+				}),
+			),
 		];
 		const report = runRegistryCheck(refs);
 		// 3 outcomes, all colliding -> C(3,2) = 3 collision findings.
-		expect(report.findings.filter((f) => f.kind === "collision")).toHaveLength(3);
+		expect(report.findings.filter((f) => f.kind === "collision")).toHaveLength(
+			3,
+		);
 	});
 });

@@ -101,14 +101,16 @@ async function parseMcpJson(filePath: string): Promise<ImportedFile> {
 			if (cfg.url) {
 				// URL-based server (SSE or HTTP)
 				const transport =
-					cfg.type === "http" ? "http" as const : "sse" as const;
+					cfg.type === "http" ? ("http" as const) : ("sse" as const);
 				mcpServers.push({
 					name,
 					transport,
 					url: cfg.url as string,
 					env: (cfg.env as Record<string, string>) || {},
 					...(cfg.timeout ? { timeout: cfg.timeout as number } : {}),
-					...(cfg.autoApprove ? { autoApprove: cfg.autoApprove as string[] } : {}),
+					...(cfg.autoApprove
+						? { autoApprove: cfg.autoApprove as string[] }
+						: {}),
 				});
 			} else {
 				// Stdio-based server
@@ -119,7 +121,9 @@ async function parseMcpJson(filePath: string): Promise<ImportedFile> {
 					args: (cfg.args as string[]) || [],
 					env: (cfg.env as Record<string, string>) || {},
 					...(cfg.timeout ? { timeout: cfg.timeout as number } : {}),
-					...(cfg.autoApprove ? { autoApprove: cfg.autoApprove as string[] } : {}),
+					...(cfg.autoApprove
+						? { autoApprove: cfg.autoApprove as string[] }
+						: {}),
 				});
 			}
 		}
@@ -129,7 +133,8 @@ async function parseMcpJson(filePath: string): Promise<ImportedFile> {
 				if (entry.url) {
 					mcpServers.push({
 						name: entry.name,
-						transport: entry.transport === "http" ? "http" as const : "sse" as const,
+						transport:
+							entry.transport === "http" ? ("http" as const) : ("sse" as const),
 						url: entry.url,
 						env: entry.env || {},
 					});

@@ -19,9 +19,9 @@ const kiroModeArb = fc.oneof(
  * Avoids characters that are special in YAML (`:`, `#`, `"`, `'`, `{`, `}`, `[`, `]`)
  * and restricts to alphanumeric, glob wildcards, slashes, dots, and hyphens.
  */
-const safeFileMatchPatternArb = fc.stringMatching(/^[a-zA-Z0-9*/.{}\[\]\-]+$/).filter(
-	(s) => s.length > 0,
-);
+const safeFileMatchPatternArb = fc
+	.stringMatching(/^[a-zA-Z0-9*/.{}[\]-]+$/)
+	.filter((s) => s.length > 0);
 
 // --- Property Tests ---
 

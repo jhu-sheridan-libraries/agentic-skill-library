@@ -89,7 +89,7 @@ describe("codeshop workflows — phase sequencing", () => {
 				);
 				for (const ref of refs) {
 					if (!targetCounts.has(ref)) targetCounts.set(ref, []);
-					targetCounts.get(ref)!.push(file);
+					targetCounts.get(ref)?.push(file);
 				}
 			}
 
@@ -258,7 +258,7 @@ describe("codeshop workflows — entry/exit criteria alignment", () => {
 			);
 			// Check for Phase N headers (Phase 1, Phase 2, etc.)
 			const phaseHeaders = [...content.matchAll(/Phase (\d+)/g)].map((m) =>
-				Number.parseInt(m[1]),
+				Number.parseInt(m[1], 10),
 			);
 			if (phaseHeaders.length < 3) continue;
 

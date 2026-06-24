@@ -1,4 +1,4 @@
-import { readFile, readdir, stat } from "node:fs/promises";
+import { readdir, readFile, stat } from "node:fs/promises";
 import { basename, extname, join, relative, resolve } from "node:path";
 import { contentHash } from "../embed-cache.js";
 import { ErrorCodes, SoukCompassError } from "../errors.js";
@@ -10,24 +10,106 @@ import type { ToolContext, ToolResult } from "./types.js";
 // ---------------------------------------------------------------------------
 
 const TEXT_EXTENSIONS = new Set([
-	".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".py", ".rb", ".go", ".rs",
-	".java", ".kt", ".kts", ".scala", ".c", ".h", ".cpp", ".hpp", ".cs",
-	".swift", ".m", ".mm", ".php", ".lua", ".sh", ".bash", ".zsh", ".fish",
-	".ps1", ".bat", ".cmd", ".sql", ".graphql", ".gql", ".proto", ".tf", ".hcl",
-	".yaml", ".yml", ".toml", ".json", ".xml", ".html", ".htm", ".css", ".scss",
-	".sass", ".less", ".md", ".mdx", ".rst", ".txt", ".env.example",
-	".gitignore", ".dockerignore", ".editorconfig", ".njk", ".hbs", ".ejs",
-	".vue", ".svelte", ".astro", ".r", ".R", ".jl", ".ex", ".exs", ".erl",
-	".hrl", ".hs", ".elm", ".clj", ".cljs", ".cljc", ".dart", ".zig", ".nim",
-	".v", ".sv", ".vhdl", ".makefile", ".cmake", ".gradle", ".sbt",
+	".ts",
+	".tsx",
+	".js",
+	".jsx",
+	".mjs",
+	".cjs",
+	".py",
+	".rb",
+	".go",
+	".rs",
+	".java",
+	".kt",
+	".kts",
+	".scala",
+	".c",
+	".h",
+	".cpp",
+	".hpp",
+	".cs",
+	".swift",
+	".m",
+	".mm",
+	".php",
+	".lua",
+	".sh",
+	".bash",
+	".zsh",
+	".fish",
+	".ps1",
+	".bat",
+	".cmd",
+	".sql",
+	".graphql",
+	".gql",
+	".proto",
+	".tf",
+	".hcl",
+	".yaml",
+	".yml",
+	".toml",
+	".json",
+	".xml",
+	".html",
+	".htm",
+	".css",
+	".scss",
+	".sass",
+	".less",
+	".md",
+	".mdx",
+	".rst",
+	".txt",
+	".env.example",
+	".gitignore",
+	".dockerignore",
+	".editorconfig",
+	".njk",
+	".hbs",
+	".ejs",
+	".vue",
+	".svelte",
+	".astro",
+	".r",
+	".R",
+	".jl",
+	".ex",
+	".exs",
+	".erl",
+	".hrl",
+	".hs",
+	".elm",
+	".clj",
+	".cljs",
+	".cljc",
+	".dart",
+	".zig",
+	".nim",
+	".v",
+	".sv",
+	".vhdl",
+	".makefile",
+	".cmake",
+	".gradle",
+	".sbt",
 ]);
 
 function isTextFile(filePath: string): boolean {
 	const ext = extname(filePath).toLowerCase();
 	if (TEXT_EXTENSIONS.has(ext)) return true;
 	const name = basename(filePath).toLowerCase();
-	return ["makefile", "dockerfile", "jenkinsfile", "vagrantfile", "rakefile",
-		"gemfile", "procfile", "brewfile"].includes(name);
+	return [
+		"makefile",
+		"dockerfile",
+		"jenkinsfile",
+		"vagrantfile",
+		"rakefile",
+		"gemfile",
+		"procfile",
+		"brewfile",
+	].includes(name);
 }
 
 // ---------------------------------------------------------------------------
@@ -86,7 +168,14 @@ interface CodeChunk {
 
 function chunkCode(content: string, maxLength: number): CodeChunk[] {
 	if (content.length <= maxLength) {
-		return [{ index: 0, text: content, startLine: 1, endLine: content.split("\n").length }];
+		return [
+			{
+				index: 0,
+				text: content,
+				startLine: 1,
+				endLine: content.split("\n").length,
+			},
+		];
 	}
 	const lines = content.split("\n");
 	const chunks: CodeChunk[] = [];
@@ -95,9 +184,14 @@ function chunkCode(content: string, maxLength: number): CodeChunk[] {
 	let lineIndex = 0;
 	for (const line of lines) {
 		lineIndex++;
-		const wouldExceed = (currentChunk + "\n" + line).length > maxLength;
+		const wouldExceed = `${currentChunk}\n${line}`.length > maxLength;
 		if (wouldExceed && currentChunk.length > 0) {
-			chunks.push({ index: chunks.length, text: currentChunk, startLine: chunkStartLine, endLine: lineIndex - 1 });
+			chunks.push({
+				index: chunks.length,
+				text: currentChunk,
+				startLine: chunkStartLine,
+				endLine: lineIndex - 1,
+			});
 			currentChunk = line;
 			chunkStartLine = lineIndex;
 		} else {
@@ -105,7 +199,12 @@ function chunkCode(content: string, maxLength: number): CodeChunk[] {
 		}
 	}
 	if (currentChunk) {
-		chunks.push({ index: chunks.length, text: currentChunk, startLine: chunkStartLine, endLine: lineIndex });
+		chunks.push({
+			index: chunks.length,
+			text: currentChunk,
+			startLine: chunkStartLine,
+			endLine: lineIndex,
+		});
 	}
 	return chunks;
 }
@@ -140,8 +239,12 @@ async function walkDirectory(
 				continue;
 			}
 			if (fileStat.isDirectory()) {
-				const dirRelative = relativePath + "/";
-				if (matchesAny(exclude, dirRelative) || matchesAny(exclude, relativePath)) continue;
+				const dirRelative = `${relativePath}/`;
+				if (
+					matchesAny(exclude, dirRelative) ||
+					matchesAny(exclude, relativePath)
+				)
+					continue;
 				await walk(absolutePath);
 			} else if (fileStat.isFile()) {
 				if (matchesAny(exclude, relativePath)) continue;
@@ -168,8 +271,12 @@ export async function handleCompassReindexFolder(
 	const folderPath = resolve(input.path);
 	const include = input.include ?? ["**/*"];
 	const exclude = input.exclude ?? [
-		"**/node_modules/**", "**/.git/**", "**/dist/**", "**/build/**",
-		"**/*.lock", "**/package-lock.json",
+		"**/node_modules/**",
+		"**/.git/**",
+		"**/dist/**",
+		"**/build/**",
+		"**/*.lock",
+		"**/package-lock.json",
 	];
 	const maxFileSize = input.maxFileSize ?? 100_000;
 	const chunkMaxLength = input.chunkMaxLength ?? 2000;
@@ -181,18 +288,29 @@ export async function handleCompassReindexFolder(
 			return jsonResult({ error: `Path "${input.path}" is not a directory.` });
 		}
 	} catch {
-		return jsonResult({ error: `Directory "${input.path}" does not exist or is not accessible.` });
+		return jsonResult({
+			error: `Directory "${input.path}" does not exist or is not accessible.`,
+		});
 	}
 
 	// 1. Walk the directory to get current files
-	const files = await walkDirectory(folderPath, include, exclude, maxFileSize, folderPath);
+	const files = await walkDirectory(
+		folderPath,
+		include,
+		exclude,
+		maxFileSize,
+		folderPath,
+	);
 
 	// 2. Query Solr for all existing codebase documents (id + content_hash)
 	let existingDocs: Map<string, string>; // id → content_hash
 	try {
 		existingDocs = await fetchExistingHashes(ctx);
 	} catch (err) {
-		if (err instanceof SoukCompassError && err.code === ErrorCodes.SOLR_CONNECTION) {
+		if (
+			err instanceof SoukCompassError &&
+			err.code === ErrorCodes.SOLR_CONNECTION
+		) {
 			return jsonResult({
 				error: `Solr is unreachable. Ensure Solr is running at ${ctx.config.solrUrl}.`,
 			});
@@ -212,21 +330,29 @@ export async function handleCompassReindexFolder(
 			const chunks = chunkCode(content, chunkMaxLength);
 
 			for (const chunk of chunks) {
-				const docId = chunks.length > 1
-					? `codebase::${file.relativePath}::chunk_${chunk.index}`
-					: `codebase::${file.relativePath}`;
-				const docText = chunks.length > 1
-					? `File: ${file.relativePath} (lines ${chunk.startLine}-${chunk.endLine})\n\n${chunk.text}`
-					: `File: ${file.relativePath}\n\n${chunk.text}`;
+				const docId =
+					chunks.length > 1
+						? `codebase::${file.relativePath}::chunk_${chunk.index}`
+						: `codebase::${file.relativePath}`;
+				const docText =
+					chunks.length > 1
+						? `File: ${file.relativePath} (lines ${chunk.startLine}-${chunk.endLine})\n\n${chunk.text}`
+						: `File: ${file.relativePath}\n\n${chunk.text}`;
 
 				currentIds.add(docId);
 				const hash = contentHash(docText);
 				const existingHash = existingDocs.get(docId);
 
 				if (!existingHash) {
-					added.push({ relativePath: file.relativePath, absolutePath: file.absolutePath });
+					added.push({
+						relativePath: file.relativePath,
+						absolutePath: file.absolutePath,
+					});
 				} else if (existingHash !== hash) {
-					updated.push({ relativePath: file.relativePath, absolutePath: file.absolutePath });
+					updated.push({
+						relativePath: file.relativePath,
+						absolutePath: file.absolutePath,
+					});
 				} else {
 					unchanged++;
 				}
@@ -248,11 +374,14 @@ export async function handleCompassReindexFolder(
 	let indexed = 0;
 	let errors = 0;
 	const BATCH_SIZE = 20;
-	const toProcess = [...new Set([...added, ...updated].map((f) => f.relativePath))];
+	const toProcess = [
+		...new Set([...added, ...updated].map((f) => f.relativePath)),
+	];
 
 	for (let i = 0; i < toProcess.length; i += BATCH_SIZE) {
 		const batch = toProcess.slice(i, i + BATCH_SIZE);
-		const batchDocs: Array<{ id: string; text: string; relativePath: string }> = [];
+		const batchDocs: Array<{ id: string; text: string; relativePath: string }> =
+			[];
 
 		for (const relativePath of batch) {
 			const file = files.find((f) => f.relativePath === relativePath);
@@ -263,14 +392,20 @@ export async function handleCompassReindexFolder(
 				const chunks = chunkCode(content, chunkMaxLength);
 
 				for (const chunk of chunks) {
-					const docId = chunks.length > 1
-						? `codebase::${file.relativePath}::chunk_${chunk.index}`
-						: `codebase::${file.relativePath}`;
-					const docText = chunks.length > 1
-						? `File: ${file.relativePath} (lines ${chunk.startLine}-${chunk.endLine})\n\n${chunk.text}`
-						: `File: ${file.relativePath}\n\n${chunk.text}`;
+					const docId =
+						chunks.length > 1
+							? `codebase::${file.relativePath}::chunk_${chunk.index}`
+							: `codebase::${file.relativePath}`;
+					const docText =
+						chunks.length > 1
+							? `File: ${file.relativePath} (lines ${chunk.startLine}-${chunk.endLine})\n\n${chunk.text}`
+							: `File: ${file.relativePath}\n\n${chunk.text}`;
 
-					batchDocs.push({ id: docId, text: docText, relativePath: file.relativePath });
+					batchDocs.push({
+						id: docId,
+						text: docText,
+						relativePath: file.relativePath,
+					});
 				}
 			} catch {
 				errors++;
@@ -355,7 +490,9 @@ export async function handleCompassReindexFolder(
  * Fetch all existing codebase document IDs and their content hashes from Solr.
  * Uses cursor-based pagination to handle large collections.
  */
-async function fetchExistingHashes(ctx: ToolContext): Promise<Map<string, string>> {
+async function fetchExistingHashes(
+	ctx: ToolContext,
+): Promise<Map<string, string>> {
 	const docs = new Map<string, string>();
 	let cursorMark = "*";
 	const batchSize = 500;

@@ -24,7 +24,7 @@ import type {
 	WorkspaceConfig,
 	WorkspaceProject,
 } from "./schemas";
-import { isStdioServer, SUPPORTED_HARNESSES } from "./schemas";
+import { SUPPORTED_HARNESSES } from "./schemas";
 import { createTemplateEnv } from "./template-engine";
 import { embedVersion } from "./versioning";
 import { loadWorkspaceConfig, mergeKnowledgeSources } from "./workspace";
@@ -78,10 +78,23 @@ interface KiroSummaryEntry {
 /**
  * Compute the BuildResult.kiroInclusionSummary from collected entries.
  */
-function computeKiroInclusionSummary(entries: KiroSummaryEntry[]): NonNullable<BuildResult["kiroInclusionSummary"]> {
-	const byMode: Record<KiroInclusionMode, number> = { always: 0, fileMatch: 0, manual: 0 };
-	const byFormat: Record<"steering" | "power", number> = { steering: 0, power: 0 };
-	const contributingArtifacts: Record<KiroInclusionMode, string[]> = { always: [], fileMatch: [], manual: [] };
+function computeKiroInclusionSummary(
+	entries: KiroSummaryEntry[],
+): NonNullable<BuildResult["kiroInclusionSummary"]> {
+	const byMode: Record<KiroInclusionMode, number> = {
+		always: 0,
+		fileMatch: 0,
+		manual: 0,
+	};
+	const byFormat: Record<"steering" | "power", number> = {
+		steering: 0,
+		power: 0,
+	};
+	const contributingArtifacts: Record<KiroInclusionMode, string[]> = {
+		always: [],
+		fileMatch: [],
+		manual: [],
+	};
 
 	for (const entry of entries) {
 		byMode[entry.mode]++;
@@ -90,7 +103,8 @@ function computeKiroInclusionSummary(entries: KiroSummaryEntry[]): NonNullable<B
 	}
 
 	const total = entries.length;
-	const progressiveRatio = total > 0 ? (byMode.fileMatch + byMode.manual) / total : 0;
+	const progressiveRatio =
+		total > 0 ? (byMode.fileMatch + byMode.manual) / total : 0;
 
 	return { total, byMode, byFormat, progressiveRatio, contributingArtifacts };
 }
@@ -99,7 +113,9 @@ function computeKiroInclusionSummary(entries: KiroSummaryEntry[]): NonNullable<B
  * Print an Inclusion_Summary to stderr grouped by mode,
  * showing totals, progressive ratio, and format breakdown.
  */
-function printKiroInclusionSummary(summary: NonNullable<BuildResult["kiroInclusionSummary"]>): void {
+function printKiroInclusionSummary(
+	summary: NonNullable<BuildResult["kiroInclusionSummary"]>,
+): void {
 	const lines: string[] = [];
 	lines.push("");
 	lines.push(chalk.cyan("Kiro Inclusion Summary:"));
@@ -526,11 +542,18 @@ async function buildWithWorkspace(
 
 						// Track Kiro steering files for inclusion summary
 						if (h === "kiro" && file.relativePath.endsWith(".md")) {
-							const isMainSteering = file.relativePath === `${projectArtifact.name}.md`;
-							const isPowerSteering = file.relativePath === `steering/${projectArtifact.name}.md`;
+							const isMainSteering =
+								file.relativePath === `${projectArtifact.name}.md`;
+							const isPowerSteering =
+								file.relativePath === `steering/${projectArtifact.name}.md`;
 							if (isMainSteering || isPowerSteering) {
-								const harnessConfigRaw = (projectArtifact.frontmatter as Record<string, unknown>)["harness-config"] as Record<string, unknown> | undefined;
-								const kiroConfigRaw = (harnessConfigRaw?.kiro ?? {}) as Record<string, unknown>;
+								const harnessConfigRaw = (
+									projectArtifact.frontmatter as Record<string, unknown>
+								)["harness-config"] as Record<string, unknown> | undefined;
+								const kiroConfigRaw = (harnessConfigRaw?.kiro ?? {}) as Record<
+									string,
+									unknown
+								>;
 								const resolved = resolveKiroInclusion(projectArtifact);
 								const { format } = resolveFormat("kiro", kiroConfigRaw);
 								kiroSummaryEntries.push({
@@ -573,20 +596,26 @@ async function buildWithWorkspace(
 					errors.push({
 						artifactName: name,
 						harnessName: "kiro",
-						message: `Always-on share exceeds threshold (${(alwaysCount / total * 100).toFixed(0)}% > ${(threshold * 100).toFixed(0)}%): consider using fileMatch or manual inclusion`,
+						message: `Always-on share exceeds threshold (${((alwaysCount / total) * 100).toFixed(0)}% > ${(threshold * 100).toFixed(0)}%): consider using fileMatch or manual inclusion`,
 					});
 				} else {
 					warnings.push({
 						artifactName: name,
 						harnessName: "kiro",
-						message: `Always-on share exceeds threshold (${(alwaysCount / total * 100).toFixed(0)}% > ${(threshold * 100).toFixed(0)}%): consider using fileMatch or manual inclusion`,
+						message: `Always-on share exceeds threshold (${((alwaysCount / total) * 100).toFixed(0)}% > ${(threshold * 100).toFixed(0)}%): consider using fileMatch or manual inclusion`,
 					});
 				}
 			}
 		}
 	}
 
-	return { artifactsCompiled, filesWritten, warnings, errors, kiroInclusionSummary };
+	return {
+		artifactsCompiled,
+		filesWritten,
+		warnings,
+		errors,
+		kiroInclusionSummary,
+	};
 }
 
 export async function build(options: BuildOptions): Promise<BuildResult> {
@@ -799,10 +828,16 @@ export async function build(options: BuildOptions): Promise<BuildResult> {
 					// Track Kiro steering files for inclusion summary
 					if (h === "kiro" && file.relativePath.endsWith(".md")) {
 						const isMainSteering = file.relativePath === `${artifact.name}.md`;
-						const isPowerSteering = file.relativePath === `steering/${artifact.name}.md`;
+						const isPowerSteering =
+							file.relativePath === `steering/${artifact.name}.md`;
 						if (isMainSteering || isPowerSteering) {
-							const harnessConfigRaw = (artifact.frontmatter as Record<string, unknown>)["harness-config"] as Record<string, unknown> | undefined;
-							const kiroConfigRaw = (harnessConfigRaw?.kiro ?? {}) as Record<string, unknown>;
+							const harnessConfigRaw = (
+								artifact.frontmatter as Record<string, unknown>
+							)["harness-config"] as Record<string, unknown> | undefined;
+							const kiroConfigRaw = (harnessConfigRaw?.kiro ?? {}) as Record<
+								string,
+								unknown
+							>;
 							const resolved = resolveKiroInclusion(artifact);
 							const { format } = resolveFormat("kiro", kiroConfigRaw);
 							kiroSummaryEntries.push({
@@ -842,20 +877,26 @@ export async function build(options: BuildOptions): Promise<BuildResult> {
 					errors.push({
 						artifactName: name,
 						harnessName: "kiro",
-						message: `Always-on share exceeds threshold (${(alwaysCount / total * 100).toFixed(0)}% > ${(threshold * 100).toFixed(0)}%): consider using fileMatch or manual inclusion`,
+						message: `Always-on share exceeds threshold (${((alwaysCount / total) * 100).toFixed(0)}% > ${(threshold * 100).toFixed(0)}%): consider using fileMatch or manual inclusion`,
 					});
 				} else {
 					warnings.push({
 						artifactName: name,
 						harnessName: "kiro",
-						message: `Always-on share exceeds threshold (${(alwaysCount / total * 100).toFixed(0)}% > ${(threshold * 100).toFixed(0)}%): consider using fileMatch or manual inclusion`,
+						message: `Always-on share exceeds threshold (${((alwaysCount / total) * 100).toFixed(0)}% > ${(threshold * 100).toFixed(0)}%): consider using fileMatch or manual inclusion`,
 					});
 				}
 			}
 		}
 	}
 
-	return { artifactsCompiled, filesWritten, warnings, errors, kiroInclusionSummary };
+	return {
+		artifactsCompiled,
+		filesWritten,
+		warnings,
+		errors,
+		kiroInclusionSummary,
+	};
 }
 
 export const SOURCE_DIRS = ["knowledge", "packages"] as const;

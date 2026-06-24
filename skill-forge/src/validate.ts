@@ -7,7 +7,7 @@ import { resolveKiroInclusion } from "./adapters/kiro-inclusion";
 import { ASSET_CONVENTION_RULES, ASSET_CONVENTIONS } from "./asset-conventions";
 import { generateCatalog } from "./catalog";
 import { loadCollections, validateArtifactCollectionRefs } from "./collections";
-import { resolveFormat, HARNESS_FORMAT_REGISTRY } from "./format-registry";
+import { HARNESS_FORMAT_REGISTRY, resolveFormat } from "./format-registry";
 import {
 	BUILTIN_PREDICATES,
 	ExpressionSyntaxError,
@@ -515,8 +515,7 @@ export async function validateArtifact(
 			if (fm.type === "reference-pack" && resolved.mode === "always") {
 				warnings.push({
 					field: "harness-config.kiro.inclusion",
-					message:
-						ASSET_CONVENTION_RULES["reference-pack-must-be-manual"],
+					message: ASSET_CONVENTION_RULES["reference-pack-must-be-manual"],
 					filePath: knowledgeMdPath,
 				});
 			}
@@ -529,8 +528,7 @@ export async function validateArtifact(
 			if (kiroFormat.format === "power" && resolved.mode === "always") {
 				warnings.push({
 					field: "harness-config.kiro.inclusion",
-					message:
-						ASSET_CONVENTION_RULES["kiro-power-should-be-progressive"],
+					message: ASSET_CONVENTION_RULES["kiro-power-should-be-progressive"],
 					filePath: knowledgeMdPath,
 				});
 

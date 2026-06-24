@@ -281,9 +281,10 @@ export const kiroAdapter: HarnessAdapter = (
 
 			// Req 10.3: warn when inclusion is absent or "always"
 			if (!wfInclusion || wfInclusion === "always") {
-				const message = wfInclusion === "always"
-					? `Workflow file "${wf.filename}" has inclusion: always; workflow files should be disclosed progressively (fileMatch or manual).`
-					: `Workflow file "${wf.filename}" is missing an inclusion mode; workflow files should be disclosed progressively (fileMatch or manual).`;
+				const message =
+					wfInclusion === "always"
+						? `Workflow file "${wf.filename}" has inclusion: always; workflow files should be disclosed progressively (fileMatch or manual).`
+						: `Workflow file "${wf.filename}" is missing an inclusion mode; workflow files should be disclosed progressively (fileMatch or manual).`;
 
 				warnings.push({
 					artifactName: artifact.name,
@@ -321,10 +322,18 @@ export const kiroAdapter: HarnessAdapter = (
 	const emitMainSteering =
 		format !== "power" || kiroConfig["main-steering"] !== false;
 	if (emitMainSteering) {
-		const steeringContent = renderTemplate(templateEnv, "kiro/steering.md.njk", {
-			artifact,
-			harnessConfig: kiroConfig,
-		});
+		const auditComment = buildAuditComment(resolved);
+		const steeringContent = renderTemplate(
+			templateEnv,
+			"kiro/steering.md.njk",
+			{
+				artifact,
+				harnessConfig: kiroConfig,
+				inclusion: resolved.mode,
+				fileMatchPattern: resolved.fileMatchPattern,
+				auditComment,
+			},
+		);
 		const steeringPath =
 			format === "power"
 				? `steering/${artifact.name}.md`

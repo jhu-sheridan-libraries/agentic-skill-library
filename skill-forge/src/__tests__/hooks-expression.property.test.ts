@@ -3,8 +3,8 @@ import fc from "fast-check";
 import {
 	BUILTIN_PREDICATES,
 	collectReferences,
-	evaluateExpression,
 	type ExprNode,
+	evaluateExpression,
 	type LiteralNode,
 	type ParsedExpression,
 	type PredicateNode,
@@ -15,10 +15,13 @@ import {
 
 /** Valid state key: starts with a letter, only ident chars, no dots. */
 const stateKeyArb = fc
-	.array(fc.constantFrom(..."abcdefghijklmnopqrstuvwxyz0123456789_".split("")), {
-		minLength: 0,
-		maxLength: 6,
-	})
+	.array(
+		fc.constantFrom(..."abcdefghijklmnopqrstuvwxyz0123456789_".split("")),
+		{
+			minLength: 0,
+			maxLength: 6,
+		},
+	)
 	.map((rest) => `k${rest.join("")}`);
 
 /** Built-in predicate names recognized by the engine. */
@@ -48,8 +51,14 @@ const literalArb: fc.Arbitrary<LiteralNode> = fc.oneof(
 );
 
 const equalityArb: fc.Arbitrary<ExprNode> = fc
-	.tuple(refArb, fc.constantFrom("==", "!=") as fc.Arbitrary<"==" | "!=">, literalArb)
-	.map(([left, op, right]): ExprNode => ({ type: "equality", op, left, right }));
+	.tuple(
+		refArb,
+		fc.constantFrom("==", "!=") as fc.Arbitrary<"==" | "!=">,
+		literalArb,
+	)
+	.map(
+		([left, op, right]): ExprNode => ({ type: "equality", op, left, right }),
+	);
 
 /**
  * A recursive arbitrary producing arbitrary boolean-expression ASTs, bounded in
@@ -101,14 +110,21 @@ describe("Expression engine correctness properties", () => {
 	 */
 	test("Property: constant-true (tautology) expression always evaluates true", () => {
 		fc.assert(
-			fc.property(exprArb, predicateValuesArb, stateArb, (e, predicateValues, state) => {
-				const tautology: ExprNode = {
-					type: "or",
-					left: e,
-					right: { type: "not", operand: e },
-				};
-				expect(evaluateExpression(tautology, predicateValues, state)).toBe(true);
-			}),
+			fc.property(
+				exprArb,
+				predicateValuesArb,
+				stateArb,
+				(e, predicateValues, state) => {
+					const tautology: ExprNode = {
+						type: "or",
+						left: e,
+						right: { type: "not", operand: e },
+					};
+					expect(evaluateExpression(tautology, predicateValues, state)).toBe(
+						true,
+					);
+				},
+			),
 			{ numRuns: 200 },
 		);
 	});
@@ -140,15 +156,20 @@ describe("Expression engine correctness properties", () => {
 	 */
 	test("Property: double negation is identity", () => {
 		fc.assert(
-			fc.property(exprArb, predicateValuesArb, stateArb, (e, predicateValues, state) => {
-				const doubleNegated: ExprNode = {
-					type: "not",
-					operand: { type: "not", operand: e },
-				};
-				expect(evaluateExpression(doubleNegated, predicateValues, state)).toBe(
-					evaluateExpression(e, predicateValues, state),
-				);
-			}),
+			fc.property(
+				exprArb,
+				predicateValuesArb,
+				stateArb,
+				(e, predicateValues, state) => {
+					const doubleNegated: ExprNode = {
+						type: "not",
+						operand: { type: "not", operand: e },
+					};
+					expect(
+						evaluateExpression(doubleNegated, predicateValues, state),
+					).toBe(evaluateExpression(e, predicateValues, state));
+				},
+			),
 			{ numRuns: 200 },
 		);
 	});
