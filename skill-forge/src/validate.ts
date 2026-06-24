@@ -9,13 +9,23 @@ import { generateCatalog } from "./catalog";
 import { loadCollections, validateArtifactCollectionRefs } from "./collections";
 import { resolveFormat, HARNESS_FORMAT_REGISTRY } from "./format-registry";
 import {
+	BUILTIN_PREDICATES,
+	ExpressionSyntaxError,
+	type ParsedExpression,
+	parseExpression,
+	validateReferences,
+} from "./hooks/expression";
+import { aggregateOutcomes, runRegistryCheck } from "./outcomes/registry";
+import {
 	isParseError,
 	parseHooksYaml,
 	parseKnowledgeMd,
 	parseMcpServersYaml,
 } from "./parser";
 import {
+	type CanonicalHook,
 	isStdioServer,
+	type Outcome,
 	SUPPORTED_HARNESSES,
 	type ValidationError,
 	type ValidationResult,
@@ -238,6 +248,86 @@ export function detectDependencyCycles(
 	}
 
 	return cycles;
+}
+
+/**
+ * Hook gate/postcondition reference validation (Req 3.7).
+ *
+ * For a parsed `hooks.yaml`, collect the union of all declared `state` keys
+ * across every hook in the file, then for each hook's `gate` and
+ * `postcondition` expression parse it and run {@link validateReferences}
+ * against that declared-key set. Any undefined state key or unknown predicate
+ * (not in {@link BUILTIN_PREDICATES}) yields a {@link ValidationError}
+ * identifying the hook name and the offending field. Malformed expressions are
+ * reported as validation errors too, so a broken gate/postcondition rejects the
+ * hook file rather than throwing.
+ *
+ * Pure: takes the already-parsed hooks and returns errors; no I/O.
+ */
+export function validateHookReferences(
+	hooks: CanonicalHook[],
+	filePath: string,
+): ValidationError[] {
+	const errors: ValidationError[] = [];
+
+	// Union of all declared state keys across every hook in the file (Req 3.7).
+	const declaredStateKeys = new Set<string>();
+	for (const hook of hooks) {
+		if (hook.state) {
+			for (const key of Object.keys(hook.state)) {
+				declaredStateKeys.add(key);
+			}
+		}
+	}
+
+	const checkField = (
+		hook: CanonicalHook,
+		field: "gate" | "postcondition",
+		expr: string | undefined,
+	): void => {
+		if (!expr) return;
+
+		let parsed: ParsedExpression;
+		try {
+			parsed = parseExpression(expr);
+		} catch (err) {
+			errors.push({
+				field: `hooks[${hook.name}].${field}`,
+				message:
+					err instanceof ExpressionSyntaxError
+						? err.message
+						: `Failed to parse ${field} expression "${expr}"`,
+				filePath,
+			});
+			return;
+		}
+
+		const { undefinedStateKeys, undefinedPredicates } = validateReferences(
+			parsed,
+			declaredStateKeys,
+		);
+		for (const key of undefinedStateKeys) {
+			errors.push({
+				field: `hooks[${hook.name}].${field}`,
+				message: `${field} references undefined state key "state.${key}". Declare it in a hook's "state" field.`,
+				filePath,
+			});
+		}
+		for (const pred of undefinedPredicates) {
+			errors.push({
+				field: `hooks[${hook.name}].${field}`,
+				message: `${field} references unknown predicate "${pred}". Built-in predicates are: ${BUILTIN_PREDICATES.join(", ")}.`,
+				filePath,
+			});
+		}
+	};
+
+	for (const hook of hooks) {
+		checkField(hook, "gate", hook.gate);
+		checkField(hook, "postcondition", hook.postcondition);
+	}
+
+	return errors;
 }
 
 export async function validateArtifact(
@@ -480,6 +570,10 @@ export async function validateArtifact(
 		const hooksResult = await parseHooksYaml(hooksPath);
 		if (isParseError(hooksResult)) {
 			errors.push(...hooksResult.errors);
+		} else {
+			// Reference validation for gate/postcondition expressions (Req 3.7):
+			// every state key and predicate must be declared/built-in.
+			errors.push(...validateHookReferences(hooksResult.data, hooksPath));
 		}
 	}
 
@@ -542,6 +636,105 @@ async function collectArtifactPaths(
 	}
 
 	return artifacts;
+}
+
+/**
+ * Cross-artifact outcomes collision detection (Req 2F).
+ *
+ * Aggregates every `outcomes` declaration across all artifacts and runs the
+ * pure `runRegistryCheck` from the outcomes registry. This function is the thin
+ * I/O shell described in ADR-0041: it reads frontmatter, delegates all
+ * comparison logic to the pure core, and maps the resulting findings to
+ * validation errors and warnings.
+ *
+ *   - `collision` (non-acknowledged) -> {@link ValidationError} including both
+ *     outcome ids, both artifact names, the matched normalized shapes, and the
+ *     keyword Jaccard score (Req 2F.2).
+ *   - `duplicate-id` -> {@link ValidationError} (ids must be globally unique,
+ *     Req 2F.4).
+ *   - `ambiguous` -> {@link ValidationWarning} (does not block validation,
+ *     Req 2F.3).
+ *   - `acknowledged-overlap` -> no finding.
+ *
+ * Returns a single synthetic {@link ValidationResult} (artifact name
+ * `[outcomes-registry]`) when any finding is produced, or `null` when there is
+ * nothing to report. Errors mark the result invalid, which drives the existing
+ * non-zero exit path in {@link validateCommand} (Req 2F.2).
+ */
+async function validateOutcomes(
+	artifactList: Array<{ path: string; name: string }>,
+): Promise<ValidationResult | null> {
+	// Aggregate outcomes from each artifact's (already schema-validated)
+	// frontmatter, and remember each artifact's knowledge.md path for diagnostics.
+	const artifactsWithOutcomes: Array<{ name: string; outcomes: Outcome[] }> =
+		[];
+	const knowledgeMdByName = new Map<string, string>();
+
+	for (const { path: artifactPath, name } of artifactList) {
+		const knowledgeMdPath = join(artifactPath, "knowledge.md");
+		knowledgeMdByName.set(name, knowledgeMdPath);
+
+		const mdResult = await parseKnowledgeMd(knowledgeMdPath);
+		if (isParseError(mdResult)) continue;
+
+		const outcomes = mdResult.data.frontmatter.outcomes ?? [];
+		if (outcomes.length > 0) {
+			artifactsWithOutcomes.push({ name, outcomes });
+		}
+	}
+
+	const report = runRegistryCheck(aggregateOutcomes(artifactsWithOutcomes));
+	if (report.findings.length === 0) return null;
+
+	const errors: ValidationError[] = [];
+	const warnings: ValidationWarning[] = [];
+
+	for (const finding of report.findings) {
+		const filePath =
+			knowledgeMdByName.get(finding.a.artifactName) ?? "knowledge.md";
+		const aId = finding.a.outcome.id;
+		const bId = finding.b.outcome.id;
+		const aArtifact = finding.a.artifactName;
+		const bArtifact = finding.b.artifactName;
+
+		switch (finding.kind) {
+			case "duplicate-id":
+				errors.push({
+					field: "outcomes",
+					message: `Duplicate outcome id "${aId}" declared in both "${aArtifact}" and "${bArtifact}". Outcome ids must be globally unique.`,
+					filePath,
+				});
+				break;
+
+			case "collision":
+				errors.push({
+					field: "outcomes",
+					message: `Outcome collision: "${aId}" (${aArtifact}) and "${bId}" (${bArtifact}) share normalized shapes ("${finding.inputShape}" → "${finding.outputShape}") with keyword Jaccard ${finding.jaccard?.toFixed(2)}. Acknowledge intentional overlap by adding each id to the other's "related" field.`,
+					filePath,
+				});
+				break;
+
+			case "ambiguous":
+				warnings.push({
+					field: "outcomes",
+					message: `Ambiguous outcome overlap: "${aId}" (${aArtifact}) and "${bId}" (${bArtifact}) match on exactly one tier (keyword Jaccard ${finding.jaccard?.toFixed(2)}). Review whether these outcomes overlap.`,
+					filePath,
+				});
+				break;
+
+			// "acknowledged-overlap" is intentional — no finding reported.
+		}
+	}
+
+	const result: ValidationResult = {
+		artifactName: "[outcomes-registry]",
+		valid: errors.length === 0,
+		errors,
+	};
+	if (warnings.length > 0) {
+		result.warnings = warnings;
+	}
+	return result;
 }
 
 export async function validateAll(
@@ -634,6 +827,14 @@ export async function validateAll(
 				];
 			}
 		}
+	}
+
+	// Cross-artifact outcomes collision detection (Req 2F). Aggregates all
+	// declared outcomes and runs the pure registry check; collisions and
+	// duplicate ids surface as errors, ambiguous overlaps as warnings.
+	const outcomesResult = await validateOutcomes(artifactList);
+	if (outcomesResult) {
+		results.push(outcomesResult);
 	}
 
 	// Collection cross-check: warn if artifacts declare unknown collection names

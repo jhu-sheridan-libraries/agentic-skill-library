@@ -2,8 +2,32 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { generateCatalog, serializeCatalog } from "../catalog";
+import { generateCatalog, serializeCatalog, sortCatalogEntries } from "../catalog";
+import type { CatalogEntry } from "../schemas";
 import { SUPPORTED_HARNESSES } from "../schemas";
+
+/** Build a minimal CatalogEntry with overridable name/priority for sort tests. */
+function makeEntry(name: string, priority: number): CatalogEntry {
+	return {
+		name,
+		displayName: name,
+		description: "",
+		keywords: [],
+		harnesses: [],
+		path: `knowledge/${name}`,
+		evals: false,
+		changelog: false,
+		migrations: false,
+		categories: [],
+		ecosystem: [],
+		depends: [],
+		enhances: [],
+		collections: [],
+		visibility: "public",
+		priority,
+		outcomes: [],
+	} as unknown as CatalogEntry;
+}
 
 let tempDir: string;
 let knowledgeDir: string;
@@ -31,6 +55,9 @@ async function writeArtifact(
 		ecosystem?: string[];
 		depends?: string[];
 		enhances?: string[];
+		visibility?: string;
+		priority?: number;
+		outcomes?: string;
 	},
 ): Promise<void> {
 	const artifactDir = join(dir, config.name);
@@ -43,6 +70,16 @@ async function writeArtifact(
 		`description: "${config.description ?? "Test artifact"}"`,
 		`harnesses: [${harnesses.map((h) => `"${h}"`).join(", ")}]`,
 	];
+
+	if (config.visibility) {
+		lines.push(`visibility: ${config.visibility}`);
+	}
+	if (config.priority !== undefined) {
+		lines.push(`priority: ${config.priority}`);
+	}
+	if (config.outcomes) {
+		lines.push(config.outcomes);
+	}
 
 	if (config.categories) {
 		lines.push(
@@ -177,6 +214,9 @@ describe("Catalog generation", () => {
 			"maturity",
 			"model-assumptions",
 			"collections",
+			"visibility",
+			"priority",
+			"outcomes",
 		];
 		expect(keys).toEqual(expectedOrder);
 
@@ -429,5 +469,132 @@ describe("Catalog generation", () => {
 
 		expect(entries.length).toBe(1);
 		expect(entries[0].version).toBe("2.3.4");
+	});
+
+	/**
+	 * Validates: Requirement 4.5
+	 * Artifacts with visibility: private are excluded entirely from the catalog.
+	 */
+	test("excludes private artifacts entirely from the catalog", async () => {
+		await writeArtifact(knowledgeDir, { name: "public-skill" });
+		await writeArtifact(knowledgeDir, {
+			name: "secret-skill",
+			visibility: "private",
+		});
+
+		const entries = await generateCatalog(knowledgeDir);
+
+		const names = entries.map((e) => e.name);
+		expect(names).toContain("public-skill");
+		expect(names).not.toContain("secret-skill");
+		expect(entries.length).toBe(1);
+	});
+
+	/**
+	 * Validates: Requirement 4.6
+	 * Unlisted artifacts are retained with their visibility field set in output.
+	 */
+	test("retains unlisted artifacts with visibility field set", async () => {
+		await writeArtifact(knowledgeDir, {
+			name: "hidden-skill",
+			visibility: "unlisted",
+		});
+
+		const entries = await generateCatalog(knowledgeDir);
+
+		expect(entries.length).toBe(1);
+		expect(entries[0].name).toBe("hidden-skill");
+		expect(entries[0].visibility).toBe("unlisted");
+	});
+
+	/**
+	 * Validates: Requirement 4.7
+	 * Catalog entries sort by priority descending, then name ascending.
+	 */
+	test("sorts entries by priority descending then name ascending", async () => {
+		await writeArtifact(knowledgeDir, { name: "low-skill", priority: 10 });
+		await writeArtifact(knowledgeDir, { name: "high-b-skill", priority: 90 });
+		await writeArtifact(knowledgeDir, { name: "high-a-skill", priority: 90 });
+
+		const entries = await generateCatalog(knowledgeDir);
+
+		expect(entries.map((e) => e.name)).toEqual([
+			"high-a-skill",
+			"high-b-skill",
+			"low-skill",
+		]);
+	});
+
+	/**
+	 * Validates: Requirements 2H.1, 2H.2
+	 * Catalog entries project the outcomes array (id, kind, inputShape,
+	 * outputShape, keywords) from frontmatter.
+	 */
+	test("projects outcomes array into catalog entries", async () => {
+		await writeArtifact(knowledgeDir, {
+			name: "outcome-skill",
+			outcomes: [
+				"outcomes:",
+				"  - id: out-parse-input",
+				"    kind: operation",
+				'    inputShape: "raw string"',
+				'    outputShape: "parsed object"',
+				'    summary: "Parse raw input into structured form"',
+				'    keywords: ["parse", "input"]',
+			].join("\n"),
+		});
+
+		const entries = await generateCatalog(knowledgeDir);
+
+		expect(entries.length).toBe(1);
+		expect(entries[0].outcomes).toEqual([
+			{
+				id: "out-parse-input",
+				kind: "operation",
+				inputShape: "raw string",
+				outputShape: "parsed object",
+				keywords: ["parse", "input"],
+			},
+		]);
+	});
+
+	/**
+	 * Validates: Requirement 2H.1
+	 * Outcomes default to an empty array when frontmatter omits them.
+	 */
+	test("defaults outcomes to empty array when omitted", async () => {
+		await writeArtifact(knowledgeDir, { name: "no-outcomes-skill" });
+
+		const entries = await generateCatalog(knowledgeDir);
+
+		expect(entries.length).toBe(1);
+		expect(entries[0].outcomes).toEqual([]);
+	});
+});
+
+describe("sortCatalogEntries", () => {
+	/**
+	 * Validates: Requirement 4.7
+	 * sortCatalogEntries sorts by priority desc, then name asc, without mutating input.
+	 */
+	test("sorts by priority descending then name ascending and is pure", async () => {
+		const input = [
+			makeEntry("zeta", 50),
+			makeEntry("alpha", 50),
+			makeEntry("top", 100),
+			makeEntry("bottom", 1),
+		];
+		const inputOrder = input.map((e) => e.name);
+
+		const sorted = sortCatalogEntries(input);
+
+		expect(sorted.map((e) => e.name)).toEqual([
+			"top",
+			"alpha",
+			"zeta",
+			"bottom",
+		]);
+		// input not mutated
+		expect(input.map((e) => e.name)).toEqual(inputOrder);
 	});
 });

@@ -15,6 +15,8 @@ import {
 	gradeProgressiveSteering,
 	type Workload,
 } from "./eval/rubrics/kiro-progressive-steering";
+import { parseHistory } from "./mutation/history";
+import { MUTATION_HISTORY_PATH, runMutationTesting } from "./mutation/runner";
 import type { HarnessName } from "./schemas";
 import { type createTemplateEnv, renderTemplate } from "./template-engine";
 
@@ -502,6 +504,85 @@ export async function showTrend(artifactName?: string): Promise<void> {
 	console.error("");
 }
 
+/**
+ * Display mutation testing score progression from mutation-history.jsonl.
+ * Reuses the sparkline style from standard eval trend display (Req 5.8).
+ */
+export async function showMutationTrend(): Promise<void> {
+	if (!(await exists(MUTATION_HISTORY_PATH))) {
+		console.error(
+			chalk.yellow(
+				"No mutation history found. Run `forge eval --mutation` first.",
+			),
+		);
+		return;
+	}
+
+	const raw = await readFile(MUTATION_HISTORY_PATH, "utf-8");
+	const entries = parseHistory(raw);
+
+	if (entries.length === 0) {
+		console.error(chalk.yellow("No mutation history entries found."));
+		return;
+	}
+
+	const col = 72;
+	const rule = () => chalk.dim("─".repeat(col));
+
+	console.error("");
+	console.error(rule());
+	console.error(
+		`  ${chalk.bold("Mutation Testing")}  ${chalk.dim(`${entries.length} runs`)}`,
+	);
+	console.error(rule());
+
+	// Print header
+	console.error(
+		`  ${chalk.dim("date".padEnd(12))}${chalk.dim("sha".padEnd(10))}${chalk.dim("mutants".padEnd(10))}${chalk.dim("killed".padEnd(10))}${chalk.dim("survived".padEnd(10))}${chalk.dim("kill rate")}`,
+	);
+
+	// Print each run
+	for (const run of entries) {
+		const date = run.ts.slice(0, 10);
+		const sha = run.sha.padEnd(10);
+		const total = String(run.totalMutants).padEnd(10);
+		const killed = String(run.killed).padEnd(10);
+		const survived = String(run.survived).padEnd(10);
+		const pct = `${Math.round(run.killRate * 100)}%`;
+		const color =
+			run.killRate >= 0.8
+				? chalk.green
+				: run.killRate >= 0.5
+					? chalk.yellow
+					: chalk.red;
+
+		console.error(
+			`  ${date}  ${chalk.dim(sha)}${total}${killed}${survived}${color(pct)}`,
+		);
+	}
+
+	// Sparkline for kill rate
+	if (entries.length >= 2) {
+		const sparks = "▁▂▃▄▅▆▇█";
+		const scores = entries.map((r) => r.killRate);
+		const min = Math.min(...scores);
+		const max = Math.max(...scores);
+		const range = max - min || 1;
+		const sparkline = scores
+			.map((s) => sparks[Math.round(((s - min) / range) * (sparks.length - 1))])
+			.join("");
+		const delta = scores[scores.length - 1] - scores[0];
+		const deltaStr =
+			delta >= 0
+				? chalk.green(`+${Math.round(delta * 100)}%`)
+				: chalk.red(`${Math.round(delta * 100)}%`);
+		console.error("");
+		console.error(`  ${chalk.dim("trend")}  ${sparkline}  ${deltaStr}`);
+	}
+
+	console.error("");
+}
+
 export async function evalCommand(
 	artifact?: string,
 	options?: Record<string, unknown>,
@@ -514,7 +595,80 @@ export async function evalCommand(
 		return;
 	}
 
-	// Handle --trend
+	// Handle --mutation mode (Req 5.1, 5.5, 5.6, 5.7, 5.8)
+	if (opts.mutation) {
+		// --mutation --trend: show mutation history instead of standard eval history
+		if (opts.trend) {
+			await showMutationTrend();
+			return;
+		}
+
+		// Parse threshold — default 0.80 for mutation mode (vs 0.7 for standard evals)
+		const threshold = opts.threshold
+			? Number.parseFloat(opts.threshold as string)
+			: 0.8;
+
+		const result = await runMutationTesting({
+			threshold,
+			delta: opts.delta as boolean | undefined,
+		});
+
+		// Print results summary
+		const col = 72;
+		const rule = (c = "─") => chalk.dim(c.repeat(col));
+
+		console.error("");
+		console.error(rule());
+		console.error(`  ${chalk.bold("Mutation Testing Results")}`);
+		console.error(rule());
+		console.error(
+			`  Total mutants: ${chalk.bold(String(result.totalMutants))}`,
+		);
+		console.error(`  Killed:        ${chalk.green(String(result.killed))}`);
+		console.error(`  Survived:      ${chalk.red(String(result.survived))}`);
+
+		const killPct = `${Math.round(result.killRate * 100)}%`;
+		const killColor = result.killRate >= threshold ? chalk.green : chalk.red;
+		console.error(`  Kill rate:     ${killColor(killPct)}`);
+		console.error(rule());
+
+		// Report surviving mutants (Req 5.9)
+		if (result.survivors.length > 0) {
+			console.error("");
+			console.error(chalk.yellow("  Surviving mutants:"));
+			for (const mutant of result.survivors) {
+				console.error("");
+				console.error(
+					chalk.dim(`  ${mutant.filePath}:${mutant.line}`) +
+						`  [${mutant.operator}]`,
+				);
+				console.error(chalk.red(`    - ${mutant.originalSnippet}`));
+				console.error(chalk.green(`    + ${mutant.mutatedSnippet}`));
+			}
+		}
+
+		// Exit with code 1 if below threshold (Req 5.5)
+		if (result.killRate < threshold) {
+			console.error("");
+			console.error(
+				chalk.red(
+					`  ✗ Kill rate ${killPct} is below threshold ${Math.round(threshold * 100)}%`,
+				),
+			);
+			process.exit(1);
+		} else {
+			console.error("");
+			console.error(
+				chalk.green(
+					`  ✓ Kill rate ${killPct} meets threshold ${Math.round(threshold * 100)}%`,
+				),
+			);
+		}
+
+		return;
+	}
+
+	// Handle --trend (standard eval history)
 	if (opts.trend) {
 		await showTrend(artifact);
 		return;

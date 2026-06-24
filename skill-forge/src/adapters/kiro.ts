@@ -1,4 +1,10 @@
 import { resolveFormat } from "../format-registry";
+import {
+	BUILTIN_PREDICATES,
+	type ExprNode,
+	type ParsedExpression,
+	parseExpression,
+} from "../hooks/expression";
 import type { CanonicalEvent, CanonicalHook } from "../schemas";
 import { renderTemplate } from "../template-engine";
 import type { HarnessCapabilityName } from "./capabilities";
@@ -29,6 +35,133 @@ const KIRO_EVENT_MAP: Record<CanonicalEvent, string> = {
 	user_triggered: "userTriggered",
 };
 
+/** Fixed natural-language phrasings for the built-in predicates (Req 3.6). */
+const BUILTIN_PREDICATE_PHRASING: Record<
+	(typeof BUILTIN_PREDICATES)[number],
+	{ positive: string; negative: string }
+> = {
+	tests_pass: {
+		positive: "Confirm the test suite passes",
+		negative: "Confirm the test suite does not pass",
+	},
+	files_exist: {
+		positive: "Confirm the required files exist",
+		negative: "Confirm the required files do not exist",
+	},
+	lint_clean: {
+		positive: "Confirm linting passes",
+		negative: "Confirm linting does not pass",
+	},
+};
+
+function isBuiltinPredicate(
+	name: string,
+): name is (typeof BUILTIN_PREDICATES)[number] {
+	return (BUILTIN_PREDICATES as readonly string[]).includes(name);
+}
+
+/** Render a literal value as it should read inside a precondition check. */
+function renderLiteral(value: string | boolean): string {
+	return typeof value === "boolean" ? String(value) : value;
+}
+
+/**
+ * Walk a gate AST, accumulating one natural-language precondition check per
+ * leaf reference. `negate` carries an enclosing `!` down to the leaves so a
+ * negated predicate / comparison reads correctly. Pure.
+ */
+function collectChecks(
+	node: ExprNode,
+	negate: boolean,
+	checks: string[],
+): void {
+	switch (node.type) {
+		case "or":
+		case "and":
+			collectChecks(node.left, negate, checks);
+			collectChecks(node.right, negate, checks);
+			break;
+		case "not":
+			collectChecks(node.operand, !negate, checks);
+			break;
+		case "equality": {
+			// `==` asserts equality; `!=` asserts inequality. An enclosing `!`
+			// flips that assertion.
+			const assertsEqual = (node.op === "==") !== negate;
+			const expected = renderLiteral(node.right.value);
+			const subject =
+				node.left.type === "stateRef" ? node.left.key : node.left.name;
+			checks.push(
+				assertsEqual
+					? `Confirm that ${subject} is ${expected}`
+					: `Confirm that ${subject} is not ${expected}`,
+			);
+			break;
+		}
+		case "stateRef":
+			checks.push(
+				negate
+					? `Confirm that ${node.key} is not set`
+					: `Confirm that ${node.key} is set`,
+			);
+			break;
+		case "predicate":
+			if (isBuiltinPredicate(node.name)) {
+				const phrasing = BUILTIN_PREDICATE_PHRASING[node.name];
+				checks.push(negate ? phrasing.negative : phrasing.positive);
+			} else {
+				checks.push(
+					negate
+						? `Confirm that ${node.name} does not hold`
+						: `Confirm that ${node.name} holds`,
+				);
+			}
+			break;
+	}
+}
+
+/**
+ * Render a gate expression as a natural-language precondition checklist that
+ * can be prepended to a Kiro `askAgent` prompt. Pure. (Req 3.6)
+ *
+ * Built-in predicates map to fixed phrasings (e.g. `tests_pass` →
+ * "Confirm the test suite passes"); state-key references map to
+ * "Confirm that <key> is <expected>" for equality comparisons (and a sensible
+ * "is set" phrasing for bare references).
+ */
+export function translateGateToPreamble(gate: string): string {
+	let ast: ParsedExpression;
+	try {
+		ast = parseExpression(gate);
+	} catch {
+		// A malformed gate should not crash the (pure) adapter; fall back to
+		// surfacing the raw expression so the agent still sees the precondition.
+		return [
+			"Preconditions — verify the following before proceeding:",
+			`- Confirm that this condition holds: ${gate}`,
+			"",
+			"Only proceed with the action below if the precondition holds.",
+		].join("\n");
+	}
+
+	const checks: string[] = [];
+	collectChecks(ast, false, checks);
+	// Deduplicate while preserving first-seen order.
+	const seen = new Set<string>();
+	const uniqueChecks = checks.filter((c) => {
+		if (seen.has(c)) return false;
+		seen.add(c);
+		return true;
+	});
+
+	return [
+		"Preconditions — verify all of the following before proceeding:",
+		...uniqueChecks.map((c) => `- ${c}`),
+		"",
+		"Only proceed with the action below if every precondition holds.",
+	].join("\n");
+}
+
 function buildKiroHook(hook: CanonicalHook): Record<string, unknown> {
 	const kiroEvent = KIRO_EVENT_MAP[hook.event];
 	const when: Record<string, unknown> = { type: kiroEvent };
@@ -39,10 +172,15 @@ function buildKiroHook(hook: CanonicalHook): Record<string, unknown> {
 		when.toolTypes = hook.condition.tool_types;
 	}
 
-	const then: Record<string, unknown> =
-		hook.action.type === "ask_agent"
-			? { type: "askAgent", prompt: hook.action.prompt }
-			: { type: "runCommand", command: hook.action.command };
+	let then: Record<string, unknown>;
+	if (hook.action.type === "ask_agent") {
+		const prompt = hook.gate
+			? `${translateGateToPreamble(hook.gate)}\n\n${hook.action.prompt}`
+			: hook.action.prompt;
+		then = { type: "askAgent", prompt };
+	} else {
+		then = { type: "runCommand", command: hook.action.command };
+	}
 
 	return {
 		name: hook.name,

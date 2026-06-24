@@ -125,6 +125,163 @@ Body content.`,
 	});
 });
 
+describe("Hook gate/postcondition reference validation (Req 3.7)", () => {
+	async function writeArtifactWithHooks(
+		name: string,
+		hooksYaml: string,
+	): Promise<string> {
+		const artifactDir = join(tempDir, name);
+		await mkdir(artifactDir, { recursive: true });
+		await writeFile(
+			join(artifactDir, "knowledge.md"),
+			`---
+name: ${name}
+harnesses:
+  - kiro
+---
+Body content.`,
+		);
+		await writeFile(join(artifactDir, "hooks.yaml"), hooksYaml);
+		return artifactDir;
+	}
+
+	/**
+	 * Validates: Requirements 3.7
+	 * A gate/postcondition that only references declared state keys and built-in
+	 * predicates passes validation.
+	 */
+	test("valid references pass validation", async () => {
+		const artifactDir = await writeArtifactWithHooks(
+			"good-refs",
+			`- name: writer
+  event: post_task
+  action:
+    type: ask_agent
+    prompt: "write"
+  state:
+    ready: true
+- name: gated
+  event: post_task
+  gate: 'state.ready && tests_pass'
+  postcondition: 'lint_clean'
+  action:
+    type: ask_agent
+    prompt: "go"
+`,
+		);
+
+		const result = await validateArtifact(artifactDir);
+		expect(result.valid).toBe(true);
+		expect(result.errors).toHaveLength(0);
+	});
+
+	/**
+	 * Validates: Requirements 3.7
+	 * A gate referencing an undefined state key is rejected with an error that
+	 * identifies the hook name and the gate field.
+	 */
+	test("undefined state key in gate produces error", async () => {
+		const artifactDir = await writeArtifactWithHooks(
+			"bad-state",
+			`- name: gated
+  event: post_task
+  gate: 'state.never_declared'
+  action:
+    type: ask_agent
+    prompt: "go"
+`,
+		);
+
+		const result = await validateArtifact(artifactDir);
+		expect(result.valid).toBe(false);
+		const err = result.errors.find((e) => e.field === "hooks[gated].gate");
+		expect(err).toBeDefined();
+		expect(err?.message).toContain("never_declared");
+		expect(err?.filePath).toContain("hooks.yaml");
+	});
+
+	/**
+	 * Validates: Requirements 3.7
+	 * An unknown predicate in a postcondition is rejected, identifying the
+	 * postcondition field.
+	 */
+	test("unknown predicate in postcondition produces error", async () => {
+		const artifactDir = await writeArtifactWithHooks(
+			"bad-pred",
+			`- name: gated
+  event: post_task
+  postcondition: 'mystery_predicate'
+  action:
+    type: ask_agent
+    prompt: "go"
+`,
+		);
+
+		const result = await validateArtifact(artifactDir);
+		expect(result.valid).toBe(false);
+		const err = result.errors.find(
+			(e) => e.field === "hooks[gated].postcondition",
+		);
+		expect(err).toBeDefined();
+		expect(err?.message).toContain("mystery_predicate");
+	});
+
+	/**
+	 * Validates: Requirements 3.7
+	 * A state key declared in one hook is visible to another hook's expression
+	 * (union of declared keys across the file).
+	 */
+	test("state key declared in another hook is in scope", async () => {
+		const artifactDir = await writeArtifactWithHooks(
+			"shared-state",
+			`- name: producer
+  event: post_task
+  action:
+    type: ask_agent
+    prompt: "produce"
+  state:
+    built: true
+- name: consumer
+  event: post_task
+  gate: 'state.built'
+  action:
+    type: ask_agent
+    prompt: "consume"
+`,
+		);
+
+		const result = await validateArtifact(artifactDir);
+		expect(result.valid).toBe(true);
+		expect(result.errors).toHaveLength(0);
+	});
+
+	/**
+	 * Validates: Requirements 3.7
+	 * A malformed gate expression is reported as a validation error rather than
+	 * throwing.
+	 */
+	test("malformed gate expression produces error", async () => {
+		const artifactDir = await writeArtifactWithHooks(
+			"malformed",
+			`- name: gated
+  event: post_task
+  gate: 'state.ready &&'
+  action:
+    type: ask_agent
+    prompt: "go"
+  state:
+    ready: true
+`,
+		);
+
+		const result = await validateArtifact(artifactDir);
+		expect(result.valid).toBe(false);
+		const err = result.errors.find((e) => e.field === "hooks[gated].gate");
+		expect(err).toBeDefined();
+		expect(err?.filePath).toContain("hooks.yaml");
+	});
+});
+
 describe("Asset type field validation (expanded taxonomy)", () => {
 	/**
 	 * Validates: Phase 1 bazaar schema — type is now the asset taxonomy, not output format.

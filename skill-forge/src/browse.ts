@@ -69,6 +69,38 @@ export interface BrowseState {
 	forgeDir: string;
 	knowledgeDir: string;
 	buildHistory: BuildHistoryEntry[];
+	/**
+	 * When true, `unlisted` artifacts are shown in listings (Req 4.9).
+	 * Defaults to false (hide unlisted). `private` is always hidden.
+	 */
+	all?: boolean;
+}
+
+/** Options controlling browse visibility filtering (Req 4.8, 4.9). */
+export interface BrowseFilterOptions {
+	all?: boolean;
+}
+
+/**
+ * Filters catalog entries for browse listings based on visibility (Req 4.8, 4.9).
+ *
+ * - `private` entries are always hidden. They are already excluded from
+ *   `catalog.json` by `generateCatalog`, so this is a defensive guarantee.
+ * - `unlisted` entries are hidden by default and shown only when `all` is true.
+ * - `public` entries are always shown.
+ *
+ * Pure function: returns a new array and does not mutate the input.
+ */
+export function filterBrowseEntries(
+	entries: CatalogEntry[],
+	options: BrowseFilterOptions = {},
+): CatalogEntry[] {
+	const showAll = options.all ?? false;
+	return entries.filter((entry) => {
+		if (entry.visibility === "private") return false;
+		if (entry.visibility === "unlisted" && !showAll) return false;
+		return true;
+	});
 }
 
 /**
@@ -94,6 +126,8 @@ export async function refreshCollections(
  */
 export interface BrowseOptions {
 	port: number;
+	/** Show `unlisted` artifacts in listings (Req 4.9). Defaults to false. */
+	all?: boolean;
 }
 
 /**
@@ -117,9 +151,12 @@ export function validatePort(portStr: string): number {
  * Entry point for `forge catalog browse`.
  * Validates the port option and starts the browse server.
  */
-export async function browseCommand(options: { port: string }): Promise<void> {
+export async function browseCommand(options: {
+	port: string;
+	all?: boolean;
+}): Promise<void> {
 	const port = validatePort(options.port);
-	await startBrowseServer({ port });
+	await startBrowseServer({ port, all: options.all });
 }
 export interface ExportOptions {
 	output: string;
@@ -248,7 +285,9 @@ export async function handleRequest(
 ): Promise<Response> {
 	const catalogEntries = Array.isArray(stateOrEntries)
 		? stateOrEntries
-		: stateOrEntries.catalogEntries;
+		: filterBrowseEntries(stateOrEntries.catalogEntries, {
+				all: stateOrEntries.all,
+			});
 
 	const url = new URL(req.url);
 	const pathname = url.pathname;
@@ -928,7 +967,7 @@ export async function handleRequest(
  * opens the browser, and registers a SIGINT handler for clean shutdown.
  */
 export async function startBrowseServer(options: BrowseOptions): Promise<void> {
-	const { port } = options;
+	const { port, all } = options;
 
 	// Build the mutable state wrapper so mutation handlers can update
 	// in-memory data without restarting the server.
@@ -938,6 +977,7 @@ export async function startBrowseServer(options: BrowseOptions): Promise<void> {
 		forgeDir: ".forge",
 		knowledgeDir: "knowledge",
 		buildHistory: [],
+		all: all ?? false,
 	};
 
 	// Pre-generate the HTML page string (cached in memory)

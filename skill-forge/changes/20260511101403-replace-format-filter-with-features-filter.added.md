@@ -1,1 +1,0 @@
-Replace the redundant Format filter in the catalog browse UI with a Features filter (Hooks, MCP Servers, Workflows, Conditional Inclusion). Features are derived from artifact content at catalog generation time and stored in a new `features` object in `CatalogEntrySchema`.
