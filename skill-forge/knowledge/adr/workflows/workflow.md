@@ -1,6 +1,6 @@
 # ADR Workflow
 
-Directory, naming, status, git context, index, cross-referencing, changelog, templates, and rules are defined in POWER.md. This file covers mode-specific workflows only.
+Directory, naming, status, git context, duplicate check, index, cross-referencing, changelog, and rules are defined in POWER.md. This file covers mode-specific workflows and the MADR templates.
 
 ## Modes
 

@@ -1,3 +1,4 @@
+<!-- forge:version 0.2.0 -->
 # Skill Forge Command Reference
 
 Complete reference for every Skill Forge CLI command. All commands are run from the `skill-forge/` directory using `bun run dev <command>`.

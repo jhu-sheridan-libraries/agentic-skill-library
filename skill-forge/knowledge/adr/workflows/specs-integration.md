@@ -8,9 +8,9 @@ Uses shared rules from POWER.md (git context, duplicate check, index, cross-refe
 
 **Pre-task**: extract architectural nouns from task + design doc → search existing ADRs. Match → reference. No match + significant decision → create ADR before starting the task.
 
-**Post-task / session end**: per POWER.md agentStop hook. New modules/deps/patterns → create ADR before session closes.
+**Post-task / session end**: per the session-end (`Stop`) hook in the `hooks` steering. New modules/deps/patterns → create ADR before session closes.
 
-> **Key principle:** Hooks must be *directive*, not *advisory*. "Suggest ADR" gets ignored during autonomous sessions. "Create ADR immediately" gets executed. See the Hook Design Anti-Patterns table in POWER.md.
+> **Key principle:** Hooks must be *directive*, not *advisory*. "Suggest ADR" gets ignored during autonomous sessions; "Create ADR immediately" gets executed. See the `hooks` steering.
 
 ## Linking
 

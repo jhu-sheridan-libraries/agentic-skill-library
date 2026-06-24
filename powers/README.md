@@ -11,6 +11,28 @@ This directory contains Kiro Powers that ship with the repository. Anyone who op
 
 ## Available Powers
 
+### adr
+
+Create, maintain, and cross-reference Architecture Decision Records (ADRs) in MADR format. Reads git context, detects duplicate decisions, manages supersession chains, and keeps the ADR index up to date. Works in any git repository — the ADR directory and changelog tool are auto-discovered.
+
+**Includes:**
+- MADR templates (full and short-form) with create / update / review / cross-reference workflows
+- Auto-draft ADRs from `git diff`
+- Health check for drift, staleness, broken references, and orphaned drafts
+- Team review checklist and Proposed→Accepted promotion
+- Bidirectional linking with Kiro specs
+- Changelog tool integration (towncrier, changesets, conventional-changelog, release-please, git-cliff, or plain CHANGELOG.md)
+- Installable native Kiro hooks that auto-enforce ADR creation on session end and before spec tasks
+
+**Steering files:**
+- `workflow` — Core ADR operations and MADR templates
+- `generate-from-diff` — Draft an ADR from a git diff
+- `health-check` — Audit ADRs for drift and broken references
+- `team-review` — Review checklist and promotion workflow
+- `specs-integration` — Link ADRs with Kiro specs
+- `changelog` — Record ADRs in the project's changelog tool
+- `hooks` — Installable native Kiro enforcement hooks
+
 ### skill-forge
 
 Onboarding and assistant guide for using the Skill Forge CLI. Designed for Johns Hopkins Libraries staff who may or may not be familiar with software development.

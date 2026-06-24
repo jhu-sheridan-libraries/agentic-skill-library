@@ -8,3 +8,5 @@ keywords: {{ artifact.frontmatter.keywords | dump }}
 author: {{ artifact.frontmatter.author }}
 ---
 {% endblock %}
+{# Inline workflow content into POWER.md by default. Set harness-config.kiro.inline-workflows: false to keep POWER.md lean and rely on separate steering files (official-power style). #}
+{% block workflows %}{% if harnessConfig["inline-workflows"] != false %}{{ super() }}{% endif %}{% endblock %}

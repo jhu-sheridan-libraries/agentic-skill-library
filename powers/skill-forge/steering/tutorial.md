@@ -1,3 +1,4 @@
+<!-- forge:version 0.2.0 -->
 # Skill Forge Tutorial
 
 A complete sequential walkthrough of every Skill Forge capability, from first install to publishing and team distribution. Each lesson is self-contained so you can skip ahead or return to a topic later.
@@ -238,13 +239,13 @@ bun run dev import --harness claude-code
 | `--format <format>` | Force format: `kiro-power` or `kiro-skill` (default: auto-detect) |
 | `--force` | Overwrite existing artifacts without confirmation |
 | `--dry-run` | Show what would be imported without writing files |
-| `--collections jhu,reference` | Assign imported artifacts to collections |
+| `--collections jh-drcc,reference` | Assign imported artifacts to collections |
 | `--knowledge-dir <dir>` | Target knowledge directory (default: `knowledge`) |
 
 ### Example: Import with JHU Tag
 
 ```bash
-bun run dev import ../existing-jhu-rules --all --collections jhu --dry-run
+bun run dev import ../existing-jhu-rules --all --collections jh-drcc --dry-run
 ```
 
 Always run with `--dry-run` first to preview what will be written.
@@ -355,7 +356,7 @@ harnesses:
   - kiro
   - claude-code
 collections:
-  - jhu
+  - jh-drcc
 ecosystem: []
 depends: []
 enhances: []
@@ -376,7 +377,7 @@ maturity: experimental
 
 ### JHU-Specific Conventions
 
-- Always include `jhu` in `collections` for library artifacts
+- Always include `jh-drcc` in `collections` for library artifacts
 - Start `maturity` at `experimental` — upgrade to `stable` after team review
 - Use `manual` inclusion for reference material; `always` only for team-wide standards
 
@@ -692,7 +693,7 @@ Edit the artifact's frontmatter:
 
 ```yaml
 collections:
-  - jhu
+  - jh-drcc
   - my-collection
 ```
 
@@ -709,7 +710,7 @@ Generates distributable bundles of collection members — useful for packaging a
 
 ### The JHU Collection
 
-Already exists at `collections/jhu.yaml`. Always add `jhu` to the `collections` field of artifacts you create for the library team.
+Already exists at `collections/jh-drcc.yaml`. Always add `jh-drcc` to the `collections` field of artifacts you create for the library team.
 
 **Next:** [Lesson 12](#lesson-12-evaluating-artifacts)
 
@@ -974,11 +975,11 @@ Follow Lessons 5–10 to create, validate, build, and install it.
 
 ### Contribute to the JHU Collection
 
-Library-relevant artifacts should join the `jhu` collection. Add it to your frontmatter:
+Library-relevant artifacts should join the `jh-drcc` collection. Add it to your frontmatter:
 
 ```yaml
 collections:
-  - jhu
+  - jh-drcc
 ```
 
 Commit and push — CI will validate and build your artifact automatically.
@@ -989,7 +990,7 @@ Commit and push — CI will validate and build your artifact automatically.
 bun run dev catalog browse
 ```
 
-Look at artifacts in the `jhu` collection and others for inspiration. Read their `knowledge.md` files to see how experienced authors structure content.
+Look at artifacts in the `jh-drcc` collection and others for inspiration. Read their `knowledge.md` files to see how experienced authors structure content.
 
 ### Set Up Automated Evals
 

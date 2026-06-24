@@ -1,45 +1,5 @@
-- name: ADR Enforcement on Session End
-  description: >-
-    When an agent session ends, directs the agent to check git diff for
-    architectural changes, cross-reference against existing ADRs, and CREATE
-    any missing ADRs before the session closes.
-  event: agent_stop
-  action:
-    type: ask_agent
-    prompt: >-
-      Before this session ends, check if any architectural decisions from this
-      session are undocumented:
-
-      1. Run: git diff --stat HEAD to see what changed.
-      2. Filter for architectural files (src/, lib/, commands/, modules/ — excluding tests).
-      3. If architectural files changed, scan the ADR index for existing ADRs.
-      4. Read the design.md of any active spec whose files were touched.
-      5. If you find NEW architectural patterns, module structures, or integration
-         approaches NOT covered by existing ADRs:
-         a. Create the ADR(s) immediately
-         b. Update the README.md index table
-         c. Create changelog fragments if the project uses them
-      6. If all changes are covered, report: 'All architectural decisions documented.'
-
-
-- name: ADR + Spec Context Check
-  description: >-
-    Before starting a spec task, directs the agent to check if the task
-    introduces new architectural decisions not covered by existing ADRs.
-    If so, the agent must CREATE the ADR before proceeding with the task.
-  event: pre_task
-  action:
-    type: ask_agent
-    prompt: >-
-      Before starting this task, do the following:
-
-      1. Read the active spec's design.md and identify key architectural decisions
-         relevant to THIS task.
-      2. Scan the ADR index to check if those decisions are already documented.
-      3. If this task introduces a NEW architectural pattern, module structure,
-         data flow, or integration approach NOT covered by an existing ADR:
-         a. Create the ADR immediately (next sequential number)
-         b. Update the README.md index table
-         c. Create a changelog fragment if the project uses them
-         d. Then proceed with the task implementation.
-      4. If all decisions are already covered by existing ADRs, proceed — no action needed.
+# Hooks for the ADR power are documented as installable native Kiro JSON in
+# workflows/hooks.md (compiled to steering/hooks.md) — NOT emitted as .kiro.hook
+# files. Official Kiro powers do not ship hook files inside the power package;
+# the agent/user installs them into .kiro/hooks/. This list is intentionally empty.
+[]

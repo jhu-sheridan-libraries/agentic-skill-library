@@ -314,17 +314,23 @@ export const kiroAdapter: HarnessAdapter = (
 	// Resolve Kiro inclusion for steering template
 	const resolved = resolveKiroInclusion(artifact);
 
-	// Generate steering .md file
-	const steeringContent = renderTemplate(templateEnv, "kiro/steering.md.njk", {
-		artifact,
-		harnessConfig: kiroConfig,
-		inclusion: resolved.mode,
-		fileMatchPattern: resolved.fileMatchPattern,
-		auditComment: buildAuditComment(resolved),
-	});
-	const steeringPath =
-		format === "power" ? `steering/${artifact.name}.md` : `${artifact.name}.md`;
-	files.push({ relativePath: steeringPath, content: steeringContent });
+	// Generate steering .md file.
+	// For powers, this emits an always-included steering/{name}.md that mirrors
+	// POWER.md. Set harness-config.kiro.main-steering: false to suppress it
+	// (official-power style: POWER.md is the entry point, no duplicate).
+	const emitMainSteering =
+		format !== "power" || kiroConfig["main-steering"] !== false;
+	if (emitMainSteering) {
+		const steeringContent = renderTemplate(templateEnv, "kiro/steering.md.njk", {
+			artifact,
+			harnessConfig: kiroConfig,
+		});
+		const steeringPath =
+			format === "power"
+				? `steering/${artifact.name}.md`
+				: `${artifact.name}.md`;
+		files.push({ relativePath: steeringPath, content: steeringContent });
+	}
 
 	// Generate hook JSON files
 	for (const hook of artifact.hooks) {
