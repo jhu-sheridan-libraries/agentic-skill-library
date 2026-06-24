@@ -8,9 +8,6 @@ fileMatchPattern: "{{ fileMatchPattern }}"
 {% if artifact.frontmatter.description %}
 description: {{ artifact.frontmatter.description | dump | safe }}
 {% endif %}
-{% if artifact.frontmatter.description %}
-description: {{ artifact.frontmatter.description | dump | safe }}
-{% endif %}
 ---
 {% endblock %}
 {% block header %}
