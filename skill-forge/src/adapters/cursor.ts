@@ -3,10 +3,12 @@ import type { InclusionMode } from "../schemas";
 import { renderTemplate } from "../template-engine";
 import type { HarnessCapabilityName } from "./capabilities";
 import { applyDegradation } from "./degradation";
+import { buildMcpConfig } from "./types";
 import type { AdapterWarning, HarnessAdapter, OutputFile } from "./types";
 
 const CURSOR_INCLUSION_MAP: Record<InclusionMode, string> = {
 	always: "always",
+	auto: "auto",
 	fileMatch: "auto",
 	manual: "agent-requested",
 };
@@ -75,14 +77,7 @@ export const cursorAdapter: HarnessAdapter = (
 
 	// Generate .cursor/mcp.json
 	if (artifact.mcpServers.length > 0) {
-		const mcpConfig: Record<string, unknown> = { mcpServers: {} };
-		for (const server of artifact.mcpServers) {
-			(mcpConfig.mcpServers as Record<string, unknown>)[server.name] = {
-				command: server.command,
-				args: server.args,
-				env: server.env,
-			};
-		}
+		const mcpConfig = buildMcpConfig(artifact.mcpServers);
 		const mcpContent = renderTemplate(templateEnv, "cursor/mcp.json.njk", {
 			mcpConfig,
 		});

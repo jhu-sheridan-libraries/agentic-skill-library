@@ -7,6 +7,7 @@ import type { HarnessName } from "../schemas";
 import { SUPPORTED_HARNESSES } from "../schemas";
 import { parseClaudeCode } from "./claude-code";
 import { parseCline } from "./cline";
+import { parseCodex } from "./codex";
 import { parseCopilot } from "./copilot";
 import { parseCursor } from "./cursor";
 import { parseKiro } from "./kiro";
@@ -23,6 +24,7 @@ import { parseWindsurf } from "./windsurf";
 export const HARNESS_NATIVE_PATHS: Record<HarnessName, string[]> = {
 	kiro: [".kiro/steering/*.md", ".kiro/skills/*/SKILL.md"],
 	"claude-code": ["CLAUDE.md", ".claude/settings.json"],
+	codex: ["AGENTS.md", ".codex/skills/*/SKILL.md", ".agents/skills/*/SKILL.md"],
 	copilot: [
 		".github/copilot-instructions.md",
 		".github/instructions/*.instructions.md",
@@ -46,6 +48,10 @@ export const importerRegistry: ImporterRegistry = {
 	"claude-code": {
 		nativePaths: HARNESS_NATIVE_PATHS["claude-code"],
 		parse: parseClaudeCode,
+	},
+	codex: {
+		nativePaths: HARNESS_NATIVE_PATHS.codex,
+		parse: parseCodex,
 	},
 	copilot: {
 		nativePaths: HARNESS_NATIVE_PATHS.copilot,
@@ -71,6 +77,10 @@ export const importerRegistry: ImporterRegistry = {
 
 // ── Glob matching utility ─────────────────────────────────────────────────────
 
+function escapeRegexLiteral(input: string): string {
+	return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 /**
  * Matches a relative file path against a simple glob pattern.
  * Supports `*` (single directory segment wildcard) in path segments.
@@ -89,9 +99,8 @@ function matchGlob(pattern: string, filePath: string): boolean {
 
 		// Handle patterns like "*.md" or "*.instructions.md"
 		if (pat.includes("*")) {
-			const regex = new RegExp(
-				`^${pat.replace(/\./g, "\\.").replace(/\*/g, ".*")}$`,
-			);
+			const safePattern = escapeRegexLiteral(pat).replace(/\\\*/g, ".*");
+			const regex = new RegExp(`^${safePattern}$`);
 			if (!regex.test(seg)) return false;
 		} else {
 			if (pat !== seg) return false;
@@ -148,6 +157,7 @@ export async function detectHarnessFiles(
 	const result: Record<HarnessName, string[]> = {
 		kiro: [],
 		"claude-code": [],
+		codex: [],
 		copilot: [],
 		cursor: [],
 		windsurf: [],

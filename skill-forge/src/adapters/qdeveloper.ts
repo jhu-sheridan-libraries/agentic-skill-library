@@ -3,6 +3,7 @@ import { renderTemplate } from "../template-engine";
 import type { HarnessCapabilityName } from "./capabilities";
 import { applyDegradation } from "./degradation";
 import type { AdapterWarning, HarnessAdapter, OutputFile } from "./types";
+import { buildMcpConfig } from "./types";
 
 export const qdeveloperAdapter: HarnessAdapter = (
 	artifact,
@@ -93,14 +94,7 @@ export const qdeveloperAdapter: HarnessAdapter = (
 
 	// Generate MCP configuration
 	if (artifact.mcpServers.length > 0) {
-		const mcpConfig: Record<string, unknown> = { mcpServers: {} };
-		for (const server of artifact.mcpServers) {
-			(mcpConfig.mcpServers as Record<string, unknown>)[server.name] = {
-				command: server.command,
-				args: server.args,
-				env: server.env,
-			};
-		}
+		const mcpConfig = buildMcpConfig(artifact.mcpServers);
 		const mcpContent = renderTemplate(templateEnv, "qdeveloper/mcp.json.njk", {
 			mcpConfig,
 		});

@@ -20,6 +20,7 @@ function makeConfig(
 		solrUrl: "http://localhost:8983",
 		solrCollection: "context-bazaar",
 		userCollection: "context-bazaar-user-docs",
+		codebaseCollection: "context-bazaar-codebase",
 		embedProvider: "local",
 		embedDimensions: 1024,
 		cacheTiers: ["memory", "sqlite", "solr"],

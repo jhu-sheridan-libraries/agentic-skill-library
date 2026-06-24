@@ -69,6 +69,38 @@ export interface BrowseState {
 	forgeDir: string;
 	knowledgeDir: string;
 	buildHistory: BuildHistoryEntry[];
+	/**
+	 * When true, `unlisted` artifacts are shown in listings (Req 4.9).
+	 * Defaults to false (hide unlisted). `private` is always hidden.
+	 */
+	all?: boolean;
+}
+
+/** Options controlling browse visibility filtering (Req 4.8, 4.9). */
+export interface BrowseFilterOptions {
+	all?: boolean;
+}
+
+/**
+ * Filters catalog entries for browse listings based on visibility (Req 4.8, 4.9).
+ *
+ * - `private` entries are always hidden. They are already excluded from
+ *   `catalog.json` by `generateCatalog`, so this is a defensive guarantee.
+ * - `unlisted` entries are hidden by default and shown only when `all` is true.
+ * - `public` entries are always shown.
+ *
+ * Pure function: returns a new array and does not mutate the input.
+ */
+export function filterBrowseEntries(
+	entries: CatalogEntry[],
+	options: BrowseFilterOptions = {},
+): CatalogEntry[] {
+	const showAll = options.all ?? false;
+	return entries.filter((entry) => {
+		if (entry.visibility === "private") return false;
+		if (entry.visibility === "unlisted" && !showAll) return false;
+		return true;
+	});
 }
 
 /**
@@ -94,6 +126,8 @@ export async function refreshCollections(
  */
 export interface BrowseOptions {
 	port: number;
+	/** Show `unlisted` artifacts in listings (Req 4.9). Defaults to false. */
+	all?: boolean;
 }
 
 /**
@@ -117,9 +151,12 @@ export function validatePort(portStr: string): number {
  * Entry point for `forge catalog browse`.
  * Validates the port option and starts the browse server.
  */
-export async function browseCommand(options: { port: string }): Promise<void> {
+export async function browseCommand(options: {
+	port: string;
+	all?: boolean;
+}): Promise<void> {
 	const port = validatePort(options.port);
-	await startBrowseServer({ port });
+	await startBrowseServer({ port, all: options.all });
 }
 export interface ExportOptions {
 	output: string;
@@ -187,19 +224,27 @@ function jsonError(error: string, status: number, details?: unknown): Response {
 	return new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
 }
 
+function logServerError(context: string, err: unknown): void {
+	console.error(`[browse] ${context}`, err);
+}
+
+function internalServerError(context: string, err: unknown): Response {
+	logServerError(context, err);
+	return jsonError("Internal server error", 500);
+}
+
 /**
  * Maps errors thrown by admin mutation functions to structured JSON responses.
  */
 function handleMutationError(err: unknown): Response {
 	const typed = err as Error & { type?: string; details?: unknown };
 	const type = typed?.type;
-	const message = err instanceof Error ? err.message : String(err);
 
 	if (type === "validation")
 		return jsonError("Validation failed", 400, typed.details);
-	if (type === "conflict") return jsonError(message, 409);
-	if (type === "not-found") return jsonError(message, 404);
-	return jsonError(message, 500);
+	if (type === "conflict") return jsonError("Conflict", 409);
+	if (type === "not-found") return jsonError("Not found", 404);
+	return internalServerError("Mutation route failed", err);
 }
 
 /**
@@ -248,7 +293,9 @@ export async function handleRequest(
 ): Promise<Response> {
 	const catalogEntries = Array.isArray(stateOrEntries)
 		? stateOrEntries
-		: stateOrEntries.catalogEntries;
+		: filterBrowseEntries(stateOrEntries.catalogEntries, {
+				all: stateOrEntries.all,
+			});
 
 	const url = new URL(req.url);
 	const pathname = url.pathname;
@@ -601,8 +648,7 @@ export async function handleRequest(
 			});
 			return jsonResponse(output);
 		} catch (err: unknown) {
-			const msg = err instanceof Error ? err.message : String(err);
-			return jsonError(msg, 500);
+			return internalServerError("Temper render failed", err);
 		}
 	}
 
@@ -614,8 +660,7 @@ export async function handleRequest(
 			const detected = await detectHarnessFiles(process.cwd());
 			return jsonResponse(detected);
 		} catch (err: unknown) {
-			const msg = err instanceof Error ? err.message : String(err);
-			return jsonError(msg, 500);
+			return internalServerError("Import scan failed", err);
 		}
 	}
 
@@ -731,8 +776,7 @@ export async function handleRequest(
 				},
 			});
 		} catch (err: unknown) {
-			const msg = err instanceof Error ? err.message : String(err);
-			return jsonError(msg, 500);
+			return internalServerError("Upgrade route failed", err);
 		}
 	}
 
@@ -747,8 +791,7 @@ export async function handleRequest(
 			}
 			return jsonResponse(wsResult.config);
 		} catch (err: unknown) {
-			const msg = err instanceof Error ? err.message : String(err);
-			return jsonError(msg, 500);
+			return internalServerError("Workspace read failed", err);
 		}
 	}
 
@@ -815,7 +858,7 @@ export async function handleRequest(
 			if (msg.includes("Validation")) {
 				return jsonError("Validation failed", 400, { errors: [msg] });
 			}
-			return jsonError(msg, 500);
+			return internalServerError("Workspace update failed", err);
 		}
 	}
 
@@ -901,8 +944,7 @@ export async function handleRequest(
 				errors: buildResult.errors,
 			});
 		} catch (err: unknown) {
-			const msg = err instanceof Error ? err.message : String(err);
-			return jsonError(msg, 500);
+			return internalServerError("Build route failed", err);
 		}
 	}
 
@@ -928,7 +970,7 @@ export async function handleRequest(
  * opens the browser, and registers a SIGINT handler for clean shutdown.
  */
 export async function startBrowseServer(options: BrowseOptions): Promise<void> {
-	const { port } = options;
+	const { port, all } = options;
 
 	// Build the mutable state wrapper so mutation handlers can update
 	// in-memory data without restarting the server.
@@ -938,6 +980,7 @@ export async function startBrowseServer(options: BrowseOptions): Promise<void> {
 		forgeDir: ".forge",
 		knowledgeDir: "knowledge",
 		buildHistory: [],
+		all: all ?? false,
 	};
 
 	// Pre-generate the HTML page string (cached in memory)

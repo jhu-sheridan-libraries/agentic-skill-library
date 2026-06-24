@@ -35,6 +35,15 @@ async function loadArtifactEntry(
 		formatByHarness[harness] = format;
 	}
 
+	// Derive feature flags from artifact content
+	const features = {
+		hooks: artifact.hooks.length > 0,
+		mcp: artifact.mcpServers.length > 0,
+		workflows: artifact.workflows.length > 0,
+		conditionalInclusion:
+			fm.inclusion === "fileMatch" || fm.inclusion === "manual",
+	};
+
 	return {
 		name: fm.name,
 		displayName: fm.displayName || fm.name,
@@ -53,6 +62,7 @@ async function loadArtifactEntry(
 		depends: fm.depends,
 		enhances: fm.enhances,
 		formatByHarness,
+		features,
 		id: fm.id,
 		license: fm.license,
 		maturity: fm.maturity,
@@ -63,6 +73,17 @@ async function loadArtifactEntry(
 		successor: fm.successor,
 		replaces: fm.replaces,
 		collections: fm.collections,
+		// Catalog visibility & ordering (Req 4). Default when omitted in frontmatter.
+		visibility: fm.visibility ?? "public",
+		priority: fm.priority ?? 50,
+		// Outcomes registry — projected subset for external discovery (Req 2H.1, 2H.2)
+		outcomes: fm.outcomes.map((o) => ({
+			id: o.id,
+			kind: o.kind,
+			inputShape: o.inputShape,
+			outputShape: o.outputShape,
+			keywords: o.keywords,
+		})),
 	};
 }
 
@@ -123,12 +144,25 @@ async function scanSourceDir(sourceDir: string): Promise<CatalogEntry[]> {
 }
 
 /**
+ * Sort catalog entries by priority descending, then name ascending (Req 4.7).
+ * Pure function — returns a new sorted array, does not mutate the input.
+ */
+export function sortCatalogEntries(entries: CatalogEntry[]): CatalogEntry[] {
+	return [...entries].sort((a, b) => {
+		if (b.priority !== a.priority) return b.priority - a.priority;
+		return a.name.localeCompare(b.name);
+	});
+}
+
+/**
  * Generate the catalog from one or more source directories.
  *
  * Accepts either a single directory string (legacy) or an array.
  * Directories that do not exist are silently skipped.
  * Artifacts with duplicate names across directories are deduplicated —
  * the first occurrence (in the order dirs are provided) wins.
+ * Entries with visibility "private" are excluded entirely (Req 4.5).
+ * "unlisted" entries are retained with their visibility field set (Req 4.6).
  */
 export async function generateCatalog(
 	knowledgeDirs: string | string[],
@@ -140,6 +174,8 @@ export async function generateCatalog(
 	for (const dir of dirs) {
 		const dirEntries = await scanSourceDir(dir);
 		for (const entry of dirEntries) {
+			// Exclude private artifacts entirely (Req 4.5)
+			if (entry.visibility === "private") continue;
 			if (!seenNames.has(entry.name)) {
 				seenNames.add(entry.name);
 				allEntries.push(entry);
@@ -147,8 +183,7 @@ export async function generateCatalog(
 		}
 	}
 
-	allEntries.sort((a, b) => a.name.localeCompare(b.name));
-	return allEntries;
+	return sortCatalogEntries(allEntries);
 }
 
 export function serializeCatalog(entries: CatalogEntry[]): string {

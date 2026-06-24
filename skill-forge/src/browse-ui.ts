@@ -6,6 +6,7 @@
  */
 
 import type { CatalogEntry } from "./schemas";
+import { CAPABILITY_MATRIX } from "./adapters/capabilities";
 
 /**
  * Escapes HTML special characters to prevent XSS in embedded content.
@@ -884,8 +885,8 @@ function generateMarkup(): string {
         <div class="filter-group-items" id="harness-filter"></div>
       </div>
       <div class="filter-group">
-        <div class="filter-group-label">Format</div>
-        <div class="filter-group-items" id="format-filter"></div>
+        <div class="filter-group-label">Features</div>
+        <div class="filter-group-items" id="features-filter"></div>
       </div>
       <div class="filter-group">
         <div class="filter-group-label">Maturity</div>
@@ -1058,26 +1059,28 @@ function generateClientScript(): string {
       });
     }
 
-    function populateFormatFilter(entries) {
-      var formats = {};
+    function populateFeaturesFilter(entries) {
+      var featureNames = ['hooks', 'mcp', 'workflows', 'conditionalInclusion'];
+      var featureLabels = { hooks: 'Hooks', mcp: 'MCP Servers', workflows: 'Workflows', conditionalInclusion: 'Conditional Inclusion' };
+      var present = {};
       entries.forEach(function(entry) {
-        if (entry.formatByHarness) {
-          var keys = Object.keys(entry.formatByHarness);
-          for (var i = 0; i < keys.length; i++) {
-            formats[entry.formatByHarness[keys[i]]] = true;
+        if (entry.features) {
+          for (var i = 0; i < featureNames.length; i++) {
+            if (entry.features[featureNames[i]]) present[featureNames[i]] = true;
           }
         }
       });
-      var container = document.getElementById('format-filter');
+      var container = document.getElementById('features-filter');
       container.innerHTML = '';
-      Object.keys(formats).sort().forEach(function(f) {
+      featureNames.forEach(function(f) {
+        if (!present[f]) return;
         var label = document.createElement('label');
         var cb = document.createElement('input');
         cb.type = 'checkbox';
         cb.value = f;
-        cb.className = 'format-cb';
+        cb.className = 'features-cb';
         label.appendChild(cb);
-        label.appendChild(document.createTextNode(' ' + f));
+        label.appendChild(document.createTextNode(' ' + featureLabels[f]));
         container.appendChild(label);
       });
     }
@@ -1169,15 +1172,15 @@ function generateClientScript(): string {
         catalogData = data;
         updateArtifactCount(catalogData.length);
         populateHarnessFilter(catalogData);
-        populateFormatFilter(catalogData);
+        populateFeaturesFilter(catalogData);
         populateMaturityFilter(catalogData);
         populateCollectionFilter(catalogData);
 
-        // In static mode, pre-select the "jhu" collection filter if it exists
+        // In static mode, pre-select the "jh-drcc" collection filter if it exists
         if (isStaticMode) {
-          var jhuCb = document.querySelector('.collection-cb[value="jhu"]');
-          if (jhuCb) {
-            jhuCb.checked = true;
+          var defaultCb = document.querySelector('.collection-cb[value="jh-drcc"]');
+          if (defaultCb) {
+            defaultCb.checked = true;
           }
         }
 
@@ -1186,7 +1189,7 @@ function generateClientScript(): string {
         // Wire up search and filter event listeners
         document.getElementById('search-input').addEventListener('input', filterAndRender);
         document.getElementById('harness-filter').addEventListener('change', filterAndRender);
-        document.getElementById('format-filter').addEventListener('change', filterAndRender);
+        document.getElementById('features-filter').addEventListener('change', filterAndRender);
         document.getElementById('maturity-filter').addEventListener('change', filterAndRender);
         document.getElementById('collection-filter').addEventListener('change', filterAndRender);
 
@@ -1246,10 +1249,10 @@ function generateClientScript(): string {
       for (var i = 0; i < harnessCheckboxes.length; i++) {
         selectedHarnesses.push(harnessCheckboxes[i].value);
       }
-      var formatCheckboxes = document.querySelectorAll('.format-cb:checked');
-      var selectedFormats = [];
-      for (var i = 0; i < formatCheckboxes.length; i++) {
-        selectedFormats.push(formatCheckboxes[i].value);
+      var featuresCheckboxes = document.querySelectorAll('.features-cb:checked');
+      var selectedFeatures = [];
+      for (var i = 0; i < featuresCheckboxes.length; i++) {
+        selectedFeatures.push(featuresCheckboxes[i].value);
       }
       var maturityCheckboxes = document.querySelectorAll('.maturity-cb:checked');
       var selectedMaturities = [];
@@ -1294,19 +1297,18 @@ function generateClientScript(): string {
           }
           if (!hasHarness) return false;
         }
-        // Format filter
-        if (selectedFormats.length > 0) {
-          var hasFormat = false;
-          if (entry.formatByHarness) {
-            var fmtKeys = Object.keys(entry.formatByHarness);
-            for (var f = 0; f < fmtKeys.length; f++) {
-              if (selectedFormats.indexOf(entry.formatByHarness[fmtKeys[f]]) !== -1) {
-                hasFormat = true;
+        // Features filter
+        if (selectedFeatures.length > 0) {
+          var hasFeature = false;
+          if (entry.features) {
+            for (var f = 0; f < selectedFeatures.length; f++) {
+              if (entry.features[selectedFeatures[f]]) {
+                hasFeature = true;
                 break;
               }
             }
           }
-          if (!hasFormat) return false;
+          if (!hasFeature) return false;
         }
         // Maturity filter
         if (selectedMaturities.length > 0) {
@@ -1324,7 +1326,7 @@ function generateClientScript(): string {
         return true;
       });
 
-      var hasActiveFilters = query || selectedHarnesses.length > 0 || selectedFormats.length > 0 || selectedMaturities.length > 0 || selectedCollections.length > 0;
+      var hasActiveFilters = query || selectedHarnesses.length > 0 || selectedFeatures.length > 0 || selectedMaturities.length > 0 || selectedCollections.length > 0;
       renderCards(filtered, hasActiveFilters);
     }
 
@@ -1974,7 +1976,7 @@ function generateClientScript(): string {
           catalogData = d;
           updateArtifactCount(catalogData.length);
           populateHarnessFilter(catalogData);
-          populateFormatFilter(catalogData);
+          populateFeaturesFilter(catalogData);
           populateMaturityFilter(catalogData);
           populateCollectionFilter(catalogData);
           document.getElementById('form-panel-container').style.display = 'none';
@@ -2047,7 +2049,7 @@ function generateClientScript(): string {
                       catalogData = d;
                       updateArtifactCount(catalogData.length);
                       populateHarnessFilter(catalogData);
-                      populateFormatFilter(catalogData);
+                      populateFeaturesFilter(catalogData);
                       populateMaturityFilter(catalogData);
                       populateCollectionFilter(catalogData);
                       showView('artifacts');
@@ -2660,6 +2662,9 @@ function generateClientScript(): string {
 
       if (Object.keys(_capabilityCache).length > 0) {
         renderCaps(_capabilityCache);
+      } else if (window.__CAPABILITY_MATRIX__) {
+        _capabilityCache = window.__CAPABILITY_MATRIX__;
+        renderCaps(_capabilityCache);
       } else {
         fetch('/api/capabilities')
           .then(function(res) { return res.ok ? res.json() : {}; })
@@ -2841,7 +2846,7 @@ function generateClientScript(): string {
         catalogData = d;
         updateArtifactCount(catalogData.length);
         populateHarnessFilter(catalogData);
-        populateFormatFilter(catalogData);
+        populateFeaturesFilter(catalogData);
         populateMaturityFilter(catalogData);
         populateCollectionFilter(catalogData);
         filterAndRender();
@@ -3686,7 +3691,8 @@ export function generateStaticHtmlPage(
 	contentMap: Record<string, string>,
 ): string {
 	const dataScript = `<script>window.__CATALOG_DATA__ = ${safeJsonEmbed(entries)};
-window.__ARTIFACT_CONTENT__ = ${safeJsonEmbed(contentMap)};</script>`;
+window.__ARTIFACT_CONTENT__ = ${safeJsonEmbed(contentMap)};
+window.__CAPABILITY_MATRIX__ = ${safeJsonEmbed(CAPABILITY_MATRIX)};</script>`;
 	// Use a replacer function instead of a replacement string to avoid
 	// String.replace interpreting $-sequences (e.g. $`, $') in the JSON data.
 	return generateHtmlPage().replace("</head>", () => `${dataScript}\n</head>`);

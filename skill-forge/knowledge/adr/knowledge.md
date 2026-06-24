@@ -6,7 +6,6 @@ keywords:
   - adr
   - architecture-decision-record
   - madr
-  - architecture
   - decision-log
 author: Steven J. Miklovic
 version: 0.4.1
@@ -22,11 +21,12 @@ depends: []
 enhances: []
 maturity: stable
 trust: official
+license: BSL-1.0
 audience: intermediate
 model-assumptions: []
 collections:
   - neon-caravan
-  - jhu
+  - jh-drcc
 inherit-hooks: false
 harness-config:
   kiro:

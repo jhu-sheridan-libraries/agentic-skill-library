@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import {
+	access,
 	copyFile,
 	mkdir,
 	readdir,
@@ -10,9 +11,15 @@ import {
 	writeFile,
 } from "node:fs/promises";
 import { dirname, join } from "node:path";
+import {
+	aggregateOutcomes,
+	type CollisionFinding,
+	runRegistryCheck,
+} from "../outcomes/registry";
+import { isParseError, loadKnowledgeArtifact } from "../parser";
 import type { BackendConfig } from "../backends/types";
 import { loadForgeConfig, resolveBackendConfigs } from "../config";
-import type { HarnessName } from "../schemas";
+import type { HarnessName, Outcome } from "../schemas";
 import { SUPPORTED_HARNESSES } from "../schemas";
 import { autoUpdate } from "./auto-updater";
 import { resolveEntryBackend } from "./backend-resolver";
@@ -39,10 +46,21 @@ export interface SyncOptions {
 	throttleMinutes?: number; // default: 60
 	dryRun?: boolean;
 	harness?: string;
+	/**
+	 * When set, outcomes COLLISION/duplicate-id verdicts are downgraded to
+	 * warnings and materialization proceeds regardless (Req 2G.3).
+	 */
+	force?: boolean;
 	/** Override cache instance (for testing). */
 	cache?: GlobalCacheAPI;
 	/** Override config backends (for testing). */
 	configBackends?: Map<string, BackendConfig>;
+	/**
+	 * Knowledge source directories scanned for each resolved artifact's
+	 * `outcomes` frontmatter (default: `["knowledge", "packages"]`). Override
+	 * for testing.
+	 */
+	knowledgeSourceDirs?: string[];
 }
 
 export interface SyncResult {
@@ -80,6 +98,7 @@ export interface SyncLockEntry {
 const HARNESS_INSTALL_PATHS: Record<HarnessName, string> = {
 	kiro: ".kiro",
 	"claude-code": ".",
+	codex: ".",
 	copilot: ".",
 	cursor: ".",
 	windsurf: ".",
@@ -128,6 +147,109 @@ async function collectFiles(dir: string, base = ""): Promise<string[]> {
 }
 
 // resolveBackendName moved to ./backend-resolver.ts as resolveEntryBackend
+
+// ---------------------------------------------------------------------------
+// Outcomes collision detection (Req 2G)
+// ---------------------------------------------------------------------------
+
+/** Default knowledge source directories scanned for `outcomes` frontmatter. */
+const DEFAULT_KNOWLEDGE_SOURCE_DIRS = ["knowledge", "packages"] as const;
+
+/** Check whether a path exists on disk. */
+async function pathExists(p: string): Promise<boolean> {
+	try {
+		await access(p);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+/**
+ * Scan the given knowledge source directories and build a map from artifact
+ * name to its declared `outcomes`. Handles both the flat layout
+ * (`<dir>/<artifact>/knowledge.md`) and the namespaced layout
+ * (`<dir>/<prefix>/<artifact>/knowledge.md`), mirroring the catalog scanner.
+ * Artifacts that fail to parse are skipped silently — outcomes are an optional,
+ * advisory signal here, not a hard parse gate (validate owns strict parsing).
+ */
+async function collectOutcomesByName(
+	sourceDirs: readonly string[],
+): Promise<Map<string, Outcome[]>> {
+	const map = new Map<string, Outcome[]>();
+
+	const tryLoad = async (artifactDir: string): Promise<void> => {
+		if (!(await pathExists(join(artifactDir, "knowledge.md")))) return;
+		const result = await loadKnowledgeArtifact(artifactDir);
+		if (isParseError(result)) return;
+		const fm = result.data.frontmatter;
+		if (!map.has(fm.name)) {
+			map.set(fm.name, fm.outcomes);
+		}
+	};
+
+	for (const dir of sourceDirs) {
+		let entries: { name: string; isDirectory(): boolean }[];
+		try {
+			entries = (await readdir(dir, { withFileTypes: true })) as unknown as {
+				name: string;
+				isDirectory(): boolean;
+			}[];
+		} catch {
+			continue; // source dir absent — nothing to contribute
+		}
+		for (const sub of entries) {
+			if (!sub.isDirectory()) continue;
+			const subPath = join(dir, sub.name);
+			if (await pathExists(join(subPath, "knowledge.md"))) {
+				// Flat layout: this subdir is the artifact.
+				await tryLoad(subPath);
+			} else {
+				// Namespaced layout: recurse one level.
+				let inner: { name: string; isDirectory(): boolean }[];
+				try {
+					inner = (await readdir(subPath, {
+						withFileTypes: true,
+					})) as unknown as { name: string; isDirectory(): boolean }[];
+				} catch {
+					continue;
+				}
+				for (const innerDir of inner) {
+					if (innerDir.isDirectory()) {
+						await tryLoad(join(subPath, innerDir.name));
+					}
+				}
+			}
+		}
+	}
+
+	return map;
+}
+
+/** Render a collision/duplicate-id finding as an actionable error line (Req 2G.2). */
+function formatErrorFinding(f: CollisionFinding): string {
+	if (f.kind === "duplicate-id") {
+		return (
+			`Outcome id collision: "${f.a.outcome.id}" is declared by both ` +
+			`"${f.a.artifactName}" and "${f.b.artifactName}" (outcome ids must be globally unique).`
+		);
+	}
+	return (
+		`Outcome COLLISION: "${f.a.outcome.id}" (${f.a.artifactName}) and ` +
+		`"${f.b.outcome.id}" (${f.b.artifactName}) — matching shapes ` +
+		`input="${f.inputShape}" output="${f.outputShape}", keyword Jaccard=${(f.jaccard ?? 0).toFixed(2)}.`
+	);
+}
+
+/** Render an ambiguous finding as a warning line (Req 2G.4). */
+function formatAmbiguousFinding(f: CollisionFinding): string {
+	return (
+		`Outcome AMBIGUOUS: "${f.a.outcome.id}" (${f.a.artifactName}) and ` +
+		`"${f.b.outcome.id}" (${f.b.artifactName}) partially overlap ` +
+		`(keyword Jaccard=${(f.jaccard ?? 0).toFixed(2)}).`
+	);
+}
+
 
 // ---------------------------------------------------------------------------
 // Main sync function
@@ -326,6 +448,61 @@ export async function sync(options: SyncOptions): Promise<SyncResult> {
 
 	// If any required entry failed, return early with errors
 	if (hasFatalError) {
+		return { resolved, warnings, errors, filesWritten };
+	}
+
+	// -----------------------------------------------------------------------
+	// Step 7.5: Outcomes collision detection (Req 2G)
+	//
+	// After resolution and before materialization, aggregate the outcomes
+	// declared by the resolved artifacts and run the shared registry check
+	// (the same pure `runRegistryCheck` used by `forge validate`). Outcomes
+	// live in each artifact's `knowledge.md` frontmatter, which is not present
+	// in the compiled cache dist, so they are read from the local knowledge
+	// source directories.
+	// -----------------------------------------------------------------------
+	const sourceDirs =
+		options.knowledgeSourceDirs ?? [...DEFAULT_KNOWLEDGE_SOURCE_DIRS];
+	const outcomesByName = await collectOutcomesByName(sourceDirs);
+
+	// One entry per resolved artifact name (dedupe so an artifact pulled via
+	// multiple paths is not falsely flagged as a duplicate id).
+	const seenNames = new Set<string>();
+	const artifactsWithOutcomes: Array<{ name: string; outcomes: Outcome[] }> =
+		[];
+	for (const entry of resolved) {
+		if (seenNames.has(entry.name)) continue;
+		seenNames.add(entry.name);
+		artifactsWithOutcomes.push({
+			name: entry.name,
+			outcomes: outcomesByName.get(entry.name) ?? [],
+		});
+	}
+
+	const report = runRegistryCheck(aggregateOutcomes(artifactsWithOutcomes));
+
+	let hasOutcomeError = false;
+	for (const finding of report.findings) {
+		if (finding.kind === "collision" || finding.kind === "duplicate-id") {
+			const message = formatErrorFinding(finding);
+			if (options.force) {
+				// Req 2G.3: --force downgrades collisions to warnings and proceeds.
+				warnings.push(`[--force] ${message}`);
+			} else {
+				// Req 2G.2: collision is a fatal error; surface and halt before write.
+				errors.push(message);
+				hasOutcomeError = true;
+			}
+		} else if (finding.kind === "ambiguous") {
+			// Req 2G.4: ambiguous verdicts are warnings only and never block sync.
+			warnings.push(formatAmbiguousFinding(finding));
+		}
+		// acknowledged-overlap -> intentionally suppressed, no finding surfaced.
+	}
+
+	// Req 2G.2: return before materialize when a non-acknowledged collision or
+	// duplicate id was found and --force was not supplied.
+	if (hasOutcomeError) {
 		return { resolved, warnings, errors, filesWritten };
 	}
 

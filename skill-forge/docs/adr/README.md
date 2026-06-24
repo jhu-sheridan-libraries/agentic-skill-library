@@ -44,6 +44,14 @@ ADRs document significant architectural decisions made during the project's deve
 | [032](0032-solrcloud-mode-for-souk-compass.md) | SolrCloud mode for Souk Compass local development | Accepted | 2026-04-24 |
 | [033](0033-hash-based-deep-links-in-browse-spa.md) | Hash-based deep links in browse SPA | Accepted | 2026-04-27 |
 | [034](0034-solr-10-upgrade-with-scalar-quantization.md) | Upgrade Souk Compass to Solr 10 with scalar quantized vectors | Accepted | 2026-05-03 |
+| [035](0035-codebase-indexing-as-separate-collection.md) | Codebase indexing as separate collection in Souk Compass | Proposed | 2026-05-04 |
+| [036](0036-transport-discriminated-mcp-server-schema.md) | Transport-discriminated MCP server schema with shared config builder | Accepted | 2026-05-05 |
+| [037](0037-features-filter-replaces-format-filter.md) | Features filter replaces Format filter in browse UI | Accepted | 2026-05-11 |
+| [038](0038-codex-as-first-class-harness.md) | Codex as a first-class harness | Accepted | 2026-06-11 |
+| [039](0039-visibility-and-priority-catalog-governance-metadata.md) | Visibility and priority catalog governance metadata | Proposed | 2026-05-11 |
+| [040](0040-des-style-hook-execution-with-gate-postcondition-state.md) | DES-style hook execution with gate / postcondition / state | Proposed | 2026-05-11 |
+| [041](0041-outcomes-registry-pure-core.md) | Outcomes registry as a pure-core / thin-I/O-shell | Proposed | 2026-06-12 |
+| [042](0042-mutation-testing-pure-operators-thin-runner.md) | Mutation testing as pure operators + delta/history core with a thin I/O runner | Proposed | 2026-06-12 |
 
 ## Creating a New ADR
 

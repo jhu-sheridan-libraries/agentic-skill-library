@@ -132,6 +132,7 @@ describe("Wizard per-harness format prompting", () => {
 			["testing"],
 			["kiro"], // harnesses
 			"steering", // format for kiro (multi-format)
+			"always", // Kiro inclusion mode (select)
 			"typescript",
 		];
 
@@ -196,6 +197,7 @@ describe("Wizard per-harness format prompting", () => {
 			"steering", // format for kiro
 			"instructions", // format for copilot
 			// NO format prompt for cursor (single-format)
+			"always", // Kiro inclusion mode (select)
 			"typescript",
 		];
 
@@ -228,13 +230,20 @@ describe("Wizard per-harness format prompting", () => {
 			["kiro", "copilot"], // harnesses
 			"steering", // kiro default format
 			"instructions", // copilot default format
+			"always", // Kiro inclusion mode (select)
 			"typescript",
 		];
 
 		const fm = await promptFrontmatter("test-art", "Test Art");
 
-		// harness-config should not be present since all formats are defaults
-		expect((fm as Record<string, unknown>)["harness-config"]).toBeUndefined();
+		// harness-config should only contain the Kiro inclusion (formats were defaults)
+		const hc = (fm as Record<string, unknown>)["harness-config"] as
+			| Record<string, Record<string, unknown>>
+			| undefined;
+		expect(hc).toBeDefined();
+		expect(hc?.kiro).toEqual({ inclusion: "always" });
+		// No format keys since all formats are defaults
+		expect(hc?.copilot).toBeUndefined();
 	});
 
 	/**
@@ -253,6 +262,7 @@ describe("Wizard per-harness format prompting", () => {
 			"power", // kiro non-default format
 			"agent", // copilot non-default format
 			"rule", // qdeveloper default format
+			"always", // Kiro inclusion mode (select)
 			"typescript",
 		];
 
@@ -263,8 +273,11 @@ describe("Wizard per-harness format prompting", () => {
 		] as Record<string, Record<string, unknown>> | undefined;
 
 		expect(harnessConfigField).toBeDefined();
-		// kiro has non-default format
-		expect(harnessConfigField?.kiro).toEqual({ format: "power" });
+		// kiro has non-default format + Kiro inclusion mode
+		expect(harnessConfigField?.kiro).toEqual({
+			format: "power",
+			inclusion: "always",
+		});
 		// copilot has non-default format
 		expect(harnessConfigField?.copilot).toEqual({ format: "agent" });
 		// qdeveloper used default — should NOT be in harness-config
@@ -312,6 +325,7 @@ describe("Wizard per-harness format prompting", () => {
 			["testing"],
 			["kiro"],
 			"steering", // format for kiro
+			"always", // Kiro inclusion mode (select)
 			"typescript",
 		];
 

@@ -19,7 +19,10 @@ export interface AssetFileConvention {
 export type AssetValidationRuleKey =
 	| "reference-pack-must-be-manual"
 	| "workflow-should-have-workflows-dir"
-	| "prompt-body-too-short";
+	| "prompt-body-too-short"
+	| "kiro-power-should-be-progressive"
+	| "kiro-power-workflow-should-be-progressive"
+	| "kiro-default-inclusion-informational";
 
 export const ASSET_CONVENTION_RULES: Record<AssetValidationRuleKey, string> = {
 	"reference-pack-must-be-manual":
@@ -28,6 +31,12 @@ export const ASSET_CONVENTION_RULES: Record<AssetValidationRuleKey, string> = {
 		"workflow artifacts should contain at least one file in the workflows/ directory",
 	"prompt-body-too-short":
 		"prompt artifacts should have a non-trivial body (at least 50 characters)",
+	"kiro-power-should-be-progressive":
+		'Artifacts using harness-config.kiro.format: "power" should not set inclusion to "always"; POWER.md is the always-on surface, steering/ files are meant to be progressively disclosed.',
+	"kiro-power-workflow-should-be-progressive":
+		'Artifacts using harness-config.kiro.format: "power" that ship workflow files should not set inclusion to "always"; workflow files are intended to be referenced on-demand.',
+	"kiro-default-inclusion-informational":
+		'No Kiro inclusion mode was set explicitly. Set harness-config.kiro.inclusion to "always", "fileMatch", or "manual" to make the Progressive Steering choice explicit.',
 };
 
 export const ASSET_CONVENTIONS: Record<AssetType, AssetFileConvention> = {

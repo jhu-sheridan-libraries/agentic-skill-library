@@ -1,1 +1,33 @@
-[]
+- name: fetch
+  transport: stdio
+  command: uvx
+  args:
+  - mcp-server-fetch
+- name: stripe
+  transport: sse
+  url: https://mcp.stripe.com
+- name: aws-knowledge-mcp-server
+  transport: sse
+  url: https://knowledge-mcp.global.api.aws
+- name: awslabs.dynamodb-mcp-server
+  transport: stdio
+  command: uvx
+  args:
+  - awslabs.dynamodb-mcp-server@latest
+  env:
+    FASTMCP_LOG_LEVEL: ERROR
+- name: awslabs.aws-serverless-mcp
+  transport: stdio
+  command: uvx
+  args:
+  - awslabs.aws-serverless-mcp-server@latest
+  env:
+    AWS_PROFILE: <PROFILE>
+    AWS_REGION: <REGION>
+    FASTMCP_LOG_LEVEL: ERROR
+- name: playwright
+  transport: stdio
+  command: npx
+  args:
+  - -y
+  - '@executeautomation/playwright-mcp-server'

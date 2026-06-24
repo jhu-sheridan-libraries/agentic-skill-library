@@ -15,6 +15,7 @@ import {
 	type BrowseState,
 	escapeHtml,
 	exportCommand,
+	filterBrowseEntries,
 	generateHtmlPage,
 	generateStaticHtmlPage,
 	handleRequest,
@@ -132,6 +133,64 @@ describe("escapeHtml", () => {
 	});
 });
 
+describe("filterBrowseEntries", () => {
+	const publicEntry = makeCatalogEntry({
+		name: "public-skill",
+		visibility: "public",
+	});
+	const unlistedEntry = makeCatalogEntry({
+		name: "unlisted-skill",
+		visibility: "unlisted",
+	});
+	const privateEntry = makeCatalogEntry({
+		name: "private-skill",
+		visibility: "private",
+	});
+
+	test("default (all=false) hides unlisted entries", () => {
+		const result = filterBrowseEntries([publicEntry, unlistedEntry]);
+		expect(result.map((e) => e.name)).toEqual(["public-skill"]);
+	});
+
+	test("default (all=false) hides private entries", () => {
+		const result = filterBrowseEntries([publicEntry, privateEntry]);
+		expect(result.map((e) => e.name)).toEqual(["public-skill"]);
+	});
+
+	test("all=true shows unlisted entries", () => {
+		const result = filterBrowseEntries([publicEntry, unlistedEntry], {
+			all: true,
+		});
+		expect(result.map((e) => e.name)).toEqual([
+			"public-skill",
+			"unlisted-skill",
+		]);
+	});
+
+	test("all=true still hides private entries", () => {
+		const result = filterBrowseEntries(
+			[publicEntry, unlistedEntry, privateEntry],
+			{ all: true },
+		);
+		expect(result.map((e) => e.name)).toEqual([
+			"public-skill",
+			"unlisted-skill",
+		]);
+	});
+
+	test("entries without a visibility field are treated as visible", () => {
+		const noVisibility = makeCatalogEntry({ name: "legacy-skill" });
+		const result = filterBrowseEntries([noVisibility]);
+		expect(result.map((e) => e.name)).toEqual(["legacy-skill"]);
+	});
+
+	test("does not mutate the input array", () => {
+		const input = [publicEntry, unlistedEntry];
+		filterBrowseEntries(input);
+		expect(input.length).toBe(2);
+	});
+});
+
 describe("handleRequest", () => {
 	test("GET / returns 200 with HTML content", async () => {
 		const req = new Request("http://localhost/");
@@ -178,6 +237,44 @@ describe("handleRequest", () => {
 		expect(res.status).toBe(404);
 		const body = await res.json();
 		expect(body).toEqual({ error: "Not found" });
+	});
+
+	test("GET /api/catalog hides unlisted entries by default (BrowseState)", async () => {
+		const state: BrowseState = {
+			catalogEntries: [
+				makeCatalogEntry({ name: "pub", visibility: "public" }),
+				makeCatalogEntry({ name: "hidden", visibility: "unlisted" }),
+			],
+			collectionsDir: "collections",
+			forgeDir: ".forge",
+			knowledgeDir: "knowledge",
+			buildHistory: [],
+		};
+		const req = new Request("http://localhost/api/catalog");
+		const res = await handleRequest(req, state, mockHtml);
+		const body = await res.json();
+		expect(body.map((e: { name: string }) => e.name)).toEqual(["pub"]);
+	});
+
+	test("GET /api/catalog shows unlisted entries when state.all is true", async () => {
+		const state: BrowseState = {
+			catalogEntries: [
+				makeCatalogEntry({ name: "pub", visibility: "public" }),
+				makeCatalogEntry({ name: "hidden", visibility: "unlisted" }),
+			],
+			collectionsDir: "collections",
+			forgeDir: ".forge",
+			knowledgeDir: "knowledge",
+			buildHistory: [],
+			all: true,
+		};
+		const req = new Request("http://localhost/api/catalog");
+		const res = await handleRequest(req, state, mockHtml);
+		const body = await res.json();
+		expect(body.map((e: { name: string }) => e.name)).toEqual([
+			"pub",
+			"hidden",
+		]);
 	});
 });
 
@@ -354,10 +451,10 @@ describe("browse SPA format integration", () => {
 		server.stop();
 	});
 
-	test("generated HTML page contains format-filter div", async () => {
+	test("generated HTML page contains features-filter div", async () => {
 		const res = await fetch(`${baseUrl}/`);
 		const html = await res.text();
-		expect(html).toContain('id="format-filter"');
+		expect(html).toContain('id="features-filter"');
 	});
 
 	test("generated HTML page does not contain type filter checkboxes", async () => {
@@ -373,13 +470,13 @@ describe("browse SPA format integration", () => {
 		const html = await res.text();
 		// The JS should contain the formatByHarness check for card rendering
 		expect(html).toContain("entry.formatByHarness");
-		expect(html).toContain("format-cb");
+		expect(html).toContain("features-cb");
 	});
 
-	test("generated HTML contains populateFormatFilter function", async () => {
+	test("generated HTML contains populateFeaturesFilter function", async () => {
 		const res = await fetch(`${baseUrl}/`);
 		const html = await res.text();
-		expect(html).toContain("populateFormatFilter");
+		expect(html).toContain("populateFeaturesFilter");
 	});
 
 	test("generated HTML contains merged targets section in detail view", async () => {
@@ -1364,33 +1461,33 @@ describe("static mode — header button hiding logic (Task 4.3)", () => {
 	});
 });
 
-describe("static mode — jhu collection pre-selection (Task 4.4)", () => {
+describe("static mode — jh-drcc collection pre-selection (Task 4.4)", () => {
 	const html = generateStaticHtmlPage(
-		[makeCatalogEntry({ name: "jhu-test", collections: ["jhu"] })],
-		{ "jhu-test": "content" },
+		[makeCatalogEntry({ name: "jh-drcc-test", collections: ["jh-drcc"] })],
+		{ "jh-drcc-test": "content" },
 	);
 
-	test("static page JS looks for .collection-cb checkbox with value 'jhu'", () => {
-		expect(html).toContain('.collection-cb[value="jhu"]');
+	test("static page JS looks for .collection-cb checkbox with value 'jh-drcc'", () => {
+		expect(html).toContain('.collection-cb[value="jh-drcc"]');
 	});
 
-	test("static page JS sets checked = true on the jhu checkbox", () => {
-		expect(html).toContain("jhuCb.checked = true");
+	test("static page JS sets checked = true on the default collection checkbox", () => {
+		expect(html).toContain("defaultCb.checked = true");
 	});
 
-	test("jhu pre-selection is gated on isStaticMode", () => {
-		// The jhu checkbox logic should be inside an if (isStaticMode) block
-		const jhuIdx = html.indexOf('.collection-cb[value="jhu"]');
+	test("jh-drcc pre-selection is gated on isStaticMode", () => {
+		// The checkbox logic should be inside an if (isStaticMode) block
+		const cbIdx = html.indexOf('.collection-cb[value="jh-drcc"]');
 		// Find the nearest preceding isStaticMode check
-		const preceding = html.lastIndexOf("isStaticMode", jhuIdx);
+		const preceding = html.lastIndexOf("isStaticMode", cbIdx);
 		expect(preceding).toBeGreaterThan(-1);
 	});
 
-	test("filterAndRender is called after jhu pre-selection in static mode", () => {
-		// After the jhu checkbox logic, filterAndRender should be called
-		const jhuIdx = html.indexOf("jhuCb.checked = true");
-		const filterIdx = html.indexOf("filterAndRender()", jhuIdx);
-		expect(filterIdx).toBeGreaterThan(jhuIdx);
+	test("filterAndRender is called after jh-drcc pre-selection in static mode", () => {
+		// After the checkbox logic, filterAndRender should be called
+		const cbIdx = html.indexOf("defaultCb.checked = true");
+		const filterIdx = html.indexOf("filterAndRender()", cbIdx);
+		expect(filterIdx).toBeGreaterThan(cbIdx);
 	});
 });
 

@@ -1,1 +1,9 @@
-[]
+- name: awslabs.cloudwatch-applicationsignals-mcp-server
+  transport: stdio
+  command: uvx
+  args:
+  - awslabs.cloudwatch-applicationsignals-mcp-server@latest
+  env:
+    AWS_PROFILE: default
+    AWS_REGION: us-east-1
+    FASTMCP_LOG_LEVEL: ERROR

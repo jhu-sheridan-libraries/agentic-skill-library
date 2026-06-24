@@ -1,1 +1,11 @@
-[]
+- name: agentcore-mcp-server
+  transport: stdio
+  command: uvx
+  args:
+  - awslabs.amazon-bedrock-agentcore-mcp-server@latest
+  autoApprove:
+  - search_agentcore_docs
+  - fetch_agentcore_doc
+  - manage_agentcore_runtime
+  - manage_agentcore_memory
+  - manage_agentcore_gateway

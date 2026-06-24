@@ -13,6 +13,7 @@ export interface RenderOptions {
 export const SUPPORTED_HARNESSES = [
 	"kiro",
 	"claude-code",
+	"codex",
 	"copilot",
 	"cursor",
 	"windsurf",

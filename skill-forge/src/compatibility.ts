@@ -21,6 +21,7 @@ export const ASSET_HARNESS_COMPATIBILITY: Record<
 	power: {
 		// Power is a Kiro-specific concept; other harnesses treat it as a skill
 		"claude-code": "partial",
+		codex: "partial",
 		copilot: "partial",
 		cursor: "partial",
 		windsurf: "partial",
@@ -53,6 +54,7 @@ export const ASSET_HARNESS_COMPATIBILITY: Record<
 		// Prompts are universally representable as steering/rule content
 		kiro: "full",
 		"claude-code": "full",
+		codex: "full",
 		copilot: "full",
 		cursor: "full",
 		windsurf: "full",
@@ -73,6 +75,7 @@ export const ASSET_HARNESS_COMPATIBILITY: Record<
 		// Reference packs are manual-inclusion only; all harnesses can host them
 		kiro: "full",
 		"claude-code": "full",
+		codex: "full",
 		copilot: "full",
 		cursor: "full",
 		windsurf: "full",

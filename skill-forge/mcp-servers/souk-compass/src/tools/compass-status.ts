@@ -14,6 +14,7 @@ export async function handleCompassStatus(
 	for (const { name } of [
 		{ name: ctx.config.solrCollection },
 		{ name: ctx.config.userCollection },
+		{ name: ctx.config.codebaseCollection },
 	]) {
 		try {
 			const url = `${ctx.config.solrUrl}/solr/${encodeURIComponent(name)}/select?q=*:*&rows=0&wt=json`;

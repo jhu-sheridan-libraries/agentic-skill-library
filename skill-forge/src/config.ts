@@ -38,6 +38,28 @@ const BackendConfigSchema = z.discriminatedUnion("type", [
 	LocalBackendConfigSchema,
 ]);
 
+// --- Mutation Testing (Req 5.3) ---
+
+/**
+ * The mutation operators applied to adapter source files during
+ * `forge eval --mutation` (Req 5.3). Each operator introduces a single,
+ * targeted change so the test suite can be checked for its ability to
+ * detect (kill) the mutant.
+ */
+export const MutationOperatorSchema = z.enum([
+	"statement-deletion",
+	"conditional-boundary",
+	"arithmetic-replacement",
+	"string-literal",
+	"return-value",
+]);
+export type MutationOperator = z.infer<typeof MutationOperatorSchema>;
+
+/** Default operator set — all five operators run when none are configured. */
+export const ALL_MUTATION_OPERATORS: MutationOperator[] = [
+	...MutationOperatorSchema.options,
+];
+
 export const ForgeConfigSchema = z.object({
 	publish: z
 		.object({
@@ -65,6 +87,25 @@ export const ForgeConfigSchema = z.object({
 					allowedAuthors: z.array(z.string()).default([]),
 				})
 				.optional(),
+		})
+		.optional(),
+
+	kiro: z
+		.object({
+			progressiveSteering: z
+				.object({
+					alwaysWarnThreshold: z.number().min(0).max(1).default(0.5),
+				})
+				.default({ alwaysWarnThreshold: 0.5 }),
+		})
+		.optional(),
+
+	eval: z
+		.object({
+			// Mutation operators to apply; defaults to all five (Req 5.3).
+			mutationOperators: z
+				.array(MutationOperatorSchema)
+				.default([...ALL_MUTATION_OPERATORS]),
 		})
 		.optional(),
 });

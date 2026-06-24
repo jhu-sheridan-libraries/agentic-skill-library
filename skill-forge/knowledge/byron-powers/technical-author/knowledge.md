@@ -17,6 +17,7 @@ type: power
 inclusion: manual
 categories:
   - documentation
+  - writing
 ecosystem: []
 depends: []
 enhances: []

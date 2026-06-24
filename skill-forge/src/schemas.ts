@@ -6,6 +6,7 @@ import { HARNESS_FORMAT_REGISTRY } from "./format-registry";
 export const SUPPORTED_HARNESSES = [
 	"kiro",
 	"claude-code",
+	"codex",
 	"copilot",
 	"cursor",
 	"windsurf",
@@ -23,6 +24,28 @@ export const InclusionModeSchema = z.enum([
 	"manual",
 ]);
 export type InclusionMode = z.infer<typeof InclusionModeSchema>;
+
+// --- Kiro Progressive Inclusion ---
+
+export const KiroProgressiveInclusionSchema = z.enum([
+	"always",
+	"fileMatch",
+	"manual",
+]);
+export type KiroProgressiveInclusion = z.infer<
+	typeof KiroProgressiveInclusionSchema
+>;
+
+export const KiroHarnessConfigSchema = z
+	.object({
+		format: z.enum(["steering", "power"]).optional(),
+		power: z.boolean().optional(),
+		inclusion: KiroProgressiveInclusionSchema.optional(),
+		fileMatchPattern: z.string().min(1).optional(),
+		progressiveWorkflowsStrict: z.boolean().optional(),
+		"spec-hooks": z.array(z.record(z.string(), z.unknown())).optional(),
+	})
+	.passthrough();
 
 export const AssetTypeSchema = z.enum([
 	"skill",
@@ -64,6 +87,26 @@ export type RiskLevel = z.infer<typeof RiskLevelSchema>;
 export const AudienceSchema = z.enum(["beginner", "intermediate", "advanced"]);
 export type Audience = z.infer<typeof AudienceSchema>;
 
+// --- Catalog Visibility & Priority (Req 4) ---
+
+/**
+ * Catalog visibility for an artifact or collection (Req 4.1).
+ * - public: listed everywhere (default)
+ * - private: excluded entirely from generated catalog.json
+ * - unlisted: included in catalog.json but hidden from default browse listings
+ */
+export const VisibilitySchema = z
+	.enum(["public", "private", "unlisted"])
+	.default("public");
+export type Visibility = z.infer<typeof VisibilitySchema>;
+
+/**
+ * Catalog ordering priority (Req 4.2). Integer 1–100 inclusive, default 50.
+ * Higher values sort first in catalog listings.
+ */
+export const PrioritySchema = z.number().int().min(1).max(100).default(50);
+export type Priority = z.infer<typeof PrioritySchema>;
+
 // --- Collection Manifest ---
 
 /**
@@ -82,6 +125,8 @@ export const CollectionSchema = z.object({
 	trust: TrustLaneSchema.optional(),
 	tags: z.array(z.string()).default([]),
 	harnesses: z.array(HarnessNameSchema).optional(),
+	visibility: VisibilitySchema.optional(),
+	priority: PrioritySchema.optional(),
 });
 export type Collection = z.infer<typeof CollectionSchema>;
 
@@ -109,6 +154,14 @@ export type CanonicalAction = z.infer<typeof CanonicalActionSchema>;
 
 // --- Canonical Hook ---
 
+/**
+ * A value that a DES-style hook may write into shared state (Req 3.5).
+ * Restricted to string or boolean so gate/postcondition expressions can
+ * compare against string/boolean literals deterministically.
+ */
+export const HookStateValueSchema = z.union([z.string(), z.boolean()]);
+export type HookStateValue = z.infer<typeof HookStateValueSchema>;
+
 export const CanonicalHookSchema = z.object({
 	name: z.string().min(1),
 	description: z.string().optional(),
@@ -120,6 +173,14 @@ export const CanonicalHookSchema = z.object({
 		})
 		.optional(),
 	action: CanonicalActionSchema,
+	// DES-style hook execution (Req 3). All optional — hooks without these
+	// fields behave exactly as before.
+	/** Boolean precondition expression; the action runs only when it holds (Req 3.1). */
+	gate: z.string().optional(),
+	/** Boolean expression checked after the action; failure halts the run (Req 3.3). */
+	postcondition: z.string().optional(),
+	/** State keys this hook writes, visible to later hooks' expressions (Req 3.5). */
+	state: z.record(z.string(), HookStateValueSchema).optional(),
 });
 export type CanonicalHook = z.infer<typeof CanonicalHookSchema>;
 
@@ -127,13 +188,79 @@ export const HooksFileSchema = z.array(CanonicalHookSchema);
 
 // --- MCP Server Definition ---
 
-export const McpServerDefinitionSchema = z.object({
+/**
+ * Stdio-based MCP server (command + args).
+ */
+export const StdioMcpServerSchema = z.object({
 	name: z.string().min(1),
+	transport: z.literal("stdio").default("stdio"),
 	command: z.string().min(1),
 	args: z.array(z.string()).default([]),
 	env: z.record(z.string(), z.string()).default({}),
+	timeout: z.number().optional(),
+	autoApprove: z.array(z.string()).optional(),
+	disabled: z.boolean().optional(),
 });
-export type McpServerDefinition = z.infer<typeof McpServerDefinitionSchema>;
+export type StdioMcpServer = z.infer<typeof StdioMcpServerSchema>;
+
+/**
+ * URL-based MCP server (SSE or HTTP streamable).
+ */
+export const UrlMcpServerSchema = z.object({
+	name: z.string().min(1),
+	transport: z.enum(["sse", "http"]),
+	url: z.string().url(),
+	env: z.record(z.string(), z.string()).default({}),
+	timeout: z.number().optional(),
+	autoApprove: z.array(z.string()).optional(),
+	disabled: z.boolean().optional(),
+});
+export type UrlMcpServer = z.infer<typeof UrlMcpServerSchema>;
+
+/**
+ * Preprocessor that infers transport from shape:
+ * - Has `url` → URL-based (default to "sse" if transport not specified)
+ * - Has `command` → stdio (default to "stdio" if transport not specified)
+ */
+const McpServerPreprocess = z.preprocess(
+	(val) => {
+		if (val && typeof val === "object" && !Array.isArray(val)) {
+			const obj = val as Record<string, unknown>;
+			if (!obj.transport) {
+				if ("url" in obj) {
+					return { ...obj, transport: "sse" };
+				}
+				return { ...obj, transport: "stdio" };
+			}
+		}
+		return val;
+	},
+	z.union([StdioMcpServerSchema, UrlMcpServerSchema]),
+);
+
+/**
+ * Union of stdio and URL-based MCP server definitions.
+ * Accepts objects without `transport` — infers from shape.
+ */
+export const McpServerDefinitionSchema = McpServerPreprocess;
+export type McpServerDefinition = StdioMcpServer | UrlMcpServer;
+
+/** Type guard: is this a stdio-based server? */
+export function isStdioServer(
+	server: McpServerDefinition,
+): server is StdioMcpServer {
+	// Handle objects that bypass Zod parsing (e.g. test fixtures without transport)
+	const s = server as Record<string, unknown>;
+	if (!s.transport || s.transport === "stdio") return "command" in s;
+	return false;
+}
+
+/** Type guard: is this a URL-based server? */
+export function isUrlServer(
+	server: McpServerDefinition,
+): server is UrlMcpServer {
+	return server.transport === "sse" || server.transport === "http";
+}
 
 export const McpServersFileSchema = z.array(McpServerDefinitionSchema);
 
@@ -149,10 +276,48 @@ export const CATEGORIES = [
 	"debugging",
 	"performance",
 	"accessibility",
+	"writing",
 ] as const;
 
 export const CategoryEnum = z.enum(CATEGORIES);
 export type Category = z.infer<typeof CategoryEnum>;
+
+// --- Outcomes Registry ---
+
+/**
+ * The kind of an outcome declaration.
+ * - specification: a declarative description of expected behavior
+ * - operation: an action/transformation with input → output shapes
+ * - invariant: a property that must hold
+ */
+export const OutcomeKindSchema = z.enum([
+	"specification",
+	"operation",
+	"invariant",
+]);
+export type OutcomeKind = z.infer<typeof OutcomeKindSchema>;
+
+/**
+ * A formal outcome declaration (Req 2B). Outcomes capture an artifact's
+ * intended input/output shapes plus keywords for two-tier collision detection.
+ * IDs must be globally unique kebab-case identifiers prefixed with `out-`.
+ */
+export const OutcomeSchema = z.object({
+	id: z
+		.string()
+		.regex(
+			/^out-[a-z0-9]+(-[a-z0-9]+)*$/,
+			"Outcome id must match out-kebab-case",
+		)
+		.max(64),
+	kind: OutcomeKindSchema,
+	inputShape: z.string().min(1),
+	outputShape: z.string().min(1),
+	summary: z.string().max(120),
+	keywords: z.array(z.string().max(24)).max(6).default([]),
+	related: z.array(z.string()).default([]),
+});
+export type Outcome = z.infer<typeof OutcomeSchema>;
 
 // --- Frontmatter ---
 
@@ -222,6 +387,9 @@ export const FrontmatterSchema = z
 			)
 			.default([]),
 		"inherit-hooks": z.boolean().default(false),
+		visibility: VisibilitySchema.optional(),
+		priority: PrioritySchema.optional(),
+		outcomes: z.array(OutcomeSchema).default([]),
 	})
 	.passthrough()
 	.superRefine((data, ctx) => {
@@ -244,6 +412,21 @@ export const FrontmatterSchema = z
 					path: ["harness-config", harness, "format"],
 					message: `Invalid format "${formatValue}" for harness "${harness}". Valid values: ${registryEntry.formats.join(", ")}`,
 				});
+			}
+		}
+
+		// Validate kiro-specific harness-config through KiroHarnessConfigSchema
+		const kiroConfig = harnessConfig.kiro;
+		if (kiroConfig && typeof kiroConfig === "object") {
+			const result = KiroHarnessConfigSchema.safeParse(kiroConfig);
+			if (!result.success) {
+				for (const issue of result.error.issues) {
+					ctx.addIssue({
+						code: z.ZodIssueCode.custom,
+						path: ["harness-config", "kiro", ...issue.path.map(String)],
+						message: issue.message,
+					});
+				}
 			}
 		}
 	});
@@ -292,6 +475,20 @@ export const CatalogEntrySchema = z.object({
 	formatByHarness: z.record(z.string(), z.string()).optional(),
 	changelog: z.boolean().default(false),
 	migrations: z.boolean().default(false),
+	// Feature flags — derived from artifact content at catalog generation time
+	features: z
+		.object({
+			hooks: z.boolean().default(false),
+			mcp: z.boolean().default(false),
+			workflows: z.boolean().default(false),
+			conditionalInclusion: z.boolean().default(false),
+		})
+		.default(() => ({
+			hooks: false,
+			mcp: false,
+			workflows: false,
+			conditionalInclusion: false,
+		})),
 	// Bazaar manifest fields
 	id: z.string().optional(),
 	license: z.string().optional(),
@@ -303,6 +500,21 @@ export const CatalogEntrySchema = z.object({
 	successor: z.string().optional(),
 	replaces: z.string().optional(),
 	collections: z.array(z.string()).default([]),
+	// Catalog visibility & ordering (Req 4.4, 4.6)
+	visibility: VisibilitySchema,
+	priority: PrioritySchema,
+	// Outcomes registry — projected subset for external discovery (Req 2H.2)
+	outcomes: z
+		.array(
+			z.object({
+				id: z.string(),
+				kind: OutcomeKindSchema,
+				inputShape: z.string(),
+				outputShape: z.string(),
+				keywords: z.array(z.string()),
+			}),
+		)
+		.default([]),
 });
 export type CatalogEntry = z.infer<typeof CatalogEntrySchema>;
 

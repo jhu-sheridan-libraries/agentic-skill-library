@@ -1,1 +1,6 @@
-[]
+- name: dynatrace
+  transport: sse
+  url: https://your-tenant.apps.dynatrace.com
+  autoApprove:
+  - create-dql
+  - execute-dql

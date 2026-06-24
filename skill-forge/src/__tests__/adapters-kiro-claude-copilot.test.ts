@@ -4,6 +4,7 @@ import type nunjucks from "nunjucks";
 import { claudeCodeAdapter } from "../adapters/claude-code";
 import { copilotAdapter } from "../adapters/copilot";
 import { kiroAdapter } from "../adapters/kiro";
+import { resolveKiroInclusion } from "../adapters/kiro-inclusion";
 import type { CanonicalHook } from "../schemas";
 import { createTemplateEnv } from "../template-engine";
 import { makeArtifact, makeFrontmatter } from "./test-helpers";
@@ -657,5 +658,358 @@ describe("copilotAdapter", () => {
 			f.relativePath.includes(".instructions.md"),
 		);
 		expect(scopedFile).toBeUndefined();
+	});
+});
+
+// =============================================================================
+// Kiro Progressive Steering Tests
+// =============================================================================
+
+describe("kiroAdapter — progressive steering", () => {
+	/**
+	 * Validates: Requirement 13.1
+	 * Each of the three Kiro inclusion modes generates correct frontmatter.
+	 */
+	describe("inclusion mode frontmatter emission", () => {
+		test('mode "always" emits inclusion: always', () => {
+			const artifact = makeArtifact({
+				frontmatter: makeFrontmatter({
+					harnesses: ["kiro"],
+					"harness-config": { kiro: { inclusion: "always" } },
+				}),
+			});
+
+			const result = kiroAdapter(artifact, templateEnv);
+			const steeringFile = result.files.find(
+				(f) => f.relativePath === "test-artifact.md",
+			);
+			expect(steeringFile).toBeDefined();
+			expect(steeringFile?.content).toContain("inclusion: always");
+			expect(steeringFile?.content).not.toContain("fileMatchPattern");
+		});
+
+		test('mode "fileMatch" emits inclusion: fileMatch and fileMatchPattern', () => {
+			const artifact = makeArtifact({
+				frontmatter: makeFrontmatter({
+					harnesses: ["kiro"],
+					"harness-config": {
+						kiro: { inclusion: "fileMatch", fileMatchPattern: "src/**/*.ts" },
+					},
+				}),
+			});
+
+			const result = kiroAdapter(artifact, templateEnv);
+			const steeringFile = result.files.find(
+				(f) => f.relativePath === "test-artifact.md",
+			);
+			expect(steeringFile).toBeDefined();
+			expect(steeringFile?.content).toContain("inclusion: fileMatch");
+			expect(steeringFile?.content).toContain(
+				'fileMatchPattern: "src/**/*.ts"',
+			);
+		});
+
+		test('mode "manual" emits inclusion: manual', () => {
+			const artifact = makeArtifact({
+				frontmatter: makeFrontmatter({
+					harnesses: ["kiro"],
+					"harness-config": { kiro: { inclusion: "manual" } },
+				}),
+			});
+
+			const result = kiroAdapter(artifact, templateEnv);
+			const steeringFile = result.files.find(
+				(f) => f.relativePath === "test-artifact.md",
+			);
+			expect(steeringFile).toBeDefined();
+			expect(steeringFile?.content).toContain("inclusion: manual");
+			expect(steeringFile?.content).not.toContain("fileMatchPattern");
+		});
+	});
+
+	/**
+	 * Validates: Requirement 2.6
+	 * Precedence: harness-config.kiro.inclusion overrides top-level inclusion.
+	 */
+	test("precedence: harness-config.kiro.inclusion overrides top-level", () => {
+		const artifact = makeArtifact({
+			frontmatter: makeFrontmatter({
+				harnesses: ["kiro"],
+				inclusion: "fileMatch",
+				"harness-config": { kiro: { inclusion: "manual" } },
+			}),
+		});
+
+		const result = kiroAdapter(artifact, templateEnv);
+		const steeringFile = result.files.find(
+			(f) => f.relativePath === "test-artifact.md",
+		);
+		expect(steeringFile).toBeDefined();
+		expect(steeringFile?.content).toContain("inclusion: manual");
+		expect(steeringFile?.content).not.toContain("fileMatchPattern");
+
+		// Also verify through the resolver directly
+		const resolved = resolveKiroInclusion(artifact);
+		expect(resolved.mode).toBe("manual");
+		expect(resolved.source).toBe("harness-config");
+	});
+
+	/**
+	 * Validates: Requirement 2.4 (Requirement 13.1 — suppression rule)
+	 * fileMatchPattern is suppressed when mode is "always" even if configured.
+	 */
+	test("suppression: mode always with fileMatchPattern configured → no pattern in output", () => {
+		const artifact = makeArtifact({
+			frontmatter: makeFrontmatter({
+				harnesses: ["kiro"],
+				"harness-config": {
+					kiro: { inclusion: "always", fileMatchPattern: "src/**" },
+				},
+			}),
+		});
+
+		const result = kiroAdapter(artifact, templateEnv);
+		const steeringFile = result.files.find(
+			(f) => f.relativePath === "test-artifact.md",
+		);
+		expect(steeringFile).toBeDefined();
+		expect(steeringFile?.content).toContain("inclusion: always");
+		expect(steeringFile?.content).not.toContain("fileMatchPattern");
+	});
+
+	/**
+	 * Validates: Requirement 2.4 (Requirement 13.1 — suppression rule)
+	 * fileMatchPattern is suppressed when mode is "manual" even if configured.
+	 */
+	test("suppression: mode manual with fileMatchPattern configured → no pattern in output", () => {
+		const artifact = makeArtifact({
+			frontmatter: makeFrontmatter({
+				harnesses: ["kiro"],
+				"harness-config": {
+					kiro: { inclusion: "manual", fileMatchPattern: "src/**" },
+				},
+			}),
+		});
+
+		const result = kiroAdapter(artifact, templateEnv);
+		const steeringFile = result.files.find(
+			(f) => f.relativePath === "test-artifact.md",
+		);
+		expect(steeringFile).toBeDefined();
+		expect(steeringFile?.content).toContain("inclusion: manual");
+		expect(steeringFile?.content).not.toContain("fileMatchPattern");
+	});
+
+	/**
+	 * Validates: Requirement 2.6
+	 * Power-format applies the same inclusion precedence for each mode.
+	 */
+	describe("power-format with each mode", () => {
+		test('power-format: mode "always" → steering/<name>.md has inclusion: always', () => {
+			const artifact = makeArtifact({
+				name: "my-power",
+				frontmatter: makeFrontmatter({
+					name: "my-power",
+					harnesses: ["kiro"],
+					type: "power",
+					"harness-config": {
+						kiro: { power: true, inclusion: "always" },
+					},
+				}),
+			});
+
+			const result = kiroAdapter(artifact, templateEnv);
+			const steeringFile = result.files.find(
+				(f) => f.relativePath === "steering/my-power.md",
+			);
+			expect(steeringFile).toBeDefined();
+			expect(steeringFile?.content).toContain("inclusion: always");
+		});
+
+		test('power-format: mode "fileMatch" → steering/<name>.md has correct frontmatter', () => {
+			const artifact = makeArtifact({
+				name: "my-power",
+				frontmatter: makeFrontmatter({
+					name: "my-power",
+					harnesses: ["kiro"],
+					type: "power",
+					"harness-config": {
+						kiro: {
+							power: true,
+							inclusion: "fileMatch",
+							fileMatchPattern: "**/*.py",
+						},
+					},
+				}),
+			});
+
+			const result = kiroAdapter(artifact, templateEnv);
+			const steeringFile = result.files.find(
+				(f) => f.relativePath === "steering/my-power.md",
+			);
+			expect(steeringFile).toBeDefined();
+			expect(steeringFile?.content).toContain("inclusion: fileMatch");
+			expect(steeringFile?.content).toContain('fileMatchPattern: "**/*.py"');
+		});
+
+		test('power-format: mode "manual" → steering/<name>.md has inclusion: manual', () => {
+			const artifact = makeArtifact({
+				name: "my-power",
+				frontmatter: makeFrontmatter({
+					name: "my-power",
+					harnesses: ["kiro"],
+					type: "power",
+					"harness-config": {
+						kiro: { power: true, inclusion: "manual" },
+					},
+				}),
+			});
+
+			const result = kiroAdapter(artifact, templateEnv);
+			const steeringFile = result.files.find(
+				(f) => f.relativePath === "steering/my-power.md",
+			);
+			expect(steeringFile).toBeDefined();
+			expect(steeringFile?.content).toContain("inclusion: manual");
+			expect(steeringFile?.content).not.toContain("fileMatchPattern");
+		});
+	});
+
+	/**
+	 * Validates: Requirement 11.1
+	 * Audit comment for each mode is correctly formatted.
+	 */
+	describe("audit comment text", () => {
+		test('mode "always" → audit comment: <!-- forge:kiro-inclusion: always -->', () => {
+			const artifact = makeArtifact({
+				frontmatter: makeFrontmatter({
+					harnesses: ["kiro"],
+					"harness-config": { kiro: { inclusion: "always" } },
+				}),
+			});
+
+			const result = kiroAdapter(artifact, templateEnv);
+			const steeringFile = result.files.find(
+				(f) => f.relativePath === "test-artifact.md",
+			);
+			expect(steeringFile?.content).toContain(
+				"<!-- forge:kiro-inclusion: always -->",
+			);
+		});
+
+		test('mode "fileMatch" + pattern → audit comment includes fileMatchPattern', () => {
+			const artifact = makeArtifact({
+				frontmatter: makeFrontmatter({
+					harnesses: ["kiro"],
+					"harness-config": {
+						kiro: { inclusion: "fileMatch", fileMatchPattern: "src/**" },
+					},
+				}),
+			});
+
+			const result = kiroAdapter(artifact, templateEnv);
+			const steeringFile = result.files.find(
+				(f) => f.relativePath === "test-artifact.md",
+			);
+			expect(steeringFile?.content).toContain(
+				"<!-- forge:kiro-inclusion: fileMatch fileMatchPattern=src/** -->",
+			);
+		});
+
+		test('mode "manual" → audit comment: <!-- forge:kiro-inclusion: manual -->', () => {
+			const artifact = makeArtifact({
+				frontmatter: makeFrontmatter({
+					harnesses: ["kiro"],
+					"harness-config": { kiro: { inclusion: "manual" } },
+				}),
+			});
+
+			const result = kiroAdapter(artifact, templateEnv);
+			const steeringFile = result.files.find(
+				(f) => f.relativePath === "test-artifact.md",
+			);
+			expect(steeringFile?.content).toContain(
+				"<!-- forge:kiro-inclusion: manual -->",
+			);
+		});
+	});
+
+	/**
+	 * Validates: Requirement 10.3
+	 * Power-format workflow file without inclusion triggers a warning.
+	 */
+	test("workflow-file warning: missing inclusion emits AdapterWarning", () => {
+		const artifact = makeArtifact({
+			name: "my-power",
+			frontmatter: makeFrontmatter({
+				name: "my-power",
+				harnesses: ["kiro"],
+				type: "power",
+				"harness-config": { kiro: { power: true, inclusion: "manual" } },
+			}),
+			workflows: [
+				{
+					name: "Setup",
+					filename: "setup.md",
+					content: "# Setup\nDo the setup steps.",
+				},
+			],
+		});
+
+		const result = kiroAdapter(artifact, templateEnv);
+		expect(result.warnings.length).toBeGreaterThan(0);
+		const wfWarning = result.warnings.find((w) =>
+			w.message.includes("setup.md"),
+		);
+		expect(wfWarning).toBeDefined();
+		expect(wfWarning?.message).toContain("missing an inclusion mode");
+	});
+
+	/**
+	 * Validates: Requirement 10.4
+	 * progressiveWorkflowsStrict: workflow with inclusion "always" → error + file omitted.
+	 */
+	test("progressiveWorkflowsStrict: always-inclusion workflow → error + omitted", () => {
+		const artifact = makeArtifact({
+			name: "strict-power",
+			frontmatter: makeFrontmatter({
+				name: "strict-power",
+				harnesses: ["kiro"],
+				type: "power",
+				"harness-config": {
+					kiro: {
+						power: true,
+						inclusion: "manual",
+						progressiveWorkflowsStrict: true,
+					},
+				},
+			}),
+			workflows: [
+				{
+					name: "Bad Workflow",
+					filename: "bad-workflow.md",
+					content:
+						"---\ninclusion: always\n---\n# Bad Workflow\nThis is always-on.",
+				},
+			],
+		});
+
+		const result = kiroAdapter(artifact, templateEnv);
+
+		// The workflow file should be omitted from output
+		const wfFile = result.files.find(
+			(f) => f.relativePath === "steering/bad-workflow.md",
+		);
+		expect(wfFile).toBeUndefined();
+
+		// An error should be emitted
+		expect(result.errors).toBeDefined();
+		expect(result.errors?.length).toBeGreaterThan(0);
+		const wfError = result.errors?.find((e) =>
+			e.message.includes("bad-workflow.md"),
+		);
+		expect(wfError).toBeDefined();
+		expect(wfError?.artifactName).toBe("strict-power");
+		expect(wfError?.harnessName).toBe("kiro");
 	});
 });
