@@ -224,6 +224,7 @@ The [ADR index](docs/adr/README.md) lists all 34 records and links the [template
 
 ### Reference Guides
 
+- [Kiro Progressive Steering](docs/kiro-progressive-steering.md) — `harness-config.kiro.inclusion`, `fileMatchPattern`, `--max-always`, config keys, and audit comment
 - [Kiro Progressive Steering Rubric](docs/kiro-progressive-steering-rubric.md) — metrics, thresholds, and CLI for the `forge eval --rubric progressive-steering` quality gate
 
 ### Project Files

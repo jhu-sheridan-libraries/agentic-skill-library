@@ -1,6 +1,7 @@
 import type nunjucks from "nunjucks";
 import type {
 	CapabilityEntry,
+	HarnessName,
 	KnowledgeArtifact,
 	McpServerDefinition,
 } from "../schemas";
@@ -19,9 +20,19 @@ export interface AdapterWarning {
 	message: string;
 }
 
+export interface AdapterError {
+	artifactName: string;
+	harnessName: HarnessName;
+	message: string;
+	/** Optional: the field/path or filename that caused the error */
+	field?: string;
+}
+
 export interface AdapterResult {
 	files: OutputFile[];
 	warnings: AdapterWarning[];
+	/** Optional error channel for strict violations; unset by default so existing adapters compile unchanged */
+	errors?: AdapterError[];
 }
 
 export interface AdapterContext {

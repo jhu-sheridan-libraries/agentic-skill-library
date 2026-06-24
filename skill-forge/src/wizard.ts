@@ -261,6 +261,64 @@ export async function promptFrontmatter(
 		}
 	}
 
+	// Kiro-specific inclusion mode prompt (Req 9.1–9.6)
+	if (selectedHarnesses.includes("kiro")) {
+		let kiroHarnessConfig: Record<string, unknown> =
+			harnessConfig.kiro ?? {};
+
+		const initialKiroInclusion: "always" | "fileMatch" | "manual" =
+			selectedType === "power" || selectedType === "reference-pack"
+				? "manual"
+				: "always";
+
+		const kiroInclusion = await p.select({
+			message:
+				"Kiro inclusion mode — when should this steering file be loaded?",
+			initialValue: initialKiroInclusion,
+			options: [
+				{
+					value: "always" as const,
+					label: "always",
+					hint: "Loaded into every agent interaction",
+				},
+				{
+					value: "fileMatch" as const,
+					label: "fileMatch",
+					hint: "Loaded when a matching file is in context",
+				},
+				{
+					value: "manual" as const,
+					label: "manual",
+					hint:
+						selectedType === "power"
+							? "Recommended for powers — progressively disclosed via POWER.md"
+							: selectedType === "reference-pack"
+								? "Recommended — follows the reference-pack-must-be-manual convention"
+								: "Loaded only when the user references the file with #",
+				},
+			],
+		});
+		handleCancel(kiroInclusion);
+		kiroHarnessConfig = { ...kiroHarnessConfig, inclusion: kiroInclusion };
+
+		if (kiroInclusion === "fileMatch") {
+			const pattern = await p.text({
+				message: "fileMatchPattern (glob, e.g. src/**/*.ts)",
+				validate: (val) =>
+					!val || val.trim().length === 0
+						? "fileMatchPattern is required for fileMatch"
+						: undefined,
+			});
+			handleCancel(pattern);
+			kiroHarnessConfig = {
+				...kiroHarnessConfig,
+				fileMatchPattern: (pattern as string).trim(),
+			};
+		}
+
+		harnessConfig.kiro = kiroHarnessConfig;
+	}
+
 	const ecosystemRaw = await p.text({
 		message: "Ecosystem tags (comma-separated, e.g. typescript, bun, react)",
 		validate: (val) => {

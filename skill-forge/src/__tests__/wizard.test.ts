@@ -91,6 +91,7 @@ describe("promptFrontmatter", () => {
 			["testing"], // categories (multiselect)
 			["kiro"], // harnesses (multiselect)
 			"steering", // format for kiro (multi-format)
+			"always", // Kiro inclusion mode (select)
 			"typescript, bun", // ecosystem
 		];
 
@@ -120,6 +121,7 @@ describe("promptFrontmatter", () => {
 			["testing"], // categories (multiselect)
 			["kiro"], // harnesses (multiselect)
 			"steering", // format for kiro (multi-format)
+			"always", // Kiro inclusion mode (select)
 			"typescript", // ecosystem
 		];
 
@@ -149,6 +151,7 @@ describe("promptFrontmatter", () => {
 			["kiro", "cursor"],
 			"steering", // format for kiro (multi-format)
 			// cursor is single-format — no prompt
+			"always", // Kiro inclusion mode (select)
 			"python",
 		];
 
@@ -157,6 +160,291 @@ describe("promptFrontmatter", () => {
 		expect(fm.inclusion).toBe("manual");
 		expect(fm.file_patterns).toBeUndefined();
 		expect(callsTo("text").length).toBe(4);
+	});
+});
+
+// ─── Kiro inclusion mode prompt ────────────────────────────────────────────────
+
+describe("promptFrontmatter — Kiro inclusion mode", () => {
+	/**
+	 * Validates: Requirements 9.1, 9.2
+	 * When Kiro IS in the harness selection, the Kiro inclusion prompt MUST appear.
+	 */
+	test("Kiro inclusion prompt appears when Kiro is selected", async () => {
+		promptQueue = [
+			"A description", // description
+			"key", // keywords
+			"Author", // author
+			"skill", // type
+			"always", // top-level inclusion
+			["testing"], // categories
+			["kiro"], // harnesses — includes Kiro
+			"steering", // format for kiro
+			"manual", // Kiro inclusion mode ← the prompt we're testing
+			"typescript", // ecosystem
+		];
+
+		const fm = await promptFrontmatter("test-art", "Test Art");
+
+		// The Kiro inclusion prompt should be present
+		const selectCalls = callsTo("select");
+		const kiroInclusionCall = selectCalls.find(
+			(c) =>
+				messageOf(c).toLowerCase().includes("kiro") &&
+				messageOf(c).toLowerCase().includes("inclusion"),
+		);
+		expect(kiroInclusionCall).toBeDefined();
+
+		// Result writes under harness-config.kiro.inclusion
+		expect(
+			(fm["harness-config"] as Record<string, Record<string, unknown>>)?.kiro
+				?.inclusion,
+		).toBe("manual");
+	});
+
+	/**
+	 * Validates: Requirements 9.2
+	 * When Kiro is NOT in the harness selection, the Kiro inclusion prompt MUST NOT appear.
+	 */
+	test("Kiro inclusion prompt does NOT appear when Kiro is not selected", async () => {
+		promptQueue = [
+			"A description", // description
+			"key", // keywords
+			"Author", // author
+			"skill", // type
+			"always", // top-level inclusion
+			["testing"], // categories
+			["cursor"], // harnesses — does NOT include Kiro
+			// cursor is single-format — no format prompt
+			// NO Kiro inclusion prompt expected
+			"typescript", // ecosystem
+		];
+
+		const fm = await promptFrontmatter("test-art", "Test Art");
+
+		// No select call should mention "Kiro" and "inclusion"
+		const selectCalls = callsTo("select");
+		const kiroInclusionCall = selectCalls.find(
+			(c) =>
+				messageOf(c).toLowerCase().includes("kiro") &&
+				messageOf(c).toLowerCase().includes("inclusion"),
+		);
+		expect(kiroInclusionCall).toBeUndefined();
+
+		// No harness-config.kiro.inclusion in the output
+		expect(
+			(fm["harness-config"] as Record<string, Record<string, unknown>>)?.kiro
+				?.inclusion,
+		).toBeUndefined();
+	});
+
+	/**
+	 * Validates: Requirements 9.3
+	 * When fileMatch is selected in the Kiro inclusion prompt, a text prompt for
+	 * fileMatchPattern appears, and the result is written to harness-config.kiro.fileMatchPattern.
+	 */
+	test("fileMatch path prompts for fileMatchPattern", async () => {
+		promptQueue = [
+			"A description", // description
+			"key", // keywords
+			"Author", // author
+			"skill", // type
+			"always", // top-level inclusion
+			["testing"], // categories
+			["kiro"], // harnesses
+			"steering", // format for kiro
+			"fileMatch", // Kiro inclusion mode
+			"src/**/*.ts", // fileMatchPattern (text prompt)
+			"typescript", // ecosystem
+		];
+
+		const fm = await promptFrontmatter("test-art", "Test Art");
+
+		// fileMatchPattern text prompt was shown
+		const textCalls = callsTo("text");
+		const patternCall = textCalls.find((c) =>
+			messageOf(c).toLowerCase().includes("filematchpattern"),
+		);
+		expect(patternCall).toBeDefined();
+
+		// Result written under harness-config.kiro
+		const kiroConfig = (
+			fm["harness-config"] as Record<string, Record<string, unknown>>
+		)?.kiro;
+		expect(kiroConfig?.inclusion).toBe("fileMatch");
+		expect(kiroConfig?.fileMatchPattern).toBe("src/**/*.ts");
+	});
+
+	/**
+	 * Validates: Requirements 9.3
+	 * The fileMatchPattern prompt rejects empty input via its validate function.
+	 */
+	test("fileMatchPattern rejects empty input", async () => {
+		promptQueue = [
+			"A description", // description
+			"key", // keywords
+			"Author", // author
+			"skill", // type
+			"always", // top-level inclusion
+			["testing"], // categories
+			["kiro"], // harnesses
+			"steering", // format for kiro
+			"fileMatch", // Kiro inclusion mode
+			"src/**/*.ts", // fileMatchPattern (non-empty, passes validation)
+			"typescript", // ecosystem
+		];
+
+		await promptFrontmatter("test-art", "Test Art");
+
+		// Find the fileMatchPattern text prompt and check its validate function
+		const textCalls = callsTo("text");
+		const patternCall = textCalls.find((c) =>
+			messageOf(c).toLowerCase().includes("filematchpattern"),
+		);
+		expect(patternCall).toBeDefined();
+
+		// Extract the validate function and test it rejects empty input
+		const opts = patternCall!.args[0] as { validate?: (val: string) => string | undefined };
+		expect(opts.validate).toBeDefined();
+		expect(opts.validate!("")).toBeTruthy(); // non-undefined = error
+		expect(opts.validate!("   ")).toBeTruthy(); // whitespace-only = error
+		expect(opts.validate!("src/**/*.ts")).toBeUndefined(); // valid = no error
+	});
+
+	/**
+	 * Validates: Requirements 9.4
+	 * When type is "power" and Kiro is selected, the default Kiro inclusion is "manual".
+	 */
+	test("default Kiro inclusion is manual for power type", async () => {
+		promptQueue = [
+			"A description", // description
+			"key", // keywords
+			"Author", // author
+			"power", // type ← power
+			"always", // top-level inclusion
+			["testing"], // categories
+			["kiro"], // harnesses
+			"power", // format for kiro (non-default for power type)
+			"manual", // Kiro inclusion mode ← should be the default/initialValue
+			"typescript", // ecosystem
+		];
+
+		await promptFrontmatter("test-art", "Test Art");
+
+		// Find the Kiro inclusion select prompt and verify its initialValue
+		const selectCalls = callsTo("select");
+		const kiroInclusionCall = selectCalls.find(
+			(c) =>
+				messageOf(c).toLowerCase().includes("kiro") &&
+				messageOf(c).toLowerCase().includes("inclusion"),
+		);
+		expect(kiroInclusionCall).toBeDefined();
+
+		const opts = kiroInclusionCall!.args[0] as { initialValue?: string };
+		expect(opts.initialValue).toBe("manual");
+	});
+
+	/**
+	 * Validates: Requirements 9.5
+	 * When type is "reference-pack" and Kiro is selected, the default Kiro inclusion is "manual".
+	 */
+	test("default Kiro inclusion is manual for reference-pack type", async () => {
+		promptQueue = [
+			"A description", // description
+			"key", // keywords
+			"Author", // author
+			"reference-pack", // type ← reference-pack
+			"always", // top-level inclusion
+			["testing"], // categories
+			["kiro"], // harnesses
+			"steering", // format for kiro
+			"manual", // Kiro inclusion mode ← should be the default/initialValue
+			"typescript", // ecosystem
+		];
+
+		await promptFrontmatter("test-art", "Test Art");
+
+		// Find the Kiro inclusion select prompt and verify its initialValue
+		const selectCalls = callsTo("select");
+		const kiroInclusionCall = selectCalls.find(
+			(c) =>
+				messageOf(c).toLowerCase().includes("kiro") &&
+				messageOf(c).toLowerCase().includes("inclusion"),
+		);
+		expect(kiroInclusionCall).toBeDefined();
+
+		const opts = kiroInclusionCall!.args[0] as { initialValue?: string };
+		expect(opts.initialValue).toBe("manual");
+	});
+
+	/**
+	 * Validates: Requirements 9.4, 9.5
+	 * When type is "skill" (neither power nor reference-pack) and Kiro is selected,
+	 * the default Kiro inclusion is "always".
+	 */
+	test("default Kiro inclusion is always for skill type", async () => {
+		promptQueue = [
+			"A description", // description
+			"key", // keywords
+			"Author", // author
+			"skill", // type ← skill
+			"always", // top-level inclusion
+			["testing"], // categories
+			["kiro"], // harnesses
+			"steering", // format for kiro
+			"always", // Kiro inclusion mode ← should be the default/initialValue
+			"typescript", // ecosystem
+		];
+
+		await promptFrontmatter("test-art", "Test Art");
+
+		// Find the Kiro inclusion select prompt and verify its initialValue
+		const selectCalls = callsTo("select");
+		const kiroInclusionCall = selectCalls.find(
+			(c) =>
+				messageOf(c).toLowerCase().includes("kiro") &&
+				messageOf(c).toLowerCase().includes("inclusion"),
+		);
+		expect(kiroInclusionCall).toBeDefined();
+
+		const opts = kiroInclusionCall!.args[0] as { initialValue?: string };
+		expect(opts.initialValue).toBe("always");
+	});
+
+	/**
+	 * Validates: Requirements 9.6
+	 * Emitted frontmatter writes Kiro inclusion under harness-config.kiro.inclusion
+	 * and leaves the top-level inclusion field untouched.
+	 */
+	test("emitted frontmatter writes under harness-config.kiro and leaves top-level inclusion untouched", async () => {
+		promptQueue = [
+			"A description", // description
+			"key", // keywords
+			"Author", // author
+			"skill", // type
+			"manual", // top-level inclusion ← "manual"
+			["testing"], // categories
+			["kiro"], // harnesses
+			"steering", // format for kiro
+			"fileMatch", // Kiro inclusion mode ← different from top-level
+			"**/*.tsx", // fileMatchPattern
+			"typescript", // ecosystem
+		];
+
+		const fm = await promptFrontmatter("test-art", "Test Art");
+
+		// Top-level inclusion is preserved as-is from the top-level prompt
+		expect(fm.inclusion).toBe("manual");
+
+		// Kiro-specific inclusion is written under harness-config.kiro
+		const kiroConfig = (
+			fm["harness-config"] as Record<string, Record<string, unknown>>
+		)?.kiro;
+		expect(kiroConfig?.inclusion).toBe("fileMatch");
+		expect(kiroConfig?.fileMatchPattern).toBe("**/*.tsx");
+
+		// Top-level file_patterns is NOT set (fileMatch was only at Kiro level)
+		expect(fm.file_patterns).toBeUndefined();
 	});
 });
 
@@ -524,6 +812,7 @@ describe("runWizard", () => {
 			["kiro", "cursor"], // harnesses
 			"steering", // format for kiro (multi-format)
 			// cursor is single-format — no prompt
+			"always", // Kiro inclusion mode (select)
 			"typescript, react", // ecosystem
 			// Knowledge body
 			"# My Knowledge\nSome content here.", // body
@@ -575,6 +864,7 @@ describe("runWizard", () => {
 			["devops"],
 			["kiro"],
 			"power", // format for kiro (non-default)
+			"manual", // Kiro inclusion mode (select) — defaults to manual for power
 			"node",
 			// Knowledge body
 			"",
@@ -656,6 +946,7 @@ describe("newCommand outro", () => {
 				["testing"],
 				["kiro"],
 				"steering", // format for kiro (multi-format)
+				"always", // Kiro inclusion mode (select)
 				"typescript",
 				// Knowledge body
 				"Some content",

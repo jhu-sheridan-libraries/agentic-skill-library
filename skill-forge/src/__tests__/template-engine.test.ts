@@ -54,6 +54,9 @@ describe("template rendering", () => {
 				workflows: [],
 			},
 			harnessConfig: {},
+			inclusion: "always",
+			fileMatchPattern: undefined,
+			auditComment: "<!-- forge:kiro-inclusion: always -->",
 		});
 
 		// The steering template extends base, so body should be rendered

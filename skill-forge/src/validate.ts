@@ -3,10 +3,11 @@ import { join } from "node:path";
 import chalk from "chalk";
 import { CAPABILITY_MATRIX, validateMatrixSync } from "./adapters/capabilities";
 import { adapterRegistry } from "./adapters/index";
+import { resolveKiroInclusion } from "./adapters/kiro-inclusion";
 import { ASSET_CONVENTION_RULES, ASSET_CONVENTIONS } from "./asset-conventions";
 import { generateCatalog } from "./catalog";
 import { loadCollections, validateArtifactCollectionRefs } from "./collections";
-import { HARNESS_FORMAT_REGISTRY } from "./format-registry";
+import { resolveFormat, HARNESS_FORMAT_REGISTRY } from "./format-registry";
 import {
 	BUILTIN_PREDICATES,
 	ExpressionSyntaxError,
@@ -460,6 +461,106 @@ export async function validateArtifact(
 				message: ASSET_CONVENTION_RULES["prompt-body-too-short"],
 				filePath: knowledgeMdPath,
 			});
+		}
+	}
+
+	// ── Kiro Progressive Steering validation ────────────────────────────────────
+	if (!isParseError(mdResult)) {
+		const fm = mdResult.data.frontmatter;
+		if (fm.harnesses.includes("kiro")) {
+			// Construct a minimal artifact-like object for resolveKiroInclusion
+			const artifactForResolver = {
+				frontmatter: fm as Record<string, unknown> & { inclusion: string },
+			} as Parameters<typeof resolveKiroInclusion>[0];
+
+			const resolved = resolveKiroInclusion(artifactForResolver);
+
+			// Access kiro harness-config for cross-field checks
+			const harnessConfig = fm["harness-config"] as
+				| Record<string, Record<string, unknown>>
+				| undefined;
+			const kiroConfig = harnessConfig?.kiro;
+
+			// Req 1.4: fileMatch with absent/empty fileMatchPattern → error
+			if (kiroConfig && typeof kiroConfig === "object") {
+				const hcInclusion = kiroConfig.inclusion;
+				if (hcInclusion === "fileMatch") {
+					const fmp = kiroConfig.fileMatchPattern;
+					if (!fmp || (typeof fmp === "string" && fmp.length === 0)) {
+						errors.push({
+							field: "harness-config.kiro.fileMatchPattern",
+							message:
+								'fileMatchPattern is required when harness-config.kiro.inclusion is "fileMatch"',
+							filePath: knowledgeMdPath,
+						});
+					}
+				}
+
+				// Req 1.5: always/manual with non-empty fileMatchPattern → warning
+				if (
+					(hcInclusion === "always" || hcInclusion === "manual") &&
+					typeof kiroConfig.fileMatchPattern === "string" &&
+					kiroConfig.fileMatchPattern.length > 0
+				) {
+					warnings.push({
+						field: "harness-config.kiro.fileMatchPattern",
+						message:
+							'fileMatchPattern is ignored unless harness-config.kiro.inclusion is "fileMatch"',
+						filePath: knowledgeMdPath,
+					});
+				}
+			}
+
+			// Req 4.1: reference-pack + resolved always → warning
+			if (fm.type === "reference-pack" && resolved.mode === "always") {
+				warnings.push({
+					field: "harness-config.kiro.inclusion",
+					message:
+						ASSET_CONVENTION_RULES["reference-pack-must-be-manual"],
+					filePath: knowledgeMdPath,
+				});
+			}
+
+			// Req 4.2 & 4.3: power-format + resolved always → warning(s)
+			const kiroFormat = resolveFormat(
+				"kiro",
+				kiroConfig as Record<string, unknown> | undefined,
+			);
+			if (kiroFormat.format === "power" && resolved.mode === "always") {
+				warnings.push({
+					field: "harness-config.kiro.inclusion",
+					message:
+						ASSET_CONVENTION_RULES["kiro-power-should-be-progressive"],
+					filePath: knowledgeMdPath,
+				});
+
+				// Req 4.3: additionally warn if the artifact ships workflow files
+				const workflowsDir = join(artifactPath, "workflows");
+				if (await exists(workflowsDir)) {
+					const wfEntries = await readdir(workflowsDir);
+					const mdFiles = wfEntries.filter((f) => f.endsWith(".md"));
+					if (mdFiles.length > 0) {
+						warnings.push({
+							field: "harness-config.kiro.inclusion",
+							message:
+								ASSET_CONVENTION_RULES[
+									"kiro-power-workflow-should-be-progressive"
+								],
+							filePath: knowledgeMdPath,
+						});
+					}
+				}
+			}
+
+			// Req 8.2: default inclusion → informational warning (suppressed by explicit "always" per Req 8.3)
+			if (resolved.source === "default") {
+				warnings.push({
+					field: "harness-config.kiro.inclusion",
+					message:
+						ASSET_CONVENTION_RULES["kiro-default-inclusion-informational"],
+					filePath: knowledgeMdPath,
+				});
+			}
 		}
 	}
 

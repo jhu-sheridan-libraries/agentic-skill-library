@@ -8,3 +8,11 @@ install:
       type: github
       repo: jhu-sheridan-libraries/agentic-skill-forge
       releasePrefix: v
+
+# --- Kiro Progressive Steering ---
+kiro:
+  progressiveSteering:
+    # Warn at build time when this fraction (0..1) or more of the compiled Kiro
+    # steering files resolve to inclusion: always. Default 0.5. Set to 1 to
+    # disable the warning.
+    alwaysWarnThreshold: 0.5
