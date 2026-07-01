@@ -1,0 +1,5 @@
+name: archon
+displayName: "Archon"
+description: "Reference artifacts for the Archon remote agentic coding platform."
+trust: community
+tags: [archon, workflows, ai-coding, automation, agents]
