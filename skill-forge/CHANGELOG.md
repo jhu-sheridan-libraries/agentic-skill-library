@@ -7,94 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.4.0] - 2026-05-03
+## [0.2.0] - 2026-04-21
 
 ### Added
-- Add 4 eval dimensions: negative routing disambiguation (`not-icontains` on 10 routing tests), temperature sensitivity (7 tests at temp 0.3), prompt efficiency (4 tests with `cost` assertions at $0.10 threshold), and scenario-based shared concept adherence (7 tests covering vertical slices, deep modules, durable issues, contract-first, checksum discipline, domain language).
-- Hash-based deep links in browse SPA — artifacts are now bookmarkable and shareable via `#artifact/<name>` URL fragments. Browser back/forward navigation supported.
-- Codeshop skill #21: `migrate` — reliable data migration with checksum verification across 5 phases (Inventory, Plan, Dry-Run, Execute, Verify). Adds Migration Checksum Discipline shared concept and Migration Chain to workflow composition.
-- Add `--record` and `--trend` flags to `forge eval` for evolutionary prompt improvement tracking. `--record` appends per-run scores to `evals/history.jsonl`; `--trend` prints a table with sparkline showing score progression over time.
-- Upgrade Souk Compass from Solr 9 to Solr 10 with scalar quantized dense vectors (~4x memory reduction), ACORN filtered search support, and enhanced kNN query parameters. Requires reindexing after upgrade.
-- New `release-manager` companion power — tool-agnostic release lifecycle management with 4-phase cut-release workflow (Assess, Draft, Cut, Announce). Multi-harness support. Detects whatever release tooling the project uses.
-- Multi-turn workflow evals for `integrate` (5 tests) and `migrate` (5 tests) simulating phase progression with deterministic + semantic assertions. Chain transition evals (5 tests) verifying correct next-workflow suggestions. Deterministic `icontains` assertions added to all 14 routing eval tests. All evals upgraded from Claude Sonnet 4 to Claude Sonnet 4.6.
-- Codeshop skill #20: `integrate` — wire external systems through contract-first adapters with 5-phase workflow (Discover, Contract, Wire, Harden, Verify). Adds Contract-First Integration shared concept and Integration Chain to workflow composition.
-- New `secure-by-default` companion power — STRIDE threat modeling, auth/authz flow review, and secure coding reference (OWASP, input validation, secret hygiene). Multi-harness support. User-invoked only.
-- Structural validation tests for codeshop workflow phase sequencing, chain validity, and entry/exit criteria alignment — 11 tests covering dangling references, linear phase ordering, orphan detection, chain-to-router consistency, and phase numbering.
-
-### Changed
-- Revised ADR power (v0.4.0): expanded troubleshooting section, added configuration section, broadened changelog tool detection guidance, improved steering file descriptions with when-to-use context, added hook portability notes.
-- Bump promptfoo dependency from ^0.121.5 to ^0.121.9.
-- Remove `dist/` and `catalog.json` from git tracking. Both are now gitignored and built fresh in CI — dist is uploaded as a CI artifact on every PR and attached as a tarball to GitHub Releases. The `dist-drift` workflow is removed.
-
-### Fixed
-- Place forge:version comment after YAML frontmatter instead of before it, fixing Kiro power metadata parsing
-- Fix codeshop frontmatter: `name` field to lowercase `codeshop`, keyword `codebase-architecture` to `architecture`. Fix CategoryEnum test to include `writing` category (10 categories).
-
-
-## [0.3.0] - 2026-04-27
-
-### Added
-- Added MCP bridge compilation smoke test to CI (`bun run build:bridge` + `node bridge/mcp-server.cjs --version`)
-- Added ADR-0031 documenting Souk Compass as a standalone MCP server for Solr-backed semantic search with pluggable embedding providers and multi-tier caching.
-- ADR-0030: authoring-level version embedding and manifests
-- Multi-harness `forge import --harness` command supporting all 7 harness-native formats (Kiro, Claude Code, Copilot, Cursor, Windsurf, Cline, Q Developer) with auto-detection, --force, and --dry-run
-- Admin UI components in Browse SPA: capability badges with color-coded matrix grid, inline temper preview panel, import modal with file scanner, version display with upgrade button, workspace tab with project management, interactive dependency graph (inline SVG with force-directed layout), and build dashboard with config persistence and history
-- Interactive `forge temper` command for previewing the compiled AI experience per artifact-harness pair, with terminal output, JSON mode, side-by-side comparison (--compare), and web preview (--web)
-- Admin API endpoints for capabilities (GET /api/capabilities), temper (POST /api/temper), import scan/execute (POST /api/import), versions/upgrade (GET/POST /api/versions, /api/upgrade), workspace (GET/PUT /api/workspace), dependency graph (GET /api/graph), and build trigger/status (POST /api/build, GET /api/build/status)
-- Comprehensive unit test suite for Souk Compass MCP server — 191 tests across 9 files covering SoukVectorClient, embedding provider factory, tool handlers, MCP error boundary, CachedEmbeddingProvider, chunker, serialization, workspace profiler, and hook/plugin validation.
-- Added `changelog-check` CI job that enforces a changelog fragment exists for PRs touching source files, with `skip-changelog` label escape hatch
-- Added daily `dist-drift.yml` scheduled workflow that rebuilds artifacts and MCP bridge on `main` and warns if `dist/` or `bridge/` have drifted from source
-- Harness capability matrix declaring support levels (full/partial/none) for 8 capabilities across all 7 harnesses, with configurable degradation strategies (inline/comment/omit) applied automatically during build
-- Added promptfoo eval suites for codeshop (routing, skill-quality, shared-concepts), all 8 byron-powers artifacts, ADR (workflow-correctness, template-quality, generate-from-diff, health-check), and karpathy-mode (principle-enforcement, tradeoff-awareness) — 71 tests total
-- Multi-repo and monorepo workspace support via forge.config.yaml with multiple knowledge sources, per-project harness/artifact configuration, workspace-aware build and install, and --project flag
-- Artifact versioning with semver version embedding in compiled output, .forge-manifest.json sidecar files, `forge upgrade` command with migration script support, --force, and --dry-run
-
-### Changed
-- Updated README with complete CLI command reference, project structure, capability matrix, and development instructions
-- Trimmed knowledge artifact keywords to 6-19 per artifact, removed keyword/category overlaps, established canonical 10-category taxonomy, and added 'writing' to CategoryEnum in schemas.ts
-- Added Bun dependency caching (`~/.bun/install/cache` + `node_modules`) keyed on `bun.lock` hash to all GitHub Actions workflows (CI, release, audit, pages)
-- Added event-driven hooks to five neon-caravan artifacts (commit-craft, review-ritual, type-guardian, debug-journal, karpathy-mode) and added missing Overview, Examples, and Troubleshooting sections to all knowledge artifacts per Kiro Power best practices.
-- Switched Souk Compass local Solr from standalone mode to SolrCloud (1 node + ZooKeeper), enabling the Collections API for programmatic collection management and configset-based schema deployment. Updated health check to use ping endpoint for mode-agnostic operation.
-- Added Overview, Examples, Troubleshooting, and Steering Files listing sections to all eight byron-powers artifacts (novelist, fantasy-novelist, scifi-novelist, mystery-series-novelist, series-continuity, book-agent-publicist, technical-author, proofreader-review-checklist) per Kiro Power best practices.
-- Updated the Hello test artifact with a fun onboarding section that greets users in 20 languages and bumped version to 0.2.0.
-- Split CI into parallel jobs (`lint-and-typecheck`, `test`, `validate-and-build`) so lint, tests, and artifact validation run concurrently
-- Added `concurrency` group with `cancel-in-progress: true` to CI so rapid pushes to a PR cancel stale in-progress runs
-- Rewrote top-level README with current collection counts, full repo structure, and complete Quick Start
-- Replaced stub skill-forge CONTRIBUTING with code-level guide covering module map, adapter/backend patterns, testing conventions, and common pitfalls
-- Overhauled CLI help metadata with thorough examples, option groups, and coverage for all commands including catalog export, guild, and collection
-- Updated the knowledge.md scaffold template to include skeleton Overview, Best Practices, Examples, and Troubleshooting sections so new artifacts start with the recommended Kiro Power structure.
-
-### Fixed
-- Fixed the CI eval job to use the eval suite's Bedrock credentials, and skip forked pull request runs where the required secrets are unavailable.
-- Fixed all Biome lint errors and TypeScript type-check failures: resolved Bun Dirent type incompatibility in versioning.ts, tightened mapKiroEvent return type to CanonicalEvent, added missing changelog/migrations fields to CatalogEntry test factories, added buildHistory to BrowseState test fixtures, removed unused imports, applied Biome formatting, and suppressed intentional ANSI escape regex checks
-- Updated GitHub workflows to install Node 22 and run repository automation from the `skill-forge` directory so CI, audit, CodeQL, and release jobs target the actual project files.
-- Fixed SQLite BLOB deserialization in CachedEmbeddingProvider — Bun's bun:sqlite returns Uint8Array for BLOB columns, now uses TextDecoder instead of toString() for correct embedding recovery.
-- Removed hardcoded test count from PR template checklist to prevent staleness
-- Static catalog export: use replacer function in generateStaticHtmlPage to prevent String.replace dollar-sign corruption of embedded JSON
-
-
-## [0.2.0] - 2026-04-20
-
-### Added
+- Added manifest entry management to `forge catalog browse` — view manifest entries with sync status indicators, add/edit/remove entries via REST API (`GET/POST/PUT/DELETE /api/manifest/entries`), and display synced/outdated/missing status from sync-lock comparison
 - Added 4 property-based tests for collection admin correctness (Properties 10–12, 16) — YAML round-trip, unknown key preservation, validation consistency, and filtering correctness.
+- Added unit tests for `manifest-admin.ts` — 9 tests covering `readManifest`, `readSyncLock`, `computeSyncStatus` (synced/outdated/missing), and error paths for `addManifestEntry`, `editManifestEntry`, `removeManifestEntry`.
+- Added collection management to `forge catalog browse` — list, view, create, edit, and delete collection YAML files via REST API (`GET/POST/PUT/DELETE /api/collections`) with trust-level and tag filtering in the UI
+- Added 9 property-based tests for artifact admin correctness (Properties 1–9) — frontmatter serialization round-trip, validation consistency, kebab-case enforcement, file structure verification, update preservation, delete removal, catalog consistency, toKebabCase output, and comma-separated parsing.
+- Added unit tests for `admin.ts` — 20 tests covering `serializeFrontmatter`, `validateArtifactInput`, `toKebabCase`, and error paths for `createArtifact`, `updateArtifact`, `deleteArtifact`.
 - Added unit tests for `collection-admin.ts` — 15 tests covering `parseCollectionFile`, `serializeCollection`, `validateCollectionInput`, `getCollection` member resolution, and error paths for CRUD operations.
 - Documented browse UI module extraction architecture (ADR-0025).
-- Added unit tests for `admin.ts` — 20 tests covering `serializeFrontmatter`, `validateArtifactInput`, `toKebabCase`, and error paths for `createArtifact`, `updateArtifact`, `deleteArtifact`.
-- Added coverage tests for `eval.ts` (5 tests), `install.ts` (7 tests), and `build.ts` (5 tests) — covering scaffoldEvals, dry-run install, --force overwrite, --all multi-harness, error paths, and malformed frontmatter handling.
-- Added unit tests for `manifest-admin.ts` — 9 tests covering `readManifest`, `readSyncLock`, `computeSyncStatus` (synced/outdated/missing), and error paths for `addManifestEntry`, `editManifestEntry`, `removeManifestEntry`.
-- Added 3 property-based tests for manifest admin correctness (Properties 13–15) — sync status computation, entry validation delegation, and top-level field preservation during mutations.
 - Added 30 integration tests for browse server mutation endpoints — artifact/collection/manifest CRUD round-trips, sync status verification, Content-Type validation, and structured error responses (400/404/409).
-- Added manifest entry management to `forge catalog browse` — view manifest entries with sync status indicators, add/edit/remove entries via REST API (`GET/POST/PUT/DELETE /api/manifest/entries`), and display synced/outdated/missing status from sync-lock comparison
-- Documented browse server admin CRUD architecture with mutable state wrapper and modular admin layers (ADR-0024)
-- Added 9 property-based tests for artifact admin correctness (Properties 1–9) — frontmatter serialization round-trip, validation consistency, kebab-case enforcement, file structure verification, update preservation, delete removal, catalog consistency, toKebabCase output, and comma-separated parsing.
-- Added full CRUD capabilities to `forge catalog browse` for knowledge artifacts — create, edit, and delete artifacts directly from the browser UI via `POST /api/artifact`, `PUT /api/artifact/:name`, and `DELETE /api/artifact/:name` endpoints with validation, conflict detection, and automatic catalog refresh
-- Extract browse UI template (`generateHtmlPage`, `generateStaticHtmlPage`, `escapeHtml`) into dedicated `browse-ui.ts` module, reducing `browse.ts` from ~2950 to ~500 lines (ADR-0025).
 - Added tab navigation (Artifacts | Collections | Manifest) to `forge catalog browse` with a shared UI design system including design tokens, reusable card/form/badge/toast/modal components, and context-aware create buttons
-- Added collection management to `forge catalog browse` — list, view, create, edit, and delete collection YAML files via REST API (`GET/POST/PUT/DELETE /api/collections`) with trust-level and tag filtering in the UI
+- Added full CRUD capabilities to `forge catalog browse` for knowledge artifacts — create, edit, and delete artifacts directly from the browser UI via `POST /api/artifact`, `PUT /api/artifact/:name`, and `DELETE /api/artifact/:name` endpoints with validation, conflict detection, and automatic catalog refresh
+- Added 3 property-based tests for manifest admin correctness (Properties 13–15) — sync status computation, entry validation delegation, and top-level field preservation during mutations.
+- Extract browse UI template (`generateHtmlPage`, `generateStaticHtmlPage`, `escapeHtml`) into dedicated `browse-ui.ts` module, reducing `browse.ts` from ~2950 to ~500 lines (ADR-0025).
+- Documented browse server admin CRUD architecture with mutable state wrapper and modular admin layers (ADR-0024)
 
 ### Fixed
 - Fix GitHub Pages workflow to deploy from `jhu-main` instead of `main` so the catalog browser shows all knowledge artifacts
-- Fixed release workflow: added `working-directory: skill-forge` to all jobs, externalized playwright/electron from binary compilation, and improved audit severity counting with jq JSON parsing.
 
 
 ## [0.1.1] - 2026-04-13
