@@ -30,7 +30,7 @@ keywords:
   - test-optimization
   - vertical-slices
 author: Steven J. Miklovic
-version: 0.3.1
+version: 0.3.5
 harnesses:
   - kiro
 type: power
@@ -52,6 +52,7 @@ inherit-hooks: false
 harness-config:
   kiro:
     format: power
+    inclusion: manual
     inline-workflows: false
     main-steering: false
     spec-hooks:
@@ -189,6 +190,8 @@ Ask the agent something like:
 
 Match the user's request to the right steering file. Each skill is either a **Workflow** (multi-phase, with `workflows/` phase files) or **Knowledge** (flat steering file, loaded once). Load the steering file with `readSteering` using the filename shown below.
 
+**Routing rule:** When you match a user's intent to a skill, always **name the skill explicitly** in your response (e.g., "I'll load the `integrate` workflow" or "Activating `laconic-output` mode"). This makes the routing decision visible and traceable. Use the exact steering file name from the table below (without the `.md` extension) as the canonical skill identifier.
+
 ### Planning and Design
 
 | Skill | Type | Steering File | Triggers | Description |
@@ -253,6 +256,8 @@ These cross-cutting concepts are referenced by multiple skills. Steering files r
 
 A deep module has a small, simple interface that hides significant complexity behind it. The ratio of functionality to interface surface area is high — callers get a lot of value without needing to understand the internals.
 
+**Enforcement rule:** When designing interfaces, ALWAYS prefer fewer public methods with richer behavior over many fine-grained methods. Collapse options into configuration rather than exposing them as separate interface surface. If a proposed interface has more than 5 public methods or requires callers to understand internal state, it is too shallow — push complexity behind fewer entry points.
+
 When designing or refactoring, prefer deep modules over shallow ones. A shallow module has an interface nearly as complex as its implementation, forcing callers to understand the internals anyway. Deep modules reduce cognitive load and make systems easier to change because the complexity is concentrated behind a stable boundary.
 
 Ask: "Could a caller use this module knowing only its signature and a one-sentence description?" If yes, it's deep. If the caller needs to understand internal state, ordering constraints, or implementation details, it's shallow.
@@ -263,14 +268,19 @@ Referenced by: `drive-tests`, `refactor-architecture`, `draft-prd`, `design-inte
 
 A vertical slice (or tracer bullet) is a thin end-to-end path through all layers of the system. Instead of building one complete layer at a time (all models, then all services, then all UI), you build a narrow slice that touches every layer — from the user-facing boundary down to persistence (or whatever the system's outermost boundaries are).
 
+**Enforcement rule:** When breaking work into issues or TDD iterations, ALWAYS slice vertically. Each issue or RED-GREEN cycle must touch all layers required for one feature. NEVER organize by layer (all DB first, then all API, then all UI). This is a hard constraint, not a preference.
+
+- ✓ "User can edit display name" (touches DB + API + UI for one feature)
+- ✗ "Create database schema for all profile fields" (horizontal layer)
+- ✓ RED: test that display name updates → GREEN: implement across all layers
+- ✗ RED: test1, test2, test3, test4 → GREEN: impl1, impl2, impl3, impl4
+
 Each slice delivers a working feature, however minimal. This approach:
 
 - Proves the integration works early, before you've invested in building out any single layer
 - Gives you a deployable increment at every step
 - Surfaces architectural friction immediately rather than at integration time
 - Makes progress visible and testable
-
-When breaking work into issues or planning TDD iterations, slice vertically. "User can create a todo item" is a vertical slice. "Implement the database schema for all entities" is a horizontal layer — avoid it.
 
 Referenced by: `drive-tests`, `compose-issues`, `triage-bug`.
 
@@ -288,8 +298,10 @@ Referenced by: `challenge-domain-model`, `refactor-architecture`, `run-qa-sessio
 
 A durable issue is a GitHub issue that survives refactors. It describes a behavior or outcome, not a file path or implementation detail. Durable issues remain valid even when the codebase is restructured, files are renamed, or modules are extracted.
 
-**Durable:** "Users cannot reset their password if their account was created via SSO"
-**Fragile:** "Fix `resetPassword()` in `src/auth/handlers.ts` — the SSO check on line 47 is wrong"
+**Enforcement rule:** When filing issues, NEVER include file paths (`src/...`) or line numbers (`line 42`). Even if the user provides them, translate to behavioral language. This is a hard constraint.
+
+**Durable:** "Users can submit the login form twice due to missing debounce on the submit handler"
+**Fragile:** "Fix `handleSubmit()` in `src/components/LoginForm.tsx` line 42 — missing debounce"
 
 The fragile version breaks the moment someone renames the file, moves the function, or changes the line. The durable version stays useful because it describes the problem in terms of user-visible behavior.
 
@@ -542,7 +554,31 @@ Issues define integration work as vertical slices, integrate wires each slice's 
 
 ---
 
-When a workflow completes, reference this section to suggest the natural next workflow in the chain. If the completed workflow appears as a step in one of these chains, offer to continue with the next workflow in the sequence.
+### Next-Workflow Lookup
+
+When a workflow completes and the user asks what to do next, **name the specific next workflow by its steering file name**. Use this table:
+
+| Completed Workflow | → Next Workflow | Chain |
+|---|---|---|
+| `stress-test-plan` | → `draft-prd` | Planning |
+| `draft-prd` | → `compose-issues` | Planning |
+| `compose-issues` | → `drive-tests` | Delivery |
+| `drive-tests` | → `review-changes` | Commit |
+| `review-changes` | → `craft-commits` | Commit |
+| `triage-bug` | → `drive-tests` | Bug-Fix |
+| `journal-debug` | → `drive-tests` | Debugging |
+| `refactor-architecture` | → `plan-refactor` | Architecture |
+| `plan-refactor` | → `compose-issues` | Architecture |
+| `challenge-domain-model` | → `define-glossary` | Domain |
+| `define-glossary` | → `refactor-architecture` | Domain |
+| `design-interface` | → `integrate` | Integration |
+| `integrate` | → `drive-tests` | Integration |
+| `migrate` | → `drive-tests` | Migration |
+| `diverge-options` | → `stress-test-plan` | Exploration |
+| `trim-tests` | → `analyze-hotspots` | Test Hygiene |
+| `analyze-hotspots` | → `refactor-architecture` | Hotspot |
+
+**Rule:** When answering "what's next?" after a workflow completes, always state the next workflow name from this table explicitly (e.g., "The natural next step is **drive-tests** — the Bug-Fix Chain continues with TDD to implement the fix"). If the completed workflow appears in multiple chains, pick the chain that best matches the user's context and name the next step.
 
 ## Companion Powers
 

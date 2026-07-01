@@ -63,8 +63,12 @@ tests:
     assert:
       - type: icontains-any
         value: ["regression test", "test", "verify", "re-run"]
+      - type: icontains-any
+        value: ["elsewhere", "same mistake", "same pattern", "similar", "grep", "search"]
       - type: llm-rubric
         value: >
-          The fix-and-verify phase requires a regression test and
-          checking for the same mistake elsewhere. PASS if the agent
-          insists on a test. FAIL if it says just add the null check.
+          The fix-and-verify phase requires BOTH (a) a regression test
+          and (b) checking for the same mistake elsewhere in the codebase.
+          PASS if the agent insists on both a test and checking for
+          the same pattern in other code paths. FAIL if it only
+          mentions one or says just add the null check.

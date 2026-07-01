@@ -8,7 +8,10 @@
 description: "generate-from-diff classifies changes correctly and skips non-architectural diffs"
 
 prompts:
-  - file://dist/kiro/adr/steering/generate-from-diff.md
+  - - role: system
+      content: file://dist/kiro/adr/steering/generate-from-diff.md
+    - role: user
+      content: "{{user_query}}"
 
 providers:
   - id: bedrock:us.anthropic.claude-sonnet-4-6
@@ -23,49 +26,169 @@ defaultTest:
 tests:
   - description: "Test-only diff produces no ADR"
     vars:
-      user_query: >
-        Git diff shows: tests/test_auth.py +45 lines, tests/test_user.py +12 lines.
-        No other files changed.
+      user_query: |
+        Here's the git diff for the latest commit:
+
+        ```diff
+        diff --git a/tests/test_auth.py b/tests/test_auth.py
+        new file mode 100644
+        --- /dev/null
+        +++ b/tests/test_auth.py
+        @@ -0,0 +1,45 @@
+        +import pytest
+        +from app.auth import validate_token, create_token
+        +
+        +def test_valid_token():
+        +    token = create_token(user_id=1)
+        +    assert validate_token(token) == {"user_id": 1}
+        +
+        +def test_expired_token():
+        +    # ... 40 more lines of test assertions
+
+        diff --git a/tests/test_user.py b/tests/test_user.py
+        --- a/tests/test_user.py
+        +++ b/tests/test_user.py
+        @@ -10,3 +10,15 @@
+        +def test_user_profile_update():
+        +    user = create_test_user()
+        +    user.update_profile(name="New Name")
+        +    assert user.name == "New Name"
+        ```
+
+        No source files changed — only tests. Classify these changes and determine if an ADR is needed.
     assert:
+      - type: icontains-any
+        value: ["no architectural", "skip", "no ADR", "not needed"]
       - type: llm-rubric
         value: >
           Test-only changes are explicitly classified as 'Skip' in
-          the signal table. PASS if the response reports 'No
-          architectural changes detected' and stops without drafting
+          the signal table. PASS if the response reports no
+          architectural changes detected and stops without drafting
           an ADR. FAIL if it drafts an ADR for test-only changes.
 
   - description: "Docs-only diff produces no ADR"
     vars:
-      user_query: >
-        Git diff shows: README.md +20 lines, docs/api.md +8 lines.
-        No source files changed.
+      user_query: |
+        Here's the git diff:
+
+        ```diff
+        diff --git a/README.md b/README.md
+        --- a/README.md
+        +++ b/README.md
+        @@ -1,5 +1,25 @@
+         # My Project
+        +
+        +## Getting Started
+        +
+        +1. Install dependencies: `npm install`
+        +2. Run the app: `npm start`
+        +... (+20 lines of docs)
+
+        diff --git a/docs/api.md b/docs/api.md
+        --- a/docs/api.md
+        +++ b/docs/api.md
+        @@ -5,3 +5,11 @@
+        +### GET /users/:id
+        +Returns user details.
+        +... (+8 lines)
+        ```
+
+        No source files changed — only documentation. Classify these changes.
     assert:
+      - type: icontains-any
+        value: ["no architectural", "skip", "no ADR", "not needed"]
       - type: llm-rubric
         value: >
           Docs-only changes are explicitly classified as 'Skip'.
-          PASS if the response reports 'No architectural changes
-          detected' and stops. FAIL if it drafts an ADR.
+          PASS if the response reports no architectural changes
+          detected and stops. FAIL if it drafts an ADR.
 
   - description: "New dependency triggers ADR draft"
     vars:
-      user_query: >
-        Git diff shows: package.json adds 'redis: ^4.6.0' and
-        src/cache/redis-client.ts is a new file with 45 lines.
+      user_query: |
+        Here's the git diff:
+
+        ```diff
+        diff --git a/package.json b/package.json
+        --- a/package.json
+        +++ b/package.json
+        @@ -12,6 +12,7 @@
+           "dependencies": {
+             "express": "^4.18.0",
+        +    "redis": "^4.6.0",
+             "pg": "^8.11.0"
+           }
+
+        diff --git a/src/cache/redis-client.ts b/src/cache/redis-client.ts
+        new file mode 100644
+        --- /dev/null
+        +++ b/src/cache/redis-client.ts
+        @@ -0,0 +1,45 @@
+        +import { createClient } from 'redis';
+        +
+        +export class RedisCache {
+        +  private client;
+        +  constructor(url: string) {
+        +    this.client = createClient({ url });
+        +  }
+        +  async get(key: string) { return this.client.get(key); }
+        +  async set(key: string, value: string, ttl?: number) { ... }
+        +}
+        ```
+
+        Classify these changes and draft an ADR if warranted.
     assert:
+      - type: icontains-any
+        value: ["redis", "cache", "dependency"]
       - type: llm-rubric
         value: >
           A new dependency (redis) with usage code is a High-relevance
           signal. PASS if the response drafts an ADR covering the
-          decision to add Redis as a dependency. FAIL if it reports
-          no architectural changes or skips the draft.
+          decision to add Redis as a caching dependency. FAIL if it
+          reports no architectural changes or skips the draft.
 
   - description: "New module/package triggers ADR draft"
     vars:
-      user_query: >
-        Git diff shows: src/payments/__init__.py (new), src/payments/
-        processor.py (new, 120 lines), src/payments/models.py (new,
-        80 lines).
+      user_query: |
+        Here's the git diff:
+
+        ```diff
+        diff --git a/src/payments/__init__.py b/src/payments/__init__.py
+        new file mode 100644
+        --- /dev/null
+        +++ b/src/payments/__init__.py
+        @@ -0,0 +1,3 @@
+        +from .processor import PaymentProcessor
+        +from .models import Payment, Refund
+
+        diff --git a/src/payments/processor.py b/src/payments/processor.py
+        new file mode 100644
+        --- /dev/null
+        +++ b/src/payments/processor.py
+        @@ -0,0 +1,120 @@
+        +class PaymentProcessor:
+        +    def __init__(self, gateway):
+        +        self.gateway = gateway
+        +    def charge(self, amount, currency, customer_id): ...
+        +    def refund(self, payment_id, amount=None): ...
+
+        diff --git a/src/payments/models.py b/src/payments/models.py
+        new file mode 100644
+        --- /dev/null
+        +++ b/src/payments/models.py
+        @@ -0,0 +1,80 @@
+        +@dataclass
+        +class Payment:
+        +    id: str
+        +    amount: Decimal
+        +    currency: str
+        +    status: PaymentStatus
+        ```
+
+        Classify these changes and draft an ADR if warranted.
     assert:
+      - type: icontains-any
+        value: ["payment", "module", "package"]
       - type: llm-rubric
         value: >
           A new package with multiple files is a High-relevance signal.
@@ -74,31 +197,73 @@ tests:
 
   - description: "Uncertain sections are marked with REVIEW comments"
     vars:
-      user_query: >
-        Git diff shows: src/auth/middleware.py changed significantly,
-        removing JWT validation and adding session-based auth.
-        Commit message: 'fix auth bug'.
+      user_query: |
+        Here's the git diff (commit message: "fix auth bug"):
+
+        ```diff
+        diff --git a/src/auth/middleware.py b/src/auth/middleware.py
+        --- a/src/auth/middleware.py
+        +++ b/src/auth/middleware.py
+        @@ -1,25 +1,30 @@
+        -import jwt
+        -
+        -def authenticate(request):
+        -    token = request.headers.get('Authorization')
+        -    payload = jwt.decode(token, SECRET_KEY)
+        -    request.user = payload
+        +from flask import session
+        +
+        +def authenticate(request):
+        +    if 'user_id' not in session:
+        +        raise Unauthorized()
+        +    request.user = get_user(session['user_id'])
+        ```
+
+        The commit message says "fix auth bug" but the change replaces
+        JWT with session-based auth entirely. Classify and draft if needed.
     assert:
+      - type: icontains-any
+        value: ["REVIEW", "uncertain", "ambiguous", "unclear"]
       - type: llm-rubric
         value: >
           When the diff is ambiguous (commit message says 'fix' but
           the change is architectural), uncertain sections must be
           marked with REVIEW comments. PASS if the draft includes
-          at least one '<!-- REVIEW: ... -->' marker on uncertain
-          sections (e.g., whether this was intentional or a fix).
-          FAIL if it drafts with no uncertainty markers.
+          uncertainty markers or explicitly notes the ambiguity.
+          FAIL if it drafts with no uncertainty acknowledgment.
 
   - description: "Related signals are grouped into a single ADR"
     vars:
-      user_query: >
-        Git diff shows: package.json adds 'stripe: ^12.0.0',
-        src/billing/stripe-client.ts (new), src/billing/webhook.ts
-        (new), src/billing/types.ts (new).
+      user_query: |
+        Here's the git diff:
+
+        ```diff
+        diff --git a/package.json b/package.json
+        --- a/package.json
+        +++ b/package.json
+        @@ -14,6 +14,7 @@
+        +    "stripe": "^12.0.0",
+
+        diff --git a/src/billing/stripe-client.ts b/src/billing/stripe-client.ts
+        new file mode 100644
+        +export class StripeClient { ... }
+
+        diff --git a/src/billing/webhook.ts b/src/billing/webhook.ts
+        new file mode 100644
+        +export function handleStripeWebhook(event) { ... }
+
+        diff --git a/src/billing/types.ts b/src/billing/types.ts
+        new file mode 100644
+        +export interface StripeEvent { ... }
+        +export interface PaymentIntent { ... }
+        ```
+
+        Multiple related changes: new Stripe dependency + new billing module.
+        Classify and draft if needed.
     assert:
       - type: llm-rubric
         value: >
           Multiple related signals (new dependency + new module files)
           should be grouped into a single ADR, not multiple. PASS if
           the response drafts one ADR covering the Stripe integration
-          decision. FAIL if it proposes multiple separate ADRs for
-          the dependency and the module files.
+          decision. FAIL if it proposes multiple separate ADRs.

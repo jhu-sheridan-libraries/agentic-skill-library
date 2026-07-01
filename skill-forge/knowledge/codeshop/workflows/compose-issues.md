@@ -2,6 +2,14 @@
 
 Break a plan, spec, or PRD into independently-grabbable GitHub issues using tracer-bullet vertical slices.
 
+## Hard Constraints
+
+These rules apply to ALL issue output from this workflow:
+
+1. **Vertical slices only.** Each issue MUST be a thin end-to-end feature slice touching all required layers (schema + API + UI + tests). NEVER decompose by layer (all DB first, then all API, then all UI).
+2. **Behaviors, not file paths.** Issue titles and bodies describe user-facing behaviors ("customer can add item to cart"). NEVER reference file paths (`src/...`), line numbers, or internal implementation details — even if the user provides them.
+3. **Gather context first.** Do NOT draft issues until you understand the scope and current state.
+
 ## When to Use
 
 - The user wants to convert a plan into GitHub issues

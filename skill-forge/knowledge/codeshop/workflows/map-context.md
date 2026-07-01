@@ -20,6 +20,8 @@ Go up a layer of abstraction. Give the user a map of all the relevant modules an
 ## Rules
 
 - Do NOT summarize — show the actual dependency graph with concrete module names and call sites.
-- Include both inbound (who calls this?) and outbound (what does this call?) relationships.
-- If the area spans multiple layers, show the layer boundaries explicitly.
+- Include both **inbound** (who calls this?) and **outbound** (what does this call?) relationships. Both directions are mandatory.
+- If the area spans multiple layers, show the **layer boundaries** explicitly — group modules by layer (HTTP, business logic, persistence, events, etc.) and make boundaries visible.
 - Keep the map focused on the user's area of interest — don't map the entire codebase.
+- When the user provides caller/callee information in their query, use it directly to produce the map. Do not ask for files you cannot read — work with the information given.
+- Use arrows (→) or indentation to show call direction.

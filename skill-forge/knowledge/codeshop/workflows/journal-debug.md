@@ -2,6 +2,16 @@
 
 A systematic debugging workflow — articulate the problem before chasing the solution. Writing forces clarity that browsing stack traces does not. The fastest path through a bug is rarely the first one you see.
 
+## Mandatory First Response
+
+When a user reports a bug or asks for debugging help, your **first response MUST enforce the three-sentence rule**. Do NOT skip to diagnosis, do NOT suggest fixes, do NOT run commands. Ask the user to provide:
+
+1. What they expected to happen
+2. What actually happened
+3. What they already know it is not
+
+If the user has not provided all three, ask for the missing ones. Only after all three are stated do you proceed to isolation.
+
 ## When to Use
 
 - The user hits a bug, test failure, or unexpected behaviour
@@ -67,7 +77,11 @@ If you can't write sentence three, you haven't started investigating yet. Do NOT
 
 ## Reference: Isolation Techniques
 
-**Binary search the call stack** — add a checkpoint at the midpoint of the execution path. If the state is already wrong there, the bug is in the first half. Repeat.
+The primary isolation technique is **binary search**:
+
+**Binary search the call stack** — add a checkpoint at the midpoint of the execution path. If the state is already wrong there, the bug is in the first half. Repeat until you narrow it to the exact layer where the state first goes wrong. This is always the first technique to try.
+
+Supporting techniques:
 
 **Minimal reproduction** — strip away everything unrelated to the failure. If the bug survives without the database, the network, the auth layer — remove them from your test case.
 
@@ -77,11 +91,13 @@ If you can't write sentence three, you haven't started investigating yet. Do NOT
 
 ## Reference: Fix and Verify Checklist
 
-Before committing:
+Before committing, complete ALL of these steps (none are optional):
 1. **Re-run the reproduction case** — confirm the bug no longer occurs
 2. **Check adjacent behaviour** — does anything nearby break?
-3. **Consider the failure mode** — could this same mistake exist elsewhere in the codebase?
-4. **Write a test** — if the bug had a test, it would have been caught. Add one now.
+3. **Search for the same mistake elsewhere** — grep the codebase for the same pattern. If this bug existed here, it likely exists in similar code paths. Check and fix or file separate issues.
+4. **Write a regression test** — if the bug had a test, it would have been caught. Add one now. The test must fail without the fix and pass with it.
+
+Steps 3 and 4 are **non-negotiable**. A fix without a regression test and without checking for the same mistake elsewhere is incomplete.
 
 ### The Commit Message
 

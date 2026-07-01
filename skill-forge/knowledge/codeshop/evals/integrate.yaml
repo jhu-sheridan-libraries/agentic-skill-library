@@ -56,13 +56,17 @@ tests:
   - description: "Insists on anti-corruption layer with test doubles"
     vars:
       query: >
-        Contract defined. Now implement the Twilio adapter.
+        Contract defined: SendSmsRequest { to, body }, SendSmsResponse
+        { messageId, status }, SmsError { code, message }. Auth via
+        API key header. Now implement the Twilio adapter. What's the
+        approach?
     assert:
       - type: icontains-any
-        value: ["adapter", "anti-corruption", "test double", "test"]
+        value: ["adapter", "anti-corruption", "test double", "test", "mock", "fake"]
       - type: llm-rubric
         value: >
           The wire phase builds an anti-corruption layer adapter with
           integration tests using test doubles. PASS if the agent
-          creates an adapter with tests. FAIL if it calls the API
-          directly without an adapter layer.
+          proposes creating an adapter with tests (test double/mock/fake
+          of the Twilio API). FAIL if it calls the API directly
+          without an adapter layer or skips tests.

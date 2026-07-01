@@ -47,7 +47,7 @@ tests:
       user_query: "Review my PR"
     assert:
       - type: icontains-any
-        value: ["review-changes", "code review"]
+        value: ["review-changes", "code review", "review changes"]
       - type: not-icontains
         value: "refactor-architecture"
 

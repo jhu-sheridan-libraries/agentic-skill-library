@@ -27,27 +27,32 @@ defaultTest:
 tests:
   - description: "T1: User request triggers integrate skill and loads discover phase"
     vars:
-      query: "I need to wire up the Stripe webhook endpoint to our payment service."
+      query: >
+        I need to wire up the Stripe webhook endpoint to our payment service.
+        Based on the codeshop skills, which workflow should I use and what's
+        the first phase?
     assert:
       - type: icontains
         value: "integrate"
+      - type: icontains-any
+        value: ["discover", "target", "protocol", "data flow", "failure mode"]
       - type: llm-rubric
         value: >
-          The agent should identify this as an integration task and begin
-          the Discover phase: identifying the target system (Stripe),
-          protocol (REST/webhooks), data flows, callers, and failure modes.
-          PASS if the response begins discovery by asking about or mapping
-          the integration boundary. FAIL if it skips to implementation
-          or loads a different skill.
+          The agent should identify this as an integration task (integrate
+          workflow) and begin the Discover phase: identifying the target
+          system (Stripe), protocol, data flows, callers, and failure modes.
+          PASS if it names integrate and starts discovery. FAIL if it
+          skips to implementation or loads a different skill.
 
   - description: "T2: After discovery, agent transitions to contract phase"
     vars:
       query: >
-        I need to wire up the Stripe webhook endpoint. I've already mapped
-        the boundary: target is Stripe webhooks (REST/HTTPS), data flows
-        are POST requests with event payloads, our PaymentService consumes
-        parsed events, failure modes include signature verification failures
-        and duplicate delivery. No existing adapter. What's the next phase?
+        Using the integrate workflow for Stripe webhooks. Discovery complete:
+        target is Stripe webhooks (REST/HTTPS), data flows are POST requests
+        with event payloads (invoice.paid, payment_intent.succeeded), our
+        PaymentService consumes parsed events, failure modes include signature
+        verification failures and duplicate delivery. No existing adapter.
+        What's the next phase in the integrate workflow?
     assert:
       - type: icontains-any
         value:
@@ -60,36 +65,42 @@ tests:
           request/response shapes, error codes, authentication (webhook
           signature verification), and the adapter's public interface
           BEFORE writing implementation. PASS if it defines the contract
-          first. FAIL if it starts writing code or skips to wiring.
+          first. FAIL if it starts writing code.
 
   - description: "T3: After contract, agent transitions to wire phase with anti-corruption layer"
     vars:
       query: >
-        I'm integrating Stripe webhooks. Discovery and contract are done.
-        I have StripeEvent type, WebhookError union, and signature
-        verification defined. Now I need to implement the adapter.
+        Using the integrate workflow for Stripe webhooks. Discovery and
+        contract phases are done. Contract defined:
+        - StripeWebhookEvent { id, type, data, created }
+        - WebhookHandlerResult { processed: boolean, eventId: string }
+        - WebhookError: SignatureInvalid | PayloadMalformed | EventUnknown
+        - Auth: Stripe-Signature header verified with webhook secret
+
+        What's the next phase and what's the approach?
     assert:
       - type: icontains-any
         value:
           - "adapter"
           - "anti-corruption"
           - "test"
-          - "vertical slice"
+          - "wire"
       - type: llm-rubric
         value: >
-          The agent should enter the Wire phase: implementing an
+          The agent should enter the Wire phase: proposing an
           anti-corruption layer adapter with integration tests using
-          test doubles. It should build one vertical slice (happy path)
-          first. PASS if it creates an adapter with tests against
-          test doubles. FAIL if it writes code without tests or
-          calls the Stripe API directly without an adapter layer.
+          test doubles. PASS if it describes creating an adapter with
+          tests (test double/mock/fake for Stripe). FAIL if it proposes
+          calling Stripe directly without an adapter or skips tests.
 
   - description: "T4: After wiring, agent transitions to harden phase"
     vars:
       query: >
-        Stripe webhook adapter is wired with passing integration tests
-        against test doubles for the happy path. What's the next phase
-        in the integrate workflow?
+        Using the integrate workflow for Stripe webhooks. Wire phase done:
+        StripeWebhookAdapter implements WebhookHandler interface, integration
+        tests pass against a FakeStripeClient test double for happy path
+        (valid signature → parsed event → handler called). What's the next
+        phase in the integrate workflow?
     assert:
       - type: icontains-any
         value:
@@ -98,31 +109,33 @@ tests:
           - "timeout"
           - "circuit"
           - "error handling"
+          - "resilience"
       - type: llm-rubric
         value: >
           The agent should enter the Harden phase: adding retries with
-          backoff, circuit breaker, timeouts, and graceful degradation.
-          Each concern should get its own test. PASS if it addresses
-          error handling at the system boundary. FAIL if it considers
-          the work done after the happy path.
+          backoff, circuit breaker, timeouts, and graceful degradation
+          at the system boundary. PASS if it addresses error handling
+          and resilience. FAIL if it considers the work done.
 
   - description: "T5: After hardening, agent transitions to verify phase"
     vars:
       query: >
-        Stripe webhook adapter is hardened with retry, timeout, circuit
-        breaker, and degradation tests all passing. What's the final
-        phase in the integrate workflow?
+        Using the integrate workflow for Stripe webhooks. Harden phase done:
+        retry with exponential backoff (3 attempts), 5s timeout, circuit
+        breaker (5 failures → open for 30s), graceful degradation returns
+        202 Accepted when circuit is open. All resilience tests pass.
+        What's the final phase in the integrate workflow?
     assert:
       - type: icontains-any
         value:
           - "verify"
           - "smoke test"
           - "staging"
-          - "real service"
+          - "real"
           - "end-to-end"
       - type: llm-rubric
         value: >
           The agent should enter the Verify phase: running an end-to-end
-          smoke test against the real Stripe service or staging environment.
+          smoke test against the real Stripe service or a staging environment.
           PASS if it proposes verification against a real/staging endpoint.
-          FAIL if it considers the work done without real-service verification.
+          FAIL if it considers the work done without real-service testing.

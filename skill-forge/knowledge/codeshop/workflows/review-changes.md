@@ -2,6 +2,14 @@
 
 Code review as a craft — read with intent, comment with purpose, approve with confidence. Use when reviewing pull requests, merge requests, or any code changes. The goal is a better codebase, not a lower diff count.
 
+## Mandatory Behaviors
+
+These are non-negotiable in every review:
+
+1. **Always classify comments using the taxonomy:** `must address`, `should address`, or `nit`. Every finding gets a label. No unlabeled findings.
+2. **Always read tests first** before reading implementation.
+3. **Never approve unless you can explain the code.** Passing tests is necessary but not sufficient. Before approving, ask yourself: "Could I explain what this code does and why to a colleague?" If not, don't approve — request clarification or more time.
+
 ## When to Use
 
 - The user wants to review a pull request or diff

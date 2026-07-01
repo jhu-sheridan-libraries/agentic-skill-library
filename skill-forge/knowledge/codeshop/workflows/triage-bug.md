@@ -2,6 +2,16 @@
 
 Investigate a reported problem, find its root cause, and create a GitHub issue with a TDD fix plan. This is a mostly hands-off workflow — minimize questions to the user.
 
+## Mandatory First Response
+
+When a user reports a bug, your **first response MUST capture symptoms** before diagnosing. Even if the user provides partial information, you must explicitly gather:
+
+1. **What was expected** — the correct behavior
+2. **What actually happened** — the observed failure (error messages, status codes, visual symptoms)
+3. **Reproduction steps** — how to trigger the bug reliably
+
+If the user has not provided all three, ask for the missing ones. Do NOT skip to diagnosis, do NOT propose fixes, do NOT explore code until symptoms are captured.
+
 ## When to Use
 
 - The user reports a bug or unexpected behavior
@@ -47,7 +57,19 @@ Create a GitHub issue with the standard template (Problem, Root Cause Analysis, 
 
 ## Durability Rules
 
+These are **hard constraints** on all output from this workflow:
+
+- **NEVER reference file paths or line numbers in issues.** Translate implementation details into behavioral descriptions. If the root cause is "race condition in src/checkout.ts line 42," the issue says "double charges during checkout when concurrent requests hit the payment handler." The file path goes stale; the behavior description survives refactors.
 - Only suggest fixes that would survive radical codebase changes
 - Describe behaviors and contracts, not internal structure
 - Tests assert on observable outcomes (API responses, UI state, user-visible effects), not internal state
-- A good suggestion reads like a spec; a bad one reads like a diff
+- A good issue reads like a spec; a bad one reads like a diff
+
+## TDD Fix Approach
+
+When planning a fix, **always start with a failing test**. The approach is:
+1. Write a test that reproduces the bug (RED) — this test fails now and will pass after the fix
+2. Write the minimal code change to make the test pass (GREEN)
+3. Refactor if needed
+
+Do NOT jump to implementation code before writing the test. The test comes first — always.

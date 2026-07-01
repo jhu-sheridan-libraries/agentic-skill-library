@@ -30,13 +30,14 @@ tests:
         The checkout page is broken after the last deploy. Fix it.
     assert:
       - type: icontains-any
-        value: ["capture", "symptom", "reproduce", "what happened", "expected"]
+        value: ["capture", "symptom", "reproduce", "what happened", "expected", "what do you see", "error message", "what behavior"]
       - type: llm-rubric
         value: >
           Triage-bug starts with capture: gathering symptoms, expected
           vs actual behavior, and reproduction steps. PASS if the agent
-          asks clarifying questions before diagnosing. FAIL if it
-          immediately proposes a fix.
+          asks clarifying questions about what was expected, what happened,
+          or how to reproduce before diagnosing. FAIL if it immediately
+          proposes a fix or starts exploring code.
 
   - description: "Files durable issues describing behaviors, not file paths"
     vars:
@@ -60,9 +61,10 @@ tests:
         events, causing duplicate order records. What's the fix approach?
     assert:
       - type: icontains-any
-        value: ["test", "TDD", "red-green", "regression"]
+        value: ["test first", "failing test", "TDD", "red-green", "regression test", "write a test"]
       - type: llm-rubric
         value: >
           Triage-bug plans a TDD fix: write a failing test that
-          reproduces the bug, then fix it. PASS if the approach
-          starts with a test. FAIL if it jumps to implementation.
+          reproduces the bug FIRST, then fix it. PASS if the approach
+          starts with writing a test (RED phase) before any implementation.
+          FAIL if it jumps to implementation code first.

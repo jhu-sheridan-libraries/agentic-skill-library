@@ -27,7 +27,10 @@ defaultTest:
 tests:
   - description: "T1: Migration request triggers migrate skill and loads inventory phase"
     vars:
-      query: "We need to migrate the users table to a new schema that splits name into first_name and last_name."
+      query: >
+        We need to migrate the users table to a new schema that splits
+        name into first_name and last_name. Based on the codeshop skills,
+        which workflow should I use and what's the first phase?
     assert:
       - type: icontains
         value: "migrate"
@@ -40,25 +43,27 @@ tests:
           - "catalog"
       - type: llm-rubric
         value: >
-          The agent should identify this as a data migration and begin
-          the Inventory phase: cataloging the users table, establishing
-          baseline checksums, and identifying exclusions. PASS if it
-          starts with inventory and baseline checksums. FAIL if it jumps
-          to writing migration code.
+          The agent should identify this as a data migration (migrate
+          workflow) and begin the Inventory phase: cataloging the users
+          table, establishing baseline checksums, and identifying
+          exclusions. PASS if it names migrate and starts with inventory.
+          FAIL if it jumps to writing migration SQL.
 
   - description: "T2: After inventory, agent defines migration plan with rollback criteria"
     vars:
       query: >
-        Migrating users table. Inventory complete: 50,000 rows, columns
-        id/name/email/created_at, baseline checksums established
-        (COUNT=50000, SUM(id)=1250025000). Foreign key: orders.user_id.
-        What's the next phase?
+        Using the migrate workflow for the users table name split.
+        Inventory phase complete: 50,000 rows, columns id/name/email/created_at,
+        baseline checksums established (COUNT=50000, SUM(id)=1250025000).
+        Foreign key: orders.user_id references users.id. No exclusions.
+        What's the next phase in the migrate workflow?
     assert:
       - type: icontains-any
         value:
           - "plan"
           - "rollback"
           - "checkpoint"
+          - "step"
       - type: llm-rubric
         value: >
           The agent should enter the Plan phase: defining migration steps
@@ -69,9 +74,11 @@ tests:
   - description: "T3: After planning, agent insists on dry-run before production"
     vars:
       query: >
-        Migration plan approved: 4 steps (add columns, populate, verify,
-        drop old column) with rollback criteria per step. I want to run
-        it now against production.
+        Using the migrate workflow. Plan phase complete: 4 steps
+        (1. ADD first_name/last_name columns, 2. POPULATE from name,
+        3. VERIFY checksums match, 4. DROP name column). Each step has
+        rollback SQL defined. I want to run it now against production.
+        What does the migrate workflow say about this?
     assert:
       - type: icontains-any
         value:
@@ -80,19 +87,23 @@ tests:
           - "staging"
           - "copy"
           - "rehearsal"
+          - "test environment"
       - type: llm-rubric
         value: >
           The agent MUST insist on a dry-run before production execution.
           Skipping dry-run is an explicit anti-pattern in the migrate
-          workflow. PASS if the agent proposes running against a copy
-          first. FAIL if it proceeds directly to production.
+          workflow. PASS if the agent refuses to go directly to production
+          and proposes running against a copy/staging first. FAIL if it
+          proceeds directly to production.
 
   - description: "T4: After successful dry-run, agent proceeds to execute with checkpoints"
     vars:
       query: >
-        Dry-run complete against staging copy. All checksums match,
-        50,000 rows migrated, execution time 45 seconds. No discrepancies.
-        Ready to execute against production.
+        Using the migrate workflow. Dry-run phase complete against staging
+        copy: all 4 steps executed, checksums match at every boundary
+        (COUNT=50000, SUM(id)=1250025000 preserved), execution time 45s,
+        no discrepancies. Ready for production. What's the next phase
+        in the migrate workflow?
     assert:
       - type: icontains-any
         value:
@@ -100,6 +111,7 @@ tests:
           - "checkpoint"
           - "step by step"
           - "execute"
+          - "production"
       - type: llm-rubric
         value: >
           The agent should enter the Execute phase: verifying backup exists,
@@ -110,8 +122,10 @@ tests:
   - description: "T5: After execution, agent performs full reconciliation"
     vars:
       query: >
-        Migration executed against production. All 4 steps passed
-        checkpoints. What verification should I do now?
+        Using the migrate workflow. Execute phase complete: all 4 steps
+        passed checkpoints against production (backup verified before start,
+        each step halted and verified before proceeding). What's the final
+        phase in the migrate workflow and what should I verify?
     assert:
       - type: icontains-any
         value:
@@ -124,6 +138,6 @@ tests:
         value: >
           The agent should enter the Verify phase: full checksum
           reconciliation, referential integrity validation, application
-          smoke tests, and performance comparison. PASS if it performs
+          smoke tests, and performance comparison. PASS if it describes
           multi-dimensional verification beyond row counts. FAIL if it
           only checks row counts or declares success without verification.

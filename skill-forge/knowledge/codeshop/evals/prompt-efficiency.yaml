@@ -1,12 +1,17 @@
-# Eval: Prompt efficiency — cost per eval call
+# Eval: Prompt efficiency — latency per routing call
 #
-# Tracks token cost to detect context bloat. If a steering file edit
-# improves scores but doubles cost, that's a regression. The threshold
-# is generous — the goal is catching runaway growth, not penny-pinching.
+# Tracks response latency as a proxy for context bloat. If a steering
+# file edit improves scores but makes the prompt so large that latency
+# doubles, that's a regression. The 30s threshold is generous — the
+# goal is catching runaway growth, not micro-optimization.
+#
+# Note: type:cost is not supported by the Bedrock provider (no cost
+# metadata returned). Latency is a reliable proxy — larger prompts
+# take longer to process.
 #
 # Run:  bun run dev eval codeshop
 
-description: "Prompt efficiency — cost per routing call stays bounded"
+description: "Prompt efficiency — latency per routing call stays bounded"
 
 prompts:
   - - role: system
@@ -25,38 +30,38 @@ defaultTest:
     provider: bedrock:us.anthropic.claude-sonnet-4-6
 
 tests:
-  - description: "Routing call cost stays under $0.10"
+  - description: "Routing call latency stays under 30s"
     vars:
       user_query: "Let's do TDD on the payment module"
     assert:
-      - type: cost
-        threshold: 0.10
+      - type: latency
+        threshold: 30000
       - type: icontains-any
         value: ["drive-tests", "TDD", "red-green", "test-driven"]
 
-  - description: "Complex routing call cost stays under $0.10"
+  - description: "Complex routing call latency stays under 30s"
     vars:
       user_query: "This module feels too coupled, can you review the architecture?"
     assert:
-      - type: cost
-        threshold: 0.10
+      - type: latency
+        threshold: 30000
       - type: icontains-any
         value: ["refactor-architecture", "architecture review", "shallow module"]
 
-  - description: "Integration routing cost stays under $0.10"
+  - description: "Integration routing latency stays under 30s"
     vars:
       user_query: "Wire up the Stripe webhook endpoint"
     assert:
-      - type: cost
-        threshold: 0.10
+      - type: latency
+        threshold: 30000
       - type: icontains-any
         value: ["integrate", "wire", "adapter"]
 
-  - description: "Migration workflow entry cost stays under $0.10"
+  - description: "Migration workflow entry latency stays under 30s"
     vars:
       user_query: "Migrate the user table to the new schema"
     assert:
-      - type: cost
-        threshold: 0.10
+      - type: latency
+        threshold: 30000
       - type: icontains-any
         value: ["migrate", "migration", "checksum", "inventory"]

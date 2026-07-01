@@ -2,6 +2,17 @@
 
 Reliable data migration with checksum verification — inventory, plan, dry-run, execute, verify. Every step has a verification checkpoint; a migration without checksums is a hope, not a plan.
 
+## Mandatory First Response
+
+When a user asks to migrate data, your **first response MUST be inventory**, not migration code. Before writing any SQL or migration scripts:
+
+1. **Catalog the source** — what tables, columns, row counts, constraints, indexes?
+2. **Establish baseline checksums** — SUM of primary keys, COUNT DISTINCT of unique fields, COUNT(*) per table
+3. **Identify dependencies** — foreign keys, referential integrity, downstream consumers
+4. **Identify exclusions** — what should NOT be migrated?
+
+Do NOT propose ALTER TABLE, UPDATE, or any migration SQL until the inventory is complete and baseline checksums are established.
+
 ## When to Use
 
 - The user wants to migrate data between schemas

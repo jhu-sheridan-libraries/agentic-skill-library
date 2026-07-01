@@ -57,7 +57,7 @@ tests:
       user_query: "Review my PR"
     assert:
       - type: icontains-any
-        value: ["review-changes", "code review"]
+        value: ["review-changes", "code review", "review changes"]
       - type: not-icontains
         value: "refactor-architecture"
       - type: not-icontains
@@ -162,7 +162,7 @@ tests:
       user_query: "Be brief from now on"
     assert:
       - type: icontains-any
-        value: ["laconic", "spartan", "terse", "brief"]
+        value: ["laconic-output", "laconic", "spartan", "terse", "brief"]
       - type: llm-rubric
         value: >
           Should route to laconic-output. PASS if laconic-output.

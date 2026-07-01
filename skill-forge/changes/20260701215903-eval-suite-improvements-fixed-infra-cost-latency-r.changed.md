@@ -1,0 +1,1 @@
+Eval suite improvements: fixed infra (cost→latency), realism (inline context for tool-less evals), content (mandatory first-response directives), and keyword alignment across codeshop, secure-by-default, and adr artifacts

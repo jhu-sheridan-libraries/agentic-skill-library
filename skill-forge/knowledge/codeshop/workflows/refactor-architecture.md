@@ -2,6 +2,16 @@
 
 Surface architectural friction and propose deepening opportunities — refactors that turn shallow modules into deep ones. The aim is testability and AI-navigability, informed by the domain language in CONTEXT.md and the decisions in docs/adr/.
 
+## Mandatory First Response
+
+When a user asks to review or improve architecture, your **first response MUST explore the current structure** before proposing any changes. Even without tool access:
+
+1. **Ask about or identify the current module structure** — what modules exist, their boundaries, their interfaces
+2. **Use the vocabulary**: identify which modules are **shallow** (large interface, trivial implementation) vs **deep** (small interface, significant hidden complexity)
+3. **Explore before proposing** — never suggest refactoring without first understanding what exists
+
+Do NOT propose changes, splits, or refactors in your first response. Understand first, then propose.
+
 ## Adaptation Notes
 
 - **Codebase exploration**: Use `invokeSubAgent` with the `context-gatherer` agent to walk the codebase organically, or use direct file exploration tools (`readCode`, `grepSearch`, `listDirectory`).

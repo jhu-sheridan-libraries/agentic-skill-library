@@ -2,6 +2,17 @@
 
 Wire an external system through a contract-first adapter with hardened error handling and end-to-end verification.
 
+## Mandatory First Response
+
+When a user asks to integrate with an external system, your **first response MUST be discovery**, not implementation. Ask about or identify:
+
+1. **Target system** — what service, what protocol (REST, gRPC, webhooks, SDK)?
+2. **Data flows** — what goes in, what comes back, what events does it emit?
+3. **Failure modes** — what happens when it's down, slow, or returns errors?
+4. **Callers** — who in our codebase will use this integration?
+
+Do NOT write any code until discovery is complete and the contract is defined.
+
 ## When to Use
 
 - The user wants to integrate with an external API
@@ -34,7 +45,7 @@ Define the interface contract before writing implementation — types, error sha
 → Load `integrate-contract.md`
 
 ### Phase 3 — Wire
-Implement the adapter as an anti-corruption layer with integration tests against test doubles.
+Implement the adapter as an anti-corruption layer with integration tests against test doubles. **Tests are non-negotiable** — write the test double first, then the adapter. No adapter code without a corresponding test.
 → Load `integrate-wire.md`
 
 ### Phase 4 — Harden

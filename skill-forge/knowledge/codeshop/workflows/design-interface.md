@@ -2,6 +2,25 @@
 
 Generate multiple radically different interface designs for a module, then compare them. Based on "Design It Twice" from "A Philosophy of Software Design": your first idea is unlikely to be the best.
 
+## Mandatory First Response
+
+When a user asks to design an interface, your **first response MUST gather requirements**. Do NOT generate any design until you know:
+
+1. **What problem does this module solve?** — the core responsibility in one sentence
+2. **Who are the callers?** — what code will use this interface
+3. **What should be hidden?** — what complexity belongs inside, invisible to callers
+4. **What constraints exist?** — performance, compatibility, concurrency requirements
+
+Do NOT produce interface code, type definitions, or design alternatives until requirements are gathered. Even if the user describes the module, ask clarifying questions about callers and hidden complexity first.
+
+## Deep Module Rule
+
+All designs produced by this workflow MUST prefer depth over breadth:
+
+- **Target ≤5 public methods** — if you need more, you're exposing too much
+- **Hide options behind configuration, not interface surface** — TTL, invalidation patterns, retry policies belong in a config object, not as separate methods
+- **A caller should use this module knowing only its signature** — if they need to understand internals, the interface is too shallow
+
 ## When to Use
 
 - The user wants to design an API or module interface

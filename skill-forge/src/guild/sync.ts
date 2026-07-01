@@ -11,12 +11,6 @@ import {
 	writeFile,
 } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import {
-	aggregateOutcomes,
-	type CollisionFinding,
-	runRegistryCheck,
-} from "../outcomes/registry";
-import { isParseError, loadKnowledgeArtifact } from "../parser";
 import type { BackendConfig } from "../backends/types";
 import { loadForgeConfig, resolveBackendConfigs } from "../config";
 import {

@@ -45,15 +45,20 @@ tests:
     vars:
       query: >
         Create GitHub issues for adding email notifications when an
-        order ships. The code is in src/services/notification.ts and
-        src/templates/email/.
+        order ships. The relevant code is in src/services/notification.ts
+        and src/templates/email/. Break this into vertical slices.
     assert:
+      - type: not-icontains
+        value: "src/services/notification"
+      - type: not-icontains
+        value: "src/templates/email"
       - type: llm-rubric
         value: >
           Durable issues describe behaviors that survive refactors.
           PASS if issues describe user-facing behaviors ("customer
-          receives shipping notification email"). FAIL if issues
-          reference specific file paths.
+          receives shipping notification email") without referencing
+          specific file paths. FAIL if issues reference src/services/
+          or src/templates/ paths.
 
   - description: "Gathers context before drafting issues"
     vars:

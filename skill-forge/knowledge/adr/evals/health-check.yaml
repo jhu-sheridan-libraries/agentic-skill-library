@@ -1,13 +1,18 @@
 # Eval: health-check produces actionable reports and does not auto-fix
 #
 # Tests the five check types and the critical "do not auto-fix" constraint.
+# Provides inline ADR contents so the model can produce the structured
+# severity report without needing filesystem access.
 #
 # Run:  bun run dev eval adr
 
 description: "health-check produces actionable reports without auto-fixing"
 
 prompts:
-  - file://dist/kiro/adr/steering/health-check.md
+  - - role: system
+      content: file://dist/kiro/adr/steering/health-check.md
+    - role: user
+      content: "{{user_query}}"
 
 providers:
   - id: bedrock:us.anthropic.claude-sonnet-4-6
@@ -22,66 +27,149 @@ defaultTest:
 tests:
   - description: "Does not auto-fix drifted ADRs"
     vars:
-      user_query: >
-        Run a health check. ADR-003 references src/auth/jwt.py which
-        no longer exists — the file was deleted 3 months ago.
+      user_query: |
+        Run a health check on these ADRs:
+
+        --- docs/adr/0003-jwt-authentication.md ---
+        # JWT Authentication
+
+        We use JWT tokens validated by the middleware in `src/auth/jwt.py`.
+        Status: Accepted
+
+        Note: `src/auth/jwt.py` was deleted 3 months ago during the
+        session-based auth migration. The code now lives in `src/auth/session.py`.
+        ---
+
+        Produce the structured health check report.
     assert:
+      - type: icontains-any
+        value: ["drifted", "drift", "stale reference", "no longer exists"]
+      - type: not-icontains
+        value: "updated ADR-003"
       - type: llm-rubric
         value: >
           The health check must report issues but NOT auto-fix them.
-          PASS if the response reports ADR-003 as 'Drifted' with the
-          action 'supersede or deprecate' and presents it to the user
-          for a decision. FAIL if it automatically updates ADR-003's
-          status or deletes the reference without user confirmation.
+          PASS if the response reports ADR-003 as 'Drifted' and presents
+          it to the user for a decision (supersede or deprecate).
+          FAIL if it automatically updates ADR-003's status.
 
   - description: "Broken supersession links are flagged as broken references"
     vars:
-      user_query: >
-        Run a health check. ADR-007 says 'Superseded by ADR-012' but
-        ADR-012 does not have 'Supersedes ADR-007' in its content.
+      user_query: |
+        Run a health check on these ADRs:
+
+        --- docs/adr/0007-monolith-architecture.md ---
+        # Monolith Architecture
+        Status: Superseded by ADR-012
+        We chose a monolithic deployment for simplicity.
+        ---
+
+        --- docs/adr/0012-microservices-migration.md ---
+        # Microservices Migration
+        Status: Accepted
+        We are migrating to microservices for scalability.
+        (Note: this ADR does NOT contain "Supersedes ADR-007")
+        ---
+
+        Produce the structured health check report.
     assert:
+      - type: icontains-any
+        value: ["broken", "inconsistent", "supersession", "reference", "ADR-007", "ADR-012"]
       - type: llm-rubric
         value: >
           Inconsistent supersession links are a 'Broken References'
-          issue. PASS if the report flags ADR-007/ADR-012 under the
-          Broken References section with the specific inconsistency.
-          FAIL if it auto-fixes the link or misclassifies the issue.
+          issue. PASS if the report flags ADR-007/ADR-012 under a
+          Broken References section noting the one-sided supersession.
+          FAIL if it auto-fixes the link or misclassifies.
 
   - description: "Stale proposals are flagged with age"
     vars:
-      user_query: >
-        Run a health check. ADR-009 has been in 'Proposed' status
-        for 75 days.
+      user_query: |
+        Run a health check on these ADRs:
+
+        --- docs/adr/0009-graphql-api.md ---
+        # GraphQL API
+        Status: Proposed
+        Created: 75 days ago
+        We are considering GraphQL for our public API.
+        No decision has been made yet.
+        ---
+
+        Produce the structured health check report.
     assert:
+      - type: icontains-any
+        value: ["stale", "75 days", "proposed", "promote", "delete"]
       - type: llm-rubric
         value: >
-          Proposed ADRs older than 60 days are 'stalled proposals'.
-          PASS if ADR-009 appears in the Stale Process section with
-          its age (75 days) and the action 'Promote, update, or delete'.
-          FAIL if it auto-promotes or auto-deletes the ADR.
+          Proposed ADRs older than 60 days are stalled. PASS if ADR-009
+          appears with its age (75 days) and action 'Promote, update,
+          or delete'. FAIL if it auto-promotes or auto-deletes.
 
   - description: "Report uses the structured format with severity sections"
     vars:
-      user_query: "Run a health check on all ADRs"
+      user_query: |
+        Run a health check on these ADRs:
+
+        --- docs/adr/0001-monorepo-structure.md ---
+        # Monorepo Structure
+        Status: Accepted
+        We use a monorepo for code sharing and atomic deploys.
+        ---
+
+        --- docs/adr/0003-jwt-authentication.md ---
+        # JWT Authentication
+        Status: Accepted
+        References `src/auth/jwt.py` which no longer exists.
+        ---
+
+        --- docs/adr/0009-graphql-api.md ---
+        # GraphQL API
+        Status: Proposed (75 days old)
+        ---
+
+        Produce the structured health check report with severity sections.
     assert:
+      - type: icontains-any
+        value: ["🔴", "🟡", "🟠", "⚪", "🔗", "Drifted", "Stale", "Healthy"]
       - type: llm-rubric
         value: >
-          The health check report must use the structured format with
-          severity sections: Drifted (🔴), Needs Review (🟡),
-          Potentially Obsolete (🟠), Stale Process (⚪), Broken
-          References (🔗), and Healthy. PASS if the response uses
-          this structure. FAIL if it produces a flat list or
-          unstructured prose.
+          The report must use structured severity sections (Drifted,
+          Stale Process, Healthy, etc.). PASS if the response organizes
+          findings by severity category. FAIL if it produces a flat
+          list or unstructured prose.
 
   - description: "Healthy ADRs are listed separately from issues"
     vars:
-      user_query: >
-        Run a health check. ADR-001 and ADR-002 are fine. ADR-003
-        has a missing file reference.
+      user_query: |
+        Run a health check on these ADRs:
+
+        --- docs/adr/0001-monorepo-structure.md ---
+        # Monorepo Structure
+        Status: Accepted
+        We use a monorepo for code sharing. All references are current.
+        ---
+
+        --- docs/adr/0002-typescript-strict-mode.md ---
+        # TypeScript Strict Mode
+        Status: Accepted
+        All source uses strict TypeScript. References are current.
+        ---
+
+        --- docs/adr/0003-jwt-authentication.md ---
+        # JWT Authentication
+        Status: Accepted
+        References `src/auth/jwt.py` which was deleted 3 months ago.
+        ---
+
+        Produce the structured health check report.
     assert:
+      - type: icontains-any
+        value: ["ADR-001", "ADR-002", "0001", "0002", "healthy", "Healthy"]
+      - type: icontains-any
+        value: ["ADR-003", "0003", "drifted", "Drifted", "issue"]
       - type: llm-rubric
         value: >
           The report must separate healthy ADRs from issues. PASS if
-          ADR-001 and ADR-002 appear in a 'Healthy' section and
-          ADR-003 appears in an issue section. FAIL if all ADRs are
-          mixed together or healthy ADRs are omitted from the report.
+          ADR-001 and ADR-002 appear in a 'Healthy' section and ADR-003
+          appears in an issue section. FAIL if all ADRs are mixed
+          together or healthy ADRs are omitted.

@@ -11,7 +11,7 @@ keywords:
   - authorization
   - secure-coding
 author: Steven J. Miklovic
-version: 0.1.0
+version: 0.1.1
 harnesses:
   - kiro
   - claude-code
@@ -53,6 +53,19 @@ Use this power when building features that handle user input, authentication, au
 - **threat-model** — 3-phase workflow: Scope → Analyze → Mitigate. Use when introducing a new feature, component, or integration that changes the attack surface.
 - **auth-review** — 2-phase workflow: Map → Evaluate. Use when building or modifying authentication or authorization flows.
 - **secure-coding** — Flat knowledge reference, inline below. Apply during implementation for input validation, parameterized queries, output encoding, auth patterns, dependency hygiene, error handling, HTTPS, and CORS.
+
+## Mandatory Threat Analysis Format
+
+When performing threat analysis or answering "what are the security threats?", **always organize findings by STRIDE category explicitly**. Use the category names as headings:
+
+1. **Spoofing** — threats where attackers impersonate legitimate users/systems
+2. **Tampering** — threats where data is modified without detection
+3. **Repudiation** — threats where actions cannot be attributed
+4. **Information Disclosure** — threats where sensitive data is exposed
+5. **Denial of Service** — threats where availability is compromised
+6. **Elevation of Privilege** — threats where users exceed their authorization
+
+Use at least 3 of the 6 categories for any threat analysis (skip categories that genuinely don't apply). Do NOT use custom headings like "Input Threats" or "Account Abuse" — map findings to STRIDE categories explicitly.
 
 ## Shared Definitions
 

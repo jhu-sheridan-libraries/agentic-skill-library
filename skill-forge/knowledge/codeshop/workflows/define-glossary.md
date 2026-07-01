@@ -4,6 +4,15 @@
 
 Extract and formalize domain terminology from the current conversation into a consistent glossary, saved to a local file. This workflow applies the "domain language discipline" shared concept — see the POWER.md Shared Concepts section for the full definition.
 
+## Mandatory Output Format
+
+The output MUST be a `UBIQUITOUS_LANGUAGE.md` file using **tables with exactly three columns: Term | Definition | Aliases to Avoid**. This is non-negotiable.
+
+- **ALWAYS use the table format** — never narrative paragraphs or free-form lists
+- **ALWAYS group terms by domain context** — use subheadings for clusters (e.g., "## Order Lifecycle", "## People", "## Billing"). Never put all terms in a single flat group.
+- **ALWAYS include the Relationships section** showing how terms connect
+- **ALWAYS include Flagged ambiguities** when any term was used inconsistently
+
 ## Process
 
 1. **Scan the conversation** for domain-relevant nouns, verbs, and concepts.

@@ -28,18 +28,32 @@ Bad tests are coupled to implementation — they mock internal collaborators, te
 
 Do NOT write all tests first, then all implementation. This is horizontal slicing — treating RED as "write all tests" and GREEN as "write all code." Tests written in bulk test imagined behavior, not actual behavior. You outrun your headlights, committing to test structure before understanding the implementation.
 
+**This includes "softer" variants that are equally wrong:**
+- ✗ "Outline all tests first, then implement one by one"
+- ✗ "Draft test skeletons for all features, then fill them in"
+- ✗ "Write all test descriptions first, then implement each"
+- ✗ "Plan all 5 tests, then do them sequentially"
+
+All of these commit you to a test shape before the implementation teaches you what the right tests actually are. **One cycle at a time. No exceptions. No alternatives.**
+
 Correct approach: vertical slices via tracer bullets. One test → one implementation → repeat.
 
 ```
-WRONG (horizontal):
+WRONG (horizontal — including "outline first"):
+  OUTLINE: test1, test2, test3, test4, test5
+  RED→GREEN: test1→impl1, test2→impl2, ...
+
+WRONG (all-first):
   RED:   test1, test2, test3, test4, test5
   GREEN: impl1, impl2, impl3, impl4, impl5
 
-RIGHT (vertical):
+RIGHT (vertical — the ONLY correct approach):
   RED→GREEN: test1→impl1
   RED→GREEN: test2→impl2
   RED→GREEN: test3→impl3
 ```
+
+When the user asks "should I write all my tests first?" the answer is always NO. Do not present alternatives. One RED-GREEN cycle at a time is the only approach this workflow supports.
 
 ## Phases
 

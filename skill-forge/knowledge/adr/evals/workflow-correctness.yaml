@@ -1,15 +1,18 @@
 # Eval: ADR workflow correctness — core rules and process integrity
 #
-# Tests the 8 rules from POWER.md against realistic scenarios.
-# Uses adversarial cases: presents situations where the rules would be
-# violated and verifies the guidance prevents the violation.
+# Tests the core rules from the ADR POWER.md against realistic scenarios.
+# Each test provides a concrete request with inline context so the model
+# can demonstrate rule compliance in a single turn.
 #
 # Run:  bun run dev eval adr
 
 description: "ADR workflow enforces core rules under adversarial conditions"
 
 prompts:
-  - file://dist/kiro/adr/POWER.md
+  - - role: system
+      content: file://dist/kiro/adr/POWER.md
+    - role: user
+      content: "{{user_query}}"
 
 providers:
   - id: bedrock:us.anthropic.claude-sonnet-4-6
@@ -24,95 +27,113 @@ defaultTest:
 tests:
   - description: "Rule 1: Runs git context before drafting"
     vars:
-      user_query: "Create an ADR for our decision to use PostgreSQL"
+      user_query: |
+        Create an ADR for our decision to use PostgreSQL over MongoDB
+        for the user service. The repo is at /app and has docs/adr/
+        already. Start drafting.
     assert:
+      - type: icontains-any
+        value: ["git", "log", "diff", "context", "recent changes", "history"]
       - type: llm-rubric
         value: >
-          Rule 1 requires running git context (git log, git diff, git
-          rev-parse) before drafting any ADR. PASS if the response
-          includes git commands to gather context before drafting.
-          FAIL if it immediately starts drafting the ADR without
-          first running git context commands.
+          Rule 1 requires gathering git context before drafting any ADR.
+          PASS if the response mentions checking git history, recent
+          commits, or gathering repo context before writing the ADR.
+          FAIL if it immediately starts drafting without mentioning
+          git context.
 
   - description: "Rule 2: Duplicate-checks before creating"
     vars:
-      user_query: "Create an ADR for switching from REST to GraphQL"
+      user_query: |
+        Create an ADR for switching from REST to GraphQL for our public API.
+
+        Existing ADRs in docs/adr/:
+        - 0001-monorepo-structure.md
+        - 0002-typescript-strict-mode.md
+        - 0003-rest-api-design.md
+        - 0004-jwt-authentication.md
+
+        Note that ADR-003 is about REST API design. Should I still
+        create a new ADR about GraphQL/REST?
     assert:
+      - type: icontains-any
+        value: ["ADR-003", "0003", "existing", "duplicate", "related", "REST"]
       - type: llm-rubric
         value: >
-          Rule 2 requires checking for duplicate ADRs before creating
-          a new one. PASS if the response includes a step to grep
-          existing ADRs for related terms (GraphQL, REST, API design)
-          before drafting. FAIL if it proceeds directly to drafting
-          without a duplicate check.
+          Rule 2 requires checking for duplicate/related ADRs before
+          creating. PASS if the response identifies ADR-003 as related
+          and addresses the potential overlap (supersede it, or confirm
+          it's a different decision). FAIL if it creates a new ADR
+          without acknowledging ADR-003.
 
   - description: "Rule 3: Never silently rewrites accepted decisions"
     vars:
-      user_query: "Update ADR-005 to change the decision from PostgreSQL to MongoDB"
+      user_query: |
+        I want to change ADR-005 (PostgreSQL for write model) to say
+        we're using MongoDB instead. Just update the file in place.
+
+        --- docs/adr/0005-postgresql-for-write-model.md ---
+        # PostgreSQL for Write Model
+        Status: Accepted
+        We chose PostgreSQL for its ACID guarantees and mature ecosystem.
+        ---
+
+        Update it to say MongoDB.
     assert:
+      - type: icontains-any
+        value: ["supersede", "new ADR", "cannot edit", "new decision", "not edit in place"]
       - type: llm-rubric
         value: >
-          Rule 3 prohibits silently rewriting accepted decisions.
-          Reversing an accepted decision requires supersession, not
-          in-place editing. PASS if the response requires creating a
-          new superseding ADR rather than editing ADR-005 directly.
-          FAIL if it proceeds to edit the accepted ADR in place.
+          Rule 3 prohibits rewriting accepted decisions in place.
+          Reversing requires a new superseding ADR. PASS if the response
+          refuses to edit in place and proposes creating a superseding
+          ADR. FAIL if it edits ADR-005 directly.
 
   - description: "Rule 4: Supersession updates both ADRs"
     vars:
-      user_query: "ADR-003 is being superseded by a new ADR about our caching strategy"
+      user_query: |
+        ADR-003 (REST API design) is being superseded. We're creating
+        a new ADR-008 about GraphQL. Draft the supersession.
+
+        --- docs/adr/0003-rest-api-design.md ---
+        # REST API Design
+        Status: Accepted
+        We use REST for all public endpoints.
+        ---
+
+        Create ADR-008 that supersedes ADR-003.
     assert:
+      - type: icontains-any
+        value: ["Superseded by", "Supersedes ADR-003", "both", "update ADR-003"]
       - type: llm-rubric
         value: >
-          Rule 4 requires updating both the old and new ADR when
-          superseding. PASS if the response specifies updating ADR-003
-          with 'Superseded by ADR-NNN' AND the new ADR with
-          'Supersedes ADR-003'. FAIL if it only updates one side.
+          Rule 4 requires updating both sides: ADR-003 gets 'Superseded
+          by ADR-008' and ADR-008 gets 'Supersedes ADR-003'. PASS if
+          the response specifies both updates. FAIL if it only updates
+          one side.
 
   - description: "Rule 5: No dangling references"
     vars:
-      user_query: "Create an ADR that relates to ADR-007 and ADR-012"
-    assert:
-      - type: llm-rubric
-        value: >
-          Rule 5 prohibits dangling references. Before adding links
-          to ADR-007 and ADR-012, the agent must verify those ADRs
-          exist. PASS if the response includes verification that
-          ADR-007 and ADR-012 exist before adding the links.
-          FAIL if it adds the references without verification.
+      user_query: |
+        Create a new ADR about our caching strategy. It should reference
+        ADR-007 (Redis integration) and ADR-012 (performance targets).
 
-  - description: "Rule 6: Updates index after every write"
-    vars:
-      user_query: "Create a new ADR for our decision to use TypeScript"
-    assert:
-      - type: llm-rubric
-        value: >
-          Rule 6 requires updating the README.md index after every
-          ADR write. PASS if the response includes updating the index
-          table as part of the workflow. FAIL if it only creates the
-          ADR file without mentioning the index update.
+        Existing ADRs in docs/adr/:
+        - 0001-monorepo-structure.md
+        - 0002-typescript-strict-mode.md
+        - 0003-rest-api-design.md
+        - 0004-jwt-authentication.md
+        - 0005-postgresql.md
+        - 0006-event-sourcing.md
 
-  - description: "Rule 7: Draft → confirm → write, never skips confirmation"
-    vars:
-      user_query: "Just write the ADR for using Redis as our cache, I trust you"
+        Note: ADR-007 through ADR-012 do NOT exist in the directory.
     assert:
+      - type: icontains-any
+        value: ["not exist", "missing", "cannot find", "don't exist", "verify", "no ADR-007"]
       - type: llm-rubric
         value: >
-          Rule 7 requires showing a draft and getting confirmation
-          before writing, even when the user says to skip it.
-          PASS if the response drafts the ADR and asks for
-          confirmation before writing to disk. FAIL if it writes
-          the ADR directly without showing a draft first.
-
-  - description: "Rule 8: Changelog entries are links, not restatements"
-    vars:
-      user_query: "Add a changelog entry for the new ADR about our database choice"
-    assert:
-      - type: llm-rubric
-        value: >
-          Rule 8 requires changelog entries to be links to ADRs,
-          not prose summaries. PASS if the response produces a
-          changelog entry in the format
-          '- [ADR-NNN](path/to/adr.md): Title' without restating
-          the decision content. FAIL if it writes a prose summary
-          of the decision in the changelog.
+          Rule 5 prohibits dangling references. The response must verify
+          ADR-007 and ADR-012 exist before referencing them. Since they
+          don't exist, it should flag this. PASS if it notes the missing
+          ADRs and refuses to add dangling references. FAIL if it adds
+          references to non-existent ADRs without verification.

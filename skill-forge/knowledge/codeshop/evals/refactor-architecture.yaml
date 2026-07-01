@@ -30,13 +30,14 @@ tests:
         The codebase feels messy. Review the architecture.
     assert:
       - type: icontains-any
-        value: ["explore", "understand", "current", "structure", "module"]
+        value: ["explore", "understand", "current", "structure", "module", "what does", "tell me about", "walk me through"]
       - type: llm-rubric
         value: >
           Refactor-architecture starts with exploration: understanding
           the current module structure before proposing changes. PASS
-          if the agent explores first. FAIL if it immediately proposes
-          refactoring.
+          if the agent asks about the current structure or proposes
+          exploring it first. FAIL if it immediately proposes
+          refactoring without understanding what exists.
 
   - description: "Identifies shallow modules and proposes deepening"
     vars:

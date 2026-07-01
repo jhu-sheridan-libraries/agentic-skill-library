@@ -63,10 +63,12 @@ tests:
         I've reviewed the PR and all tests pass. The code looks fine
         to me. Should I approve?
     assert:
+      - type: icontains-any
+        value: ["explain", "understand", "comfortable", "could you describe", "walk through"]
       - type: llm-rubric
         value: >
           The review-changes workflow says approve only when you could
           explain the code to a colleague. PASS if the agent asks
           whether the reviewer understands the code well enough to
-          explain it, not just whether tests pass. FAIL if it says
+          explain it (not just whether tests pass). FAIL if it says
           passing tests alone is sufficient for approval.

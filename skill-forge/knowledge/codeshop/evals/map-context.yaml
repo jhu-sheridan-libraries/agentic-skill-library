@@ -32,7 +32,7 @@ tests:
         called by the API routes and calls the database layer.
     assert:
       - type: icontains-any
-        value: ["calls", "called by", "depends", "inbound", "outbound"]
+        value: ["calls", "called by", "depends", "inbound", "outbound", "→", "←"]
       - type: llm-rubric
         value: >
           Map-context should show actual dependency relationships
@@ -43,26 +43,67 @@ tests:
   - description: "Includes both inbound and outbound relationships"
     vars:
       query: >
-        Zoom out on the PaymentProcessor module. It validates payment
-        data, calls Stripe API, and updates the order status.
+        Zoom out on the PaymentProcessor module. Here's what I know
+        about it:
+
+        Inbound callers:
+        - CheckoutController.processOrder() calls PaymentProcessor.charge()
+        - SubscriptionService.renew() calls PaymentProcessor.charge()
+        - AdminDashboard.refund() calls PaymentProcessor.refund()
+
+        Outbound dependencies:
+        - PaymentProcessor.charge() calls StripeAPI.createCharge()
+        - PaymentProcessor.charge() calls OrderRepository.updateStatus()
+        - PaymentProcessor.refund() calls StripeAPI.createRefund()
+
+        Map this with both directions visible.
     assert:
+      - type: icontains-any
+        value: ["CheckoutController", "SubscriptionService", "AdminDashboard"]
+      - type: icontains-any
+        value: ["StripeAPI", "OrderRepository", "Stripe"]
       - type: llm-rubric
         value: >
-          The map should include both inbound (who calls PaymentProcessor)
-          and outbound (what PaymentProcessor calls) relationships.
-          PASS if both directions are shown. FAIL if only one direction
-          is mapped.
+          The map MUST include both inbound (who calls PaymentProcessor:
+          CheckoutController, SubscriptionService, AdminDashboard) and
+          outbound (what PaymentProcessor calls: StripeAPI, OrderRepository).
+          PASS if both directions are clearly shown. FAIL if only
+          outbound is mapped.
 
   - description: "Shows layer boundaries when spanning multiple layers"
     vars:
       query: >
-        Map the context for the order creation flow. It goes from
-        the HTTP handler through validation, business logic, database
-        writes, and event publishing.
+        Map the context for the order creation flow. Here's the call
+        chain I've identified:
+
+        HTTP Layer:
+        - POST /orders → OrderHandler.create()
+
+        Validation Layer:
+        - OrderHandler.create() → OrderValidator.validate()
+
+        Business Logic Layer:
+        - OrderHandler.create() → OrderService.createOrder()
+        - OrderService.createOrder() → PricingEngine.calculate()
+        - OrderService.createOrder() → InventoryService.reserve()
+
+        Persistence Layer:
+        - OrderService.createOrder() → OrderRepository.save()
+        - InventoryService.reserve() → InventoryRepository.decrement()
+
+        Events Layer:
+        - OrderService.createOrder() → EventBus.publish("order.created")
+
+        Show this as a map with explicit layer boundaries.
     assert:
+      - type: icontains-any
+        value: ["HTTP", "handler", "route", "controller"]
+      - type: icontains-any
+        value: ["persistence", "repository", "database", "storage"]
       - type: llm-rubric
         value: >
           When the area spans multiple layers, the map should show
           layer boundaries explicitly. PASS if the response identifies
-          distinct layers (HTTP, business logic, persistence, events).
-          FAIL if it presents a flat list without layer structure.
+          distinct layers (HTTP, validation, business logic, persistence,
+          events) with clear boundaries between them. FAIL if it
+          presents a flat list without layer organization.

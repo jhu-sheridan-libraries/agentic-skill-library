@@ -2,6 +2,16 @@
 
 Create and maintain documentation that stays reliable by deriving it from authoritative sources in the codebase rather than maintaining it separately. Grounded in Living Documentation principles (Cyrille Martraire) — the default is "don't document," and everything that is documented must be traceable to an authoritative source.
 
+## Mandatory First Response
+
+When a user asks to write, fix, or update documentation, your **first response MUST be an audit**. Do NOT start writing documentation immediately.
+
+1. **Inventory existing sources** — what documentation already exists? (README, API docs, inline comments, wiki, ADRs, CONTEXT.md)
+2. **Identify authoritative sources** — which are the single source of truth? (types, tests, config, OpenAPI specs)
+3. **Identify stale/derived sources** — which docs have drifted from their authoritative source?
+
+Only after the audit is complete do you classify, harvest, and compose.
+
 ## When to Use
 
 - The user wants to document a project or feature

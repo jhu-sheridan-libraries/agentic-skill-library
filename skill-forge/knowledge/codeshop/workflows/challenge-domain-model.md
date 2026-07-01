@@ -2,6 +2,15 @@
 
 Grilling session that challenges your plan against the existing domain model, sharpens terminology, and updates documentation (CONTEXT.md, ADRs) inline as decisions crystallize. Use when the user wants to stress-test a plan against their project's language and documented decisions.
 
+## Output Format Rule
+
+When domain terms are resolved or the user asks how to document the model, **always reference and produce the CONTEXT.md format** defined in Appendix A below. The format uses:
+- A **Language** section with terms, definitions, and aliases to avoid
+- A **Relationships** section showing how aggregates connect
+- **Flagged ambiguities** for resolved conflicts
+
+Do NOT suggest generic documentation approaches — always point to CONTEXT.md as the canonical format for domain models in this workflow.
+
 ## Adaptation Notes
 
 - **User-invoked only — do not proactively suggest.** This workflow should only be started when the user explicitly requests it.
