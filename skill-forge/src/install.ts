@@ -129,9 +129,7 @@ async function preInstallScan(
 		} catch {
 			// Cannot read → bucket as always (conservative)
 			alwaysFiles.push(file);
-			warnings.push(
-				`Could not read "${file}" — treating as inclusion: always`,
-			);
+			warnings.push(`Could not read "${file}" — treating as inclusion: always`);
 			continue;
 		}
 
@@ -224,9 +222,7 @@ async function postInstallInclusionSummary(
 			content = await readFile(filePath, "utf-8");
 		} catch {
 			byMode.always++;
-			warnings.push(
-				`Could not read "${file}" — treating as inclusion: always`,
-			);
+			warnings.push(`Could not read "${file}" — treating as inclusion: always`);
 			continue;
 		}
 

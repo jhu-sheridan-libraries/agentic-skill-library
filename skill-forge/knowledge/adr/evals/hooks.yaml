@@ -1,0 +1,83 @@
+# Eval: hooks steering delivers native Kiro v2 hooks that are directive, not advisory
+#
+# Verifies the hooks steering produces installable native-format hooks
+# (version v1, trigger/action) written to .kiro/hooks/, with directive prompts,
+# and correctly treats generate-from-diff/health-check/team-review as on-demand
+# workflows rather than hooks.
+#
+# Run:  bun run dev eval adr
+
+description: "hooks steering produces native, directive Kiro hooks"
+
+prompts:
+  - file://dist/kiro/adr/steering/hooks.md
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Enforcement hooks use native v2 format and install location"
+    vars:
+      user_query: >
+        Set up automatic ADR enforcement for this project so missing ADRs
+        get created at session end and before spec tasks.
+    assert:
+      - type: llm-rubric
+        value: >
+          The guidance must deliver native Kiro v2 hooks. PASS if the
+          response provides hook JSON with "version": "v1", a "hooks"
+          array, a "trigger" of "Stop" for session-end and "PreTaskExec"
+          for the pre-task check, and an "action" with "type": "agent",
+          AND instructs writing each block to .kiro/hooks/<name>.json.
+          FAIL if it uses the legacy schema (when/then, agentStop,
+          preTaskExecution, askAgent) or omits the install location.
+
+  - description: "Hook prompts are directive, not advisory"
+    vars:
+      user_query: "Show me the session-end ADR enforcement hook."
+    assert:
+      - type: llm-rubric
+        value: >
+          Hook prompts must direct the agent to act. PASS if the
+          session-end hook prompt instructs the agent to CREATE missing
+          ADRs (or explicitly confirm coverage) and contains a clear
+          termination instruction such as 'Either create missing ADRs
+          or confirm coverage' / 'Do NOT just list what changed'. FAIL
+          if the prompt is advisory ("keep in mind", "suggest",
+          "flag for the user") with no required action.
+
+  - description: "On-demand workflows are not modeled as hooks"
+    vars:
+      user_query: >
+        Should I create a hook to run the ADR health check, generate-from-diff,
+        and team review automatically?
+    assert:
+      - type: llm-rubric
+        value: >
+          health-check, generate-from-diff, and team-review are invoked
+          on demand by asking the agent — they are not hooks (no native
+          v2 trigger fits them). PASS if the response explains these are
+          run by reading the matching steering file when the user asks,
+          and does NOT fabricate a hook trigger for them. FAIL if it
+          invents a hook (e.g. a "userTriggered" trigger) to run them.
+
+  - description: "Optional file-created hook uses a matcher regex"
+    vars:
+      user_query: >
+        I want an ADR check to fire when a new architectural file is created.
+    assert:
+      - type: llm-rubric
+        value: >
+          The new-module check uses the PostFileCreate trigger with a
+          "matcher" regex (not a legacy "patterns" array). PASS if the
+          response provides a PostFileCreate hook with a matcher regex
+          and notes the pattern should be adapted to the project's stack.
+          FAIL if it uses a "patterns" array or the legacy fileCreated
+          schema.

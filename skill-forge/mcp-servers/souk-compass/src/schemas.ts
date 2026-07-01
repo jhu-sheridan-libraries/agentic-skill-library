@@ -163,14 +163,16 @@ export const ToolInputSchemas = {
 	compass_index_folder: z.object({
 		path: z.string(),
 		include: z.array(z.string()).default(["**/*"]),
-		exclude: z.array(z.string()).default([
-			"**/node_modules/**",
-			"**/.git/**",
-			"**/dist/**",
-			"**/build/**",
-			"**/*.lock",
-			"**/package-lock.json",
-		]),
+		exclude: z
+			.array(z.string())
+			.default([
+				"**/node_modules/**",
+				"**/.git/**",
+				"**/dist/**",
+				"**/build/**",
+				"**/*.lock",
+				"**/package-lock.json",
+			]),
 		maxFileSize: z.number().int().positive().default(100_000),
 		chunked: z.boolean().default(true),
 		chunkMaxLength: z.number().int().positive().default(2000),
@@ -190,14 +192,16 @@ export const ToolInputSchemas = {
 	compass_reindex_folder: z.object({
 		path: z.string(),
 		include: z.array(z.string()).default(["**/*"]),
-		exclude: z.array(z.string()).default([
-			"**/node_modules/**",
-			"**/.git/**",
-			"**/dist/**",
-			"**/build/**",
-			"**/*.lock",
-			"**/package-lock.json",
-		]),
+		exclude: z
+			.array(z.string())
+			.default([
+				"**/node_modules/**",
+				"**/.git/**",
+				"**/dist/**",
+				"**/build/**",
+				"**/*.lock",
+				"**/package-lock.json",
+			]),
 		maxFileSize: z.number().int().positive().default(100_000),
 		chunkMaxLength: z.number().int().positive().default(2000),
 	}),

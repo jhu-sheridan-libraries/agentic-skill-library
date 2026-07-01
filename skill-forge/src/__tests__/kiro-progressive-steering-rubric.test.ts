@@ -26,7 +26,7 @@ describe("kiro-progressive-steering rubric — scenario fixtures", () => {
 
 		expect(result.rating).toBe("green");
 		expect(result.score).toBeGreaterThanOrEqual(80);
-		expect(result.metrics.AOCW).toBeLessThanOrEqual(0.40);
+		expect(result.metrics.AOCW).toBeLessThanOrEqual(0.4);
 		expect(result.metrics.FMP).toBeGreaterThanOrEqual(0.75);
 	});
 
@@ -49,7 +49,7 @@ describe("kiro-progressive-steering rubric — scenario fixtures", () => {
 		expect(result.metrics.PR).toBeGreaterThanOrEqual(0.75);
 
 		// FMP ≈ 0.85 (tolerance: ≥ 0.80)
-		expect(result.metrics.FMP).toBeGreaterThanOrEqual(0.80);
+		expect(result.metrics.FMP).toBeGreaterThanOrEqual(0.8);
 
 		// MD ≈ 1.00 (tolerance: ≥ 0.95)
 		expect(result.metrics.MD).toBeGreaterThanOrEqual(0.95);

@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { join } from "node:path";
+import type { EmbeddingProvider } from "../embedding-provider.js";
 import type { SoukCompassConfig } from "../schemas.js";
 import type { SoukVectorClient } from "../solr-client.js";
-import type { EmbeddingProvider } from "../embedding-provider.js";
-import type { ToolContext, ToolResult } from "../tools/types.js";
 import { handleCompassIndexFolder } from "../tools/compass-index-folder.js";
+import type { ToolContext, ToolResult } from "../tools/types.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -40,9 +40,7 @@ function makeMockSolrClient(
 	} as unknown as SoukVectorClient;
 }
 
-function makeConfig(
-	overrides?: Partial<SoukCompassConfig>,
-): SoukCompassConfig {
+function makeConfig(overrides?: Partial<SoukCompassConfig>): SoukCompassConfig {
 	return {
 		solrUrl: "http://localhost:8983",
 		solrCollection: "context-bazaar",
@@ -120,7 +118,10 @@ describe("handleCompassIndexFolder", () => {
 
 	test("indexes text files from a directory", async () => {
 		writeFileSync(join(testDir, "main.ts"), 'console.log("hello");');
-		writeFileSync(join(testDir, "utils.ts"), "export function add(a: number, b: number) { return a + b; }");
+		writeFileSync(
+			join(testDir, "utils.ts"),
+			"export function add(a: number, b: number) { return a + b; }",
+		);
 
 		const upsertCalls: Array<{ id: string; text: string }> = [];
 		const mockClient = makeMockSolrClient({
@@ -146,12 +147,17 @@ describe("handleCompassIndexFolder", () => {
 
 	test("excludes node_modules by default", async () => {
 		mkdirSync(join(testDir, "node_modules", "pkg"), { recursive: true });
-		writeFileSync(join(testDir, "node_modules", "pkg", "index.js"), "module.exports = {};");
+		writeFileSync(
+			join(testDir, "node_modules", "pkg", "index.js"),
+			"module.exports = {};",
+		);
 		writeFileSync(join(testDir, "app.ts"), "const x = 1;");
 
 		const upsertCalls: string[] = [];
 		const mockClient = makeMockSolrClient({
-			upsert: async (id) => { upsertCalls.push(id); },
+			upsert: async (id) => {
+				upsertCalls.push(id);
+			},
 		});
 
 		const ctx = makeCtx({ codebaseSolrClient: mockClient });
@@ -170,7 +176,9 @@ describe("handleCompassIndexFolder", () => {
 
 		const upsertCalls: string[] = [];
 		const mockClient = makeMockSolrClient({
-			upsert: async (id) => { upsertCalls.push(id); },
+			upsert: async (id) => {
+				upsertCalls.push(id);
+			},
 		});
 
 		const ctx = makeCtx({ codebaseSolrClient: mockClient });
@@ -188,7 +196,9 @@ describe("handleCompassIndexFolder", () => {
 
 		const upsertCalls: string[] = [];
 		const mockClient = makeMockSolrClient({
-			upsert: async (id) => { upsertCalls.push(id); },
+			upsert: async (id) => {
+				upsertCalls.push(id);
+			},
 		});
 
 		const ctx = makeCtx({ codebaseSolrClient: mockClient });
@@ -204,12 +214,17 @@ describe("handleCompassIndexFolder", () => {
 
 	test("respects custom exclude patterns", async () => {
 		mkdirSync(join(testDir, "generated"), { recursive: true });
-		writeFileSync(join(testDir, "generated", "types.ts"), "export type X = {};");
+		writeFileSync(
+			join(testDir, "generated", "types.ts"),
+			"export type X = {};",
+		);
 		writeFileSync(join(testDir, "app.ts"), "const x = 1;");
 
 		const upsertCalls: string[] = [];
 		const mockClient = makeMockSolrClient({
-			upsert: async (id) => { upsertCalls.push(id); },
+			upsert: async (id) => {
+				upsertCalls.push(id);
+			},
 		});
 
 		const ctx = makeCtx({ codebaseSolrClient: mockClient });
@@ -224,12 +239,17 @@ describe("handleCompassIndexFolder", () => {
 	});
 
 	test("skips binary/non-text files", async () => {
-		writeFileSync(join(testDir, "image.png"), Buffer.from([0x89, 0x50, 0x4e, 0x47]));
+		writeFileSync(
+			join(testDir, "image.png"),
+			Buffer.from([0x89, 0x50, 0x4e, 0x47]),
+		);
 		writeFileSync(join(testDir, "app.ts"), "const x = 1;");
 
 		const upsertCalls: string[] = [];
 		const mockClient = makeMockSolrClient({
-			upsert: async (id) => { upsertCalls.push(id); },
+			upsert: async (id) => {
+				upsertCalls.push(id);
+			},
 		});
 
 		const ctx = makeCtx({ codebaseSolrClient: mockClient });
@@ -246,7 +266,9 @@ describe("handleCompassIndexFolder", () => {
 
 		const upsertCalls: string[] = [];
 		const mockClient = makeMockSolrClient({
-			upsert: async (id) => { upsertCalls.push(id); },
+			upsert: async (id) => {
+				upsertCalls.push(id);
+			},
 		});
 
 		const ctx = makeCtx({ codebaseSolrClient: mockClient });
@@ -262,12 +284,17 @@ describe("handleCompassIndexFolder", () => {
 
 	test("chunks large files when chunked=true", async () => {
 		// Create a file larger than chunkMaxLength
-		const lines = Array.from({ length: 100 }, (_, i) => `const line${i} = ${i};`);
+		const lines = Array.from(
+			{ length: 100 },
+			(_, i) => `const line${i} = ${i};`,
+		);
 		writeFileSync(join(testDir, "large.ts"), lines.join("\n"));
 
 		const upsertCalls: Array<{ id: string }> = [];
 		const mockClient = makeMockSolrClient({
-			upsert: async (id) => { upsertCalls.push({ id }); },
+			upsert: async (id) => {
+				upsertCalls.push({ id });
+			},
 		});
 
 		const ctx = makeCtx({ codebaseSolrClient: mockClient });
@@ -289,7 +316,9 @@ describe("handleCompassIndexFolder", () => {
 
 		const upsertCalls: Array<{ id: string }> = [];
 		const mockClient = makeMockSolrClient({
-			upsert: async (id) => { upsertCalls.push({ id }); },
+			upsert: async (id) => {
+				upsertCalls.push({ id });
+			},
 		});
 
 		const ctx = makeCtx({ codebaseSolrClient: mockClient });
@@ -321,11 +350,16 @@ describe("handleCompassIndexFolder", () => {
 	test("handles subdirectories recursively", async () => {
 		mkdirSync(join(testDir, "src", "utils"), { recursive: true });
 		writeFileSync(join(testDir, "src", "index.ts"), "export {};");
-		writeFileSync(join(testDir, "src", "utils", "helpers.ts"), "export function help() {}");
+		writeFileSync(
+			join(testDir, "src", "utils", "helpers.ts"),
+			"export function help() {}",
+		);
 
 		const upsertCalls: string[] = [];
 		const mockClient = makeMockSolrClient({
-			upsert: async (id) => { upsertCalls.push(id); },
+			upsert: async (id) => {
+				upsertCalls.push(id);
+			},
 		});
 
 		const ctx = makeCtx({ codebaseSolrClient: mockClient });
@@ -344,7 +378,10 @@ describe("handleCompassIndexFolder", () => {
 		const originalFetch = globalThis.fetch;
 		globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
 			const url = typeof input === "string" ? input : input.toString();
-			if (url.includes("/update") && init?.body?.toString().includes('"delete"')) {
+			if (
+				url.includes("/update") &&
+				init?.body?.toString().includes('"delete"')
+			) {
 				deleteCalled = true;
 				return new Response(JSON.stringify({}), { status: 200 });
 			}
@@ -368,7 +405,9 @@ describe("handleCompassIndexFolder", () => {
 
 		let commitCount = 0;
 		const mockClient = makeMockSolrClient({
-			commit: async () => { commitCount++; },
+			commit: async () => {
+				commitCount++;
+			},
 		});
 
 		const ctx = makeCtx({ codebaseSolrClient: mockClient });
@@ -382,7 +421,9 @@ describe("handleCompassIndexFolder", () => {
 
 		const upsertCalls: Array<{ id: string; text: string }> = [];
 		const mockClient = makeMockSolrClient({
-			upsert: async (id, text) => { upsertCalls.push({ id, text }); },
+			upsert: async (id, text) => {
+				upsertCalls.push({ id, text });
+			},
 		});
 
 		const ctx = makeCtx({ codebaseSolrClient: mockClient });
@@ -398,7 +439,9 @@ describe("handleCompassIndexFolder", () => {
 
 		const upsertCalls: string[] = [];
 		const mockClient = makeMockSolrClient({
-			upsert: async (id) => { upsertCalls.push(id); },
+			upsert: async (id) => {
+				upsertCalls.push(id);
+			},
 		});
 
 		const ctx = makeCtx({ codebaseSolrClient: mockClient });

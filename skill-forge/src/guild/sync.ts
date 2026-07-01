@@ -19,6 +19,12 @@ import {
 import { isParseError, loadKnowledgeArtifact } from "../parser";
 import type { BackendConfig } from "../backends/types";
 import { loadForgeConfig, resolveBackendConfigs } from "../config";
+import {
+	aggregateOutcomes,
+	type CollisionFinding,
+	runRegistryCheck,
+} from "../outcomes/registry";
+import { isParseError, loadKnowledgeArtifact } from "../parser";
 import type { HarnessName, Outcome } from "../schemas";
 import { SUPPORTED_HARNESSES } from "../schemas";
 import { autoUpdate } from "./auto-updater";
@@ -250,7 +256,6 @@ function formatAmbiguousFinding(f: CollisionFinding): string {
 	);
 }
 
-
 // ---------------------------------------------------------------------------
 // Main sync function
 // ---------------------------------------------------------------------------
@@ -461,8 +466,9 @@ export async function sync(options: SyncOptions): Promise<SyncResult> {
 	// in the compiled cache dist, so they are read from the local knowledge
 	// source directories.
 	// -----------------------------------------------------------------------
-	const sourceDirs =
-		options.knowledgeSourceDirs ?? [...DEFAULT_KNOWLEDGE_SOURCE_DIRS];
+	const sourceDirs = options.knowledgeSourceDirs ?? [
+		...DEFAULT_KNOWLEDGE_SOURCE_DIRS,
+	];
 	const outcomesByName = await collectOutcomesByName(sourceDirs);
 
 	// One entry per resolved artifact name (dedupe so an artifact pulled via

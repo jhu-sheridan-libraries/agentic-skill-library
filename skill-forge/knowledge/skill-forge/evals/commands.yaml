@@ -1,0 +1,52 @@
+# Eval: command reference produces correct forge CLI invocations
+#
+# Verifies the commands steering yields accurate `bun run dev` commands
+# for common tasks.
+#
+# Run:  bun run dev eval skill-forge
+
+description: "command reference yields correct forge CLI invocations"
+
+prompts:
+  - file://dist/kiro/skill-forge/steering/commands.md
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Build for a single harness"
+    vars:
+      user_query: "How do I build artifacts for only Kiro?"
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the response gives `bun run dev build --harness kiro`
+          (the --harness flag with kiro). FAIL if it omits the --harness
+          flag or invents a different flag.
+
+  - description: "Scaffold a new artifact"
+    vars:
+      user_query: "What command creates a new artifact?"
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the response uses `bun run dev new <name>` (optionally
+          with a --type flag). FAIL if it invents a command like
+          `forge create` or omits the `new` subcommand.
+
+  - description: "Validate before committing"
+    vars:
+      user_query: "How do I check my artifact is valid before I commit?"
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the response points to `bun run dev validate` (and may
+          mention `validate --security`). FAIL if it suggests a
+          non-existent check command.

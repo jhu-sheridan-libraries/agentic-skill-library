@@ -30,7 +30,7 @@ enhances: []
 trust: community
 maturity: experimental
 model-assumptions: []
-collections: [jh-drcc, neon-caravan]
+collections: [jhu, neon-caravan]
 inherit-hooks: false
 ---
 # Karpathy Mode

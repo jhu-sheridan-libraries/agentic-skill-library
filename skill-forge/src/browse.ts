@@ -224,19 +224,27 @@ function jsonError(error: string, status: number, details?: unknown): Response {
 	return new Response(JSON.stringify(body), { status, headers: JSON_HEADERS });
 }
 
+function logServerError(context: string, err: unknown): void {
+	console.error(`[browse] ${context}`, err);
+}
+
+function internalServerError(context: string, err: unknown): Response {
+	logServerError(context, err);
+	return jsonError("Internal server error", 500);
+}
+
 /**
  * Maps errors thrown by admin mutation functions to structured JSON responses.
  */
 function handleMutationError(err: unknown): Response {
 	const typed = err as Error & { type?: string; details?: unknown };
 	const type = typed?.type;
-	const message = err instanceof Error ? err.message : String(err);
 
 	if (type === "validation")
 		return jsonError("Validation failed", 400, typed.details);
-	if (type === "conflict") return jsonError(message, 409);
-	if (type === "not-found") return jsonError(message, 404);
-	return jsonError(message, 500);
+	if (type === "conflict") return jsonError("Conflict", 409);
+	if (type === "not-found") return jsonError("Not found", 404);
+	return internalServerError("Mutation route failed", err);
 }
 
 /**
@@ -640,8 +648,7 @@ export async function handleRequest(
 			});
 			return jsonResponse(output);
 		} catch (err: unknown) {
-			const msg = err instanceof Error ? err.message : String(err);
-			return jsonError(msg, 500);
+			return internalServerError("Temper render failed", err);
 		}
 	}
 
@@ -653,8 +660,7 @@ export async function handleRequest(
 			const detected = await detectHarnessFiles(process.cwd());
 			return jsonResponse(detected);
 		} catch (err: unknown) {
-			const msg = err instanceof Error ? err.message : String(err);
-			return jsonError(msg, 500);
+			return internalServerError("Import scan failed", err);
 		}
 	}
 
@@ -770,8 +776,7 @@ export async function handleRequest(
 				},
 			});
 		} catch (err: unknown) {
-			const msg = err instanceof Error ? err.message : String(err);
-			return jsonError(msg, 500);
+			return internalServerError("Upgrade route failed", err);
 		}
 	}
 
@@ -786,8 +791,7 @@ export async function handleRequest(
 			}
 			return jsonResponse(wsResult.config);
 		} catch (err: unknown) {
-			const msg = err instanceof Error ? err.message : String(err);
-			return jsonError(msg, 500);
+			return internalServerError("Workspace read failed", err);
 		}
 	}
 
@@ -854,7 +858,7 @@ export async function handleRequest(
 			if (msg.includes("Validation")) {
 				return jsonError("Validation failed", 400, { errors: [msg] });
 			}
-			return jsonError(msg, 500);
+			return internalServerError("Workspace update failed", err);
 		}
 	}
 
@@ -940,8 +944,7 @@ export async function handleRequest(
 				errors: buildResult.errors,
 			});
 		} catch (err: unknown) {
-			const msg = err instanceof Error ? err.message : String(err);
-			return jsonError(msg, 500);
+			return internalServerError("Build route failed", err);
 		}
 	}
 

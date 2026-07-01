@@ -94,18 +94,22 @@ describe("Build pipeline: Kiro inclusion summary and threshold warning", () => {
 	 */
 	test("mixed inclusion modes produce correct summary shape", async () => {
 		const opts = makeBuildOptions();
+		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await mkdir(opts.knowledgeDir!, { recursive: true });
 		await mkdir(opts.mcpServersDir, { recursive: true });
 
+		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await writeKiroArtifact(opts.knowledgeDir!, {
 			name: "always-skill",
 			inclusion: "always",
 		});
+		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await writeKiroArtifact(opts.knowledgeDir!, {
 			name: "filematch-skill",
 			inclusion: "fileMatch",
 			fileMatchPattern: "src/**/*.ts",
 		});
+		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await writeKiroArtifact(opts.knowledgeDir!, {
 			name: "manual-skill",
 			inclusion: "manual",
@@ -116,6 +120,7 @@ describe("Build pipeline: Kiro inclusion summary and threshold warning", () => {
 		expect(result.errors).toEqual([]);
 		expect(result.kiroInclusionSummary).toBeDefined();
 
+		// biome-ignore lint/style/noNonNullAssertion: asserted defined above
 		const summary = result.kiroInclusionSummary!;
 		expect(summary.total).toBe(3);
 		expect(summary.byMode.always).toBe(1);
@@ -141,13 +146,16 @@ describe("Build pipeline: Kiro inclusion summary and threshold warning", () => {
 	 */
 	test("all-always ≥2 artifacts triggers threshold warning", async () => {
 		const opts = makeBuildOptions();
+		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await mkdir(opts.knowledgeDir!, { recursive: true });
 		await mkdir(opts.mcpServersDir, { recursive: true });
 
+		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await writeKiroArtifact(opts.knowledgeDir!, {
 			name: "always-one",
 			inclusion: "always",
 		});
+		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await writeKiroArtifact(opts.knowledgeDir!, {
 			name: "always-two",
 			inclusion: "always",
@@ -180,13 +188,17 @@ describe("Build pipeline: Kiro inclusion summary and threshold warning", () => {
 	 */
 	test("all-always with strict mode promotes threshold warning to errors", async () => {
 		const opts = makeBuildOptions({ strict: true });
+		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir is set
+		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await mkdir(opts.knowledgeDir!, { recursive: true });
 		await mkdir(opts.mcpServersDir, { recursive: true });
 
+		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await writeKiroArtifact(opts.knowledgeDir!, {
 			name: "strict-always-one",
 			inclusion: "always",
 		});
+		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await writeKiroArtifact(opts.knowledgeDir!, {
 			name: "strict-always-two",
 			inclusion: "always",
@@ -224,13 +236,16 @@ describe("Build pipeline: Kiro inclusion summary and threshold warning", () => {
 	 */
 	test("alwaysWarnThreshold: 1 disables threshold warning", async () => {
 		const opts = makeBuildOptions({ kiroAlwaysWarnThreshold: 1 });
+		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await mkdir(opts.knowledgeDir!, { recursive: true });
 		await mkdir(opts.mcpServersDir, { recursive: true });
 
+		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await writeKiroArtifact(opts.knowledgeDir!, {
 			name: "thresh-always-one",
 			inclusion: "always",
 		});
+		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await writeKiroArtifact(opts.knowledgeDir!, {
 			name: "thresh-always-two",
 			inclusion: "always",
@@ -258,9 +273,11 @@ describe("Build pipeline: Kiro inclusion summary and threshold warning", () => {
 	 */
 	test("no Kiro artifacts produces no inclusion summary", async () => {
 		const opts = makeBuildOptions();
+		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await mkdir(opts.knowledgeDir!, { recursive: true });
 		await mkdir(opts.mcpServersDir, { recursive: true });
 
+		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await writeKiroArtifact(opts.knowledgeDir!, {
 			name: "cursor-only-skill",
 			harnesses: ["cursor"],
@@ -273,7 +290,6 @@ describe("Build pipeline: Kiro inclusion summary and threshold warning", () => {
 		expect(result.kiroInclusionSummary).toBeUndefined();
 	});
 });
-
 
 describe("Install pipeline: --max-always and inclusion summary", () => {
 	let installDir: string;
@@ -296,7 +312,10 @@ describe("Install pipeline: --max-always and inclusion summary", () => {
 	 */
 	async function seedKiroDist(
 		artifact: string,
-		files: Record<string, { inclusion: string; fileMatchPattern?: string; body?: string }>,
+		files: Record<
+			string,
+			{ inclusion: string; fileMatchPattern?: string; body?: string }
+		>,
 	): Promise<void> {
 		for (const [relPath, config] of Object.entries(files)) {
 			const fullPath = join(installDir, "dist", "kiro", artifact, relPath);
@@ -380,8 +399,12 @@ describe("Install pipeline: --max-always and inclusion summary", () => {
 		});
 
 		// Files should have been written
-		expect(await exists(join(installDir, ".kiro", "steering", "alpha.md"))).toBe(true);
-		expect(await exists(join(installDir, ".kiro", "steering", "beta.md"))).toBe(true);
+		expect(
+			await exists(join(installDir, ".kiro", "steering", "alpha.md")),
+		).toBe(true);
+		expect(await exists(join(installDir, ".kiro", "steering", "beta.md"))).toBe(
+			true,
+		);
 	});
 
 	/**
@@ -472,8 +495,12 @@ describe("Install pipeline: --max-always and inclusion summary", () => {
 		expect(exitCode).toBe(1);
 
 		// Destination should be untouched
-		expect(await exists(join(installDir, ".kiro", "steering", "one.md"))).toBe(false);
-		expect(await exists(join(installDir, ".kiro", "steering", "two.md"))).toBe(false);
+		expect(await exists(join(installDir, ".kiro", "steering", "one.md"))).toBe(
+			false,
+		);
+		expect(await exists(join(installDir, ".kiro", "steering", "two.md"))).toBe(
+			false,
+		);
 	});
 
 	/**
@@ -515,7 +542,9 @@ describe("Install pipeline: --max-always and inclusion summary", () => {
 
 		// Files should have been written
 		expect(await exists(join(installDir, ".kiro", "test-skill.md"))).toBe(true);
-		expect(await exists(join(installDir, ".kiro", "steering", "progressive.md"))).toBe(true);
+		expect(
+			await exists(join(installDir, ".kiro", "steering", "progressive.md")),
+		).toBe(true);
 
 		// Inclusion summary should be printed (Req 7.1)
 		const output = stderrOutput.join("\n");

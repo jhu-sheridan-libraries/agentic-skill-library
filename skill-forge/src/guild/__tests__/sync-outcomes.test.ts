@@ -286,8 +286,8 @@ describe("guild sync — outcomes collision detection (Req 2G)", () => {
 		expect(result.errors).toHaveLength(0);
 
 		// Should have an ambiguous warning
-		const ambiguousWarning = result.warnings.find(
-			(w) => w.includes("AMBIGUOUS"),
+		const ambiguousWarning = result.warnings.find((w) =>
+			w.includes("AMBIGUOUS"),
 		);
 		expect(ambiguousWarning).toBeDefined();
 

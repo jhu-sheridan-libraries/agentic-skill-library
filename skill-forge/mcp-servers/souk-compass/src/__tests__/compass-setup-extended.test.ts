@@ -105,6 +105,8 @@ describe("compass_setup — check action (extended)", () => {
 	});
 
 	test("result always contains solrUrl from config", async () => {
+		// Mock fetch to prevent real network calls (Docker check) that timeout in CI
+		fetchSpy.mockResolvedValue(new Response("", { status: 500 }));
 		const ctx = makeCtx({
 			solrClient: makeMockSolrClient({ health: async () => false }),
 			config: makeConfig({ solrUrl: "http://solr.example.com:8983" }),

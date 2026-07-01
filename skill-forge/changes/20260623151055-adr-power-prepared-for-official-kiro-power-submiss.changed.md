@@ -1,0 +1,1 @@
+ADR power prepared for official Kiro power submission: lean Kiro-optimized POWER.md, hooks delivered as installable native v2 JSON in steering/hooks.md (no shipped .kiro.hook files), License/Privacy/Support metadata, and license corrected to MIT

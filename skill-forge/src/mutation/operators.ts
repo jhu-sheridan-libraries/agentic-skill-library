@@ -255,7 +255,8 @@ function findStatementDeletions(
 	const candidates: Candidate[] = [];
 	for (let k = 0; k < lineStarts.length; k++) {
 		const ls = lineStarts[k];
-		const le = k + 1 < lineStarts.length ? lineStarts[k + 1] - 1 : source.length;
+		const le =
+			k + 1 < lineStarts.length ? lineStarts[k + 1] - 1 : source.length;
 		const lineText = source.slice(ls, le);
 		const trimmed = lineText.trim();
 		if (!isDeletableStatement(trimmed)) continue;
@@ -518,7 +519,6 @@ function snippetForRange(
 			? lineStarts[lastLine + 1] - 1
 			: source.length;
 	const original = source.slice(lo, hi);
-	const mutated =
-		source.slice(lo, start) + replacement + source.slice(end, hi);
+	const mutated = source.slice(lo, start) + replacement + source.slice(end, hi);
 	return { original: original.trim(), mutated: mutated.trim() };
 }

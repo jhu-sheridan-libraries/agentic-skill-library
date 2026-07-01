@@ -1,4 +1,4 @@
-import { readFile, readdir, stat } from "node:fs/promises";
+import { readdir, readFile, stat } from "node:fs/promises";
 import { basename, extname, join, relative, resolve } from "node:path";
 import { contentHash } from "../embed-cache.js";
 import { ErrorCodes, SoukCompassError } from "../errors.js";
@@ -183,7 +183,14 @@ interface CodeChunk {
  */
 function chunkCode(content: string, maxLength: number): CodeChunk[] {
 	if (content.length <= maxLength) {
-		return [{ index: 0, text: content, startLine: 1, endLine: content.split("\n").length }];
+		return [
+			{
+				index: 0,
+				text: content,
+				startLine: 1,
+				endLine: content.split("\n").length,
+			},
+		];
 	}
 
 	const lines = content.split("\n");
@@ -194,7 +201,7 @@ function chunkCode(content: string, maxLength: number): CodeChunk[] {
 
 	for (const line of lines) {
 		lineIndex++;
-		const wouldExceed = (currentChunk + "\n" + line).length > maxLength;
+		const wouldExceed = `${currentChunk}\n${line}`.length > maxLength;
 
 		if (wouldExceed && currentChunk.length > 0) {
 			chunks.push({
@@ -256,8 +263,11 @@ async function walkDirectory(
 
 			if (fileStat.isDirectory()) {
 				// Check if directory matches exclude patterns
-				const dirRelative = relativePath + "/";
-				if (matchesAny(exclude, dirRelative) || matchesAny(exclude, relativePath)) {
+				const dirRelative = `${relativePath}/`;
+				if (
+					matchesAny(exclude, dirRelative) ||
+					matchesAny(exclude, relativePath)
+				) {
 					continue;
 				}
 				await walk(absolutePath);
@@ -353,7 +363,13 @@ export async function handleCompassIndexFolder(
 	}
 
 	// Walk directory
-	const files = await walkDirectory(folderPath, include, exclude, maxFileSize, folderPath);
+	const files = await walkDirectory(
+		folderPath,
+		include,
+		exclude,
+		maxFileSize,
+		folderPath,
+	);
 
 	if (files.length === 0) {
 		return jsonResult({

@@ -1,3 +1,4 @@
+<!-- forge:version 0.2.0 -->
 # Authoring Your First Knowledge Artifact
 
 This guide walks you through creating a knowledge artifact from scratch. By the end, you'll have a working artifact that compiles to one or more AI coding assistant formats.
@@ -111,7 +112,7 @@ harnesses:
   - kiro
   - claude-code
 collections:
-  - jhu
+  - jh-drcc
 ecosystem: []
 depends: []
 enhances: []
@@ -122,7 +123,7 @@ maturity: experimental
 **Important fields to set:**
 - `description` — Make this clear and specific
 - `keywords` — Include terms people would search for
-- `collections` — Add `jhu` for library artifacts
+- `collections` — Add `jh-drcc` for library artifacts
 - `maturity` — Start with `experimental`, upgrade to `stable` after team review
 
 ### The Body (Your Knowledge)
@@ -179,7 +180,7 @@ Make sure your frontmatter includes:
 
 ```yaml
 collections:
-  - jhu
+  - jh-drcc
 ```
 
 This groups your artifact with other Johns Hopkins Libraries artifacts in the catalog.
@@ -258,7 +259,7 @@ harnesses:
   - claude-code
   - copilot
 collections:
-  - jhu
+  - jh-drcc
 ecosystem: []
 depends: []
 enhances: []

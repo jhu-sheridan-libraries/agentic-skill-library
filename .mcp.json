@@ -10,7 +10,6 @@
       "SOUK_COMPASS_SOLR_URL": "http://localhost:8983",
       "SOUK_COMPASS_SOLR_COLLECTION": "context-bazaar",
       "SOUK_COMPASS_USER_COLLECTION": "context-bazaar-user-docs",
-      "SOUK_COMPASS_CODEBASE_COLLECTION": "context-bazaar-codebase",
       "SOUK_COMPASS_EMBED_PROVIDER": "local",
       "SOUK_COMPASS_CACHE_TIERS": "memory,sqlite,solr",
       "SOUK_COMPASS_CACHE_DB": "~/.souk-compass/embed-cache.db",

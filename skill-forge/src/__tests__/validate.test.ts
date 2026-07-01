@@ -728,8 +728,7 @@ Body content.`,
 		expect(result.valid).toBe(true);
 		const refPackWarning = result.warnings?.find(
 			(w) =>
-				w.message ===
-				ASSET_CONVENTION_RULES["reference-pack-must-be-manual"],
+				w.message === ASSET_CONVENTION_RULES["reference-pack-must-be-manual"],
 		);
 		expect(refPackWarning).toBeDefined();
 	});

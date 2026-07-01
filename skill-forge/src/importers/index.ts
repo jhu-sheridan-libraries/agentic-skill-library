@@ -77,6 +77,10 @@ export const importerRegistry: ImporterRegistry = {
 
 // ── Glob matching utility ─────────────────────────────────────────────────────
 
+function escapeRegexLiteral(input: string): string {
+	return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 /**
  * Matches a relative file path against a simple glob pattern.
  * Supports `*` (single directory segment wildcard) in path segments.
@@ -95,9 +99,8 @@ function matchGlob(pattern: string, filePath: string): boolean {
 
 		// Handle patterns like "*.md" or "*.instructions.md"
 		if (pat.includes("*")) {
-			const regex = new RegExp(
-				`^${pat.replace(/\./g, "\\.").replace(/\*/g, ".*")}$`,
-			);
+			const safePattern = escapeRegexLiteral(pat).replace(/\\\*/g, ".*");
+			const regex = new RegExp(`^${safePattern}$`);
 			if (!regex.test(seg)) return false;
 		} else {
 			if (pat !== seg) return false;

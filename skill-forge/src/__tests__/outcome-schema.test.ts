@@ -46,7 +46,9 @@ describe("OutcomeSchema", () => {
 
 	test("rejects ids longer than 64 characters", () => {
 		const id = `out-${"a".repeat(70)}`;
-		expect(OutcomeSchema.safeParse({ ...validOutcome, id }).success).toBe(false);
+		expect(OutcomeSchema.safeParse({ ...validOutcome, id }).success).toBe(
+			false,
+		);
 	});
 
 	test("rejects an unknown kind", () => {

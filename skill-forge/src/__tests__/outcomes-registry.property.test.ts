@@ -19,9 +19,12 @@ const shapeArb = () =>
 	fc.constantFrom("string", "number", "boolean", "void", "UserRecord", "Path");
 
 const keywordsArb = () =>
-	fc.array(fc.constantFrom("parse", "json", "user", "auth", "build", "render"), {
-		maxLength: 6,
-	});
+	fc.array(
+		fc.constantFrom("parse", "json", "user", "auth", "build", "render"),
+		{
+			maxLength: 6,
+		},
+	);
 
 const outcomeArb = (): fc.Arbitrary<Outcome> =>
 	fc.record({

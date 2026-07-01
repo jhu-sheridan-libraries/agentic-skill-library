@@ -1,6 +1,6 @@
 ---
 name: codeshop
-displayName: Codeshop 
+displayName: Codeshop
 description: A collection of 25 developer workflow skills covering planning, design, development, testing, writing, and knowledge management. Actionable, phase-driven workflows with shared vocabulary and natural chaining.
 keywords:
   - api-integration
@@ -30,7 +30,7 @@ keywords:
   - test-optimization
   - vertical-slices
 author: Steven J. Miklovic
-version: 0.2.3
+version: 0.3.1
 harnesses:
   - kiro
 type: power
@@ -42,9 +42,9 @@ categories:
 ecosystem: []
 depends: []
 enhances: []
-maturity: experimental
+maturity: stable
 trust: official
-license: BSL-1.0
+license: MIT
 audience: intermediate
 model-assumptions: []
 collections: [jh-drcc, neon-caravan]
@@ -52,6 +52,8 @@ inherit-hooks: false
 harness-config:
   kiro:
     format: power
+    inline-workflows: false
+    main-steering: false
     spec-hooks:
       - name: "Plan Stress Test"
         version: "1.0.0"
@@ -613,3 +615,12 @@ Resolution: Use more specific trigger phrases from the Skill Router. Each skill 
 - Instead of "document this" → say "living docs" or "documentation audit" (triggers `write-living-docs`)
 
 If the agent still selects the wrong workflow, explicitly name the skill: "Load the `review-changes` workflow" or "Use the `triage-bug` steering file."
+
+## License, Privacy & Support
+
+---
+**License:** MIT (SPDX: `MIT`)
+**Privacy Policy:** This power is local workflow guidance. It collects no telemetry and transmits no data. Some workflows invoke local tools only when you direct them — `git`, your test runner, and the `gh` CLI (which talks to GitHub to file issues you ask it to create). Source and statement: https://github.com/thinkingsage/context-bazaar
+**Support:** https://github.com/thinkingsage/context-bazaar/issues
+**Author:** Steven J. Miklovic
+**MCP servers:** None — this is a knowledge-only power.

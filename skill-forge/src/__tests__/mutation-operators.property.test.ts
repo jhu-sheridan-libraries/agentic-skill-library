@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import fc from "fast-check";
-import { generateMutants } from "../mutation/operators";
 import type { MutationOperator } from "../config";
+import { generateMutants } from "../mutation/operators";
 
 // --- Arbitraries ---
 
@@ -16,9 +16,7 @@ const ALL_OPERATORS: MutationOperator[] = [
 
 /** A non-empty subset of mutation operators. */
 const operatorsArb = (): fc.Arbitrary<MutationOperator[]> =>
-	fc
-		.subarray(ALL_OPERATORS, { minLength: 1 })
-		.map((ops) => [...ops]);
+	fc.subarray(ALL_OPERATORS, { minLength: 1 }).map((ops) => [...ops]);
 
 /**
  * A TypeScript-like source snippet that contains patterns targeted by the
@@ -55,14 +53,11 @@ const mutableSourceArb = (): fc.Arbitrary<string> =>
 				"return undefined;",
 				'return "value";',
 			),
-			fc.constantFrom(
-				"console.log(x);",
-				"doSomething();",
-				"process(data);",
-			),
+			fc.constantFrom("console.log(x);", "doSomething();", "process(data);"),
 		)
-		.map(([str, arith, cond, ret, stmt]) =>
-			`function test() {\n  ${str}\n  ${arith}\n  ${cond}\n  ${ret}\n  ${stmt}\n}\n`,
+		.map(
+			([str, arith, cond, ret, stmt]) =>
+				`function test() {\n  ${str}\n  ${arith}\n  ${cond}\n  ${ret}\n  ${stmt}\n}\n`,
 		);
 
 /** A cap value between 1 and 100 inclusive. */
@@ -102,16 +97,12 @@ describe("mutation operator properties", () => {
 	 */
 	test("each mutant differs from original", () => {
 		fc.assert(
-			fc.property(
-				mutableSourceArb(),
-				operatorsArb(),
-				(source, operators) => {
-					const mutants = generateMutants("test.ts", source, operators);
-					for (const mutant of mutants) {
-						expect(mutant.mutatedSource).not.toBe(source);
-					}
-				},
-			),
+			fc.property(mutableSourceArb(), operatorsArb(), (source, operators) => {
+				const mutants = generateMutants("test.ts", source, operators);
+				for (const mutant of mutants) {
+					expect(mutant.mutatedSource).not.toBe(source);
+				}
+			}),
 			{ numRuns: 200 },
 		);
 	});

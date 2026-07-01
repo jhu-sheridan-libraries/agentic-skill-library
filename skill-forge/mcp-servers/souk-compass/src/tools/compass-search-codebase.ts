@@ -96,7 +96,7 @@ interface CodebaseSearchResult {
 function parseCodebaseResults(
 	response: SolrSearchResponse,
 	snippetLength: number,
-	mode: string,
+	_mode: string,
 ): CodebaseSearchResult[] {
 	return response.response.docs.map((doc) => {
 		const id = extractString(doc.id) ?? "";
@@ -107,8 +107,7 @@ function parseCodebaseResults(
 
 		// Extract snippet from highlighting or text
 		let snippet: string;
-		const highlighted =
-			response.highlighting?.[id]?.text?.[0];
+		const highlighted = response.highlighting?.[id]?.text?.[0];
 		if (highlighted) {
 			snippet = highlighted;
 		} else {

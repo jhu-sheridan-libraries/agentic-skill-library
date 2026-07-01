@@ -71,10 +71,7 @@ export function parseKiroSteeringFile(
 		};
 
 		// Only include fileMatchPattern when inclusion is "fileMatch"
-		if (
-			result.data.inclusion === "fileMatch" &&
-			result.data.fileMatchPattern
-		) {
+		if (result.data.inclusion === "fileMatch" && result.data.fileMatchPattern) {
 			fm.fileMatchPattern = result.data.fileMatchPattern;
 		}
 
@@ -94,7 +91,11 @@ export function parseKiroSteeringFile(
 			message = err.message;
 			// Attempt to extract line from nested cause
 			const cause = (err as { cause?: unknown }).cause;
-			if (isYAMLException(cause) && cause.mark && typeof cause.mark.line === "number") {
+			if (
+				isYAMLException(cause) &&
+				cause.mark &&
+				typeof cause.mark.line === "number"
+			) {
 				approxLine = cause.mark.line + 1;
 			}
 		}

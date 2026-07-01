@@ -12,7 +12,7 @@ keywords:
   - brevity
   - concise-responses
 author: skill-forge
-version: 0.1.1
+version: 0.1.0
 harnesses:
   - kiro
   - claude-code
@@ -26,7 +26,7 @@ enhances: []
 trust: community
 maturity: experimental
 model-assumptions: []
-collections: [jh-drcc, neon-caravan]
+collections: [jhu, neon-caravan]
 inherit-hooks: false
 ---
 

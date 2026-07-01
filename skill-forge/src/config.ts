@@ -97,6 +97,9 @@ export const ForgeConfigSchema = z.object({
 					alwaysWarnThreshold: z.number().min(0).max(1).default(0.5),
 				})
 				.default({ alwaysWarnThreshold: 0.5 }),
+		})
+		.optional(),
+
 	eval: z
 		.object({
 			// Mutation operators to apply; defaults to all five (Req 5.3).

@@ -1,10 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import fc from "fast-check";
-import {
-	FrontmatterSchema,
-	KiroHarnessConfigSchema,
-	KiroProgressiveInclusionSchema,
-} from "../schemas";
+import { FrontmatterSchema, KiroHarnessConfigSchema } from "../schemas";
 
 // --- Constants ---
 
@@ -278,7 +274,8 @@ describe("Kiro Progressive Steering resolver precedence properties", () => {
 						// fileMatchPattern may or may not be defined (depends on whether it was set in config)
 						// but it should at least be allowed
 						expect(resolved.fileMatchPattern).toSatisfy(
-							(v: string | undefined) => v === undefined || typeof v === "string",
+							(v: string | undefined) =>
+								v === undefined || typeof v === "string",
 						);
 					} else {
 						expect(resolved.fileMatchPattern).toBeUndefined();
@@ -353,7 +350,7 @@ describe("Kiro Progressive Steering audit comment properties", () => {
 					);
 					expect(steeringFile).toBeDefined();
 
-					const content = steeringFile!.content;
+					const content = steeringFile?.content;
 
 					// Regex from the design: match audit comment lines
 					const auditCommentRegex =
@@ -425,7 +422,7 @@ describe("Kiro Progressive Steering audit comment properties", () => {
 					);
 					expect(steeringFile).toBeDefined();
 
-					const content = steeringFile!.content;
+					const content = steeringFile?.content;
 
 					// Regex from the design: match audit comment lines
 					const auditCommentRegex =
@@ -500,44 +497,51 @@ describe("Kiro Progressive Steering template round-trip properties", () => {
 	 */
 	test("Property 2: steering-format template round-trip — render and re-parse yields same inclusion", () => {
 		fc.assert(
-			fc.property(kiroModeArb, safeFileMatchPatternArb, (mode, fileMatchPattern) => {
-				// 1. Build a minimal artifact with the given harness-config
-				const artifact = makeArtifact({
-					frontmatter: makeFrontmatter({
-						"harness-config": {
-							kiro: {
-								inclusion: mode,
-								fileMatchPattern,
+			fc.property(
+				kiroModeArb,
+				safeFileMatchPatternArb,
+				(mode, fileMatchPattern) => {
+					// 1. Build a minimal artifact with the given harness-config
+					const artifact = makeArtifact({
+						frontmatter: makeFrontmatter({
+							"harness-config": {
+								kiro: {
+									inclusion: mode,
+									fileMatchPattern,
+								},
 							},
-						},
-					} as Partial<typeof artifact.frontmatter>),
-				});
+						} as Partial<typeof artifact.frontmatter>),
+					});
 
-				// 2. Resolve the Kiro inclusion (same as what the adapter does)
-				const resolved = resolveKiroInclusion(artifact);
+					// 2. Resolve the Kiro inclusion (same as what the adapter does)
+					const resolved = resolveKiroInclusion(artifact);
 
-				// 3. Render the steering template with the resolved values
-				const rendered = renderTemplate(templateEnv, "kiro/steering.md.njk", {
-					artifact,
-					harnessConfig: { inclusion: mode, fileMatchPattern },
-					inclusion: resolved.mode,
-					fileMatchPattern: resolved.fileMatchPattern,
-					auditComment: buildAuditComment(resolved.mode, resolved.fileMatchPattern),
-				});
+					// 3. Render the steering template with the resolved values
+					const rendered = renderTemplate(templateEnv, "kiro/steering.md.njk", {
+						artifact,
+						harnessConfig: { inclusion: mode, fileMatchPattern },
+						inclusion: resolved.mode,
+						fileMatchPattern: resolved.fileMatchPattern,
+						auditComment: buildAuditComment(
+							resolved.mode,
+							resolved.fileMatchPattern,
+						),
+					});
 
-				// 4. Parse the emitted output's YAML frontmatter
-				const parsed = matter(rendered);
+					// 4. Parse the emitted output's YAML frontmatter
+					const parsed = matter(rendered);
 
-				// 5. Assert inclusion round-trips
-				expect(parsed.data.inclusion).toBe(mode);
+					// 5. Assert inclusion round-trips
+					expect(parsed.data.inclusion).toBe(mode);
 
-				// 6. Assert fileMatchPattern is present iff mode === "fileMatch"
-				if (mode === "fileMatch") {
-					expect(parsed.data.fileMatchPattern).toBe(fileMatchPattern);
-				} else {
-					expect(parsed.data.fileMatchPattern).toBeUndefined();
-				}
-			}),
+					// 6. Assert fileMatchPattern is present iff mode === "fileMatch"
+					if (mode === "fileMatch") {
+						expect(parsed.data.fileMatchPattern).toBe(fileMatchPattern);
+					} else {
+						expect(parsed.data.fileMatchPattern).toBeUndefined();
+					}
+				},
+			),
 			{ numRuns: 100 },
 		);
 	});
@@ -592,7 +596,7 @@ describe("Kiro Progressive Steering POWER.md inclusion absence", () => {
 					expect(powerMdFile).toBeDefined();
 
 					// Assert that POWER.md content does NOT contain an inclusion: line
-					const hasInclusionLine = /^inclusion:/m.test(powerMdFile!.content);
+					const hasInclusionLine = /^inclusion:/m.test(powerMdFile?.content);
 					expect(hasInclusionLine).toBe(false);
 				},
 			),
@@ -654,7 +658,7 @@ describe("Kiro Progressive Steering power-format steering file properties", () =
 				expect(steeringFile).toBeDefined();
 
 				// Parse the emitted file's YAML frontmatter
-				const parsed = matter(steeringFile!.content);
+				const parsed = matter(steeringFile?.content);
 				const emittedInclusion = parsed.data.inclusion;
 				const emittedFileMatchPattern = parsed.data.fileMatchPattern;
 
@@ -687,7 +691,10 @@ describe("Kiro Progressive Steering fileMatchPattern suppression properties", ()
 	 */
 	test("Property 3: emitted YAML never contains fileMatchPattern when mode is always or manual", () => {
 		// Restrict mode to only "always" and "manual" (NOT "fileMatch")
-		const nonFileMatchModeArb = fc.constantFrom("always" as const, "manual" as const);
+		const nonFileMatchModeArb = fc.constantFrom(
+			"always" as const,
+			"manual" as const,
+		);
 
 		// Generate any non-empty string for fileMatchPattern (safe YAML chars: alphanumeric + glob chars)
 		const fileMatchPatternArb = fc
@@ -695,38 +702,42 @@ describe("Kiro Progressive Steering fileMatchPattern suppression properties", ()
 			.filter((s) => s.length > 0 && s.length <= 100);
 
 		fc.assert(
-			fc.property(nonFileMatchModeArb, fileMatchPatternArb, (mode, fileMatchPattern) => {
-				// Build an artifact with harness-config.kiro.inclusion = mode
-				// AND harness-config.kiro.fileMatchPattern = fileMatchPattern (non-empty)
-				const kiroConfig: Record<string, unknown> = {
-					inclusion: mode,
-					fileMatchPattern,
-				};
+			fc.property(
+				nonFileMatchModeArb,
+				fileMatchPatternArb,
+				(mode, fileMatchPattern) => {
+					// Build an artifact with harness-config.kiro.inclusion = mode
+					// AND harness-config.kiro.fileMatchPattern = fileMatchPattern (non-empty)
+					const kiroConfig: Record<string, unknown> = {
+						inclusion: mode,
+						fileMatchPattern,
+					};
 
-				const artifact = makeArtifact({
-					frontmatter: makeFrontmatter({
-						harnesses: ["kiro"],
-						"harness-config": {
-							kiro: kiroConfig,
-						},
-					} as Partial<typeof artifact.frontmatter>),
-				});
+					const artifact = makeArtifact({
+						frontmatter: makeFrontmatter({
+							harnesses: ["kiro"],
+							"harness-config": {
+								kiro: kiroConfig,
+							},
+						} as Partial<typeof artifact.frontmatter>),
+					});
 
-				// Call the adapter to produce Kiro output
-				const result = kiroAdapter(artifact, templateEnv);
+					// Call the adapter to produce Kiro output
+					const result = kiroAdapter(artifact, templateEnv);
 
-				// Find the steering file (steering-format: <name>.md)
-				const steeringFile = result.files.find(
-					(f) => f.relativePath === `${artifact.name}.md`,
-				);
-				expect(steeringFile).toBeDefined();
+					// Find the steering file (steering-format: <name>.md)
+					const steeringFile = result.files.find(
+						(f) => f.relativePath === `${artifact.name}.md`,
+					);
+					expect(steeringFile).toBeDefined();
 
-				// Parse the emitted YAML frontmatter
-				const parsed = matter(steeringFile!.content);
+					// Parse the emitted YAML frontmatter
+					const parsed = matter(steeringFile?.content);
 
-				// Assert: fileMatchPattern key is NOT present in the emitted frontmatter
-				expect(parsed.data.fileMatchPattern).toBeUndefined();
-			}),
+					// Assert: fileMatchPattern key is NOT present in the emitted frontmatter
+					expect(parsed.data.fileMatchPattern).toBeUndefined();
+				},
+			),
 			{ numRuns: 100 },
 		);
 	});
@@ -752,15 +763,23 @@ describe("Kiro Progressive Steering validator cross-field rule properties", () =
 	 */
 	test("Property 6: validator cross-field rule — errors/warnings on harness-config.kiro.fileMatchPattern for spec-defined cases", async () => {
 		// Generate the full cross product of (mode, fmpPresence, fmpContent)
-		const modeArb = fc.constantFrom("always" as const, "fileMatch" as const, "manual" as const);
+		const modeArb = fc.constantFrom(
+			"always" as const,
+			"fileMatch" as const,
+			"manual" as const,
+		);
 
 		// fmpPresence: "absent" means the field is not in the config;
 		// "empty" means it's set to ""; "non-empty" means a valid non-empty string
-		const fmpPresenceArb = fc.constantFrom("absent" as const, "empty" as const, "non-empty" as const);
+		const fmpPresenceArb = fc.constantFrom(
+			"absent" as const,
+			"empty" as const,
+			"non-empty" as const,
+		);
 
 		// Generate safe non-empty glob patterns for the non-empty case
 		const fmpContentArb = fc
-			.stringMatching(/^[a-zA-Z0-9*/_.\-]+$/)
+			.stringMatching(/^[a-zA-Z0-9*/_.-]+$/)
 			.filter((s) => s.length > 0 && s.length <= 50);
 
 		await fc.assert(
@@ -770,7 +789,10 @@ describe("Kiro Progressive Steering validator cross-field rule properties", () =
 				fmpContentArb,
 				async (mode, fmpPresence, fmpContent) => {
 					// Build the harness-config.kiro block
-					const kiroConfigYaml: string[] = [`    kiro:`, `      inclusion: ${mode}`];
+					const kiroConfigYaml: string[] = [
+						`    kiro:`,
+						`      inclusion: ${mode}`,
+					];
 					if (fmpPresence === "empty") {
 						kiroConfigYaml.push(`      fileMatchPattern: ""`);
 					} else if (fmpPresence === "non-empty") {
@@ -817,7 +839,10 @@ describe("Kiro Progressive Steering validator cross-field rule properties", () =
 
 						// Spec-defined cases:
 						// Case 1: mode="fileMatch" + absent/empty fileMatchPattern → error
-						if (mode === "fileMatch" && (fmpPresence === "absent" || fmpPresence === "empty")) {
+						if (
+							mode === "fileMatch" &&
+							(fmpPresence === "absent" || fmpPresence === "empty")
+						) {
 							expect(fmpErrors.length).toBeGreaterThan(0);
 						}
 
@@ -827,12 +852,18 @@ describe("Kiro Progressive Steering validator cross-field rule properties", () =
 						}
 
 						// Case 3: mode="always"|"manual" + non-empty fileMatchPattern → warning
-						if ((mode === "always" || mode === "manual") && fmpPresence === "non-empty") {
+						if (
+							(mode === "always" || mode === "manual") &&
+							fmpPresence === "non-empty"
+						) {
 							expect(fmpWarnings.length).toBeGreaterThan(0);
 						}
 
 						// Case 4: mode="always"|"manual" + absent/empty fileMatchPattern → no warning on this field
-						if ((mode === "always" || mode === "manual") && (fmpPresence === "absent" || fmpPresence === "empty")) {
+						if (
+							(mode === "always" || mode === "manual") &&
+							(fmpPresence === "absent" || fmpPresence === "empty")
+						) {
 							expect(fmpWarnings.length).toBe(0);
 						}
 

@@ -24,10 +24,13 @@ const tokenSetArb = (): fc.Arbitrary<Set<string>> =>
 /** A valid outcome id matching `^out-[a-z0-9]+(-[a-z0-9]+)*$` (<= 64 chars). */
 const outcomeIdArb = (): fc.Arbitrary<string> =>
 	fc
-		.array(fc.stringMatching(/^[a-z0-9]+$/).filter((s) => s.length > 0), {
-			minLength: 1,
-			maxLength: 4,
-		})
+		.array(
+			fc.stringMatching(/^[a-z0-9]+$/).filter((s) => s.length > 0),
+			{
+				minLength: 1,
+				maxLength: 4,
+			},
+		)
 		.map((parts) => `out-${parts.join("-")}`)
 		.filter((id) => id.length <= 64);
 

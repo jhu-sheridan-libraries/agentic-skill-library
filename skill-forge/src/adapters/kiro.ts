@@ -281,9 +281,10 @@ export const kiroAdapter: HarnessAdapter = (
 
 			// Req 10.3: warn when inclusion is absent or "always"
 			if (!wfInclusion || wfInclusion === "always") {
-				const message = wfInclusion === "always"
-					? `Workflow file "${wf.filename}" has inclusion: always; workflow files should be disclosed progressively (fileMatch or manual).`
-					: `Workflow file "${wf.filename}" is missing an inclusion mode; workflow files should be disclosed progressively (fileMatch or manual).`;
+				const message =
+					wfInclusion === "always"
+						? `Workflow file "${wf.filename}" has inclusion: always; workflow files should be disclosed progressively (fileMatch or manual).`
+						: `Workflow file "${wf.filename}" is missing an inclusion mode; workflow files should be disclosed progressively (fileMatch or manual).`;
 
 				warnings.push({
 					artifactName: artifact.name,
@@ -314,17 +315,31 @@ export const kiroAdapter: HarnessAdapter = (
 	// Resolve Kiro inclusion for steering template
 	const resolved = resolveKiroInclusion(artifact);
 
-	// Generate steering .md file
-	const steeringContent = renderTemplate(templateEnv, "kiro/steering.md.njk", {
-		artifact,
-		harnessConfig: kiroConfig,
-		inclusion: resolved.mode,
-		fileMatchPattern: resolved.fileMatchPattern,
-		auditComment: buildAuditComment(resolved),
-	});
-	const steeringPath =
-		format === "power" ? `steering/${artifact.name}.md` : `${artifact.name}.md`;
-	files.push({ relativePath: steeringPath, content: steeringContent });
+	// Generate steering .md file.
+	// For powers, this emits an always-included steering/{name}.md that mirrors
+	// POWER.md. Set harness-config.kiro.main-steering: false to suppress it
+	// (official-power style: POWER.md is the entry point, no duplicate).
+	const emitMainSteering =
+		format !== "power" || kiroConfig["main-steering"] !== false;
+	if (emitMainSteering) {
+		const auditComment = buildAuditComment(resolved);
+		const steeringContent = renderTemplate(
+			templateEnv,
+			"kiro/steering.md.njk",
+			{
+				artifact,
+				harnessConfig: kiroConfig,
+				inclusion: resolved.mode,
+				fileMatchPattern: resolved.fileMatchPattern,
+				auditComment,
+			},
+		);
+		const steeringPath =
+			format === "power"
+				? `steering/${artifact.name}.md`
+				: `${artifact.name}.md`;
+		files.push({ relativePath: steeringPath, content: steeringContent });
+	}
 
 	// Generate hook JSON files
 	for (const hook of artifact.hooks) {

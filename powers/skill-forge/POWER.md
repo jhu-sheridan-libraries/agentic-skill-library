@@ -1,17 +1,11 @@
 ---
-name: "skill-forge"
-displayName: "Skill Forge & Context Bazaar"
-description: "Onboarding and assistant guide for using the Skill Forge CLI & Context Bazaar to author, build, and manage knowledge artifacts for AI coding assistants."
-keywords:
-  - skill-forge
-  - knowledge-artifacts
-  - context-bazaar
-  - artifact-authoring
-  - jhu-libraries
-  - forge-cli
-  - harness-compilation
-author: "Johns Hopkins DRCC"
+name: skill-forge
+displayName: Skill Forge & Context Bazaar
+description: Onboarding and assistant guide for using the Skill Forge CLI & Context Bazaar to author, build, and manage knowledge artifacts for AI coding assistants.
+keywords: ["skill-forge","knowledge-artifacts","context-bazaar","artifact-authoring","jhu-libraries","forge-cli","harness-compilation"]
+author: Johns Hopkins DRCC
 ---
+<!-- forge:version 0.2.0 -->
 
 # Skill Forge
 
@@ -126,7 +120,7 @@ This opens a local web page (usually at http://localhost:3131) where you can exp
 |---------|---------------|
 | **Knowledge artifact** | A package of expertise — a skill, prompt, workflow, rule, or other structured knowledge that AI tools can use |
 | **Harness** | An AI coding assistant (Kiro, Claude Code, Copilot, Cursor, Windsurf, Cline, Q Developer) |
-| **Collection** | A group of related artifacts (e.g., "JHU" for our library artifacts) |
+| **Collection** | A group of related artifacts (e.g., "jh-drcc" for our library artifacts) |
 | **Build** | The process of compiling your artifact into formats each harness understands |
 | **Catalog** | A searchable index of all artifacts in the repository |
 
@@ -161,7 +155,7 @@ Skill Forge compiles artifacts for these AI coding assistants:
 
 ## The JHU Collection
 
-The `jhu` collection contains artifacts specific to Johns Hopkins University Sheridan Libraries. When you create an artifact for our team, include `jhu` in the `collections` field of your artifact's frontmatter.
+The `jh-drcc` collection contains artifacts from the Johns Hopkins Digital Research and Curation Center. When you create an artifact for our team, include `jh-drcc` in the `collections` field of your artifact's frontmatter.
 
 ## Quick Reference
 
@@ -246,7 +240,7 @@ Or prefix commands with `bun run dev` which handles permissions automatically.
 - Write descriptions that explain the **value**, not the implementation
 - Include at least 3-5 **keywords** for discoverability
 - Test your artifact with `bun run dev validate` before committing
-- Add the `jhu` collection tag for library-specific artifacts
+- Add the `jh-drcc` collection tag for library-specific artifacts
 - Keep artifact content focused — one artifact per topic area
 - Use the `manual` inclusion strategy for reference material that shouldn't load automatically
 
@@ -257,3 +251,12 @@ Or prefix commands with `bun run dev` which handles permissions automatically.
 - Read the **commands** steering file for detailed documentation of every CLI command
 - Browse existing artifacts with `bun run dev catalog browse` for inspiration
 - Try the built-in CLI tutorial: `bun run dev tutorial`
+
+## License, Privacy & Support
+
+---
+**License:** MIT (SPDX: `MIT`)
+**Privacy Policy:** This power is local documentation that guides you through the Skill Forge CLI. The power itself collects no telemetry and transmits no data. The CLI runs locally; network access happens only when you explicitly publish artifacts or run evals. Source and statement: https://github.com/jhu-sheridan-libraries/agentic-skill-forge
+**Support:** https://github.com/jhu-sheridan-libraries/agentic-skill-forge/issues
+**Author:** Johns Hopkins DRCC
+**MCP servers:** None — this is a knowledge-only power.
