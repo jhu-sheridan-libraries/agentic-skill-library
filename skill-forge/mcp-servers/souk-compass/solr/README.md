@@ -8,10 +8,10 @@ Local and remote Solr setup for the Souk Compass semantic search server.
 
 ## Architecture
 
-Souk Compass runs Solr 9 in **SolrCloud mode** (single node) backed by ZooKeeper. This enables the Collections API for programmatic collection management via the `compass_setup` MCP tool.
+Souk Compass runs Solr 10 in **SolrCloud mode** (single node) backed by ZooKeeper. This enables the Collections API for programmatic collection management via the `compass_setup` MCP tool.
 
 Components:
-- **souk-compass-solr** — Solr 9 in SolrCloud mode (port 8983)
+- **souk-compass-solr** — Solr 10 in SolrCloud mode (port 8983)
 - **souk-compass-zoo** — ZooKeeper 3.9 for cluster coordination (port 2181)
 
 ## Quick Start
@@ -94,7 +94,7 @@ export SOUK_COMPASS_USER_COLLECTION=context-bazaar-user-docs
 Ensure the remote Solr instance has:
 1. The `souk-compass` configset uploaded
 2. Both collections created with `collection.configName=souk-compass`
-3. Dense vector search enabled (Solr 9.x+)
+3. Dense vector search enabled — requires Solr 10+ (schema uses `ScalarQuantizedDenseVectorField`, introduced in Solr 10)
 4. Network access from the machine running the MCP server
 
 ## Environment Variables
