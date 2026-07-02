@@ -2,16 +2,48 @@
 name: archon-reference-pack
 displayName: Archon Reference Pack
 description: Complete reference for authoring Archon workflows, commands, and using the CLI. Covers DAG node types, variables, trigger rules, conditions, structured output, hooks, MCP, skills, and all built-in workflows.
-keywords: [archon, workflows, dag, ai-coding, automation, cli, agents]
+keywords:
+  - archon
+  - workflows
+  - dag
+  - ai-coding
+  - automation
+  - cli
+  - agents
+  - remote-coding
+  - workflow-orchestration
 author: context-bazaar
-version: 0.1.0
+version: 0.2.0
+harnesses:
+  - kiro
+  - claude-code
+  - copilot
+  - cursor
+  - windsurf
+  - cline
+  - qdeveloper
 type: reference-pack
 inclusion: manual
-categories: [devops, architecture]
-ecosystem: [archon]
-collections: [archon]
+categories:
+  - devops
+  - architecture
+ecosystem:
+  - archon
+  - typescript
+  - bun
+depends: []
+enhances: []
+collections:
+  - archon
 maturity: experimental
 trust: community
+license: MIT
+audience: intermediate
+model-assumptions: []
+inherit-hooks: false
+harness-config:
+  kiro:
+    format: steering
 ---
 
 Archon is a remote agentic coding platform that controls AI coding assistants (Claude Code SDK, Codex SDK) from Slack, Telegram, GitHub, CLI, and Web. This reference covers everything needed to author Archon workflows, commands, and use the CLI — without hallucinating API shapes or YAML structure.

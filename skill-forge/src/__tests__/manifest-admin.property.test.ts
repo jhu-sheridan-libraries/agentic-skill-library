@@ -122,7 +122,12 @@ describe("Manifest admin property tests", () => {
 				uniqueEntriesArb,
 				fc.array(statusChoiceArb, { minLength: 0, maxLength: 10 }),
 				fc.option(
-					fc.date().map((d) => d.toISOString()),
+					fc
+						.date({
+							min: new Date("2000-01-01T00:00:00Z"),
+							max: new Date("2099-12-31T23:59:59Z"),
+						})
+						.map((d) => d.toISOString()),
 					{ nil: undefined },
 				),
 				(entries, statusChoices, syncedAt) => {

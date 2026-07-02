@@ -1,1 +1,5 @@
+# Reference packs are passive knowledge — no proactive hooks needed.
+# If Archon workflow integration hooks are desired in the future,
+# document them as installable native Kiro v2 JSON blocks (see
+# knowledge/adr/workflows/hooks.md for the pattern).
 []

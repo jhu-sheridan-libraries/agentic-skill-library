@@ -24,7 +24,7 @@ import type {
 	WorkspaceConfig,
 	WorkspaceProject,
 } from "./schemas";
-import { isStdioServer, SUPPORTED_HARNESSES } from "./schemas";
+import { SUPPORTED_HARNESSES } from "./schemas";
 import { createTemplateEnv } from "./template-engine";
 import { embedVersion } from "./versioning";
 import { loadWorkspaceConfig, mergeKnowledgeSources } from "./workspace";
