@@ -107,7 +107,7 @@ Each multi-format adapter (`kiro`, `copilot`, `qdeveloper`) calls `resolveFormat
 
 ### 7. Validation Changes (`src/validate.ts`)
 
-- During `forge validate`, check if an artifact has a top-level `type` field but no `format` in any harness-config section. If so, emit a deprecation warning.
+- During `kanon validate`, check if an artifact has a top-level `type` field but no `format` in any harness-config section. If so, emit a deprecation warning.
 - Format validation errors from the schema `superRefine` are already surfaced through the existing parse error path.
 
 ## Data Models

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Implement the `forge guild` command group and supporting modules for shared artifact distribution. Tasks are ordered by dependency: Zod schemas and types first, then core modules (cache, resolver, expander), then orchestration (sync engine, auto-updater), then CLI wiring (guild commands, install --global, hook generator), and finally integration checkpoints. Each task builds incrementally on previous work so there is no orphaned code.
+Implement the `kanon guild` command group and supporting modules for shared artifact distribution. Tasks are ordered by dependency: Zod schemas and types first, then core modules (cache, resolver, expander), then orchestration (sync engine, auto-updater), then CLI wiring (guild commands, install --global, hook generator), and finally integration checkpoints. Each task builds incrementally on previous work so there is no orphaned code.
 
 ## Tasks
 
@@ -166,7 +166,7 @@ Implement the `forge guild` command group and supporting modules for shared arti
 - [x] 10. Implement ShellSnippetGenerator for hook integration
   - [x] 10.1 Create `src/guild/hook-generator.ts` with `generateHookSnippet()` and `detectShell()`
     - Generate shell snippets for bash, zsh, fish, and PowerShell
-    - Each snippet: detect `.forge/manifest.yaml` on directory change, invoke `forge guild sync --auto-update` in background, redirect all output to `/dev/null` (or `$null` on PowerShell)
+    - Each snippet: detect `.forge/manifest.yaml` on directory change, invoke `kanon guild sync --auto-update` in background, redirect all output to `/dev/null` (or `$null` on PowerShell)
     - `detectShell()` reads `SHELL` env var; returns `null` if unset
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7_
 
@@ -177,13 +177,13 @@ Implement the `forge guild` command group and supporting modules for shared arti
 
 - [x] 11. Implement GuildCLI command registration and guild init
   - [x] 11.1 Create `src/guild/cli.ts` with `registerGuildCommands(program)` function
-    - Register `forge guild init <name>` with `--collection`, `--mode`, `--version` options
-    - Register `forge guild sync` with `--auto-update`, `--throttle`, `--dry-run`, `--harness` options
-    - Register `forge guild status` to display manifest entries, resolved versions, and sync state
-    - Register `forge guild hook install` with `--shell` option
+    - Register `kanon guild init <name>` with `--collection`, `--mode`, `--version` options
+    - Register `kanon guild sync` with `--auto-update`, `--throttle`, `--dry-run`, `--harness` options
+    - Register `kanon guild status` to display manifest entries, resolved versions, and sync state
+    - Register `kanon guild hook install` with `--shell` option
     - Implement `guild init` logic: add/update manifest entry, create `.forge/manifest.yaml` if needed, add `.forge/` to `.gitignore`, query cache for latest version if no `--version`, run sync for new entry
     - Implement `guild status` logic: read manifest + sync-lock + cache, display table with version pin, resolved version, and up-to-date status; group collection members under collection name
-    - Error if artifact not in cache and no `--version` specified (prompt user to `forge install --global`)
+    - Error if artifact not in cache and no `--version` specified (prompt user to `kanon install --global`)
     - Error if `SHELL` not set and no `--shell` for hook install (non-Windows)
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 4.10, 4.11, 7.1, 7.4, 7.5, 7.6, 9.2, 11.6_
 
@@ -192,7 +192,7 @@ Implement the `forge guild` command group and supporting modules for shared arti
     - Generate manifests with existing entries; run init with new settings; assert exactly one entry for the artifact with updated settings
     - **Validates: Requirements 4.10**
 
-- [x] 12. Extend `forge install` with `--global` flag support
+- [x] 12. Extend `kanon install` with `--global` flag support
   - [x] 12.1 Modify `src/install.ts` to add `--global` flag handling
     - When `--global` is provided, route to `GlobalCache.store()` instead of local harness install paths
     - Support `--from-release <tag>` with `--global` to fetch specific version from backend
@@ -244,14 +244,14 @@ Implement the `forge guild` command group and supporting modules for shared arti
     - Test shell detection from `SHELL` env var
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7_
 
-  - [x] 16.5 Write unit tests for `forge install --global` flag handling
+  - [x] 16.5 Write unit tests for `kanon install --global` flag handling
     - Test routing to GlobalCache, skip-if-cached, version coexistence
     - Test error display on backend unreachable
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.7_
 
 - [x] 17. Write integration tests for end-to-end flows
   - [x] 17.1 Write integration test: full install → init → sync pipeline with mock backends
-    - Test `forge install --global` → `forge guild init` → `forge guild sync` end-to-end
+    - Test `kanon install --global` → `kanon guild init` → `kanon guild sync` end-to-end
     - _Requirements: 1.1, 4.1, 4.11, 5.1, 5.4_
 
   - [x] 17.2 Write integration test: collection expansion end-to-end with mock catalog

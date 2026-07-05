@@ -1,0 +1,44 @@
+# Kiro Progressive Steering evaluation rubric
+#
+# Grades compiled Kiro builds for Progressive Steering quality — measuring
+# how effectively an artifact set uses fileMatch and manual inclusion modes
+# to keep always-on context lean.
+#
+# This rubric does NOT invoke an LLM. It evaluates the compiled build
+# statically against labeled workload fixtures and produces a deterministic
+# score on every invocation.
+#
+# Run:
+#   kanon eval --harness kiro --rubric progressive-steering
+#   kanon eval --harness kiro --rubric progressive-steering --build dist/kiro --json rubric.json
+
+id: progressive-steering
+harness: kiro
+description: Grades compiled Kiro builds for Progressive Steering quality
+
+fixtures:
+  - path: fixtures/eval/kiro-progressive-steering/scenario-small
+    expected: green
+  - path: fixtures/eval/kiro-progressive-steering/scenario-mixed
+    expected: green
+  - path: fixtures/eval/kiro-progressive-steering/scenario-anti
+    expected: red
+
+weights:
+  AOCW: 0.30
+  PR: 0.15
+  FMP: 0.25
+  MD: 0.10
+  DER: 0.10
+  WCA: 0.10
+
+thresholds:
+  green:
+    score: 80
+    subGates:
+      AOCW_max: 0.40
+      FMP_min: 0.75
+  yellow:
+    score: 60
+    subGates:
+      AOCW_max: 0.60

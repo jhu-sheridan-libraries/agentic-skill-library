@@ -4,13 +4,13 @@
 
 The most valuable contributions are knowledge artifacts — well-written, focused guidance that an AI coding assistant can apply immediately. If you have deep knowledge in a domain that isn't covered, that's the right place to start.
 
-Also welcome: bug fixes to the forge tool, new harness adapters, improvements to the catalog browser, eval suites, and collection proposals.
+Also welcome: bug fixes to the kanon tool, new harness adapters, improvements to the catalog browser, eval suites, and collection proposals.
 
 ## Prerequisites
 
 - [Bun](https://bun.sh) ≥ 1.0
 - Node.js ≥ 20 (for the MCP bridge)
-- Clone the repo and run `cd skill-forge && bun install`
+- Clone the repo and run `cd kanon && bun install`
 
 Verify your setup:
 ```bash
@@ -22,7 +22,7 @@ bun run dev --version
 ### 1. Scaffold
 
 ```bash
-cd skill-forge
+cd kanon
 bun run dev new my-artifact --type skill
 ```
 
@@ -113,14 +113,14 @@ Supports Kiro power format (`POWER.md` + `steering/`) and skill format (`SKILL.m
 
 ## Configuration and credentials
 
-`forge.config.yaml` (per-repo, at the skill-forge root) declares backend names, S3 bucket names, GitHub repo slugs, and governance allowlists. **It may be committed** — it should contain no secrets.
+`kanon.config.yaml` (per-repo, at the kanon root) declares backend names, S3 bucket names, GitHub repo slugs, and governance allowlists. **It may be committed** — it should contain no secrets.
 
 `~/.forge/config.yaml` (user-global, in your home directory) holds credentials, bearer tokens, and personal overrides. **It must never be committed.** It is not tracked by git and will not appear in `git status` — this is by design.
 
-If you need to reference a credential in `forge.config.yaml`, use an environment variable reference instead of a literal value:
+If you need to reference a credential in `kanon.config.yaml`, use an environment variable reference instead of a literal value:
 
 ```yaml
-# forge.config.yaml — safe to commit
+# kanon.config.yaml — safe to commit
 install:
   backends:
     internal:
@@ -129,14 +129,14 @@ install:
       token: "${FORGE_INTERNAL_TOKEN}"   # read from env at runtime, never stored
 ```
 
-Running `forge validate --security` will warn if it detects credential-like values hardcoded in `mcp-servers.yaml` env blocks.
+Running `kanon validate --security` will warn if it detects credential-like values hardcoded in `mcp-servers.yaml` env blocks.
 
 ## Development workflow
 
 ### Running tests
 
 ```bash
-cd skill-forge
+cd kanon
 bun test
 ```
 
@@ -159,7 +159,7 @@ bun run lint:fix    # auto-fix
 
 ### Changelog fragments
 
-Every substantive change needs a fragment in `skill-forge/changes/`:
+Every substantive change needs a fragment in `kanon/changes/`:
 
 ```bash
 bun run changelog:new --type added --message "Added support for X"
@@ -181,13 +181,13 @@ The bridge is compiled as CJS for Node.js compatibility and lives at `bridge/mcp
 
 ## Architecture decisions
 
-Significant architectural choices are documented as ADRs in `skill-forge/docs/adr/` (30 and counting). Before making a structural change to the tool, check whether an existing ADR covers it. If you're making a decision with real trade-offs, add an ADR:
+Significant architectural choices are documented as ADRs in `kanon/docs/adr/` (30 and counting). Before making a structural change to the tool, check whether an existing ADR covers it. If you're making a decision with real trade-offs, add an ADR:
 
 ```bash
-cp skill-forge/docs/adr/template.md skill-forge/docs/adr/NNNN-short-title.md
+cp kanon/docs/adr/template.md kanon/docs/adr/NNNN-short-title.md
 ```
 
-Update the index table in `skill-forge/docs/adr/README.md` when adding a new ADR.
+Update the index table in `kanon/docs/adr/README.md` when adding a new ADR.
 
 ## Harness targets
 
@@ -211,7 +211,7 @@ bun run dev guild sync                # resolve and install
 bun run dev guild status              # check sync state
 ```
 
-See `skill-forge/.forge/manifest.yaml` for the manifest format.
+See `kanon/.forge/manifest.yaml` for the manifest format.
 
 ## Pull request checklist
 
@@ -225,7 +225,7 @@ See `skill-forge/.forge/manifest.yaml` for the manifest format.
 - [ ] Body is substantive — not a placeholder
 - [ ] If the artifact is a `reference-pack`, `inclusion: manual` is set
 - [ ] ADR created or updated if an architectural decision was made
-- [ ] `catalog.json` regenerated (`forge catalog generate`) if artifacts changed
+- [ ] `catalog.json` regenerated (`kanon catalog generate`) if artifacts changed
 
 ## Artifact quality bar
 

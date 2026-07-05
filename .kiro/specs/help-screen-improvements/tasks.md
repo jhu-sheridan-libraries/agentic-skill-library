@@ -2,7 +2,7 @@
 
 ## Overview
 
-Introduce a `Help_Renderer` module with pure rendering functions, a `CommandMetadata` registry, a `TypoSuggester`, and a `forge help` command. Replace Commander.js default help output with styled, structured, deterministic help screens. All new code lives under `src/help/` and integrates into the existing `src/cli.ts`.
+Introduce a `Help_Renderer` module with pure rendering functions, a `CommandMetadata` registry, a `TypoSuggester`, and a `kanon help` command. Replace Commander.js default help output with styled, structured, deterministic help screens. All new code lives under `src/help/` and integrates into the existing `src/cli.ts`.
 
 ## Tasks
 
@@ -35,7 +35,7 @@ Introduce a `Help_Renderer` module with pure rendering functions, a `CommandMeta
 
   - [x] 2.3 Implement `renderVersion` function in `src/help/renderer.ts`
     - Accept version string and `RenderOptions`
-    - Output labeled fields: forge version, Bun runtime version (`Bun.version`), OS platform (`process.platform-process.arch`)
+    - Output labeled fields: kanon version, Bun runtime version (`Bun.version`), OS platform (`process.platform-process.arch`)
     - Gracefully show "unknown" for Bun version if `Bun.version` is unavailable
     - Output plain text with zero ANSI codes when `useColor: false`
     - _Requirements: 6.1, 6.2, 6.3_
@@ -85,7 +85,7 @@ Introduce a `Help_Renderer` module with pure rendering functions, a `CommandMeta
     - Override version output to use `renderVersion`
     - _Requirements: 1.1, 1.2, 1.5, 2.1, 3.1, 5.1, 5.2, 5.3, 6.1, 6.2, 6.3_
 
-  - [x] 5.2 Register `forge help [command]` subcommand in `src/cli.ts`
+  - [x] 5.2 Register `kanon help [command]` subcommand in `src/cli.ts`
     - Accept an optional command name argument
     - When no argument: display root help via `renderRootHelp`
     - When valid command: display command help via `renderCommandHelp`
@@ -94,7 +94,7 @@ Introduce a `Help_Renderer` module with pure rendering functions, a `CommandMeta
 
   - [x] 5.3 Adjust banner logic in `src/cli.ts`
     - Show banner only when `process.argv.length <= 2` AND no `--help` flag AND not the `help` command
-    - Suppress banner on `forge --help`, `forge help`, and `forge <command> --help`
+    - Suppress banner on `kanon --help`, `kanon help`, and `kanon <command> --help`
     - _Requirements: 8.1, 8.2, 8.3, 8.4_
 
   - [x] 5.4 Wire unknown command handling with typo suggestions in `src/cli.ts`
@@ -113,7 +113,7 @@ Introduce a `Help_Renderer` module with pure rendering functions, a `CommandMeta
 - [x] 7. Add unit tests for help screens
   - [x] 7.1 Create `src/__tests__/help-renderer.test.ts` with example-based unit tests
     - Root help contains all required sections in order (description, Usage, Commands, Global Options, Getting Started)
-    - Root help contains "Getting Started" tip with `forge new`
+    - Root help contains "Getting Started" tip with `kanon new`
     - Color styling applied when `useColor: true`
     - Example comment lines use muted styling, invocations use bright styling
     - Metadata registry has examples for all 7 required commands
@@ -123,7 +123,7 @@ Introduce a `Help_Renderer` module with pure rendering functions, a `CommandMeta
     - Version output includes version number, Bun version, and platform
     - No timestamps in help output
     - Banner shown on bare `forge`, suppressed on `--help` and `help`
-    - `forge help` with no args produces root help
+    - `kanon help` with no args produces root help
     - _Requirements: 1.1, 1.2, 1.4, 2.3, 2.4, 3.3, 3.4, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 7.2, 8.1, 8.2, 8.3, 8.4_
 
 - [x] 8. Final checkpoint — Ensure all tests pass

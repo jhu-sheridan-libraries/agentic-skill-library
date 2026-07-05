@@ -7,7 +7,7 @@ This directory contains Kiro Powers that ship with the repository. Anyone who op
 1. Open the Kiro Powers panel (command palette → "Powers")
 2. Click **Add Custom Power**
 3. Select **Local Directory**
-4. Point to the absolute path of the power directory (e.g., `/path/to/agentic-skill-forge/powers/skill-forge`)
+4. Point to the absolute path of the power directory (e.g., `/path/to/agentic-skill-forge/powers/kanon`)
 
 ## Available Powers
 
@@ -33,9 +33,9 @@ Create, maintain, and cross-reference Architecture Decision Records (ADRs) in MA
 - `changelog` — Record ADRs in the project's changelog tool
 - `hooks` — Installable native Kiro enforcement hooks
 
-### skill-forge
+### kanon
 
-Onboarding and assistant guide for using the Skill Forge CLI. Designed for Johns Hopkins Libraries staff who may or may not be familiar with software development.
+Onboarding and assistant guide for using the Kanon CLI. Designed for Johns Hopkins Libraries staff who may or may not be familiar with software development.
 
 **Includes:**
 - Onboarding walkthrough (install Bun, clone, first build)

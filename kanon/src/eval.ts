@@ -1,0 +1,1028 @@
+import { execSync } from "node:child_process";
+import {
+	appendFile,
+	exists,
+	mkdir,
+	readdir,
+	readFile,
+	writeFile,
+} from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { basename, join, resolve } from "node:path";
+import chalk from "chalk";
+import yaml from "js-yaml";
+import {
+	gradeProgressiveSteering,
+	type Workload,
+} from "./eval/rubrics/kiro-progressive-steering";
+import { parseHistory } from "./mutation/history";
+import { MUTATION_HISTORY_PATH, runMutationTesting } from "./mutation/runner";
+import type { HarnessName } from "./schemas";
+import { type createTemplateEnv, renderTemplate } from "./template-engine";
+
+export interface EvalOptions {
+	artifactName?: string;
+	harness?: HarnessName;
+	threshold?: number;
+	output?: string;
+	ci?: boolean;
+	provider?: string;
+	noContext?: boolean;
+	init?: string;
+	record?: boolean;
+	trend?: boolean;
+}
+
+export interface EvalTestResult {
+	description: string;
+	passed: boolean;
+	score: number;
+	expected?: string;
+	actual?: string;
+	assertion: string;
+	provider: string;
+	/** Model output or error text — shown when test fails */
+	response?: string;
+	/** Grading reason from llm-rubric judge */
+	reason?: string;
+	/** Provider-level error (e.g. auth failure, API error) */
+	error?: string;
+}
+
+export interface EvalResult {
+	configFile: string;
+	artifactName: string;
+	totalTests: number;
+	passed: number;
+	failed: number;
+	score: number;
+	details: EvalTestResult[];
+}
+
+interface EvalConfig {
+	configFile: string;
+	artifactName: string;
+	config: Record<string, unknown>;
+}
+
+export async function discoverEvalConfigs(
+	knowledgeDir: string,
+	topLevelEvalsDir: string,
+	artifactName?: string,
+): Promise<EvalConfig[]> {
+	const configs: EvalConfig[] = [];
+
+	// Scan knowledge/*/evals/
+	if (await exists(knowledgeDir)) {
+		const entries = await readdir(knowledgeDir, { withFileTypes: true });
+		for (const entry of entries) {
+			if (!entry.isDirectory()) continue;
+			if (artifactName && entry.name !== artifactName) continue;
+
+			const evalsDir = join(knowledgeDir, entry.name, "evals");
+			if (!(await exists(evalsDir))) continue;
+
+			const evalFiles = await readdir(evalsDir);
+			for (const file of evalFiles) {
+				if (!file.endsWith(".yaml") && !file.endsWith(".yml")) continue;
+				const filePath = join(evalsDir, file);
+				const raw = await readFile(filePath, "utf-8");
+				const config = yaml.load(raw) as Record<string, unknown>;
+				configs.push({
+					configFile: filePath,
+					artifactName: entry.name,
+					config,
+				});
+			}
+		}
+	}
+
+	// Scan top-level evals/
+	if (await exists(topLevelEvalsDir)) {
+		const evalFiles = await readdir(topLevelEvalsDir);
+		for (const file of evalFiles) {
+			if (!file.endsWith(".yaml") && !file.endsWith(".yml")) continue;
+			if (file === "providers.yaml") continue; // Skip shared provider config
+			const filePath = join(topLevelEvalsDir, file);
+			const raw = await readFile(filePath, "utf-8");
+			const config = yaml.load(raw) as Record<string, unknown>;
+			configs.push({
+				configFile: filePath,
+				artifactName: "cross-artifact",
+				config,
+			});
+		}
+	}
+
+	return configs;
+}
+
+export function resolvePromptRefs(
+	config: Record<string, unknown>,
+	_distDir: string,
+	_harness?: HarnessName,
+): Record<string, unknown> {
+	const resolved = { ...config };
+	if (Array.isArray(resolved.prompts)) {
+		resolved.prompts = resolved.prompts.map((prompt: unknown) => {
+			if (typeof prompt === "string" && prompt.startsWith("file://")) {
+				const relPath = prompt.slice(7);
+				return `file://${resolve(relPath)}`;
+			}
+			return prompt;
+		});
+	}
+	return resolved;
+}
+
+export function applyHarnessContext(
+	prompt: string,
+	harness: HarnessName,
+	templateEnv: ReturnType<typeof createTemplateEnv>,
+): string {
+	try {
+		return renderTemplate(templateEnv, `${harness}.md.njk`, { prompt });
+	} catch {
+		// If no context template exists, return prompt as-is
+		return prompt;
+	}
+}
+
+export async function runEvals(options: EvalOptions): Promise<EvalResult[]> {
+	const knowledgeDir = "knowledge";
+	const evalsDir = "evals";
+	const distDir = "dist";
+	const _threshold = options.threshold ?? 0.7;
+	const maxRetries = options.ci ? 2 : 0;
+
+	const configs = await discoverEvalConfigs(
+		knowledgeDir,
+		evalsDir,
+		options.artifactName,
+	);
+
+	if (configs.length === 0) {
+		console.error(chalk.yellow("No eval configs found."));
+		return [];
+	}
+
+	const results: EvalResult[] = [];
+
+	for (const evalConfig of configs) {
+		const resolved = resolvePromptRefs(
+			evalConfig.config,
+			distDir,
+			options.harness,
+		);
+
+		// Allow CLI --provider to override the config's provider list
+		if (options.provider) {
+			resolved.providers = [{ id: options.provider }];
+		}
+
+		const originalStderrWrite = process.stderr.write.bind(process.stderr);
+		try {
+			// Dynamically import promptfoo
+			const promptfoo = await import("promptfoo");
+
+			// Suppress noisy GCP metadata probe that promptfoo triggers when
+			// falling through its credential chain — not actionable for users.
+			process.stderr.write = ((chunk: unknown, ...rest: unknown[]) => {
+				const str = typeof chunk === "string" ? chunk : String(chunk);
+				if (
+					str.includes("MetadataLookupWarning") ||
+					str.includes("gcp-metadata")
+				) {
+					return true;
+				}
+				return (originalStderrWrite as typeof process.stderr.write)(
+					chunk as string,
+					...(rest as [BufferEncoding?, (() => void)?]),
+				);
+			}) as typeof process.stderr.write;
+
+			// Retry loop — transient API errors (empty responses, rate limits)
+			// can cause a full wipeout; retry the whole eval config up to
+			// maxRetries times before accepting the result.
+			let evalResult: Awaited<ReturnType<typeof promptfoo.evaluate>>;
+			let attempt = 0;
+			while (true) {
+				evalResult = await promptfoo.evaluate(
+					resolved as Parameters<typeof promptfoo.evaluate>[0],
+					{
+						maxConcurrency: 2,
+					},
+				);
+
+				// Check if every result is an API error — likely transient
+				const allApiErrors =
+					evalResult.results.length > 0 &&
+					evalResult.results.every((r) => {
+						const rowAny = r as unknown as Record<string, unknown>;
+						return (
+							!r.success &&
+							typeof rowAny.error === "string" &&
+							(rowAny.error as string).includes("API call error")
+						);
+					});
+
+				if (!allApiErrors || attempt >= maxRetries) break;
+
+				attempt++;
+				const delay = attempt * 5_000; // 5s, 10s
+				console.error(
+					chalk.yellow(
+						`  ⟳ All ${evalResult.results.length} tests hit API errors — retrying (${attempt}/${maxRetries}) in ${delay / 1000}s…`,
+					),
+				);
+				await new Promise((resolve) => setTimeout(resolve, delay));
+			}
+
+			process.stderr.write = originalStderrWrite;
+
+			const details: EvalTestResult[] = [];
+			let passed = 0;
+			let failed = 0;
+
+			if (evalResult.results) {
+				for (const row of evalResult.results) {
+					const testPassed = row.success;
+					if (testPassed) passed++;
+					else failed++;
+
+					const rowAny = row as unknown as Record<string, unknown>;
+					const gradingResult = rowAny.gradingResult as
+						| Record<string, unknown>
+						| undefined;
+					const responseObj = rowAny.response as
+						| Record<string, unknown>
+						| undefined;
+
+					details.push({
+						description: String(
+							row.description || row.testCase?.description || "",
+						),
+						passed: testPassed,
+						score: row.score ?? (testPassed ? 1 : 0),
+						assertion: String(row.testCase?.assert?.[0]?.type || ""),
+						provider: String(row.provider?.id || ""),
+						response:
+							responseObj?.output != null
+								? String(responseObj.output)
+								: undefined,
+						reason:
+							gradingResult?.reason != null
+								? String(gradingResult.reason)
+								: undefined,
+						error: rowAny.error != null ? String(rowAny.error) : undefined,
+					});
+				}
+			}
+
+			const totalTests = passed + failed;
+			const score = totalTests > 0 ? passed / totalTests : 0;
+
+			results.push({
+				configFile: evalConfig.configFile,
+				artifactName: evalConfig.artifactName,
+				totalTests,
+				passed,
+				failed,
+				score,
+				details,
+			});
+		} catch (e: unknown) {
+			process.stderr.write = originalStderrWrite;
+			const msg = e instanceof Error ? e.message : String(e);
+			console.error(
+				chalk.red(`Error running eval ${evalConfig.configFile}: ${msg}`),
+			);
+			results.push({
+				configFile: evalConfig.configFile,
+				artifactName: evalConfig.artifactName,
+				totalTests: 0,
+				passed: 0,
+				failed: 1,
+				score: 0,
+				details: [],
+			});
+		}
+	}
+
+	return results;
+}
+
+export async function scaffoldEvals(artifactName: string): Promise<void> {
+	const artifactEvalsDir = join("knowledge", artifactName, "evals");
+	await mkdir(artifactEvalsDir, { recursive: true });
+
+	const configContent = `# Eval config for ${artifactName}
+description: "Validate ${artifactName} steering produces correct guidance"
+
+prompts:
+  - file://dist/kiro/${artifactName}/steering/${artifactName}.md
+
+providers:
+  - id: bedrock:anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Should provide relevant guidance"
+    vars:
+      user_query: "How should I use this?"
+    assert:
+      - type: llm-rubric
+        value: "Response should be helpful and relevant to ${artifactName}"
+`;
+
+	await writeFile(
+		join(artifactEvalsDir, "promptfooconfig.yaml"),
+		configContent,
+		"utf-8",
+	);
+	console.error(
+		chalk.green(
+			`✓ Scaffolded eval config at ${artifactEvalsDir}/promptfooconfig.yaml`,
+		),
+	);
+	console.error(`\nNext steps:`);
+	console.error(`  1. Edit the eval config with your test cases`);
+	console.error(`  2. Run \`kanon eval ${artifactName}\` to execute`);
+}
+
+export interface HistoryEntry {
+	ts: string;
+	sha: string;
+	artifact: string;
+	scores: Record<string, number>;
+	total: { passed: number; failed: number; score: number };
+}
+
+const HISTORY_FILE = "evals/history.jsonl";
+
+function gitSha(): string {
+	try {
+		return execSync("git rev-parse --short HEAD", { encoding: "utf-8" }).trim();
+	} catch {
+		return "unknown";
+	}
+}
+
+export async function recordResults(results: EvalResult[]): Promise<void> {
+	if (results.length === 0) return;
+
+	await mkdir("evals", { recursive: true });
+
+	const artifact = results[0].artifactName;
+	const scores: Record<string, number> = {};
+	let totalPassed = 0;
+	let totalFailed = 0;
+
+	for (const r of results) {
+		const label = basename(r.configFile, ".yaml");
+		scores[label] = r.score;
+		totalPassed += r.passed;
+		totalFailed += r.failed;
+	}
+
+	const totalTests = totalPassed + totalFailed;
+	const entry: HistoryEntry = {
+		ts: new Date().toISOString(),
+		sha: gitSha(),
+		artifact,
+		scores,
+		total: {
+			passed: totalPassed,
+			failed: totalFailed,
+			score: totalTests > 0 ? totalPassed / totalTests : 0,
+		},
+	};
+
+	await appendFile(HISTORY_FILE, `${JSON.stringify(entry)}\n`, "utf-8");
+	console.error(chalk.green(`✓ Recorded to ${HISTORY_FILE}`));
+}
+
+export async function showTrend(artifactName?: string): Promise<void> {
+	if (!(await exists(HISTORY_FILE))) {
+		console.error(
+			chalk.yellow("No history found. Run evals with --record first."),
+		);
+		return;
+	}
+
+	const raw = await readFile(HISTORY_FILE, "utf-8");
+	const lines = raw.trim().split("\n").filter(Boolean);
+	let entries: HistoryEntry[] = lines.map((l) => JSON.parse(l));
+
+	if (artifactName) {
+		entries = entries.filter((e) => e.artifact === artifactName);
+	}
+
+	if (entries.length === 0) {
+		console.error(
+			chalk.yellow(`No history for ${artifactName ?? "any artifact"}.`),
+		);
+		return;
+	}
+
+	// Group by artifact
+	const byArtifact = new Map<string, HistoryEntry[]>();
+	for (const e of entries) {
+		if (!byArtifact.has(e.artifact)) byArtifact.set(e.artifact, []);
+		byArtifact.get(e.artifact)?.push(e);
+	}
+
+	const col = 72;
+	const rule = () => chalk.dim("─".repeat(col));
+
+	for (const [artifact, runs] of byArtifact) {
+		console.error("");
+		console.error(rule());
+		console.error(
+			`  ${chalk.bold(artifact)}  ${chalk.dim(`${runs.length} runs`)}`,
+		);
+		console.error(rule());
+
+		// Collect all score keys across runs
+		const allKeys = new Set<string>();
+		for (const r of runs) {
+			for (const k of Object.keys(r.scores)) allKeys.add(k);
+		}
+
+		// Print header
+		const keyList = [...allKeys];
+		console.error(
+			`  ${chalk.dim("date".padEnd(12))}${chalk.dim("sha".padEnd(10))}${keyList.map((k) => chalk.dim(k.slice(0, 14).padEnd(16))).join("")}${chalk.dim("total")}`,
+		);
+
+		// Print each run
+		for (const run of runs) {
+			const date = run.ts.slice(0, 10);
+			const sha = run.sha.padEnd(10);
+			const scoreCells = keyList.map((k) => {
+				const s = run.scores[k];
+				if (s === undefined) return chalk.dim("—".padEnd(16));
+				const pct = `${Math.round(s * 100)}%`;
+				const color =
+					s >= 0.8 ? chalk.green : s >= 0.5 ? chalk.yellow : chalk.red;
+				return color(pct.padEnd(16));
+			});
+			const totalPct = `${Math.round(run.total.score * 100)}%`;
+			const totalColor =
+				run.total.score >= 0.8
+					? chalk.green
+					: run.total.score >= 0.5
+						? chalk.yellow
+						: chalk.red;
+
+			console.error(
+				`  ${date}  ${chalk.dim(sha)}${scoreCells.join("")}${totalColor(totalPct)}`,
+			);
+		}
+
+		// Sparkline for total score
+		if (runs.length >= 2) {
+			const sparks = "▁▂▃▄▅▆▇█";
+			const scores = runs.map((r) => r.total.score);
+			const min = Math.min(...scores);
+			const max = Math.max(...scores);
+			const range = max - min || 1;
+			const sparkline = scores
+				.map(
+					(s) => sparks[Math.round(((s - min) / range) * (sparks.length - 1))],
+				)
+				.join("");
+			const delta = scores[scores.length - 1] - scores[0];
+			const deltaStr =
+				delta >= 0
+					? chalk.green(`+${Math.round(delta * 100)}%`)
+					: chalk.red(`${Math.round(delta * 100)}%`);
+			console.error("");
+			console.error(`  ${chalk.dim("trend")}  ${sparkline}  ${deltaStr}`);
+		}
+	}
+
+	console.error("");
+}
+
+/**
+ * Display mutation testing score progression from mutation-history.jsonl.
+ * Reuses the sparkline style from standard eval trend display (Req 5.8).
+ */
+export async function showMutationTrend(): Promise<void> {
+	if (!(await exists(MUTATION_HISTORY_PATH))) {
+		console.error(
+			chalk.yellow(
+				"No mutation history found. Run `kanon eval --mutation` first.",
+			),
+		);
+		return;
+	}
+
+	const raw = await readFile(MUTATION_HISTORY_PATH, "utf-8");
+	const entries = parseHistory(raw);
+
+	if (entries.length === 0) {
+		console.error(chalk.yellow("No mutation history entries found."));
+		return;
+	}
+
+	const col = 72;
+	const rule = () => chalk.dim("─".repeat(col));
+
+	console.error("");
+	console.error(rule());
+	console.error(
+		`  ${chalk.bold("Mutation Testing")}  ${chalk.dim(`${entries.length} runs`)}`,
+	);
+	console.error(rule());
+
+	// Print header
+	console.error(
+		`  ${chalk.dim("date".padEnd(12))}${chalk.dim("sha".padEnd(10))}${chalk.dim("mutants".padEnd(10))}${chalk.dim("killed".padEnd(10))}${chalk.dim("survived".padEnd(10))}${chalk.dim("kill rate")}`,
+	);
+
+	// Print each run
+	for (const run of entries) {
+		const date = run.ts.slice(0, 10);
+		const sha = run.sha.padEnd(10);
+		const total = String(run.totalMutants).padEnd(10);
+		const killed = String(run.killed).padEnd(10);
+		const survived = String(run.survived).padEnd(10);
+		const pct = `${Math.round(run.killRate * 100)}%`;
+		const color =
+			run.killRate >= 0.8
+				? chalk.green
+				: run.killRate >= 0.5
+					? chalk.yellow
+					: chalk.red;
+
+		console.error(
+			`  ${date}  ${chalk.dim(sha)}${total}${killed}${survived}${color(pct)}`,
+		);
+	}
+
+	// Sparkline for kill rate
+	if (entries.length >= 2) {
+		const sparks = "▁▂▃▄▅▆▇█";
+		const scores = entries.map((r) => r.killRate);
+		const min = Math.min(...scores);
+		const max = Math.max(...scores);
+		const range = max - min || 1;
+		const sparkline = scores
+			.map((s) => sparks[Math.round(((s - min) / range) * (sparks.length - 1))])
+			.join("");
+		const delta = scores[scores.length - 1] - scores[0];
+		const deltaStr =
+			delta >= 0
+				? chalk.green(`+${Math.round(delta * 100)}%`)
+				: chalk.red(`${Math.round(delta * 100)}%`);
+		console.error("");
+		console.error(`  ${chalk.dim("trend")}  ${sparkline}  ${deltaStr}`);
+	}
+
+	console.error("");
+}
+
+export async function evalCommand(
+	artifact?: string,
+	options?: Record<string, unknown>,
+): Promise<void> {
+	const opts = options || {};
+
+	// Handle --init
+	if (opts.init) {
+		await scaffoldEvals(opts.init as string);
+		return;
+	}
+
+	// Handle --mutation mode (Req 5.1, 5.5, 5.6, 5.7, 5.8)
+	if (opts.mutation) {
+		// --mutation --trend: show mutation history instead of standard eval history
+		if (opts.trend) {
+			await showMutationTrend();
+			return;
+		}
+
+		// Parse threshold — default 0.80 for mutation mode (vs 0.7 for standard evals)
+		const threshold = opts.threshold
+			? Number.parseFloat(opts.threshold as string)
+			: 0.8;
+
+		const result = await runMutationTesting({
+			threshold,
+			delta: opts.delta as boolean | undefined,
+		});
+
+		// Print results summary
+		const col = 72;
+		const rule = (c = "─") => chalk.dim(c.repeat(col));
+
+		console.error("");
+		console.error(rule());
+		console.error(`  ${chalk.bold("Mutation Testing Results")}`);
+		console.error(rule());
+		console.error(
+			`  Total mutants: ${chalk.bold(String(result.totalMutants))}`,
+		);
+		console.error(`  Killed:        ${chalk.green(String(result.killed))}`);
+		console.error(`  Survived:      ${chalk.red(String(result.survived))}`);
+
+		const killPct = `${Math.round(result.killRate * 100)}%`;
+		const killColor = result.killRate >= threshold ? chalk.green : chalk.red;
+		console.error(`  Kill rate:     ${killColor(killPct)}`);
+		console.error(rule());
+
+		// Report surviving mutants (Req 5.9)
+		if (result.survivors.length > 0) {
+			console.error("");
+			console.error(chalk.yellow("  Surviving mutants:"));
+			for (const mutant of result.survivors) {
+				console.error("");
+				console.error(
+					chalk.dim(`  ${mutant.filePath}:${mutant.line}`) +
+						`  [${mutant.operator}]`,
+				);
+				console.error(chalk.red(`    - ${mutant.originalSnippet}`));
+				console.error(chalk.green(`    + ${mutant.mutatedSnippet}`));
+			}
+		}
+
+		// Exit with code 1 if below threshold (Req 5.5)
+		if (result.killRate < threshold) {
+			console.error("");
+			console.error(
+				chalk.red(
+					`  ✗ Kill rate ${killPct} is below threshold ${Math.round(threshold * 100)}%`,
+				),
+			);
+			process.exit(1);
+		} else {
+			console.error("");
+			console.error(
+				chalk.green(
+					`  ✓ Kill rate ${killPct} meets threshold ${Math.round(threshold * 100)}%`,
+				),
+			);
+		}
+
+		return;
+	}
+
+	// Handle --trend (standard eval history)
+	if (opts.trend) {
+		await showTrend(artifact);
+		return;
+	}
+
+	// ── Rubric dispatch ──────────────────────────────────────────────────────
+	// When --harness kiro is selected and no --rubric is provided, default to
+	// progressive-steering. When --rubric is explicitly provided, dispatch to
+	// the matching rubric grader.
+	const harness = opts.harness as HarnessName | undefined;
+	const rubric =
+		(opts.rubric as string | undefined) ??
+		(harness === "kiro" ? "progressive-steering" : undefined);
+
+	if (rubric === "progressive-steering") {
+		await runProgressiveSteeringRubric(opts);
+		return;
+	}
+
+	const threshold = opts.threshold
+		? Number.parseFloat(opts.threshold as string)
+		: 0.7;
+
+	const results = await runEvals({
+		artifactName: artifact,
+		harness,
+		threshold,
+		output: opts.output as string | undefined,
+		ci: opts.ci as boolean | undefined,
+		provider: opts.provider as string | undefined,
+		noContext: opts.context === false,
+	});
+
+	// ── Print results ────────────────────────────────────────────────────────
+
+	const col = 72; // terminal column width for rule lines
+	const rule = (c = "─") => chalk.dim(c.repeat(col));
+
+	let hasFailures = false;
+
+	for (const result of results) {
+		if (result.failed > 0) hasFailures = true;
+
+		const allPassed = result.failed === 0 && result.totalTests > 0;
+		const headerIcon = allPassed ? chalk.green("●") : chalk.red("●");
+
+		console.error("");
+		console.error(rule());
+		console.error(`  ${headerIcon}  ${chalk.bold(result.artifactName)}`);
+		console.error(`     ${chalk.dim(result.configFile)}`);
+		console.error(rule());
+
+		if (result.totalTests === 0) {
+			console.error(chalk.yellow("  No tests ran."));
+		} else {
+			for (const detail of result.details) {
+				const icon = detail.passed ? chalk.green("  ✓") : chalk.red("  ✗");
+				console.error(
+					`${icon}  ${detail.passed ? chalk.dim(detail.description) : detail.description}`,
+				);
+
+				if (!detail.passed) {
+					if (detail.error) {
+						// Wrap long error messages at ~60 chars
+						const words = detail.error.split(" ");
+						const lines: string[] = [];
+						let line = "";
+						for (const word of words) {
+							if ((line + word).length > 60 && line.length > 0) {
+								lines.push(line.trimEnd());
+								line = `${word} `;
+							} else {
+								line += `${word} `;
+							}
+						}
+						if (line.trim()) lines.push(line.trimEnd());
+						console.error(chalk.red(`     ╰─ ${lines.shift()}`));
+						for (const l of lines) {
+							console.error(chalk.red(`        ${l}`));
+						}
+					} else {
+						if (detail.response) {
+							const preview =
+								detail.response.length > 180
+									? `${detail.response.slice(0, 180)}…`
+									: detail.response;
+							const oneLine = preview.replace(/\n+/g, " ↵ ");
+							console.error(chalk.dim(`     ├─ model  ${oneLine}`));
+						}
+						if (detail.reason) {
+							console.error(chalk.yellow(`     ╰─ judge  ${detail.reason}`));
+						}
+					}
+				}
+			}
+		}
+
+		// Score bar + summary
+		const pct = result.totalTests > 0 ? result.passed / result.totalTests : 0;
+		const barLen = 20;
+		const filled = Math.round(pct * barLen);
+		const bar =
+			chalk.green("█".repeat(filled)) + chalk.dim("░".repeat(barLen - filled));
+		const scoreColor = allPassed
+			? chalk.green
+			: result.passed > 0
+				? chalk.yellow
+				: chalk.red;
+		console.error("");
+		console.error(
+			`  ${bar}  ${scoreColor(`${result.passed}/${result.totalTests} passed`)}` +
+				`  ${chalk.dim(`score ${result.score.toFixed(2)}`)}`,
+		);
+	}
+
+	console.error(`\n${rule()}`);
+
+	// Write JSON output if requested
+	if (opts.output) {
+		await writeFile(
+			opts.output as string,
+			JSON.stringify(results, null, 2),
+			"utf-8",
+		);
+		console.error(chalk.green(`Results written to ${opts.output}`));
+	}
+
+	// Record to history ledger if requested
+	if (opts.record) {
+		await recordResults(results);
+	}
+
+	if (hasFailures) {
+		process.exit(1);
+	}
+}
+
+// ── Progressive Steering rubric runner ───────────────────────────────────────
+
+/**
+ * Serialise an object as canonical JSON: sorted keys at every nesting level,
+ * stable list order (lists are already stable-sorted by the grader).
+ */
+function canonicalJsonStringify(obj: unknown): string {
+	return JSON.stringify(
+		obj,
+		(_key, value) => {
+			if (value && typeof value === "object" && !Array.isArray(value)) {
+				const sorted: Record<string, unknown> = {};
+				for (const k of Object.keys(value).sort()) {
+					sorted[k] = (value as Record<string, unknown>)[k];
+				}
+				return sorted;
+			}
+			return value;
+		},
+		2,
+	);
+}
+
+/**
+ * Run the progressive-steering rubric against a compiled build.
+ *
+ * When --build is provided, uses it as the buildDir directly.
+ * Otherwise builds source artifacts into a tempdir.
+ *
+ * When --json is set, serialises ProgressiveSteeringResult as canonical JSON
+ * to --output path or stdout.
+ *
+ * Exit code: green/yellow → 0, red → 1.
+ */
+async function runProgressiveSteeringRubric(
+	opts: Record<string, unknown>,
+): Promise<void> {
+	const buildDir = opts.build as string | undefined;
+	const jsonOutput = opts.json as boolean | undefined;
+	const outputPath = opts.output as string | undefined;
+
+	// Determine the build directory to grade
+	let effectiveBuildDir: string;
+
+	if (buildDir) {
+		// Use the provided build directory
+		effectiveBuildDir = resolve(buildDir);
+		if (!(await exists(effectiveBuildDir))) {
+			console.error(
+				chalk.red(
+					`Error: Build directory does not exist: ${effectiveBuildDir}`,
+				),
+			);
+			process.exit(1);
+		}
+	} else {
+		// Build into a tempdir from source artifacts
+		const { build, SOURCE_DIRS } = await import("./build");
+		const tempDir = join(tmpdir(), `forge-eval-${Date.now()}`);
+		await mkdir(tempDir, { recursive: true });
+		const templatesDir = "templates/harness-adapters";
+		const mcpServersDir = "mcp-servers";
+
+		await build({
+			knowledgeDirs: [...SOURCE_DIRS],
+			distDir: tempDir,
+			templatesDir,
+			mcpServersDir,
+			harness: "kiro",
+		});
+
+		effectiveBuildDir = join(tempDir, "kiro");
+	}
+
+	// Load workload from the first discovered fixture that has a workload.json,
+	// or use an empty workload when none is found.
+	let workload: Workload[] = [];
+	const fixturesBase = "fixtures/eval/kiro-progressive-steering";
+	if (await exists(fixturesBase)) {
+		const scenarios = await readdir(fixturesBase, { withFileTypes: true });
+		for (const scenario of scenarios) {
+			if (!scenario.isDirectory()) continue;
+			const workloadPath = join(fixturesBase, scenario.name, "workload.json");
+			if (await exists(workloadPath)) {
+				const raw = await readFile(workloadPath, "utf-8");
+				workload = JSON.parse(raw) as Workload[];
+				break;
+			}
+		}
+	}
+
+	// Run the grader
+	const result = await gradeProgressiveSteering(effectiveBuildDir, workload);
+
+	// Output results
+	if (jsonOutput) {
+		const jsonStr = canonicalJsonStringify(result);
+		if (outputPath) {
+			await writeFile(outputPath, jsonStr, "utf-8");
+			console.error(chalk.green(`Rubric result written to ${outputPath}`));
+		} else {
+			console.log(jsonStr);
+		}
+	} else {
+		// Polished terminal output: banner, metric table, per-file details
+		const ratingColor =
+			result.rating === "green"
+				? chalk.green
+				: result.rating === "yellow"
+					? chalk.yellow
+					: chalk.red;
+		const ratingIcon =
+			result.rating === "green"
+				? "🟢"
+				: result.rating === "yellow"
+					? "🟡"
+					: "🔴";
+
+		// Rating banner
+		console.error("");
+		console.error(
+			ratingColor(
+				`  ${ratingIcon} Progressive Steering: ${result.rating.toUpperCase()}  (${result.score.toFixed(1)}/100)`,
+			),
+		);
+		console.error("");
+
+		// Metric table header
+		const hdr = `  ${"Metric".padEnd(8)} ${"Target".padEnd(10)} ${"Actual".padEnd(10)} Status`;
+		console.error(chalk.bold(hdr));
+		console.error(`  ${"─".repeat(42)}`);
+
+		// Green-gate targets per Design §3
+		const metrics: Array<{
+			name: string;
+			target: string;
+			actual: number;
+			pass: boolean;
+		}> = [
+			{
+				name: "AOCW",
+				target: "≤ 0.40",
+				actual: result.metrics.AOCW,
+				pass: result.metrics.AOCW <= 0.4,
+			},
+			{
+				name: "PR",
+				target: "≥ 0.60",
+				actual: result.metrics.PR,
+				pass: result.metrics.PR >= 0.6,
+			},
+			{
+				name: "FMP",
+				target: "≥ 0.75",
+				actual: result.metrics.FMP,
+				pass: result.metrics.FMP >= 0.75,
+			},
+			{
+				name: "MD",
+				target: "≥ 0.50",
+				actual: result.metrics.MD,
+				pass: result.metrics.MD >= 0.5,
+			},
+			{
+				name: "DER",
+				target: "≤ 0.50",
+				actual: result.metrics.DER,
+				pass: result.metrics.DER <= 0.5,
+			},
+			{
+				name: "WCA",
+				target: "≥ 0.50",
+				actual: result.metrics.WCA,
+				pass: result.metrics.WCA >= 0.5,
+			},
+		];
+
+		for (const m of metrics) {
+			const status = m.pass ? chalk.green("✓") : chalk.red("✗");
+			const actualStr = m.actual.toFixed(3);
+			console.error(
+				`  ${m.name.padEnd(8)} ${m.target.padEnd(10)} ${actualStr.padEnd(10)} ${status}`,
+			);
+		}
+		console.error("");
+
+		// Per-file details when rating ≠ Green
+		if (result.rating !== "green") {
+			const { defaultSourceArtifacts, misalignedWizardArtifacts } =
+				result.details;
+			if (defaultSourceArtifacts.length > 0) {
+				console.error(
+					chalk.yellow(
+						"  Artifacts using default inclusion (should be explicit):",
+					),
+				);
+				for (const name of defaultSourceArtifacts) {
+					console.error(`    • ${name}`);
+				}
+				console.error("");
+			}
+			if (misalignedWizardArtifacts.length > 0) {
+				console.error(
+					chalk.yellow(
+						"  Power/reference-pack artifacts with always-on inclusion:",
+					),
+				);
+				for (const name of misalignedWizardArtifacts) {
+					console.error(`    • ${name}`);
+				}
+				console.error("");
+			}
+		}
+	}
+
+	// Propagate rating to exit code: green/yellow → 0, red → 1
+	if (result.rating === "red") {
+		process.exit(1);
+	}
+}

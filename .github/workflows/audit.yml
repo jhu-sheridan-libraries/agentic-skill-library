@@ -8,8 +8,8 @@ on:
   push:
     branches: [main]
     paths:
-      - "skill-forge/package.json"
-      - "skill-forge/bun.lock"
+      - "kanon/package.json"
+      - "kanon/bun.lock"
   workflow_dispatch:
 
 permissions:
@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: skill-forge
+        working-directory: kanon
     steps:
       - uses: actions/checkout@v7
 
@@ -44,17 +44,17 @@ jobs:
         with:
           path: |
             ~/.bun/install/cache
-            skill-forge/node_modules
-          key: bun-${{ runner.os }}-${{ hashFiles('skill-forge/bun.lock') }}
+            kanon/node_modules
+          key: bun-${{ runner.os }}-${{ hashFiles('kanon/bun.lock') }}
           restore-keys: |
             bun-${{ runner.os }}-
 
       - run: bun install
-        working-directory: skill-forge
+        working-directory: kanon
 
       - name: Run bun audit
         id: audit
-        working-directory: skill-forge
+        working-directory: kanon
         run: |
           bun audit --json > audit-results.json 2>/dev/null || true
 
@@ -79,7 +79,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: audit-results
-          path: skill-forge/audit-results.json
+          path: kanon/audit-results.json
           retention-days: 30
 
       - name: Fail on high or critical vulnerabilities

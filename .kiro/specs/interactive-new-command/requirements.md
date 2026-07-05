@@ -2,9 +2,9 @@
 
 ## Introduction
 
-The `forge new` command currently scaffolds a knowledge artifact directory with template files and then prints manual "next steps" instructions. This feature replaces that passive output with an interactive guided experience using `@clack/prompts`, allowing authors to populate frontmatter metadata, optionally configure hooks and MCP servers, and write the knowledge body — all within the CLI session. The non-interactive path is preserved via a `--yes` flag for CI and scripting use cases.
+The `kanon new` command currently scaffolds a knowledge artifact directory with template files and then prints manual "next steps" instructions. This feature replaces that passive output with an interactive guided experience using `@clack/prompts`, allowing authors to populate frontmatter metadata, optionally configure hooks and MCP servers, and write the knowledge body — all within the CLI session. The non-interactive path is preserved via a `--yes` flag for CI and scripting use cases.
 
-Additionally, a `forge tutorial` command provides a guided first-run walkthrough for new users — especially researchers with no development background — that teaches the full artifact authoring workflow: creating an artifact via the interactive wizard, understanding the generated files, and building the artifact with `forge build`.
+Additionally, a `kanon tutorial` command provides a guided first-run walkthrough for new users — especially researchers with no development background — that teaches the full artifact authoring workflow: creating an artifact via the interactive wizard, understanding the generated files, and building the artifact with `kanon build`.
 
 ## Glossary
 
@@ -16,8 +16,8 @@ Additionally, a `forge tutorial` command provides a guided first-run walkthrough
 - **Hook**: An event-driven automation definition in `hooks.yaml`, validated by `CanonicalHookSchema`
 - **MCP_Server**: An MCP server definition in `mcp-servers.yaml`, validated by `McpServerDefinitionSchema`
 - **Template_Engine**: The Nunjucks-based rendering system that generates scaffold files from `.njk` templates
-- **Scaffold**: The initial directory and file structure created by `forge new` before interactive prompts begin
-- **Tutorial_Runner**: The `@clack/prompts`-based guided walkthrough launched by `forge tutorial` that teaches new users the artifact authoring workflow
+- **Scaffold**: The initial directory and file structure created by `kanon new` before interactive prompts begin
+- **Tutorial_Runner**: The `@clack/prompts`-based guided walkthrough launched by `kanon tutorial` that teaches new users the artifact authoring workflow
 - **Tutorial_Step**: A single stage in the tutorial flow, consisting of an explanation message and an optional interactive action (e.g., running the wizard or building the artifact)
 - **Sample_Artifact**: A pre-defined example artifact named `hello-world` that the Tutorial_Runner creates to demonstrate the workflow
 
@@ -25,13 +25,13 @@ Additionally, a `forge tutorial` command provides a guided first-run walkthrough
 
 ### Requirement 1: Interactive Wizard Entry Point
 
-**User Story:** As an artifact author, I want `forge new <name>` to launch an interactive wizard after scaffolding, so that I can configure my artifact without manually editing files.
+**User Story:** As an artifact author, I want `kanon new <name>` to launch an interactive wizard after scaffolding, so that I can configure my artifact without manually editing files.
 
 #### Acceptance Criteria
 
-1. WHEN the user runs `forge new <artifact-name>` without the `--yes` flag, THE Forge_CLI SHALL create the Scaffold directory and then launch the Interactive_Wizard
-2. WHEN the user runs `forge new <artifact-name> --yes`, THE Forge_CLI SHALL create the Scaffold using template defaults and skip the Interactive_Wizard
-3. WHEN the user runs `forge new <artifact-name>` and an artifact with that name already exists, THE Forge_CLI SHALL display an error message and exit with a non-zero exit code without launching the Interactive_Wizard
+1. WHEN the user runs `kanon new <artifact-name>` without the `--yes` flag, THE Forge_CLI SHALL create the Scaffold directory and then launch the Interactive_Wizard
+2. WHEN the user runs `kanon new <artifact-name> --yes`, THE Forge_CLI SHALL create the Scaffold using template defaults and skip the Interactive_Wizard
+3. WHEN the user runs `kanon new <artifact-name>` and an artifact with that name already exists, THE Forge_CLI SHALL display an error message and exit with a non-zero exit code without launching the Interactive_Wizard
 4. THE Interactive_Wizard SHALL display an intro banner using `@clack/prompts` that identifies the artifact being configured
 
 ### Requirement 2: Frontmatter Metadata Collection
@@ -112,7 +112,7 @@ Additionally, a `forge tutorial` command provides a guided first-run walkthrough
 2. WHEN the user configured one or more hooks, THE Interactive_Wizard SHALL write the hooks array to `hooks.yaml` as valid YAML
 3. WHEN the user configured one or more MCP servers, THE Interactive_Wizard SHALL write the MCP server definitions to `mcp-servers.yaml` as valid YAML
 4. WHEN the Interactive_Wizard finishes writing files, THE Interactive_Wizard SHALL display an outro summary listing each file that was written and its path
-5. THE Interactive_Wizard SHALL display a final message suggesting the user run `forge build` to compile the artifact
+5. THE Interactive_Wizard SHALL display a final message suggesting the user run `kanon build` to compile the artifact
 
 ### Requirement 8: Cancellation Handling
 
@@ -126,12 +126,12 @@ Additionally, a `forge tutorial` command provides a guided first-run walkthrough
 
 ### Requirement 9: Tutorial Command Entry Point
 
-**User Story:** As a new user with no development background, I want to run `forge tutorial` to launch a guided walkthrough, so that I can learn how Skill Forge works before authoring my own artifacts.
+**User Story:** As a new user with no development background, I want to run `kanon tutorial` to launch a guided walkthrough, so that I can learn how Kanon works before authoring my own artifacts.
 
 #### Acceptance Criteria
 
-1. WHEN the user runs `forge tutorial`, THE Forge_CLI SHALL launch the Tutorial_Runner
-2. THE Tutorial_Runner SHALL display a welcome message that explains what Skill Forge is and what artifacts are, using plain non-technical language
+1. WHEN the user runs `kanon tutorial`, THE Forge_CLI SHALL launch the Tutorial_Runner
+2. THE Tutorial_Runner SHALL display a welcome message that explains what Kanon is and what artifacts are, using plain non-technical language
 3. THE Tutorial_Runner SHALL explain the three core artifact files (knowledge.md, hooks.yaml, mcp-servers.yaml) and their purpose before starting the hands-on walkthrough
 4. IF a Sample_Artifact named `hello-world` already exists in the `knowledge/` directory, THEN THE Tutorial_Runner SHALL prompt the user to confirm overwriting it or choose a different name
 
@@ -144,7 +144,7 @@ Additionally, a `forge tutorial` command provides a guided first-run walkthrough
 1. THE Tutorial_Runner SHALL guide the user through creating a Sample_Artifact by launching the Interactive_Wizard with pre-filled suggestions for each field
 2. WHEN the Interactive_Wizard completes during the tutorial, THE Tutorial_Runner SHALL display an explanation of each generated file (knowledge.md, hooks.yaml, mcp-servers.yaml) and what the user's inputs produced
 3. THE Tutorial_Runner SHALL explain the purpose of the `workflows/` directory and when a user might add workflow files
-4. WHEN the file explanation step completes, THE Tutorial_Runner SHALL prompt the user to run `forge build` and then execute the build on the Sample_Artifact
+4. WHEN the file explanation step completes, THE Tutorial_Runner SHALL prompt the user to run `kanon build` and then execute the build on the Sample_Artifact
 5. WHEN the build completes, THE Tutorial_Runner SHALL explain what the build produced and where the compiled output is located
 6. THE Tutorial_Runner SHALL use friendly, jargon-free language throughout and define technical terms (YAML, frontmatter, harness) inline when first used
 
@@ -158,4 +158,4 @@ Additionally, a `forge tutorial` command provides a guided first-run walkthrough
 2. WHEN the user sends a cancel signal (Ctrl+C or Escape) at any tutorial prompt, THE Tutorial_Runner SHALL display a friendly exit message and exit gracefully
 3. WHEN the user cancels the tutorial after the Sample_Artifact has been created, THE Tutorial_Runner SHALL retain the Sample_Artifact files on disk
 4. WHEN the tutorial completes all steps, THE Tutorial_Runner SHALL display a completion summary listing what was accomplished
-5. WHEN the tutorial completes, THE Tutorial_Runner SHALL suggest next steps including creating a real artifact with `forge new` and reading the documentation
+5. WHEN the tutorial completes, THE Tutorial_Runner SHALL suggest next steps including creating a real artifact with `kanon new` and reading the documentation

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Team Mode Distribution introduces a shared artifact distribution system under the `forge guild` command group. Rather than vendoring compiled artifacts into every repository, teams install artifacts into a global cache (`~/.forge/artifacts/`) and repos declare dependencies via a `.forge/manifest.yaml` file. The `forge guild` subcommands (`init`, `sync`, `status`, `hook`) handle manifest management, dependency resolution, materialization into harness-specific locations, and background auto-update with throttling.
+Team Mode Distribution introduces a shared artifact distribution system under the `kanon guild` command group. Rather than vendoring compiled artifacts into every repository, teams install artifacts into a global cache (`~/.forge/artifacts/`) and repos declare dependencies via a `.forge/manifest.yaml` file. The `kanon guild` subcommands (`init`, `sync`, `status`, `hook`) handle manifest management, dependency resolution, materialization into harness-specific locations, and background auto-update with throttling.
 
 The system builds on the existing `ArtifactBackend` interface and `forge.config.yaml` backend declarations, adding a manifest-driven resolution layer, collection expansion, and a global cache that decouples artifact storage from individual repositories.
 
@@ -18,11 +18,11 @@ The system builds on the existing `ArtifactBackend` interface and `forge.config.
 ```mermaid
 graph TD
     subgraph CLI Layer
-        GI[forge guild init]
-        GS[forge guild sync]
-        GST[forge guild status]
-        GH[forge guild hook install]
-        FIG[forge install --global]
+        GI[kanon guild init]
+        GS[kanon guild sync]
+        GST[kanon guild status]
+        GH[kanon guild hook install]
+        FIG[kanon install --global]
     end
 
     subgraph Core Engine
@@ -82,7 +82,7 @@ graph TD
 | `AutoUpdater` | `src/guild/auto-updater.ts` | Throttled remote version checks, download to Global_Cache |
 | `GlobalCache` | `src/guild/global-cache.ts` | Read/write `~/.forge/artifacts/`, catalog metadata caching |
 | `ShellSnippetGenerator` | `src/guild/hook-generator.ts` | Generate shell profile snippets for bash/zsh/fish/PowerShell |
-| `GuildCLI` | `src/guild/cli.ts` | Commander subcommand registration for `forge guild` |
+| `GuildCLI` | `src/guild/cli.ts` | Commander subcommand registration for `kanon guild` |
 
 ## Components and Interfaces
 
@@ -352,7 +352,7 @@ export type ShellType = "bash" | "zsh" | "fish" | "powershell";
 /**
  * Generate a shell snippet that auto-syncs on directory change.
  * The snippet detects .forge/manifest.yaml and runs
- * `forge guild sync --auto-update` in the background.
+ * `kanon guild sync --auto-update` in the background.
  */
 export function generateHookSnippet(shell: ShellType): string;
 
@@ -367,7 +367,7 @@ export function detectShell(): ShellType | null;
 import { Command } from "commander";
 
 /**
- * Register the `forge guild` command group on the root program.
+ * Register the `kanon guild` command group on the root program.
  * Subcommands: init, sync, status, hook install
  */
 export function registerGuildCommands(program: Command): void;
@@ -479,10 +479,10 @@ const ManifestEntryBaseSchema = z.object({
 
 ### Integration Points
 
-1. **`forge install --global`** — Extends the existing `install.ts` with a `--global` flag that routes to `GlobalCache.store()` instead of the local harness install paths.
+1. **`kanon install --global`** — Extends the existing `install.ts` with a `--global` flag that routes to `GlobalCache.store()` instead of the local harness install paths.
 2. **`forge.config.yaml`** — The existing `loadForgeConfig()` and `resolveBackendConfigs()` from `src/config.ts` are reused to resolve backend names in manifest entries.
-3. **`ArtifactBackend` interface** — `fetchCatalog()`, `fetchArtifact()`, and `listVersions()` are called by `AutoUpdater` and `forge install --global` without modification.
-4. **`src/cli.ts`** — `registerGuildCommands()` is called to add the `forge guild` command group alongside existing commands.
+3. **`ArtifactBackend` interface** — `fetchCatalog()`, `fetchArtifact()`, and `listVersions()` are called by `AutoUpdater` and `kanon install --global` without modification.
+4. **`src/cli.ts`** — `registerGuildCommands()` is called to add the `kanon guild` command group alongside existing commands.
 
 
 ## Correctness Properties
@@ -581,7 +581,7 @@ const ManifestEntryBaseSchema = z.object({
 
 ### Property 16: Shell snippet contains required elements
 
-*For any* supported shell type, the generated hook snippet SHALL contain (a) a check for the presence of `.forge/manifest.yaml`, (b) an invocation of `forge guild sync --auto-update`, and (c) output redirection to suppress all stdout/stderr.
+*For any* supported shell type, the generated hook snippet SHALL contain (a) a check for the presence of `.forge/manifest.yaml`, (b) an invocation of `kanon guild sync --auto-update`, and (c) output redirection to suppress all stdout/stderr.
 
 **Validates: Requirements 7.2, 7.3**
 
@@ -611,10 +611,10 @@ const ManifestEntryBaseSchema = z.object({
 |----------|----------|---------|
 | **Manifest parse error** | Fatal, exit 1. Display line/column from YAML parser. | Malformed YAML in `.forge/manifest.yaml` |
 | **Manifest validation error** | Fatal, exit 1. List invalid entries. | Entry missing both `name` and `collection` |
-| **Required artifact missing** | Fatal, exit 1. List unresolved artifacts with version pin and available versions. | `forge guild sync` with missing required artifact |
-| **Optional artifact missing** | Warning, continue. | `forge guild sync` with missing optional artifact |
-| **Backend unreachable (install)** | Fatal, exit 1. Display backend name and connection error. | `forge install --global` with unreachable GitHub |
-| **Backend unreachable (auto-update)** | Silent fallback to cache. Debug-level log. | `forge guild sync --auto-update` with no network |
+| **Required artifact missing** | Fatal, exit 1. List unresolved artifacts with version pin and available versions. | `kanon guild sync` with missing required artifact |
+| **Optional artifact missing** | Warning, continue. | `kanon guild sync` with missing optional artifact |
+| **Backend unreachable (install)** | Fatal, exit 1. Display backend name and connection error. | `kanon install --global` with unreachable GitHub |
+| **Backend unreachable (auto-update)** | Silent fallback to cache. Debug-level log. | `kanon guild sync --auto-update` with no network |
 | **Unknown backend name** | Fatal, exit 1. List unknown name and available backends. | Manifest references undefined backend |
 | **Unknown harness name** | Warning, skip harness. Continue with recognized harnesses. | Manifest entry lists future harness name |
 | **Stale sync-lock** | Re-resolve from available versions. Warning if resolution changes. | Cached version deleted after sync-lock written |
@@ -633,7 +633,7 @@ Example:
 ```
 Error: guild sync: Cannot resolve "aws-security" — no version satisfies "^2.0.0"
   Available versions in cache: 1.0.0, 1.2.3, 1.5.0
-  Run `forge install --global aws-security --from-release v2.0.0` to install a matching version.
+  Run `kanon install --global aws-security --from-release v2.0.0` to install a matching version.
 ```
 
 ## Testing Strategy
@@ -677,17 +677,17 @@ The project already uses `fast-check` (listed in `devDependencies`). Each correc
 
 ### Integration Tests
 
-- Full `forge install --global` → `forge guild init` → `forge guild sync` pipeline with mock backends
+- Full `kanon install --global` → `kanon guild init` → `kanon guild sync` pipeline with mock backends
 - Collection expansion end-to-end with mock catalog data
 - Auto-update with mock backend returning newer versions
 - Offline sync (no network, cache-only resolution)
 - `.gitignore` management during init and sync
-- `forge guild status` output formatting
+- `kanon guild status` output formatting
 
 ### Test File Organization
 
 ```
-skill-forge/src/guild/__tests__/
+kanon/src/guild/__tests__/
 ├── manifest.test.ts              # Properties 1–4, schema unit tests
 ├── manifest.property.test.ts     # PBT for manifest round-trip and validation
 ├── version-resolver.test.ts      # Property 5, 19, unit tests

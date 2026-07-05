@@ -29,10 +29,10 @@ regexes = [
 # Allowlist specific paths that contain only documentation/example content.
 # dist/ is generated from knowledge/ so both inherit the same exclusion.
 paths = [
-  '''skill-forge/knowledge/''',
-  '''skill-forge/dist/''',
-  '''skill-forge/templates/''',
-  '''skill-forge/evals/''',
+  '''kanon/knowledge/''',
+  '''kanon/dist/''',
+  '''kanon/templates/''',
+  '''kanon/evals/''',
   # Any detached-worktree artefacts that land in the root during CI
   '''power-builder/''',
 ]

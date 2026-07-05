@@ -2,7 +2,7 @@
 
 ## Overview
 
-This feature adds three new harness targets to Skill Forge: Zed, JetBrains AI (Junie), and Aider. Each follows the established adapter pattern — a pure-function adapter, Nunjucks templates, format registry entry, and schema integration. The design is intentionally conservative: no new architectural patterns are introduced. Every new component slots into existing extension points.
+This feature adds three new harness targets to Kanon: Zed, JetBrains AI (Junie), and Aider. Each follows the established adapter pattern — a pure-function adapter, Nunjucks templates, format registry entry, and schema integration. The design is intentionally conservative: no new architectural patterns are introduced. Every new component slots into existing extension points.
 
 ## Architecture
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This feature extends the Skill Forge schema layer (`src/schemas.ts`) with three new metadata dimensions — categories, ecosystem, and dependency graph — and propagates them through the parser, catalog generator, validator, and scaffold template. The design prioritizes backward compatibility: all new fields default to empty arrays, so existing artifacts parse and validate without modification.
+This feature extends the Kanon schema layer (`src/schemas.ts`) with three new metadata dimensions — categories, ecosystem, and dependency graph — and propagates them through the parser, catalog generator, validator, and scaffold template. The design prioritizes backward compatibility: all new fields default to empty arrays, so existing artifacts parse and validate without modification.
 
 The changes are scoped to six files:
 
@@ -17,7 +17,7 @@ The changes are scoped to six files:
 
 - **Zod-first schema evolution**: All field definitions live in `schemas.ts` as Zod schemas. The parser already delegates to `FrontmatterSchema.safeParse()`, so adding fields to the schema is the single source of truth — no parser changes required.
 - **Warning vs. error distinction for dependency references**: Category values come from a controlled enum, so invalid values are errors. Dependency references point to other artifacts that may not exist yet (e.g., during incremental authoring), so unresolved references are warnings.
-- **Template-driven scaffolding**: `forge new` renders `knowledge.md.njk` via Nunjucks. Adding fields to the template is sufficient — no `new.ts` code changes needed.
+- **Template-driven scaffolding**: `kanon new` renders `knowledge.md.njk` via Nunjucks. Adding fields to the template is sufficient — no `new.ts` code changes needed.
 
 ## Architecture
 

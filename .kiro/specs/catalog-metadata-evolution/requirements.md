@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This feature extends the Skill Forge knowledge artifact schema and catalog with three new metadata dimensions: category taxonomy, ecosystem targeting, and inter-artifact dependency graph. These fields enrich the machine-readable catalog and enable the catalog-browse web UI to offer faceted filtering by domain, language/framework, and related-artifact navigation. All three fields are optional with empty-array defaults, ensuring full backward compatibility with existing artifacts. The `forge validate` command gains new checks for category enum compliance and dependency reference resolution, and `forge new` scaffolds include placeholder comments for the new fields.
+This feature extends the Kanon knowledge artifact schema and catalog with three new metadata dimensions: category taxonomy, ecosystem targeting, and inter-artifact dependency graph. These fields enrich the machine-readable catalog and enable the catalog-browse web UI to offer faceted filtering by domain, language/framework, and related-artifact navigation. All three fields are optional with empty-array defaults, ensuring full backward compatibility with existing artifacts. The `kanon validate` command gains new checks for category enum compliance and dependency reference resolution, and `kanon new` scaffolds include placeholder comments for the new fields.
 
 ## Glossary
 
@@ -16,7 +16,7 @@ This feature extends the Skill Forge knowledge artifact schema and catalog with 
 - **CategoryEnum**: The Zod enum defining the allowed Category values, extensible by adding new entries
 - **Ecosystem**: A freeform string representing a language, runtime, or framework that an artifact targets (e.g., "typescript", "react", "bun")
 - **Dependency_Graph**: The pair of optional fields (`depends` and `enhances`) on a Knowledge_Artifact's frontmatter that declare informational relationships to other artifacts by name
-- **Catalog_Browser**: The single-page web application served by `forge catalog browse` that displays artifact metadata with search, filter, and detail view capabilities
+- **Catalog_Browser**: The single-page web application served by `kanon catalog browse` that displays artifact metadata with search, filter, and detail view capabilities
 - **Validator**: The `src/validate.ts` module that checks Knowledge_Artifacts against schemas and emits errors and warnings
 
 ## Requirements
@@ -83,36 +83,36 @@ This feature extends the Skill Forge knowledge artifact schema and catalog with 
 
 ### Requirement 6: Dependency Reference Validation
 
-**User Story:** As a knowledge author, I want `forge validate` to warn me when my artifact references a dependency that doesn't exist, so that I catch broken references before publishing.
+**User Story:** As a knowledge author, I want `kanon validate` to warn me when my artifact references a dependency that doesn't exist, so that I catch broken references before publishing.
 
 #### Acceptance Criteria
 
-1. WHEN the user runs `forge validate`, THE Validator SHALL check each artifact's `depends` values against the set of artifact names present in the Knowledge_Directory
-2. WHEN the user runs `forge validate`, THE Validator SHALL check each artifact's `enhances` values against the set of artifact names present in the Knowledge_Directory
+1. WHEN the user runs `kanon validate`, THE Validator SHALL check each artifact's `depends` values against the set of artifact names present in the Knowledge_Directory
+2. WHEN the user runs `kanon validate`, THE Validator SHALL check each artifact's `enhances` values against the set of artifact names present in the Knowledge_Directory
 3. IF a `depends` value references an artifact name that does not exist in the Knowledge_Directory, THEN THE Validator SHALL emit a warning (not an error) identifying the unresolved dependency and the artifact that declares it
 4. IF an `enhances` value references an artifact name that does not exist in the Knowledge_Directory, THEN THE Validator SHALL emit a warning (not an error) identifying the unresolved enhancement target and the artifact that declares it
 5. THE Validator SHALL NOT treat unresolved dependency references as validation failures (the artifact SHALL still be marked as valid)
 
 ### Requirement 7: Category Validation
 
-**User Story:** As a knowledge author, I want `forge validate` to reject invalid category values, so that the controlled vocabulary remains consistent across the catalog.
+**User Story:** As a knowledge author, I want `kanon validate` to reject invalid category values, so that the controlled vocabulary remains consistent across the catalog.
 
 #### Acceptance Criteria
 
-1. WHEN the user runs `forge validate`, THE Validator SHALL verify that each value in an artifact's `categories` array is a member of the CategoryEnum
+1. WHEN the user runs `kanon validate`, THE Validator SHALL verify that each value in an artifact's `categories` array is a member of the CategoryEnum
 2. IF an artifact's `categories` array contains a value not in the CategoryEnum, THEN THE Validator SHALL return a ValidationError identifying the invalid category and listing the allowed values
 3. THE Validator SHALL treat invalid category values as validation errors (the artifact SHALL be marked as invalid)
 
 ### Requirement 8: Scaffold Template Update
 
-**User Story:** As a knowledge author, I want `forge new` to include placeholder comments for the new metadata fields, so that I know these fields are available when creating a new artifact.
+**User Story:** As a knowledge author, I want `kanon new` to include placeholder comments for the new metadata fields, so that I know these fields are available when creating a new artifact.
 
 #### Acceptance Criteria
 
-1. WHEN the user runs `forge new <artifact-name>`, THE Forge_CLI SHALL generate a `knowledge.md` file with the `categories` field present as an empty array with a YAML comment listing available values
-2. WHEN the user runs `forge new <artifact-name>`, THE Forge_CLI SHALL generate a `knowledge.md` file with the `ecosystem` field present as an empty array with a YAML comment indicating freeform values
-3. WHEN the user runs `forge new <artifact-name>`, THE Forge_CLI SHALL generate a `knowledge.md` file with the `depends` field present as an empty array with a YAML comment explaining the field's purpose
-4. WHEN the user runs `forge new <artifact-name>`, THE Forge_CLI SHALL generate a `knowledge.md` file with the `enhances` field present as an empty array with a YAML comment explaining the field's purpose
+1. WHEN the user runs `kanon new <artifact-name>`, THE Forge_CLI SHALL generate a `knowledge.md` file with the `categories` field present as an empty array with a YAML comment listing available values
+2. WHEN the user runs `kanon new <artifact-name>`, THE Forge_CLI SHALL generate a `knowledge.md` file with the `ecosystem` field present as an empty array with a YAML comment indicating freeform values
+3. WHEN the user runs `kanon new <artifact-name>`, THE Forge_CLI SHALL generate a `knowledge.md` file with the `depends` field present as an empty array with a YAML comment explaining the field's purpose
+4. WHEN the user runs `kanon new <artifact-name>`, THE Forge_CLI SHALL generate a `knowledge.md` file with the `enhances` field present as an empty array with a YAML comment explaining the field's purpose
 
 ### Requirement 9: Knowledge Artifact In-Memory Representation
 

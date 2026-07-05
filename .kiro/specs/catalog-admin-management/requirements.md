@@ -2,13 +2,13 @@
 
 ## Introduction
 
-This feature adds admin management capabilities to the existing `forge catalog browse` web interface. Currently the browse interface is read-only — users can view, search, and filter catalog entries but cannot create, edit, or delete knowledge artifacts. The admin management feature introduces mutation endpoints and corresponding UI to allow full CRUD (Create, Read, Update, Delete) operations on knowledge artifacts directly from the browser, eliminating the need to manually edit files on disk for common authoring tasks.
+This feature adds admin management capabilities to the existing `kanon catalog browse` web interface. Currently the browse interface is read-only — users can view, search, and filter catalog entries but cannot create, edit, or delete knowledge artifacts. The admin management feature introduces mutation endpoints and corresponding UI to allow full CRUD (Create, Read, Update, Delete) operations on knowledge artifacts directly from the browser, eliminating the need to manually edit files on disk for common authoring tasks.
 
 Additionally, this feature extends the admin UI to support **collection management** and **manifest/team management**. Collections (curated bundles of artifacts defined in `collections/*.yaml`) can be viewed, created, edited, and deleted through the UI. The manifest (`.forge/manifest.yaml`) — which declares a repository's artifact dependencies — can be viewed and managed through the UI, including adding/removing entries, editing entry settings, and viewing sync status. The browse UI also integrates collections alongside artifacts for unified discovery.
 
 ## Glossary
 
-- **Browse_Server**: The Bun HTTP server started by `forge catalog browse`, serving the SPA and API endpoints on localhost.
+- **Browse_Server**: The Bun HTTP server started by `kanon catalog browse`, serving the SPA and API endpoints on localhost.
 - **Admin_API**: The set of HTTP endpoints on the Browse_Server that handle mutation operations (create, update, delete) on knowledge artifacts.
 - **Catalog_UI**: The single-page application served at the root of the Browse_Server, including both the existing browse views and the new admin management views.
 - **Knowledge_Artifact**: A directory under `knowledge/` containing a `knowledge.md` file (with YAML frontmatter and markdown body), optional `hooks.yaml`, `mcp-servers.yaml`, and a `workflows/` subdirectory.

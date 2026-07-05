@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The Skill Forge catalog can be exported as a static HTML page via `forge catalog export` for deployment to GitHub Pages. The static version embeds catalog data and artifact content inline, but the shared HTML template still renders interactive UI elements (tabs, buttons) that require a running server and API endpoints to function. These non-functional elements confuse users and clutter the interface. Additionally, the default collection filter should pre-select the "jhu" collection in the static version to surface the most relevant artifacts immediately.
+The Kanon catalog can be exported as a static HTML page via `kanon catalog export` for deployment to GitHub Pages. The static version embeds catalog data and artifact content inline, but the shared HTML template still renders interactive UI elements (tabs, buttons) that require a running server and API endpoints to function. These non-functional elements confuse users and clutter the interface. Additionally, the default collection filter should pre-select the "jhu" collection in the static version to surface the most relevant artifacts immediately.
 
 ## Glossary
 

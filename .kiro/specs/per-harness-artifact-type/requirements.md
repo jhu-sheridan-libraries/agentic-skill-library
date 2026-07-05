@@ -2,15 +2,15 @@
 
 ## Introduction
 
-The Skill Forge tool currently uses a single top-level `type` field in artifact frontmatter (`skill`, `power`, or `rule`) to classify knowledge artifacts. This abstraction is misleading because the concept of artifact "type" is harness-dependent — each AI coding tool has its own native output formats and none of them share the `skill`/`power`/`rule` taxonomy. In practice, no adapter actually reads the top-level `type` field to determine output format; Kiro already uses `harness-config.kiro.power: true` to toggle power behavior independently.
+The Kanon tool currently uses a single top-level `type` field in artifact frontmatter (`skill`, `power`, or `rule`) to classify knowledge artifacts. This abstraction is misleading because the concept of artifact "type" is harness-dependent — each AI coding tool has its own native output formats and none of them share the `skill`/`power`/`rule` taxonomy. In practice, no adapter actually reads the top-level `type` field to determine output format; Kiro already uses `harness-config.kiro.power: true` to toggle power behavior independently.
 
 This feature deprecates the global `type` field and lets each harness adapter drive its own output format through the existing `harness-config` section. Each harness defines its own set of valid output formats (e.g., Kiro: `steering` or `power`; Copilot: `instructions` or `agent`; Q Developer: `rule` or `agent`). The wizard is updated to explain what each harness selection means and what output format options are available per harness.
 
 ## Glossary
 
-- **Artifact**: A knowledge artifact authored in Skill Forge, consisting of a `knowledge.md` file with YAML frontmatter, optional `hooks.yaml`, optional `mcp-servers.yaml`, and optional workflows.
+- **Artifact**: A knowledge artifact authored in Kanon, consisting of a `knowledge.md` file with YAML frontmatter, optional `hooks.yaml`, optional `mcp-servers.yaml`, and optional workflows.
 - **Frontmatter**: The YAML metadata block at the top of `knowledge.md` that defines artifact properties.
-- **Harness**: A target AI coding tool (Kiro, Cursor, Copilot, Claude Code, Windsurf, Cline, Q Developer) that Skill Forge compiles artifacts for.
+- **Harness**: A target AI coding tool (Kiro, Cursor, Copilot, Claude Code, Windsurf, Cline, Q Developer) that Kanon compiles artifacts for.
 - **Harness_Config**: The `harness-config` section in frontmatter that holds per-harness settings, keyed by harness name.
 - **Output_Format**: A harness-native classification that determines what files and directory structure an Adapter produces for a given Harness. Each Harness defines its own set of valid Output_Format values.
 - **Adapter**: A harness-specific module in `src/adapters/` that transforms a canonical KnowledgeArtifact into output files for a particular Harness.
@@ -29,7 +29,7 @@ This feature deprecates the global `type` field and lets each harness adapter dr
 #### Acceptance Criteria
 
 1. THE FrontmatterSchema SHALL retain the top-level `type` field as an optional field with a default value of `skill` for backward compatibility.
-2. THE system SHALL emit a deprecation warning during `forge validate` when an artifact relies on the top-level `type` field without per-harness output format configuration.
+2. THE system SHALL emit a deprecation warning during `kanon validate` when an artifact relies on the top-level `type` field without per-harness output format configuration.
 3. THE Wizard SHALL no longer prompt for a global artifact type as a required step.
 4. THE top-level `type` field SHALL NOT influence adapter output; adapters SHALL determine output format exclusively from their Harness_Config section.
 

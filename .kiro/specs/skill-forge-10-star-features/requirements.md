@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This document specifies eight major new capabilities for Skill Forge, extending the existing monorepo ("write knowledge once, compile to every AI coding assistant harness") with: (1) a machine-readable harness capability matrix with graceful degradation, (2) bidirectional sync via `forge import`, (3) artifact versioning and migration, (4) multi-repo/monorepo workspace support, (5) an interactive temper/preview command, (6) admin UX integration bringing capabilities, temper, import, versioning, and workspace features into the Browse_SPA, (7) dependency graph visualization in the admin UI, and (8) a build dashboard in the admin UI.
+This document specifies eight major new capabilities for Kanon, extending the existing monorepo ("write knowledge once, compile to every AI coding assistant harness") with: (1) a machine-readable harness capability matrix with graceful degradation, (2) bidirectional sync via `kanon import`, (3) artifact versioning and migration, (4) multi-repo/monorepo workspace support, (5) an interactive temper/preview command, (6) admin UX integration bringing capabilities, temper, import, versioning, and workspace features into the Browse_SPA, (7) dependency graph visualization in the admin UI, and (8) a build dashboard in the admin UI.
 
 These features build on the existing Forge_CLI, Knowledge_Artifact structure, Harness_Adapter architecture, and the seven supported harnesses (Kiro, Claude Code, GitHub Copilot, Cursor, Windsurf, Cline, Amazon Q Developer). They assume the existing `build`, `install`, `new`, `validate`, `catalog`, `eval`, `import`, `tutorial`, `help`, `guild`, `publish`, and `collection` commands are in place.
 
@@ -11,13 +11,13 @@ These features build on the existing Forge_CLI, Knowledge_Artifact structure, Ha
 Several related specs have been fully implemented that overlap with features described here:
 
 - **per-harness-artifact-type** (COMPLETED): Implemented `HARNESS_FORMAT_REGISTRY` in `src/format-registry.ts` with `resolveFormat()`, per-harness `format` field in `harness-config`, schema validation via `superRefine`, updated all 7 adapters, wizard, catalog (`formatByHarness`), and browse SPA. This is the foundation for Feature 1's capability matrix — it tracks output format capabilities per harness.
-- **team-mode-distribution** (COMPLETED): Implemented global artifact cache (`~/.forge/artifacts/`), manifest system (`.forge/manifest.yaml`), `forge guild init/sync/status/hook install` commands, version resolution with semver ranges, collection expansion, auto-update with throttle, backend integration, sync-lock, and shell hook integration. This provides partial infrastructure for Features 3 and 4.
-- **interactive-new-command** (COMPLETED): Implemented interactive wizard for `forge new` using `@clack/prompts`, frontmatter collection, hook/MCP config, `forge tutorial`, and `--yes` flag.
-- **catalog-browse** (COMPLETED): Implemented `forge catalog browse` with local HTTP server, SPA with search/filtering/detail views.
+- **team-mode-distribution** (COMPLETED): Implemented global artifact cache (`~/.forge/artifacts/`), manifest system (`.forge/manifest.yaml`), `kanon guild init/sync/status/hook install` commands, version resolution with semver ranges, collection expansion, auto-update with throttle, backend integration, sync-lock, and shell hook integration. This provides partial infrastructure for Features 3 and 4.
+- **interactive-new-command** (COMPLETED): Implemented interactive wizard for `kanon new` using `@clack/prompts`, frontmatter collection, hook/MCP config, `kanon tutorial`, and `--yes` flag.
+- **catalog-browse** (COMPLETED): Implemented `kanon catalog browse` with local HTTP server, SPA with search/filtering/detail views.
 - **catalog-admin-management** (COMPLETED): Full CRUD for artifacts, collections, and manifest entries via browse server. Tabbed navigation (Artifacts | Collections | Manifest), design system with cards/forms/badges/toasts/modals, mutable `BrowseState` with live catalog refresh. This provides the foundation for Features 6, 7, and 8 — the admin UI integration layer.
 - **catalog-metadata-evolution** (COMPLETED): Categories (controlled enum), ecosystem (freeform), dependency graph (`depends`/`enhances`), cross-artifact validation.
-- **help-screen-improvements** (COMPLETED): Help renderer, command metadata registry, typo suggester, `forge help`.
-- **skill-forge-monorepo** (COMPLETED): The foundational spec implementing the entire core pipeline including `forge import` for Kiro powers/skills.
+- **help-screen-improvements** (COMPLETED): Help renderer, command metadata registry, typo suggester, `kanon help`.
+- **skill-forge-monorepo** (COMPLETED): The foundational spec implementing the entire core pipeline including `kanon import` for Kiro powers/skills.
 
 ## Glossary
 
@@ -33,25 +33,25 @@ Several related specs have been fully implemented that overlap with features des
 - **Artifact_Version**: A semantic version string (`MAJOR.MINOR.PATCH`) tracked in a Knowledge_Artifact's frontmatter `version` field and in installed artifact metadata
 - **Migration_Script**: A TypeScript function that transforms an installed artifact from one Artifact_Version to another, handling breaking schema or structural changes
 - **Version_Manifest**: A JSON metadata file written alongside installed artifacts that records the installed Artifact_Version, source artifact name, harness name, and installation timestamp
-- **Guild_System**: The existing `forge guild` command group (`src/guild/`) that provides manifest-driven artifact distribution with global cache, version resolution, sync, and auto-update — distinct from per-artifact versioning
+- **Guild_System**: The existing `kanon guild` command group (`src/guild/`) that provides manifest-driven artifact distribution with global cache, version resolution, sync, and auto-update — distinct from per-artifact versioning
 - **Global_Cache**: The existing directory `~/.forge/artifacts/` where globally installed artifacts are stored, managed by the Guild_System
 - **Manifest**: The existing YAML file (`.forge/manifest.yaml`) that declares which artifacts a repo requires, managed by the Guild_System
 - **Workspace_Config**: A `forge.config.ts` or `forge.config.yaml` file at the workspace root that defines multiple knowledge sources, shared MCP servers, per-project harness overrides, and artifact-to-package mappings for monorepo support
 - **Workspace_Project**: A named project entry within a Workspace_Config that specifies a root directory, target harnesses, and an artifact include/exclude list
 - **Temper_Renderer**: A module that compiles a Knowledge_Artifact for a specified harness and renders a human-readable preview of the "AI experience" — the system prompt, injected context, hooks, and MCP servers as the AI assistant would see them
-- **Temper_Session**: A single invocation of `forge temper` that produces a rendered preview for one artifact-harness combination
+- **Temper_Session**: A single invocation of `kanon temper` that produces a rendered preview for one artifact-harness combination
 - **Dist_Directory**: The top-level `dist/` directory containing generated per-harness output, organized as `dist/<harness-name>/<artifact-name>/`
 - **Catalog**: A machine-readable `catalog.json` file at the repository root listing all Knowledge_Artifacts with metadata
 - **Canonical_Hook**: A hook definition in `hooks.yaml` using a harness-agnostic YAML schema
 - **MCP_Server_Definition**: A YAML declaration of an MCP server's name, command, arguments, and environment variables
-- **Install_Target**: A local project directory where `forge install` copies compiled harness output
-- **Browse_SPA**: The existing single-page catalog browser served by `forge catalog browse`, which could be leveraged for web-based temper previews
+- **Install_Target**: A local project directory where `kanon install` copies compiled harness output
+- **Browse_SPA**: The existing single-page catalog browser served by `kanon catalog browse`, which could be leveraged for web-based temper previews
 - **Admin_UI**: The mutation-capable interface within the Browse_SPA that provides CRUD operations for artifacts, collections, and manifest entries — implemented by the catalog-admin-management spec with tabbed navigation, card/form design system, and mutable server state
 - **Capability_Badge**: A color-coded visual indicator in the Admin_UI showing a harness's support level (full/partial/none) for a specific Harness_Capability
-- **Inline_Temper**: A preview panel rendered within the Admin_UI's artifact detail view that shows the compiled "AI experience" for a selected harness, replacing the need for a separate `forge temper --web` server
+- **Inline_Temper**: A preview panel rendered within the Admin_UI's artifact detail view that shows the compiled "AI experience" for a selected harness, replacing the need for a separate `kanon temper --web` server
 - **Import_Scanner**: The component within the Admin_UI that scans the workspace for harness-native files and presents them for import, backed by the `POST /api/import` endpoint
 - **Dependency_Graph**: An interactive visual representation of artifact relationships (depends/enhances edges) rendered as inline SVG within the Admin_UI
-- **Build_Dashboard**: A panel within the Admin_UI that triggers and monitors `forge build` operations, displaying progress, warnings (including degradation), errors, and build history
+- **Build_Dashboard**: A panel within the Admin_UI that triggers and monitors `kanon build` operations, displaying progress, warnings (including degradation), errors, and build history
 
 ## Requirements
 
@@ -87,7 +87,7 @@ Several related specs have been fully implemented that overlap with features des
 3. WHEN a Knowledge_Artifact uses a Harness_Capability that a target harness does not support, THE Harness_Adapter SHALL apply the configured Degradation_Strategy instead of silently skipping the feature
 4. WHEN the `inline` Degradation_Strategy is applied, THE Harness_Adapter SHALL append a clearly delimited section to the steering file body containing the degraded feature's instructions (e.g., hook prompts rendered as "When X happens, do Y" prose)
 5. WHEN a Degradation_Strategy is applied, THE Harness_Adapter SHALL emit a warning to stderr identifying the artifact, the harness, the unsupported capability, and the strategy used
-6. THE Forge_CLI SHALL support a `--strict` flag on `forge build` that causes the build to fail with an error instead of degrading when any unsupported capability is encountered
+6. THE Forge_CLI SHALL support a `--strict` flag on `kanon build` that causes the build to fail with an error instead of degrading when any unsupported capability is encountered
 
 ### Requirement 3: Degradation Idempotency
 
@@ -95,7 +95,7 @@ Several related specs have been fully implemented that overlap with features des
 
 #### Acceptance Criteria
 
-1. FOR ALL Knowledge_Artifacts using features that require degradation, running `forge build` twice without modifying source files SHALL produce byte-identical output in the Dist_Directory
+1. FOR ALL Knowledge_Artifacts using features that require degradation, running `kanon build` twice without modifying source files SHALL produce byte-identical output in the Dist_Directory
 2. FOR ALL Degradation_Strategies, applying the strategy to the same input capability and artifact content SHALL produce identical output text (deterministic degradation)
 
 ### Requirement 4: Capability Matrix Validation
@@ -104,25 +104,25 @@ Several related specs have been fully implemented that overlap with features des
 
 #### Acceptance Criteria
 
-1. WHEN `forge validate` is run, THE Forge_CLI SHALL verify that every harness in the adapter registry and Format_Registry has a corresponding entry in the Capability_Matrix
-2. WHEN `forge validate` is run, THE Forge_CLI SHALL verify that every entry in the Capability_Matrix references a valid harness in the adapter registry
+1. WHEN `kanon validate` is run, THE Forge_CLI SHALL verify that every harness in the adapter registry and Format_Registry has a corresponding entry in the Capability_Matrix
+2. WHEN `kanon validate` is run, THE Forge_CLI SHALL verify that every entry in the Capability_Matrix references a valid harness in the adapter registry
 3. IF the Capability_Matrix is out of sync with the adapter registry or Format_Registry, THEN THE Forge_CLI SHALL return a ValidationError identifying the missing or extra entries
 
 ---
 
-### Feature 2: Bidirectional Sync / `forge import`
+### Feature 2: Bidirectional Sync / `kanon import`
 
-> **Status**: The `forge import` command exists in `src/import.ts` and is registered in the CLI. It currently supports importing from Kiro powers (`POWER.md`) and Kiro skills (`SKILL.md`) with auto-detection, `--all` for batch import, `--dry-run`, `--format`, `--collections`, and `--knowledge-dir` options. What remains is extending import to support the other 6 harness-native formats (Claude Code, Copilot, Cursor, Windsurf, Cline, Q Developer), adding `--harness` filtering, and implementing round-trip fidelity for non-Kiro formats.
+> **Status**: The `kanon import` command exists in `src/import.ts` and is registered in the CLI. It currently supports importing from Kiro powers (`POWER.md`) and Kiro skills (`SKILL.md`) with auto-detection, `--all` for batch import, `--dry-run`, `--format`, `--collections`, and `--knowledge-dir` options. What remains is extending import to support the other 6 harness-native formats (Claude Code, Copilot, Cursor, Windsurf, Cline, Q Developer), adding `--harness` filtering, and implementing round-trip fidelity for non-Kiro formats.
 
 ---
 
 ### Requirement 5: Import Command — Multi-Harness Extension
 
-**User Story:** As a developer with existing harness-native configuration files beyond Kiro, I want to import them into canonical Knowledge_Artifact format, so that I can adopt Skill Forge without starting from scratch regardless of which AI assistant I currently use.
+**User Story:** As a developer with existing harness-native configuration files beyond Kiro, I want to import them into canonical Knowledge_Artifact format, so that I can adopt Kanon without starting from scratch regardless of which AI assistant I currently use.
 
 #### Acceptance Criteria
 
-1. ~~WHEN the user runs `forge import --harness <harness-name>`, THE Forge_CLI SHALL scan the current working directory for harness-native configuration files matching the specified harness's known file paths~~ **[PARTIALLY COMPLETED]** — The `forge import <path>` command exists with `--format` for Kiro sources. The `--harness` flag for scanning the current directory for non-Kiro harness-native files has NOT been implemented.
+1. ~~WHEN the user runs `kanon import --harness <harness-name>`, THE Forge_CLI SHALL scan the current working directory for harness-native configuration files matching the specified harness's known file paths~~ **[PARTIALLY COMPLETED]** — The `kanon import <path>` command exists with `--format` for Kiro sources. The `--harness` flag for scanning the current directory for non-Kiro harness-native files has NOT been implemented.
 2. THE Forge_CLI SHALL extend the existing Import_Parser to support importing from the following additional harness-native paths (beyond the already-supported Kiro `POWER.md` and `SKILL.md`): `CLAUDE.md` and `.claude/settings.json` (Claude Code), `.github/copilot-instructions.md` and `.github/instructions/*.instructions.md` (Copilot), `.cursor/rules/*.md` and `.cursorrules` (Cursor), `.windsurfrules` and `.windsurf/rules/*.md` (Windsurf), `.clinerules/*.md` (Cline), and `.q/rules/*.md` and `.amazonq/rules/*.md` (Q Developer)
 3. FOR EACH detected harness-native file, THE Import_Parser SHALL extract the content body and any metadata (frontmatter, JSON fields) into a canonical Knowledge_Artifact structure with `knowledge.md`, and where applicable, `hooks.yaml` and `mcp-servers.yaml`
 4. ~~THE Forge_CLI SHALL write imported artifacts to `knowledge/<artifact-name>/` using the source file's name (kebab-cased, without extension) as the artifact name~~ **[COMPLETED]** — The existing `importCommand` writes to the configured `knowledgeDir` (default: `knowledge/`) using the source directory name.
@@ -150,7 +150,7 @@ Several related specs have been fully implemented that overlap with features des
 1. FOR ALL valid harness-native Markdown files, importing the file then building for the same harness SHALL produce output whose Markdown body content is semantically equivalent to the original file's body content (round-trip property)
 2. FOR ALL valid Kiro hook files, importing the `.kiro.hook` JSON then building for Kiro SHALL produce a `.kiro.hook` JSON file with equivalent `when` and `then` fields (round-trip property)
 3. FOR ALL valid MCP configuration files, importing the MCP JSON then building for the same harness SHALL produce an MCP JSON file with equivalent server entries (round-trip property)
-4. ~~THE Forge_CLI SHALL support a `--dry-run` flag on `forge import` that displays the canonical artifacts that would be generated without writing any files, enabling users to verify fidelity before committing~~ **[COMPLETED]** — The existing `importCommand` supports `--dry-run`.
+4. ~~THE Forge_CLI SHALL support a `--dry-run` flag on `kanon import` that displays the canonical artifacts that would be generated without writing any files, enabling users to verify fidelity before committing~~ **[COMPLETED]** — The existing `importCommand` supports `--dry-run`.
 
 ### Requirement 8: Import Auto-Detection for Non-Kiro Harnesses
 
@@ -158,16 +158,16 @@ Several related specs have been fully implemented that overlap with features des
 
 #### Acceptance Criteria
 
-1. WHEN the user runs `forge import` without a `--harness` flag (and without a `<path>` argument), THE Forge_CLI SHALL scan the current working directory for all known harness-native file paths across all seven supported harnesses
+1. WHEN the user runs `kanon import` without a `--harness` flag (and without a `<path>` argument), THE Forge_CLI SHALL scan the current working directory for all known harness-native file paths across all seven supported harnesses
 2. THE Forge_CLI SHALL present a summary of detected harness files grouped by harness and prompt the user to confirm which harnesses to import
 3. WHEN the user confirms, THE Forge_CLI SHALL import files from all confirmed harnesses, merging content from multiple harnesses into a single Knowledge_Artifact when the files represent the same logical skill or rule
-4. IF no harness-native files are detected, THEN THE Forge_CLI SHALL print a message to stderr listing the file paths checked and suggest running `forge new` instead
+4. IF no harness-native files are detected, THEN THE Forge_CLI SHALL print a message to stderr listing the file paths checked and suggest running `kanon new` instead
 
 ---
 
 ### Feature 3: Artifact Versioning + Migration
 
-> **Status**: The Guild_System (team-mode-distribution spec) provides version resolution with semver ranges at the distribution level — the Manifest tracks version pins, the Sync_Engine resolves versions from the Global_Cache, and the sync-lock records resolved versions. However, this is distribution-level versioning (which version of a compiled artifact to install), NOT authoring-level versioning. What remains is artifact-level versioning: a `version` field in frontmatter (the schema already has `version` defaulting to `"0.1.0"`), Version_Manifest files alongside installed artifacts, `forge upgrade` command, migration scripts, per-artifact changelogs, and upgrade idempotency.
+> **Status**: The Guild_System (team-mode-distribution spec) provides version resolution with semver ranges at the distribution level — the Manifest tracks version pins, the Sync_Engine resolves versions from the Global_Cache, and the sync-lock records resolved versions. However, this is distribution-level versioning (which version of a compiled artifact to install), NOT authoring-level versioning. What remains is artifact-level versioning: a `version` field in frontmatter (the schema already has `version` defaulting to `"0.1.0"`), Version_Manifest files alongside installed artifacts, `kanon upgrade` command, migration scripts, per-artifact changelogs, and upgrade idempotency.
 
 ---
 
@@ -178,8 +178,8 @@ Several related specs have been fully implemented that overlap with features des
 #### Acceptance Criteria
 
 1. ~~THE Forge_CLI SHALL read the `version` field from each Knowledge_Artifact's frontmatter as a semantic version string in `MAJOR.MINOR.PATCH` format~~ **[COMPLETED]** — The `FrontmatterSchema` already includes `version: z.string().default("0.1.0")` and the `CatalogEntrySchema` includes `version`.
-2. WHEN `forge build` compiles an artifact, THE Forge_CLI SHALL embed the Artifact_Version in the compiled output as a comment or metadata field (e.g., `<!-- forge:version 1.2.0 -->` in Markdown files, `"_forgeVersion": "1.2.0"` in JSON files)
-3. WHEN `forge install` installs an artifact, THE Forge_CLI SHALL write a Version_Manifest file (`.forge-manifest.json`) alongside the installed files recording the artifact name, version, harness name, source path, and installation timestamp
+2. WHEN `kanon build` compiles an artifact, THE Forge_CLI SHALL embed the Artifact_Version in the compiled output as a comment or metadata field (e.g., `<!-- forge:version 1.2.0 -->` in Markdown files, `"_forgeVersion": "1.2.0"` in JSON files)
+3. WHEN `kanon install` installs an artifact, THE Forge_CLI SHALL write a Version_Manifest file (`.forge-manifest.json`) alongside the installed files recording the artifact name, version, harness name, source path, and installation timestamp
 4. ~~THE Forge_CLI SHALL include the `version` field in each artifact's `catalog.json` entry~~ **[COMPLETED]** — The `CatalogEntrySchema` already includes `version`.
 5. IF a Knowledge_Artifact's frontmatter does not contain a `version` field, THEN THE Forge_CLI SHALL default to `0.1.0` and emit a warning suggesting the author add an explicit version
 
@@ -195,11 +195,11 @@ Several related specs have been fully implemented that overlap with features des
 
 ### Requirement 11: Upgrade Command
 
-**User Story:** As a developer, I want a `forge upgrade` command that updates installed artifacts to the latest version, applying migrations for breaking changes automatically.
+**User Story:** As a developer, I want a `kanon upgrade` command that updates installed artifacts to the latest version, applying migrations for breaking changes automatically.
 
 #### Acceptance Criteria
 
-1. WHEN the user runs `forge upgrade`, THE Forge_CLI SHALL scan the current working directory for Version_Manifest files and compare each installed artifact's version against the latest version available in the source Knowledge_Directory or catalog
+1. WHEN the user runs `kanon upgrade`, THE Forge_CLI SHALL scan the current working directory for Version_Manifest files and compare each installed artifact's version against the latest version available in the source Knowledge_Directory or catalog
 2. WHEN an installed artifact's version is older than the source version, THE Forge_CLI SHALL display the version difference and a summary of changes (from the artifact's changelog) and prompt the user to confirm the upgrade
 3. WHEN the user confirms an upgrade, THE Forge_CLI SHALL rebuild the artifact for the installed harness and replace the installed files with the new compiled output, updating the Version_Manifest accordingly
 4. WHEN a `--force` flag is provided, THE Forge_CLI SHALL skip confirmation prompts and upgrade all outdated artifacts
@@ -214,7 +214,7 @@ Several related specs have been fully implemented that overlap with features des
 
 1. THE Forge_CLI SHALL support an optional `migrations/` subdirectory within each Knowledge_Artifact containing TypeScript migration files named by version range (e.g., `1.0.0-to-2.0.0.ts`)
 2. EACH Migration_Script SHALL export a default function that receives the installed artifact's file contents and Version_Manifest and returns the transformed file contents
-3. WHEN `forge upgrade` detects a version gap that spans one or more Migration_Scripts, THE Forge_CLI SHALL execute the scripts in sequential version order (e.g., `1.0.0-to-2.0.0.ts` then `2.0.0-to-3.0.0.ts`)
+3. WHEN `kanon upgrade` detects a version gap that spans one or more Migration_Scripts, THE Forge_CLI SHALL execute the scripts in sequential version order (e.g., `1.0.0-to-2.0.0.ts` then `2.0.0-to-3.0.0.ts`)
 4. IF a required Migration_Script is missing for a version gap, THEN THE Forge_CLI SHALL emit a warning and fall back to a clean reinstall of the latest version, noting that custom modifications may be lost
 5. WHEN a Migration_Script throws an error, THE Forge_CLI SHALL abort the upgrade for that artifact, log the error to stderr, and leave the installed files unchanged
 
@@ -225,9 +225,9 @@ Several related specs have been fully implemented that overlap with features des
 #### Acceptance Criteria
 
 1. THE Forge_CLI SHALL support an optional `CHANGELOG.md` file within each Knowledge_Artifact directory documenting changes per version
-2. WHEN `forge upgrade` displays the version difference, THE Forge_CLI SHALL extract and display the relevant changelog entries between the installed version and the latest version
+2. WHEN `kanon upgrade` displays the version difference, THE Forge_CLI SHALL extract and display the relevant changelog entries between the installed version and the latest version
 3. THE Forge_CLI SHALL include a `changelog` field in the `catalog.json` entry set to `true` when a Knowledge_Artifact contains a `CHANGELOG.md` file, and `false` otherwise
-4. WHEN the user runs `forge catalog`, THE Forge_CLI SHALL display the latest version and whether a changelog is available for each artifact
+4. WHEN the user runs `kanon catalog`, THE Forge_CLI SHALL display the latest version and whether a changelog is available for each artifact
 
 ### Requirement 14: Upgrade Idempotency
 
@@ -235,14 +235,14 @@ Several related specs have been fully implemented that overlap with features des
 
 #### Acceptance Criteria
 
-1. FOR ALL installed artifacts at the latest version, running `forge upgrade` SHALL produce no file changes and report all artifacts as up to date (idempotency property)
-2. FOR ALL installed artifacts, running `forge upgrade` then immediately running `forge upgrade` again SHALL produce no file changes on the second run
+1. FOR ALL installed artifacts at the latest version, running `kanon upgrade` SHALL produce no file changes and report all artifacts as up to date (idempotency property)
+2. FOR ALL installed artifacts, running `kanon upgrade` then immediately running `kanon upgrade` again SHALL produce no file changes on the second run
 
 ---
 
 ### Feature 4: Multi-Repo / Monorepo Workspace Support
 
-> **Status**: The Guild_System's manifest (`.forge/manifest.yaml`) provides some workspace-like functionality — it declares artifact dependencies per repo with version pins, and `forge guild sync` materializes them into harness-specific locations. However, the full workspace config with multiple knowledge sources, per-project settings, workspace-aware build/install, and monorepo package mapping has NOT been implemented. The existing `forge.config.yaml` currently only defines backends for publish/install, not workspace project structure.
+> **Status**: The Guild_System's manifest (`.forge/manifest.yaml`) provides some workspace-like functionality — it declares artifact dependencies per repo with version pins, and `kanon guild sync` materializes them into harness-specific locations. However, the full workspace config with multiple knowledge sources, per-project settings, workspace-aware build/install, and monorepo package mapping has NOT been implemented. The existing `forge.config.yaml` currently only defines backends for publish/install, not workspace project structure.
 
 ---
 
@@ -260,11 +260,11 @@ Several related specs have been fully implemented that overlap with features des
 
 ### Requirement 16: Workspace-Aware Build
 
-**User Story:** As a developer in a monorepo, I want `forge build` to respect workspace configuration, so that each project gets only the artifacts and harnesses it needs.
+**User Story:** As a developer in a monorepo, I want `kanon build` to respect workspace configuration, so that each project gets only the artifacts and harnesses it needs.
 
 #### Acceptance Criteria
 
-1. WHEN a Workspace_Config with `projects` is present and the user runs `forge build`, THE Forge_CLI SHALL compile artifacts for each Workspace_Project according to its `harnesses` and `artifacts` configuration
+1. WHEN a Workspace_Config with `projects` is present and the user runs `kanon build`, THE Forge_CLI SHALL compile artifacts for each Workspace_Project according to its `harnesses` and `artifacts` configuration
 2. THE Forge_CLI SHALL resolve `knowledgeSources` paths relative to the workspace root and merge artifacts from all sources, using the artifact name as the deduplication key
 3. IF two knowledge sources define an artifact with the same name, THEN THE Forge_CLI SHALL return an error identifying the conflicting sources and artifact name
 4. THE Forge_CLI SHALL apply Workspace_Project `overrides` to the corresponding harness-config during compilation, merging them with the artifact's own `harness-config` frontmatter (project overrides take precedence)
@@ -272,14 +272,14 @@ Several related specs have been fully implemented that overlap with features des
 
 ### Requirement 17: Workspace-Aware Install
 
-**User Story:** As a developer in a monorepo, I want `forge install` to install artifacts into the correct project directories, so that each package gets its own harness configuration.
+**User Story:** As a developer in a monorepo, I want `kanon install` to install artifacts into the correct project directories, so that each package gets its own harness configuration.
 
 #### Acceptance Criteria
 
-1. WHEN a Workspace_Config with `projects` is present and the user runs `forge install`, THE Forge_CLI SHALL install artifacts into each Workspace_Project's `root` directory according to its configuration
+1. WHEN a Workspace_Config with `projects` is present and the user runs `kanon install`, THE Forge_CLI SHALL install artifacts into each Workspace_Project's `root` directory according to its configuration
 2. THE Forge_CLI SHALL create harness-specific directories within each project's root (e.g., `packages/api/.kiro/steering/`, `packages/web/.cursor/rules/`)
-3. WHEN the user runs `forge install --project <project-name>`, THE Forge_CLI SHALL install artifacts only for the specified Workspace_Project
-4. WHEN the user runs `forge install` without `--project` in a workspace, THE Forge_CLI SHALL install artifacts for all Workspace_Projects and print a summary grouped by project
+3. WHEN the user runs `kanon install --project <project-name>`, THE Forge_CLI SHALL install artifacts only for the specified Workspace_Project
+4. WHEN the user runs `kanon install` without `--project` in a workspace, THE Forge_CLI SHALL install artifacts for all Workspace_Projects and print a summary grouped by project
 5. THE Forge_CLI SHALL write a Version_Manifest per project-harness-artifact combination to enable per-project upgrade tracking
 
 ### Requirement 18: Workspace Configuration Validation
@@ -288,7 +288,7 @@ Several related specs have been fully implemented that overlap with features des
 
 #### Acceptance Criteria
 
-1. WHEN `forge validate` is run in a directory containing a Workspace_Config with `projects`, THE Forge_CLI SHALL validate the Workspace_Config in addition to validating Knowledge_Artifacts
+1. WHEN `kanon validate` is run in a directory containing a Workspace_Config with `projects`, THE Forge_CLI SHALL validate the Workspace_Config in addition to validating Knowledge_Artifacts
 2. THE Forge_CLI SHALL verify that all `root` paths in Workspace_Project entries point to existing directories
 3. THE Forge_CLI SHALL verify that all artifact names in Workspace_Project `artifacts` include/exclude lists reference artifacts that exist in the configured `knowledgeSources`
 4. THE Forge_CLI SHALL verify that all harness names in Workspace_Project `harnesses` lists are recognized supported harnesses
@@ -308,7 +308,7 @@ Several related specs have been fully implemented that overlap with features des
 
 ### Feature 5: Interactive Temper / Preview
 
-> **Status**: The Browse_SPA infrastructure (`forge catalog browse`) provides a local HTTP server with SPA rendering that could be leveraged for the web preview mode. The `forge temper` command itself has NOT been implemented.
+> **Status**: The Browse_SPA infrastructure (`kanon catalog browse`) provides a local HTTP server with SPA rendering that could be leveraged for the web preview mode. The `kanon temper` command itself has NOT been implemented.
 
 ---
 
@@ -318,7 +318,7 @@ Several related specs have been fully implemented that overlap with features des
 
 #### Acceptance Criteria
 
-1. WHEN the user runs `forge temper <artifact-name> --harness <harness-name>`, THE Forge_CLI SHALL compile the specified artifact for the specified harness and render a human-readable preview to stdout
+1. WHEN the user runs `kanon temper <artifact-name> --harness <harness-name>`, THE Forge_CLI SHALL compile the specified artifact for the specified harness and render a human-readable preview to stdout
 2. THE Temper_Renderer SHALL display the following sections in the preview: system prompt context (how the harness injects the steering content), the full compiled steering/rule file content, a list of hooks that would fire with their trigger conditions and actions, and a list of MCP servers that would be available with their commands and arguments
 3. THE Temper_Renderer SHALL use the harness context templates from `templates/eval-contexts/` to simulate how each harness wraps steering content in its system prompt
 4. THE Temper_Renderer SHALL use syntax highlighting and section delimiters (using `chalk`) to make the preview readable in the terminal
@@ -341,7 +341,7 @@ Several related specs have been fully implemented that overlap with features des
 
 #### Acceptance Criteria
 
-1. WHEN the user runs `forge temper <artifact-name> --compare`, THE Forge_CLI SHALL compile the artifact for all harnesses in its `harnesses` list and display a side-by-side summary
+1. WHEN the user runs `kanon temper <artifact-name> --compare`, THE Forge_CLI SHALL compile the artifact for all harnesses in its `harnesses` list and display a side-by-side summary
 2. THE side-by-side summary SHALL include for each harness: the number of files generated, the list of hooks translated (vs. degraded or omitted), the MCP servers configured, and the Degradation_Strategy applied for any unsupported capabilities
 3. THE Forge_CLI SHALL support a `--compare --harness <h1> --harness <h2>` syntax to compare only specific harnesses
 
@@ -351,7 +351,7 @@ Several related specs have been fully implemented that overlap with features des
 
 #### Acceptance Criteria
 
-1. WHEN the user runs `forge temper <artifact-name> --harness <harness-name> --web`, THE Forge_CLI SHALL start a local HTTP server (leveraging patterns from the existing Browse_SPA infrastructure) and open a browser to a rendered HTML preview of the compiled artifact
+1. WHEN the user runs `kanon temper <artifact-name> --harness <harness-name> --web`, THE Forge_CLI SHALL start a local HTTP server (leveraging patterns from the existing Browse_SPA infrastructure) and open a browser to a rendered HTML preview of the compiled artifact
 2. THE web preview SHALL render the same sections as the terminal preview (system prompt context, steering content, hooks, MCP servers, degradation report) with syntax-highlighted code blocks and collapsible sections
 3. THE web preview SHALL include a harness selector dropdown that re-renders the preview for a different harness without restarting the server
 4. THE Forge_CLI SHALL print the local URL to stderr and keep the server running until the user terminates it with Ctrl+C
@@ -363,9 +363,9 @@ Several related specs have been fully implemented that overlap with features des
 
 #### Acceptance Criteria
 
-1. FOR ALL valid artifact-harness combinations, running `forge temper <artifact-name> --harness <harness-name>` twice with the same source files SHALL produce identical stdout output (determinism property)
+1. FOR ALL valid artifact-harness combinations, running `kanon temper <artifact-name> --harness <harness-name>` twice with the same source files SHALL produce identical stdout output (determinism property)
 2. THE Temper_Renderer SHALL not include timestamps, random values, or terminal-width-dependent formatting in the stdout output when the `--no-color` flag is provided
-3. THE Forge_CLI SHALL support a `--json` flag on `forge temper` that outputs the preview data as a structured JSON document to stdout instead of formatted text
+3. THE Forge_CLI SHALL support a `--json` flag on `kanon temper` that outputs the preview data as a structured JSON document to stdout instead of formatted text
 
 ---
 
@@ -377,11 +377,11 @@ Several related specs have been fully implemented that overlap with features des
 
 ### Requirement 25: CLI Command Registration
 
-**User Story:** As a developer, I want the new commands integrated into the existing CLI structure, so that they are discoverable via `forge help` and follow the same conventions.
+**User Story:** As a developer, I want the new commands integrated into the existing CLI structure, so that they are discoverable via `kanon help` and follow the same conventions.
 
 #### Acceptance Criteria
 
-1. ~~THE Forge_CLI SHALL register `import` as a new subcommand with options `--harness <name>`, `--force`, and `--dry-run`~~ **[PARTIALLY COMPLETED]** — `forge import <path>` is registered with `--all`, `--format`, `--dry-run`, `--collections`, and `--knowledge-dir`. The `--harness` flag for scanning the current directory and `--force` for overwrite confirmation still need to be added.
+1. ~~THE Forge_CLI SHALL register `import` as a new subcommand with options `--harness <name>`, `--force`, and `--dry-run`~~ **[PARTIALLY COMPLETED]** — `kanon import <path>` is registered with `--all`, `--format`, `--dry-run`, `--collections`, and `--knowledge-dir`. The `--harness` flag for scanning the current directory and `--force` for overwrite confirmation still need to be added.
 2. THE Forge_CLI SHALL register `upgrade` as a new subcommand with options `--force`, `--dry-run`, and `--project <name>`
 3. THE Forge_CLI SHALL register `temper` as a new subcommand with options `--harness <name>`, `--compare`, `--web`, `--json`, and `--no-color`
 4. ~~THE Forge_CLI SHALL add a `--strict` flag to the existing `build` subcommand for strict degradation mode~~ **[COMPLETED]** — The `build` command already has `--strict` registered ("Treat compatibility warnings as errors").
@@ -405,10 +405,10 @@ Several related specs have been fully implemented that overlap with features des
 
 #### Acceptance Criteria
 
-1. ~~IF the user runs `forge import` in a directory with no detectable harness-native files, THEN THE Forge_CLI SHALL print a message to stderr listing the file paths checked and suggest running `forge new` instead~~ **[PARTIALLY COMPLETED]** — The existing `importCommand` handles missing files per source directory with skip messages. The broader "no harness-native files detected" message for the auto-detection mode (Requirement 8) still needs to be implemented.
-2. IF the user runs `forge upgrade` in a directory with no Version_Manifest files, THEN THE Forge_CLI SHALL print a message to stderr indicating no installed artifacts were found and suggest running `forge install` first
-3. IF the user runs `forge temper` with an artifact that has not been built, THEN THE Forge_CLI SHALL offer to run `forge build` automatically before rendering the preview
-4. IF the user runs `forge install --project <name>` with a project name not defined in the Workspace_Config, THEN THE Forge_CLI SHALL return an error listing the available project names
+1. ~~IF the user runs `kanon import` in a directory with no detectable harness-native files, THEN THE Forge_CLI SHALL print a message to stderr listing the file paths checked and suggest running `kanon new` instead~~ **[PARTIALLY COMPLETED]** — The existing `importCommand` handles missing files per source directory with skip messages. The broader "no harness-native files detected" message for the auto-detection mode (Requirement 8) still needs to be implemented.
+2. IF the user runs `kanon upgrade` in a directory with no Version_Manifest files, THEN THE Forge_CLI SHALL print a message to stderr indicating no installed artifacts were found and suggest running `kanon install` first
+3. IF the user runs `kanon temper` with an artifact that has not been built, THEN THE Forge_CLI SHALL offer to run `kanon build` automatically before rendering the preview
+4. IF the user runs `kanon install --project <name>` with a project name not defined in the Workspace_Config, THEN THE Forge_CLI SHALL return an error listing the available project names
 5. ALL error messages from new commands SHALL include actionable suggestions for resolution
 
 
@@ -537,7 +537,7 @@ Several related specs have been fully implemented that overlap with features des
 
 ### Feature 8: Build Dashboard
 
-> **Status**: The `forge build` command exists in `src/build.ts` and compiles artifacts for target harnesses. The Browse_SPA provides the UI infrastructure. What remains is exposing build operations through the Admin_API and rendering build progress, results, and history in the Admin_UI.
+> **Status**: The `kanon build` command exists in `src/build.ts` and compiles artifacts for target harnesses. The Browse_SPA provides the UI infrastructure. What remains is exposing build operations through the Admin_API and rendering build progress, results, and history in the Admin_UI.
 
 ---
 

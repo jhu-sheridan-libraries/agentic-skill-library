@@ -43,8 +43,8 @@ _Answer honestly. Reviewers will check._
 - [ ] I have tested this artifact in at least one AI coding session and it produced the expected behavior
 - [ ] The guidance is specific enough that an AI assistant can act on it without ambiguity
 - [ ] The content is original or properly attributed (see CODE_OF_CONDUCT.md)
-- [ ] `forge validate` passes on my local branch
-- [ ] `forge build` produces output for the declared harnesses
+- [ ] `kanon validate` passes on my local branch
+- [ ] `kanon build` produces output for the declared harnesses
 
 ## Why this belongs in context-bazaar
 
@@ -52,4 +52,4 @@ _What makes this artifact broadly useful to the community rather than specific t
 
 ## Related artifacts or collections
 
-_Are there existing artifacts this enhances, depends on, or overlaps with? Check `forge catalog browse` first._
+_Are there existing artifacts this enhances, depends on, or overlaps with? Check `kanon catalog browse` first._

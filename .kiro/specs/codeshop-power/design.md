@@ -2,7 +2,7 @@
 
 ## Overview
 
-The codeshop power consolidates 19 developer workflow skills into a single Kiro Knowledge Base Power (Pattern C — no `mcp.json`). The power transforms loosely-structured skill instructions — from the original Claude Code skills collection and from existing Skill Forge catalog artifacts — into actionable, phase-driven Kiro workflows. Thirteen skills are classified as Workflow_Skills with explicit ordered phases and `workflows/` phase files. Six are Knowledge_Skills with flat steering files only.
+The codeshop power consolidates 19 developer workflow skills into a single Kiro Knowledge Base Power (Pattern C — no `mcp.json`). The power transforms loosely-structured skill instructions — from the original Claude Code skills collection and from existing Kanon catalog artifacts — into actionable, phase-driven Kiro workflows. Thirteen skills are classified as Workflow_Skills with explicit ordered phases and `workflows/` phase files. Six are Knowledge_Skills with flat steering files only.
 
 The power's output structure:
 
@@ -99,7 +99,7 @@ graph TB
         HK[*.kiro.hook]
     end
 
-    subgraph "Skill Forge Build"
+    subgraph "Kanon Build"
         KM[knowledge.md]
         HY[hooks.yaml]
         WF[workflows/*.md]
@@ -122,7 +122,7 @@ graph TB
 
 ### Build Pipeline
 
-The codeshop power is authored as a canonical knowledge artifact in `skill-forge/knowledge/codeshop/` and compiled via the standard Skill Forge pipeline:
+The codeshop power is authored as a canonical knowledge artifact in `kanon/knowledge/codeshop/` and compiled via the standard Kanon pipeline:
 
 1. **Parse**: `knowledge.md` frontmatter validated against `FrontmatterSchema` (Zod). Body extracted as markdown.
 2. **Hooks**: `hooks.yaml` parsed against `HooksFileSchema` — array of `CanonicalHook` objects.
@@ -255,7 +255,7 @@ Each steering file is a self-contained markdown document loaded on demand via `r
 | `run-qa-session.md` | run-qa-session | (none) |
 | `refactor-architecture.md` | improve-codebase-architecture | LANGUAGE.md, DEEPENING.md, INTERFACE-DESIGN.md |
 | `challenge-domain-model.md` | domain-model | CONTEXT-FORMAT.md, ADR-FORMAT.md |
-| `author-knowledge.md` | write-a-skill | (none — refocused on canonical knowledge artifact authoring, composable with Skill Forge build pipeline) |
+| `author-knowledge.md` | write-a-skill | (none — refocused on canonical knowledge artifact authoring, composable with Kanon build pipeline) |
 | `write-living-docs.md` | (new — original to codeshop) | (none — includes Living Documentation anti-patterns and checklist inline) |
 | `review-changes.md` | review-ritual (catalog) | (none — inlines reading order, comment taxonomy, approval criteria from review-ritual) |
 | `journal-debug.md` | debug-journal (catalog) | (none — reuses existing phase files from debug-journal/workflows/) |
@@ -724,7 +724,7 @@ Verify steering file content meets requirements:
 - **Cross-references**: No steering file contains `../` relative paths (Property 1)
 - **Adaptation notes**: Affected steering files contain Kiro-equivalent instructions
 - **User-invoked notes**: `map-context.md`, `define-glossary.md`, `challenge-domain-model.md` contain user-invoked annotations
-- **author-knowledge extension**: `author-knowledge.md` covers canonical knowledge artifact authoring composable with Skill Forge
+- **author-knowledge extension**: `author-knowledge.md` covers canonical knowledge artifact authoring composable with Kanon
 - **Catalog sourcing**: `review-changes.md` contains reading order, comment taxonomy, and approval criteria from review-ritual
 - **Catalog sourcing**: `craft-commits.md` contains conventional commit format, rule of thumb, and anti-patterns from commit-craft
 - **Catalog sourcing**: `journal-debug.md` references three phase files and contains three-sentence rule from debug-journal
@@ -765,5 +765,5 @@ Per Req 20, manual validation after local installation:
 
 ### Test Runner
 
-Tests run via `bun test` from the `skill-forge/` directory. Structural and content tests are standard unit tests (not property-based) since the corpus is fixed.
+Tests run via `bun test` from the `kanon/` directory. Structural and content tests are standard unit tests (not property-based) since the corpus is fixed.
 

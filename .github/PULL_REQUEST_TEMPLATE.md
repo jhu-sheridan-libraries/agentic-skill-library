@@ -38,8 +38,8 @@ _If checked: describe migration path and which consumers are affected._
 - [ ] No new TypeScript errors (`bun x tsc --noEmit`)
 
 **Artifacts** _(skip if no knowledge/ changes)_
-- [ ] `forge validate` passes with no errors
-- [ ] `forge build` completes without errors
+- [ ] `kanon validate` passes with no errors
+- [ ] `kanon build` completes without errors
 - [ ] New or changed artifacts have non-placeholder body content
 - [ ] `inclusion: manual` set on any `reference-pack` artifacts
 - [ ] Harnesses restricted to `[kiro]` for imported powers
@@ -48,7 +48,7 @@ _If checked: describe migration path and which consumers are affected._
 - [ ] Changelog fragment added (`bun run changelog:new`)
 - [ ] ADR created or updated if an architectural decision was made
 - [ ] MCP bridge rebuilt (`bun run build:bridge`) if `src/mcp-bridge.ts` changed
-- [ ] `catalog.json` regenerated (`forge catalog generate`) if artifacts changed
+- [ ] `catalog.json` regenerated (`kanon catalog generate`) if artifacts changed
 
 ## Harness output preview
 

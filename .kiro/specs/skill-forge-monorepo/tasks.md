@@ -1,8 +1,8 @@
-# Implementation Plan: Skill Forge Monorepo
+# Implementation Plan: Kanon Monorepo
 
 ## Overview
 
-Implement the Skill Forge CLI tool — a TypeScript/Bun pipeline that parses knowledge artifacts (Markdown + YAML), validates them with Zod schemas, transforms them through seven harness adapters, renders output via Nunjucks templates, and emits harness-native files to `dist/`. The plan progresses bottom-up: schemas → parsing → validation → adapters → build orchestrator → install/new/catalog → eval framework → CLI wiring.
+Implement the Kanon CLI tool — a TypeScript/Bun pipeline that parses knowledge artifacts (Markdown + YAML), validates them with Zod schemas, transforms them through seven harness adapters, renders output via Nunjucks templates, and emits harness-native files to `dist/`. The plan progresses bottom-up: schemas → parsing → validation → adapters → build orchestrator → install/new/catalog → eval framework → CLI wiring.
 
 ## Tasks
 
@@ -54,7 +54,7 @@ Implement the Skill Forge CLI tool — a TypeScript/Bun pipeline that parses kno
     - _Requirements: 18.1–18.8, 2.5, 3.5, 4.5_
 
   - [x] 3.2 Implement `validateCommand()` CLI handler in `src/validate.ts`
-    - Wire `forge validate` (all artifacts) and `forge validate <artifact-path>` (single artifact)
+    - Wire `kanon validate` (all artifacts) and `kanon validate <artifact-path>` (single artifact)
     - Print pass/fail per artifact to stderr with summary count
     - Exit with non-zero status code if any errors found
     - _Requirements: 18.1–18.2, 18.7–18.8, 27.4–27.5_
@@ -168,10 +168,10 @@ Implement the Skill Forge CLI tool — a TypeScript/Bun pipeline that parses kno
     - _Requirements: 5.1–5.6, 6.1–6.4, 4.2–4.4_
 
   - [x] 8.2 Implement `buildCommand()` CLI handler in `src/build.ts`
-    - Wire `forge build` (all harnesses) and `forge build --harness <name>` (single harness)
+    - Wire `kanon build` (all harnesses) and `kanon build --harness <name>` (single harness)
     - Validate harness name against `SUPPORTED_HARNESSES`, error with valid list if invalid
     - Print summary to stderr: artifacts compiled, harnesses targeted, file count
-    - Handle empty knowledge directory with helpful error message suggesting `forge new`
+    - Handle empty knowledge directory with helpful error message suggesting `kanon new`
     - _Requirements: 5.5, 6.3, 27.1, 27.4–27.5_
 
   - [x] 8.3 Write property test for build idempotency
@@ -191,7 +191,7 @@ Implement the Skill Forge CLI tool — a TypeScript/Bun pipeline that parses kno
     - Include `evals: true` when artifact has `evals/` subdirectory
     - Sort entries alphabetically by `name`
     - Serialize with `JSON.stringify(entries, null, 2)` for pretty-printed 2-space indentation
-    - Integrate catalog generation into the build pipeline (auto-regenerate after `forge build`)
+    - Integrate catalog generation into the build pipeline (auto-regenerate after `kanon build`)
     - _Requirements: 19.1–19.5, 32.5_
 
   - [x] 9.2 Write property test for catalog serialization round-trip
@@ -207,7 +207,7 @@ Implement the Skill Forge CLI tool — a TypeScript/Bun pipeline that parses kno
 - [x] 10. Checkpoint — Ensure build and catalog tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [x] 11. Implement the `forge new` scaffolding command
+- [x] 11. Implement the `kanon new` scaffolding command
   - [x] 11.1 Implement `newCommand()` in `src/new.ts`
     - Create `knowledge/<artifact-name>/` directory with `knowledge.md`, empty `workflows/`, stub `hooks.yaml`, and stub `mcp-servers.yaml`
     - Load scaffold templates from `templates/knowledge/` and render with Nunjucks
@@ -216,7 +216,7 @@ Implement the Skill Forge CLI tool — a TypeScript/Bun pipeline that parses kno
     - Print confirmation to stderr with path and next steps
     - _Requirements: 17.1–17.5_
 
-  - [x] 11.2 Write unit tests for `forge new`
+  - [x] 11.2 Write unit tests for `kanon new`
     - Test scaffold creates correct directory structure
     - Test scaffold populates frontmatter correctly
     - Test error when artifact directory already exists
@@ -229,7 +229,7 @@ Implement the Skill Forge CLI tool — a TypeScript/Bun pipeline that parses kno
     - Prompt for confirmation before overwriting (unless `--force`)
     - Support `--dry-run` to show plan without writing
     - Support `--source <path>` for remote skill-forge repo path
-    - Error if artifact not built, suggest `forge build`
+    - Error if artifact not built, suggest `kanon build`
     - Print summary to stderr
     - _Requirements: 15.1–15.5, 16.1–16.4, 28.2_
 
@@ -238,12 +238,12 @@ Implement the Skill Forge CLI tool — a TypeScript/Bun pipeline that parses kno
     - Present searchable multi-select of artifacts from catalog (show `displayName`, `description`, `keywords`)
     - Present multi-select of harnesses, pre-selecting detected harnesses (check for `.kiro/`, `.cursor/`, etc. in cwd)
     - Display confirmation summary before proceeding
-    - Offer to run `forge build` if dist output missing
+    - Offer to run `kanon build` if dist output missing
     - Support `--dry-run` flag
     - _Requirements: 31.1–31.8_
 
   - [x] 12.3 Implement `installCommand()` CLI handler in `src/install.ts`
-    - Wire `forge install` (no args → interactive), `forge install <artifact> --harness <name>`, `forge install <artifact> --all`
+    - Wire `kanon install` (no args → interactive), `kanon install <artifact> --harness <name>`, `kanon install <artifact> --all`
     - Pass through `--force`, `--dry-run`, `--source`, `--from-release` options
     - _Requirements: 15.1, 16.1, 31.1, 27.2_
 
@@ -272,7 +272,7 @@ Implement the Skill Forge CLI tool — a TypeScript/Bun pipeline that parses kno
     - Exit non-zero on failures
     - _Requirements: 33.1–33.8, 34.1–34.6, 37.1–37.5_
 
-  - [x] 14.3 Implement `scaffoldEvals()` for `forge eval --init <artifact>` in `src/eval.ts`
+  - [x] 14.3 Implement `scaffoldEvals()` for `kanon eval --init <artifact>` in `src/eval.ts`
     - Generate starter `evals/promptfooconfig.yaml` within the artifact directory
     - Include compiled steering file as prompt, default provider config, placeholder test cases
     - Generate at least one test case per harness and per hook
@@ -295,10 +295,10 @@ Implement the Skill Forge CLI tool — a TypeScript/Bun pipeline that parses kno
     - _Requirements: 27.4–27.5, 30.1_
 
   - [x] 15.2 Write integration tests for CLI commands
-    - Test `forge build` end-to-end with a sample knowledge artifact
-    - Test `forge validate` returns correct exit codes
-    - Test `forge new` creates expected directory structure
-    - Test `forge catalog` produces valid JSON
+    - Test `kanon build` end-to-end with a sample knowledge artifact
+    - Test `kanon validate` returns correct exit codes
+    - Test `kanon new` creates expected directory structure
+    - Test `kanon catalog` produces valid JSON
     - _Requirements: 27.1–27.5_
 
 - [x] 16. Final checkpoint — Ensure all tests pass

@@ -2,12 +2,12 @@
 
 ## Overview
 
-Add 6 spec-aware hooks to the codeshop knowledge artifact's `harness-config.kiro.spec-hooks` frontmatter, extend the `knowledge.md` body with Spec Mode Integration documentation in the Skill Router and Workflow Composition sections, and validate the integration with property-based and example-based tests. All changes target `skill-forge/knowledge/codeshop/knowledge.md` — no source code, adapter, or template changes are needed.
+Add 6 spec-aware hooks to the codeshop knowledge artifact's `harness-config.kiro.spec-hooks` frontmatter, extend the `knowledge.md` body with Spec Mode Integration documentation in the Skill Router and Workflow Composition sections, and validate the integration with property-based and example-based tests. All changes target `kanon/knowledge/codeshop/knowledge.md` — no source code, adapter, or template changes are needed.
 
 ## Tasks
 
 - [x] 1. Add spec-hooks array to knowledge.md frontmatter
-  - [x] 1.1 Add the 6 spec-hook entries to `harness-config.kiro.spec-hooks` in `skill-forge/knowledge/codeshop/knowledge.md` frontmatter
+  - [x] 1.1 Add the 6 spec-hook entries to `harness-config.kiro.spec-hooks` in `kanon/knowledge/codeshop/knowledge.md` frontmatter
     - Add the `spec-hooks` array under `harness-config.kiro` (after `format: power`)
     - Define hooks in precedence order: Plan Stress Test, Bugfix Triage Context, Domain Concept Validation, TDD Task Detection, Post-Task Code Review, Post-Task Commit Guidance
     - Each entry must have `name`, `version` ("1.0.0"), `description`, `when.type` (preTaskExecution or postTaskExecution), and `then.type` ("askAgent") with `then.prompt`
@@ -22,7 +22,7 @@ Add 6 spec-aware hooks to the codeshop knowledge artifact's `harness-config.kiro
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 3.4, 4.1, 4.2, 4.3, 4.4, 5.1, 5.2, 5.3, 5.4, 6.1, 6.2, 6.3, 6.4, 8.1, 8.2, 11.1, 11.2, 11.3_
 
   - [x] 1.2 Write property tests for spec-hook compilation (Properties 1–3)
-    - Create `skill-forge/src/__tests__/codeshop-spec-hooks.property.test.ts`
+    - Create `kanon/src/__tests__/codeshop-spec-hooks.property.test.ts`
     - Use `fast-check` with `bun:test` (follow patterns from `schema-roundtrip.property.test.ts`)
     - **Property 1: Spec-hook compilation cardinality** — For any array of N valid spec-hook entries, the Kiro adapter emits exactly N `.kiro.hook` files from the spec-hooks path
     - **Validates: Requirements 8.3, 12.1**
@@ -32,7 +32,7 @@ Add 6 spec-aware hooks to the codeshop knowledge artifact's `harness-config.kiro
     - **Validates: Requirements 8.4, 12.3**
 
   - [x] 1.3 Write property test for canonical hook preservation (Property 4)
-    - Add to `skill-forge/src/__tests__/codeshop-spec-hooks.property.test.ts`
+    - Add to `kanon/src/__tests__/codeshop-spec-hooks.property.test.ts`
     - **Property 4: Canonical hooks preserved alongside spec-hooks** — For any artifact with both canonical hooks and spec-hooks, the canonical `.kiro.hook` files are identical whether or not spec-hooks are present
     - **Validates: Requirements 7.1, 7.2, 7.3, 7.4, 7.5, 12.4**
 
@@ -57,7 +57,7 @@ Add 6 spec-aware hooks to the codeshop knowledge artifact's `harness-config.kiro
 
 - [x] 5. Write example-based unit tests
   - [x] 5.1 Create example-based unit tests for the 6 spec-hooks and knowledge.md content
-    - Create `skill-forge/src/__tests__/codeshop-spec-hooks.test.ts`
+    - Create `kanon/src/__tests__/codeshop-spec-hooks.test.ts`
     - Test each of the 6 spec-hooks has correct event type (`preTaskExecution` or `postTaskExecution`)
     - Test each spec-hook references the correct steering file in its prompt
     - Test each pre-task hook prompt contains both match and no-match branches
@@ -67,7 +67,7 @@ Add 6 spec-aware hooks to the codeshop knowledge artifact's `harness-config.kiro
     - _Requirements: 1.1–1.4, 2.1–2.4, 3.1–3.4, 4.1–4.4, 5.1–5.4, 6.1–6.4, 7.1–7.5, 8.1–8.4, 11.1–11.3_
 
   - [x] 5.2 Write integration test for full build pipeline
-    - Add to `skill-forge/src/__tests__/codeshop-spec-hooks.test.ts` (or separate file)
+    - Add to `kanon/src/__tests__/codeshop-spec-hooks.test.ts` (or separate file)
     - Run `bun run dev build --harness kiro` and verify `dist/kiro/codeshop/` contains all 14 hook files (8 canonical + 6 spec)
     - Verify each `.kiro.hook` file is valid JSON
     - _Requirements: 12.1, 12.2, 12.3, 12.4_
@@ -79,7 +79,7 @@ Add 6 spec-aware hooks to the codeshop knowledge artifact's `harness-config.kiro
 ## Notes
 
 - Tasks marked with `*` are optional and can be skipped for faster MVP
-- All changes target `skill-forge/knowledge/codeshop/knowledge.md` — no changes to `src/schemas.ts`, `src/adapters/kiro.ts`, or templates
+- All changes target `kanon/knowledge/codeshop/knowledge.md` — no changes to `src/schemas.ts`, `src/adapters/kiro.ts`, or templates
 - The Kiro adapter already handles `spec-hooks` compilation (see `kiroAdapter` spec-hooks loop in `kiro.ts`)
 - Property tests exercise the `kiroAdapter` pure function directly with generated spec-hook entries
 - Example tests parse the actual `knowledge.md` frontmatter and body to validate authored content

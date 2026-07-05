@@ -1,8 +1,8 @@
-# Implementation Plan: Skill Forge 10-Star Features
+# Implementation Plan: Kanon 10-Star Features
 
 ## Overview
 
-This plan implements five major features for Skill Forge: (1) Harness Capability Matrix + Graceful Degradation, (2) Bidirectional Sync / `forge import`, (3) Artifact Versioning + Migration, (4) Multi-Repo / Monorepo Workspace Support, and (5) Interactive Temper / Preview. Tasks are ordered so each builds on the previous, ending with CLI wiring and cross-cutting integration. Property-based tests use `fast-check` (already a dev dependency). All code is TypeScript running on Bun.
+This plan implements five major features for Kanon: (1) Harness Capability Matrix + Graceful Degradation, (2) Bidirectional Sync / `kanon import`, (3) Artifact Versioning + Migration, (4) Multi-Repo / Monorepo Workspace Support, and (5) Interactive Temper / Preview. Tasks are ordered so each builds on the previous, ending with CLI wiring and cross-cutting integration. Property-based tests use `fast-check` (already a dev dependency). All code is TypeScript running on Bun.
 
 ## Tasks
 
@@ -95,7 +95,7 @@ This plan implements five major features for Skill Forge: (1) Harness Capability
 - [x] 3. Checkpoint — Capability Matrix + Degradation
   - Ensure all tests pass, ask the user if questions arise.
 
-- [x] 4. Implement Bidirectional Sync / `forge import`
+- [x] 4. Implement Bidirectional Sync / `kanon import`
   - [x] 4.1 Create `src/importers/types.ts`
     - Define `ImportedFile`, `ImportResult`, `ImportParser` interfaces
     - Define `importerRegistry` type mapping `HarnessName` to `{ nativePaths: string[]; parse: ImportParser }`
@@ -105,7 +105,7 @@ This plan implements five major features for Skill Forge: (1) Harness Capability
     - Implement `detectHarnessFiles()` — scans cwd for all known harness-native file paths
     - Implement `importCommand()` — orchestrates import with `--harness`, `--force`, `--dry-run` flags
     - Handle auto-detection when no `--harness` flag: present summary, prompt for confirmation
-    - Handle no files detected: print message suggesting `forge new`
+    - Handle no files detected: print message suggesting `kanon new`
     - _Requirements: 5.1, 5.2, 5.4, 5.5, 5.6, 8.1, 8.2, 8.3, 8.4, 27.1_
   - [x] 4.3 Create per-harness import parsers
     - Create `src/importers/kiro.ts` — parse `.kiro/steering/*.md` (frontmatter + body) and `.kiro/hooks/*.kiro.hook` (JSON → CanonicalHook)
@@ -291,16 +291,16 @@ This plan implements five major features for Skill Forge: (1) Harness Capability
 
 - [x] 12. CLI Registration and Cross-Cutting Integration
   - [x] 12.1 Register new CLI commands in `src/cli.ts`
-    - Register `forge import` with `--harness <name>`, `--force`, `--dry-run` options
-    - Register `forge upgrade` with `--force`, `--dry-run`, `--project <name>` options
-    - Register `forge temper <artifact>` with `--harness <name>`, `--compare`, `--web`, `--json`, `--no-color` options
-    - Add `--strict` flag to existing `forge build` command
-    - Add `--project <name>` flag to existing `forge install` command
+    - Register `kanon import` with `--harness <name>`, `--force`, `--dry-run` options
+    - Register `kanon upgrade` with `--force`, `--dry-run`, `--project <name>` options
+    - Register `kanon temper <artifact>` with `--harness <name>`, `--compare`, `--web`, `--json`, `--no-color` options
+    - Add `--strict` flag to existing `kanon build` command
+    - Add `--project <name>` flag to existing `kanon install` command
     - Wire all commands to their respective handler functions
     - _Requirements: 25.1, 25.2, 25.3, 25.4, 25.5, 25.6_
   - [x] 12.2 Update help metadata for new commands
     - Add entries to `commandMetaRegistry` for `import`, `upgrade`, `temper`
-    - Ensure new commands appear in `forge --help` and `forge help <command>` output
+    - Ensure new commands appear in `kanon --help` and `kanon help <command>` output
     - _Requirements: 25.1, 25.2, 25.3_
   - [x] 12.3 Implement cross-cutting error handling
     - Ensure all new commands follow existing conventions: diagnostics to stderr, machine-readable output to stdout, non-zero exit on error

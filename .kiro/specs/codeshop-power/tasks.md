@@ -2,12 +2,12 @@
 
 ## Overview
 
-Create the codeshop knowledge artifact at `skill-forge/knowledge/codeshop/` — a Kiro Knowledge Base Power consolidating 19 developer workflow skills. The artifact consists of `knowledge.md` (frontmatter + POWER.md body), `hooks.yaml` (8 canonical hooks), 19 steering-file sections embedded in the POWER.md body's skill router, and ~55 workflow phase files under `workflows/`. Content is sourced from 15 skills in the `skills/` workspace folder and 3 existing catalog artifacts (`review-ritual`, `commit-craft`, `debug-journal`). Implementation proceeds bottom-up: knowledge.md frontmatter → POWER.md body sections → hooks → Knowledge_Skill steering files → Workflow_Skill steering files → workflow phase files → build validation → testing.
+Create the codeshop knowledge artifact at `kanon/knowledge/codeshop/` — a Kiro Knowledge Base Power consolidating 19 developer workflow skills. The artifact consists of `knowledge.md` (frontmatter + POWER.md body), `hooks.yaml` (8 canonical hooks), 19 steering-file sections embedded in the POWER.md body's skill router, and ~55 workflow phase files under `workflows/`. Content is sourced from 15 skills in the `skills/` workspace folder and 3 existing catalog artifacts (`review-ritual`, `commit-craft`, `debug-journal`). Implementation proceeds bottom-up: knowledge.md frontmatter → POWER.md body sections → hooks → Knowledge_Skill steering files → Workflow_Skill steering files → workflow phase files → build validation → testing.
 
 ## Tasks
 
 - [ ] 1. Create knowledge.md with frontmatter and POWER.md body skeleton
-  - [x] 1.1 Create `skill-forge/knowledge/codeshop/knowledge.md` with valid YAML frontmatter
+  - [x] 1.1 Create `kanon/knowledge/codeshop/knowledge.md` with valid YAML frontmatter
     - Fields: `name: codeshop`, `displayName: Codeshop`, `description` (≤3 sentences covering planning, design, development, testing, writing, knowledge management), `keywords` array with domain-specific compound terms (must include: codeshop, planning, interface-design, test-driven-development, refactoring, architecture, domain-modeling, issue-triage, prd, vertical-slices, codebase-architecture, bug-triage, qa-session, skill-authoring, article-editing, living-documentation, code-review, commit-messages, debugging-methodology), `author: Matt Pocock`, `version: 0.1.0`, `harnesses: [kiro]`, `type: power`, `inclusion: manual`, `categories: [architecture, testing, documentation]`, `harness-config.kiro.format: power`
     - Keywords MUST NOT include banned broad terms: "writing", "skills", "code-review" (as standalone), "tdd", "domain-model", "code", "development", "testing"
     - _Requirements: 1.1, 1.5, 1.6, 10.1, 10.2, 10.3, 10.4, 17.1, 17.2, 17.3_
@@ -68,7 +68,7 @@ Create the codeshop knowledge artifact at `skill-forge/knowledge/codeshop/` — 
   - Ensure knowledge.md has valid YAML frontmatter and all 6 body sections (Onboarding, Skill Router, Shared Concepts, Workflow Composition, Companion Powers, Troubleshooting). Ask the user if questions arise.
 
 - [x] 3. Create hooks.yaml with all 8 canonical hooks
-  - Create `skill-forge/knowledge/codeshop/hooks.yaml` with 8 hooks total
+  - Create `kanon/knowledge/codeshop/hooks.yaml` with 8 hooks total
   - 3 `user_triggered` hooks: Map Context, Define Glossary, Challenge Domain Model — each loads the corresponding steering file and starts the workflow
   - 1 `pre_task` hook: Architectural Change Detection — checks if task involves architectural changes, loads refactor-architecture or challenge-domain-model if needed
   - 1 `agent_stop` hook: Unfiled Issue Reminder — scans conversation for unfiled bugs, files them using triage-bug or run-qa-session patterns
@@ -112,7 +112,7 @@ Create the codeshop knowledge artifact at `skill-forge/knowledge/codeshop/` — 
     - _Requirements: 2.1, 4.1, 7.1, 7.2, 13.2_
 
   - [x] 4.6 Create `craft-commits.md` steering file content
-    - Source: existing `skill-forge/knowledge/commit-craft/knowledge.md` catalog artifact
+    - Source: existing `kanon/knowledge/commit-craft/knowledge.md` catalog artifact
     - Flat Knowledge_Skill — adapt commit-craft content for Kiro: conventional commit format, "rule of thumb" test, examples of good and bad messages, anti-patterns
     - _Requirements: 2.1, 23.1, 23.2, 23.3, 23.4_
 
@@ -193,9 +193,9 @@ Create the codeshop knowledge artifact at `skill-forge/knowledge/codeshop/` — 
     - Workflow overview referencing 3 phase files: author-knowledge-gather, author-knowledge-draft, author-knowledge-review
     - Refocus on authoring canonical knowledge artifacts (`knowledge.md` + frontmatter + optional hooks.yaml, mcp-servers.yaml, workflows/)
     - Document the `FrontmatterSchema` fields as a reference template
-    - Explain that the artifact is harness-agnostic — Skill Forge compiles to skills, powers, rules, or agents depending on type and harness-config
+    - Explain that the artifact is harness-agnostic — Kanon compiles to skills, powers, rules, or agents depending on type and harness-config
     - Include guidance on when to add workflows/ phase files vs body content, and when to add hooks.yaml and mcp-servers.yaml
-    - Reference Skill Forge build commands (`bun run dev build`, `bun run dev validate`)
+    - Reference Kanon build commands (`bun run dev build`, `bun run dev validate`)
     - _Requirements: 2.1, 4.1, 7.1, 7.2, 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 13.1, 13.3, 13.4_
 
   - [x] 6.11 Create `write-living-docs.md` steering file content
@@ -206,13 +206,13 @@ Create the codeshop knowledge artifact at `skill-forge/knowledge/codeshop/` — 
     - _Requirements: 21.1, 21.2, 21.9, 21.10, 21.11_
 
   - [x] 6.12 Create `review-changes.md` steering file content
-    - Source: existing `skill-forge/knowledge/review-ritual/knowledge.md` catalog artifact
+    - Source: existing `kanon/knowledge/review-ritual/knowledge.md` catalog artifact
     - Workflow overview referencing 4 phase files: review-changes-orient, review-changes-read, review-changes-comment, review-changes-decide
     - Inline review-ritual's reading order, comment taxonomy (must address / should address / nit), and approval criteria as reference sections
     - _Requirements: 22.1, 22.2, 22.7, 22.8_
 
   - [x] 6.13 Create `journal-debug.md` steering file content
-    - Source: existing `skill-forge/knowledge/debug-journal/knowledge.md` catalog artifact
+    - Source: existing `kanon/knowledge/debug-journal/knowledge.md` catalog artifact
     - Workflow overview referencing 3 phase files: journal-debug-articulate, journal-debug-isolate, journal-debug-fix-and-verify
     - Include the three-sentence rule, best practices, and examples as reference sections
     - _Requirements: 24.1, 24.2, 24.6, 24.7_
@@ -408,7 +408,7 @@ Create the codeshop knowledge artifact at `skill-forge/knowledge/codeshop/` — 
   - [x] 17.2 Create `workflows/author-knowledge-draft.md`
     - Source: draft phase from `skills/write-a-skill/SKILL.md`
     - Refocus on drafting the `knowledge.md` file: frontmatter with all FrontmatterSchema fields, markdown body with the artifact's content, optional workflows/ phase files for multi-step processes, optional hooks.yaml and mcp-servers.yaml
-    - Include guidance that Skill Forge handles compilation — author focuses on canonical content, not harness-specific output
+    - Include guidance that Kanon handles compilation — author focuses on canonical content, not harness-specific output
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 13.3_
 
   - [x] 17.3 Create `workflows/author-knowledge-review.md`
@@ -457,22 +457,22 @@ Create the codeshop knowledge artifact at `skill-forge/knowledge/codeshop/` — 
 
 - [ ] 20. Create workflow phase files for journal-debug (from debug-journal)
   - [x] 20.1 Create `workflows/journal-debug-articulate.md`
-    - Source: adapt from `skill-forge/knowledge/debug-journal/workflows/01-articulate.md`
+    - Source: adapt from `kanon/knowledge/debug-journal/workflows/01-articulate.md`
     - Articulate phase: enforce three-sentence rule — (1) what I expected, (2) what actually happened, (3) what I already know it is not. Do NOT proceed until all three sentences written and at least one hypothesis ruled out
     - _Requirements: 24.2, 24.3_
 
   - [x] 20.2 Create `workflows/journal-debug-isolate.md`
-    - Source: adapt from `skill-forge/knowledge/debug-journal/workflows/02-isolate.md`
+    - Source: adapt from `kanon/knowledge/debug-journal/workflows/02-isolate.md`
     - Isolate phase: shrink problem surface using binary search, minimal reproduction, one-variable-at-a-time
     - _Requirements: 24.2, 24.4_
 
   - [x] 20.3 Create `workflows/journal-debug-fix-and-verify.md`
-    - Source: adapt from `skill-forge/knowledge/debug-journal/workflows/03-fix-and-verify.md`
+    - Source: adapt from `kanon/knowledge/debug-journal/workflows/03-fix-and-verify.md`
     - Fix and Verify phase: re-run reproduction case, check adjacent behavior, check for same mistake elsewhere, write regression test
     - _Requirements: 24.2, 24.5_
 
 - [x] 21. Checkpoint — Verify all ~55 workflow phase files
-  - Ensure all workflow phase files exist under `skill-forge/knowledge/codeshop/workflows/`
+  - Ensure all workflow phase files exist under `kanon/knowledge/codeshop/workflows/`
   - Verify each phase file has Entry Criteria, Steps, and Exit Criteria sections
   - Verify naming convention: `{skill-name}-{phase-name}.md`
   - Verify no relative file path links (no `../` patterns)
@@ -480,12 +480,12 @@ Create the codeshop knowledge artifact at `skill-forge/knowledge/codeshop/` — 
   - Ask the user if questions arise.
 
 - [ ] 22. Build and validate the codeshop power
-  - [x] 22.1 Run `bun run dev build --harness kiro` from `skill-forge/` to compile the codeshop artifact
+  - [x] 22.1 Run `bun run dev build --harness kiro` from `kanon/` to compile the codeshop artifact
     - Verify build produces: POWER.md, 19 steering files, ~55 phase files in steering/, hook files, no mcp.json
     - Fix any build errors (invalid frontmatter, missing workflow files, invalid hooks YAML)
     - _Requirements: 1.1, 1.2, 1.3, 1.4_
 
-  - [x] 22.2 Run `bun run dev validate` from `skill-forge/` to validate the artifact
+  - [x] 22.2 Run `bun run dev validate` from `kanon/` to validate the artifact
     - Verify codeshop passes all validation checks
     - _Requirements: 1.1, 1.2, 1.3, 1.4_
 
@@ -505,7 +505,7 @@ Create the codeshop knowledge artifact at `skill-forge/knowledge/codeshop/` — 
     - _Requirements: 17.1, 17.2, 17.3_
 
 - [ ] 23. Testing and validation per Requirement 20
-  - [x] 23.1 Write structural validation tests in `skill-forge/src/__tests__/codeshop-power.test.ts`
+  - [x] 23.1 Write structural validation tests in `kanon/src/__tests__/codeshop-power.test.ts`
     - Test: knowledge.md has valid frontmatter (passes FrontmatterSchema)
     - Test: build produces expected file counts (19 steering files, ~55 phase files, hook files, no mcp.json)
     - Test: every phase file in workflows/ has Entry Criteria, Steps, Exit Criteria sections (Property 2)
@@ -523,7 +523,7 @@ Create the codeshop knowledge artifact at `skill-forge/knowledge/codeshop/` — 
     - Test: POWER.md contains Companion Powers section listing adr, type-guardian, karpathy-mode
     - _Requirements: 20.1, 20.2, 20.4, 20.5, 20.6_
 
-  - [x] 23.2 Run `bun test` from `skill-forge/` to verify all tests pass (including new codeshop tests)
+  - [x] 23.2 Run `bun test` from `kanon/` to verify all tests pass (including new codeshop tests)
     - All existing tests must continue to pass
     - All new codeshop structural validation tests must pass
     - _Requirements: 20.1, 20.2, 20.3, 20.4, 20.5, 20.6_
@@ -535,8 +535,8 @@ Create the codeshop knowledge artifact at `skill-forge/knowledge/codeshop/` — 
 ## Notes
 
 - All steering file content is authored as markdown — no programming language selection needed
-- The codeshop artifact follows the standard Skill Forge knowledge artifact structure at `skill-forge/knowledge/codeshop/`
-- Source skills are in the `skills/` workspace folder; catalog artifacts (review-ritual, commit-craft, debug-journal) are in `skill-forge/knowledge/`
+- The codeshop artifact follows the standard Kanon knowledge artifact structure at `kanon/knowledge/codeshop/`
+- Source skills are in the `skills/` workspace folder; catalog artifacts (review-ritual, commit-craft, debug-journal) are in `kanon/knowledge/`
 - The Kiro adapter compiles `knowledge.md` + `hooks.yaml` + `workflows/` into the final power output in `dist/kiro/codeshop/`
 - Phase files are copied to `steering/` during compilation, so they are loaded via `readSteering` at runtime
 - Checkpoints ensure incremental validation throughout the process

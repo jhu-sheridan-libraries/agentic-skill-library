@@ -19,7 +19,7 @@ That said: using AI assistance is not just acceptable here, it's expected. This 
 Curated means:
 - You've read it and can explain what it does
 - You've verified it against the domain it claims to cover
-- You've run `forge validate` and `forge build` and they pass
+- You've run `kanon validate` and `kanon build` and they pass
 - You'd stake your name on the advice it gives
 
 Uncurated means: you generated it, skimmed it, and submitted it hoping no one would notice. That's the conduct this project does not want.

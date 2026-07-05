@@ -2,7 +2,7 @@
 
 ## Overview
 
-Souk Compass is a standalone MCP server that adds Solr-backed semantic search to the context-bazaar ecosystem. It lives in `skill-forge/mcp-servers/souk-compass/` and connects to an Apache Solr 9.x instance to provide vector indexing and kNN search over the bazaar's knowledge artifacts and user-supplied document collections.
+Souk Compass is a standalone MCP server that adds Solr-backed semantic search to the context-bazaar ecosystem. It lives in `kanon/mcp-servers/souk-compass/` and connects to an Apache Solr 9.x instance to provide vector indexing and kNN search over the bazaar's knowledge artifacts and user-supplied document collections.
 
 The server exposes eleven tools via stdio transport: `compass_setup`, `compass_index_artifacts`, `compass_search`, `compass_index_document`, `compass_reindex`, `compass_status`, `compass_health`, `compass_recall`, `compass_remember`, `compass_recall_memory`, and `compass_profile_workspace`. Embeddings are generated through a pluggable provider interface — local-first by default, with an optional Bedrock Titan cloud provider for users with AWS credentials. A three-tier embedding cache (in-memory LRU → SQLite → Solr-as-cache) avoids redundant embedding API calls across sessions and team members.
 
@@ -10,7 +10,7 @@ Souk Compass is fully independent of the existing `context-bazaar` MCP bridge at
 
 Beyond core vector search, Souk Compass supports hybrid search (BM25 + kNN) for improved relevance, chunk-level indexing of long artifacts for finer-grained retrieval, search result snippets for quick relevance previews, automatic re-indexing on catalog changes via content hash change detection, configurable similarity score thresholds to filter low-relevance noise, proactive contextual skill recall, cross-session plugin-level memory persistence, and workspace-aware skill matching.
 
-As a Claude Code plugin, Souk Compass is bundled alongside the existing catalog bridge in `.mcp.json` and distributed via the plugin's CJS bundle. An auto-reindex hook keeps the Solr index synchronized with the catalog after `forge build` runs. The `compass_recall` tool enables proactive artifact suggestions, `compass_remember` / `compass_recall_memory` provide cross-session memory, and `compass_profile_workspace` matches workspace characteristics against the artifact catalog for project-aware recommendations.
+As a Claude Code plugin, Souk Compass is bundled alongside the existing catalog bridge in `.mcp.json` and distributed via the plugin's CJS bundle. An auto-reindex hook keeps the Solr index synchronized with the catalog after `kanon build` runs. The `compass_recall` tool enables proactive artifact suggestions, `compass_remember` / `compass_recall_memory` provide cross-session memory, and `compass_profile_workspace` matches workspace characteristics against the artifact catalog for project-aware recommendations.
 
 ### Key Design Decisions
 
@@ -27,7 +27,7 @@ As a Claude Code plugin, Souk Compass is bundled alongside the existing catalog 
 11. **Cross-tool chaining by convention** — `compass_search` results include `artifact_name` and `artifact_path` so the AI assistant can pass them directly to the catalog bridge's `artifact_content` tool. An optional `includeContent` parameter inlines full content for simple use cases.
 12. **Plugin-level memory via Solr** — Memory notes (`compass_remember`) are stored in the user document collection with `doc_source: "memory"`, reusing the same Solr infrastructure and embedding cache. No separate storage backend needed.
 13. **Workspace profiling as embedding comparison** — `compass_profile_workspace` generates a text description from workspace files, embeds it, and performs kNN search against the artifact collection. This reuses the existing search pipeline rather than introducing a separate matching engine.
-14. **Auto-reindex hook** — A `postToolUse` hook fires after `forge build` and invokes `compass_reindex` via `askAgent`, keeping the index fresh without manual intervention.
+14. **Auto-reindex hook** — A `postToolUse` hook fires after `kanon build` and invokes `compass_reindex` via `askAgent`, keeping the index fresh without manual intervention.
 
 ## Architecture
 
@@ -282,7 +282,7 @@ sequenceDiagram
 ### Directory Layout
 
 ```
-skill-forge/mcp-servers/souk-compass/
+kanon/mcp-servers/souk-compass/
 ├── src/
 │   ├── index.ts                  # MCP server entry point
 │   ├── schemas.ts                # All Zod schemas + inferred types
@@ -311,7 +311,7 @@ skill-forge/mcp-servers/souk-compass/
 │   │   └── compass-profile-workspace.ts  # compass_profile_workspace tool handler
 │   └── catalog-reader.ts         # Reads catalog.json + knowledge.md files
 ├── hooks/
-│   └── auto-reindex.json         # postToolUse hook: compass_reindex after forge build
+│   └── auto-reindex.json         # postToolUse hook: compass_reindex after kanon build
 ├── solr/
 │   ├── schema.xml                # Solr collection schema definition
 │   └── README.md                 # Solr setup instructions
@@ -802,7 +802,7 @@ export async function readArtifactContent(
 ): Promise<{ frontmatter: Record<string, unknown>; body: string }>;
 ```
 
-Reuses the existing `CatalogEntrySchema` from `skill-forge/src/schemas.ts` for validation.
+Reuses the existing `CatalogEntrySchema` from `kanon/src/schemas.ts` for validation.
 
 #### 9. Chunker — `src/chunker.ts`
 
@@ -1004,7 +1004,7 @@ export function generateMatchReason(
 {
   "id": "souk-compass-auto-reindex",
   "name": "Auto-Reindex on Build",
-  "description": "Triggers compass_reindex after forge build completes to keep the Solr index synchronized with the catalog",
+  "description": "Triggers compass_reindex after kanon build completes to keep the Solr index synchronized with the catalog",
   "eventType": "postToolUse",
   "hookAction": "askAgent",
   "outputPrompt": "The catalog has been rebuilt. Run compass_reindex to update the semantic search index.",
@@ -1012,7 +1012,7 @@ export function generateMatchReason(
 }
 ```
 
-The hook fires after shell tool usage (which includes `forge build`). The `compass_reindex` tool uses content-hash change detection to re-index only changed artifacts. If Solr is not running, `compass_reindex` returns a non-fatal error and the hook does not block subsequent operations.
+The hook fires after shell tool usage (which includes `kanon build`). The `compass_reindex` tool uses content-hash change detection to re-index only changed artifacts. If Solr is not running, `compass_reindex` returns a non-fatal error and the hook does not block subsequent operations.
 
 ## Data Models
 
@@ -1238,11 +1238,11 @@ export const ToolInputSchemas = {
 {
   "context-bazaar": {
     "command": "node",
-    "args": ["${CLAUDE_PLUGIN_ROOT}/skill-forge/bridge/mcp-server.cjs"]
+    "args": ["${CLAUDE_PLUGIN_ROOT}/kanon/bridge/mcp-server.cjs"]
   },
   "souk-compass": {
     "command": "node",
-    "args": ["${CLAUDE_PLUGIN_ROOT}/skill-forge/mcp-servers/souk-compass/dist/mcp-server.cjs"],
+    "args": ["${CLAUDE_PLUGIN_ROOT}/kanon/mcp-servers/souk-compass/dist/mcp-server.cjs"],
     "env": {
       "SOUK_COMPASS_SOLR_URL": "http://localhost:8983",
       "SOUK_COMPASS_SOLR_COLLECTION": "context-bazaar",
@@ -1271,7 +1271,7 @@ export const ToolInputSchemas = {
 
 #### Build Process
 
-The Souk Compass CJS bundle is built to `skill-forge/mcp-servers/souk-compass/dist/mcp-server.cjs` as part of the project's build process, using the same Bun bundler approach as the existing `bridge/mcp-server.cjs`. A `build:souk-compass` script in `package.json` handles this:
+The Souk Compass CJS bundle is built to `kanon/mcp-servers/souk-compass/dist/mcp-server.cjs` as part of the project's build process, using the same Bun bundler approach as the existing `bridge/mcp-server.cjs`. A `build:souk-compass` script in `package.json` handles this:
 
 ```bash
 bun build src/index.ts --target=node --outfile=dist/mcp-server.cjs --format=cjs

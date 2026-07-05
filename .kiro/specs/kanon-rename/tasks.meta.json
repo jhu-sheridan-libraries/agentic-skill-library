@@ -1,0 +1,521 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "**Task 1.1**: Create `src/cli-deprecated.ts` shim that prints deprecation warning and re-exports `cli.ts`": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968473060
+      },
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968503617
+      },
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782970378427
+      }
+    ],
+    "**Task 1.2**: Add config file fallback logic": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474075
+      },
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782970396309
+      }
+    ],
+    "**Task 1.3**: Update CLI Commander metadata": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474123
+      },
+      {
+        "executionId": "86017992-e414-40bd-9a91-2bc8838add17",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782974342148
+      },
+      {
+        "executionId": "86017992-e414-40bd-9a91-2bc8838add17",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782974999640
+      }
+    ],
+    "**Task 2.1**: Rename top-level directory": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474150
+      },
+      {
+        "executionId": "86017992-e414-40bd-9a91-2bc8838add17",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782975018394
+      },
+      {
+        "executionId": "86017992-e414-40bd-9a91-2bc8838add17",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782975176731
+      }
+    ],
+    "**Task 2.2**: Rename power directory": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474181
+      },
+      {
+        "executionId": "86017992-e414-40bd-9a91-2bc8838add17",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782975189628
+      },
+      {
+        "executionId": "86017992-e414-40bd-9a91-2bc8838add17",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782975271882
+      }
+    ],
+    "**Task 2.3**: Rename self-referencing knowledge artifact": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474207
+      },
+      {
+        "executionId": "86017992-e414-40bd-9a91-2bc8838add17",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782975285236
+      },
+      {
+        "executionId": "86017992-e414-40bd-9a91-2bc8838add17",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782977133164
+      }
+    ],
+    "**Task 2.4**: Rename config file": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474231
+      },
+      {
+        "executionId": "86017992-e414-40bd-9a91-2bc8838add17",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782977140924
+      },
+      {
+        "executionId": "86017992-e414-40bd-9a91-2bc8838add17",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782977345272
+      }
+    ],
+    "**Task 2.5**: Update `package.json` identity": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474256
+      },
+      {
+        "executionId": "86017992-e414-40bd-9a91-2bc8838add17",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782977374943
+      },
+      {
+        "executionId": "86017992-e414-40bd-9a91-2bc8838add17",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782983195845
+      }
+    ],
+    "**Task 3.1**: Replace `@thinkingsage/skill-forge` → `@thinkingsage/kanon` in all files": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474282
+      },
+      {
+        "executionId": "86017992-e414-40bd-9a91-2bc8838add17",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782983209854
+      },
+      {
+        "executionId": "86017992-e414-40bd-9a91-2bc8838add17",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782983970728
+      }
+    ],
+    "**Task 3.2**: Replace path references `skill-forge/` → `kanon/`": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474305
+      },
+      {
+        "executionId": "86017992-e414-40bd-9a91-2bc8838add17",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782983984651
+      }
+    ],
+    "**Task 3.3**: Replace `Skill Forge` → `Kanon` in prose": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474343
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782996788891
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782997479517
+      }
+    ],
+    "**Task 3.4**: Replace remaining `skill-forge` and `skill_forge` references": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474366
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782997487661
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782998778445
+      }
+    ],
+    "**Task 3.5**: Replace `forge.config.yaml` references → `kanon.config.yaml`": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474390
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782998785498
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782999843785
+      }
+    ],
+    "**Task 3.6**: Replace CLI command references `` `forge `` → `` `kanon `` in documentation": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474413
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782999850450
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783002457681
+      }
+    ],
+    "**Task 4.1**: Update `.github/workflows/*.yml` — working directory and paths": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474438
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783002466489
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783002664454
+      }
+    ],
+    "**Task 4.2**: Update `.mcp.json` bridge path": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474464
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783002672651
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783002687927
+      }
+    ],
+    "**Task 4.3**: Update `.claude-plugin/plugin.json`": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474490
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783002694782
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783002709467
+      }
+    ],
+    "**Task 4.4**: Update `.kiro/hooks/*.json` paths": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474523
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783002716223
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783002744912
+      }
+    ],
+    "**Task 4.5**: Update `.kiro/steering/*.md` references": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474549
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783002751830
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783002765495
+      }
+    ],
+    "**Task 4.6**: Update `.github/dependabot.yml` directory": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474575
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783002773453
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783002794093
+      }
+    ],
+    "**Task 4.7**: Update `.github/labeler.yml` path patterns": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474615
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783002801102
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783002904539
+      }
+    ],
+    "**Task 5.1**: TypeScript compiles — `bun x tsc --noEmit`": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474638
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783002912938
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783003051437
+      }
+    ],
+    "**Task 5.2**: All tests pass — `bun test`": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474663
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783003058182
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783003211947
+      }
+    ],
+    "**Task 5.3**: Lint clean — `bun run lint`": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474690
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783003219938
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783003448148
+      }
+    ],
+    "**Task 5.4**: Full build succeeds — `bun run dev build`": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474716
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783003455074
+      }
+    ],
+    "**Task 5.5**: CLI shows new branding — `bun run dev --help`": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474743
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783003462310
+      }
+    ],
+    "**Task 5.6**: Catalog generates — `bun run dev catalog build`": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474780
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783003469248
+      }
+    ],
+    "**Task 6.1**: Update root `README.md` with new name and paths": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474805
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783003477767
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783003576208
+      }
+    ],
+    "**Task 6.2**: Update `CONTRIBUTING.md` with new directory and CLI name": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474831
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783003583126
+      }
+    ],
+    "**Task 6.3**: Update `CITATION.cff` with new title": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474858
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783003589881
+      }
+    ],
+    "**Task 6.4**: Add CHANGELOG entry with migration instructions": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474882
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783003597463
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783003698626
+      }
+    ],
+    "**Task 6.5**: Create changelog fragment for the rename": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474915
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783003706310
+      }
+    ],
+    "**Task 6.6**: Update ADR README title reference": [
+      {
+        "executionId": "a37d79ea-f04a-4cc7-aac8-826b629e6071",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1782968474949
+      },
+      {
+        "executionId": "8fede745-1974-42f3-af49-9e48c53080bf",
+        "chatSessionId": "sess_7b31ad8b-61cb-4ee9-9023-dcd55eddefa4",
+        "timestamp": 1783003713216
+      }
+    ]
+  }
+}

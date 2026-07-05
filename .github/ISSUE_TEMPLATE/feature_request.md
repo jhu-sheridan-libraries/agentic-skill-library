@@ -10,19 +10,19 @@ _What can't you do today, or what does the current behavior make harder than it 
 
 ## Who is affected
 
-_Is this a problem for artifact authors, end users installing via `/plugin`, contributors to the forge tool, or all three?_
+_Is this a problem for artifact authors, end users installing via `/plugin`, contributors to the kanon tool, or all three?_
 
-- [ ] Artifact authors (`forge new`, `forge validate`, `forge build`)
+- [ ] Artifact authors (`kanon new`, `kanon validate`, `kanon build`)
 - [ ] End users (plugin install, MCP bridge, catalog browse)
-- [ ] forge tool contributors (CLI, adapters, schemas, tests)
+- [ ] kanon tool contributors (CLI, adapters, schemas, tests)
 - [ ] All
 
 ## Proposed solution
 
-_Describe what you'd like. If it's a new forge command, sketch the interface:_
+_Describe what you'd like. If it's a new kanon command, sketch the interface:_
 
 ```bash
-forge <command> [options]
+kanon <command> [options]
 ```
 
 _If it's a new artifact type or collection, describe the domain and what guidance it would provide._

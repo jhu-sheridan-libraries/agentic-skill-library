@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```
 agentic-skill-forge/
-├── skill-forge/          ← the forge CLI tool (TypeScript, Bun)
+├── kanon/                ← the kanon CLI tool (TypeScript, Bun)
 │   ├── src/              ← all source code
 │   ├── knowledge/        ← canonical knowledge artifacts
 │   ├── collections/      ← collection manifests (*.yaml)
@@ -23,20 +23,20 @@ agentic-skill-forge/
 └── CODE_OF_CONDUCT.md
 ```
 
-All development commands run from `skill-forge/`.
+All development commands run from `kanon/`.
 
 ## Commands
 
 ```bash
-cd skill-forge
+cd kanon
 
-bun run dev <command>          # run forge CLI without building
+bun run dev <command>          # run kanon CLI without building
 bun test                       # run all tests
 bun test --test-name-pattern="<regex>"  # run a single test or suite
 bun run lint                   # biome check
 bun run lint:fix               # biome check --write
 bun run format                 # biome format --write
-bun run build                  # compile forge binary
+bun run build                  # compile kanon binary
 bun run build:bridge           # rebuild MCP bridge (bridge/mcp-server.cjs)
 bun run changelog:new --type added --message "..."  # add a changelog fragment
 bun run changelog:draft        # preview next CHANGELOG.md entry
@@ -73,11 +73,11 @@ The scan logic in `catalog.ts` and `build.ts` handles two directory layouts:
 
 ### The catalog
 
-`forge catalog generate` runs `generateCatalog(["knowledge", "packages"])` → writes `catalog.json`. The catalog is the primary artifact index; the browse UI and MCP bridge both read from it. It must be regenerated after any `knowledge/` change.
+`kanon catalog generate` runs `generateCatalog(["knowledge", "packages"])` → writes `catalog.json`. The catalog is the primary artifact index; the browse UI and MCP bridge both read from it. It must be regenerated after any `knowledge/` change.
 
 ### Harness compatibility
 
-`src/compatibility.ts` declares which asset types each harness supports fully, partially, or not at all. `forge build --strict` treats partial/none as errors; without the flag they produce warnings. The kiro-only artifacts (powers) should declare `harnesses: [kiro]` — building them for all harnesses generates expected partial-support warnings.
+`src/compatibility.ts` declares which asset types each harness supports fully, partially, or not at all. `kanon build --strict` treats partial/none as errors; without the flag they produce warnings. The kiro-only artifacts (powers) should declare `harnesses: [kiro]` — building them for all harnesses generates expected partial-support warnings.
 
 ### Collections
 
@@ -97,16 +97,16 @@ The Kiro hooks in `.kiro/hooks/` enforce two conventions:
 
 1. **Changelog fragments**: every substantive change needs a fragment in `changes/` (`bun run changelog:new`). Fragments are compiled into `CHANGELOG.md` at release.
 
-2. **ADRs**: changes to `.ts`, `.json`, `.yaml`, `.njk`, schema, config, module, or adapter files should be assessed for architectural significance. If a real decision with trade-offs was made, document it in `skill-forge/docs/adr/` (next number after `0020-*.md`). ADR-0001 through ADR-0020 are in the index at `docs/adr/README.md`.
+2. **ADRs**: changes to `.ts`, `.json`, `.yaml`, `.njk`, schema, config, module, or adapter files should be assessed for architectural significance. If a real decision with trade-offs was made, document it in `kanon/docs/adr/` (next number after `0020-*.md`). ADR-0001 through ADR-0020 are in the index at `docs/adr/README.md`.
 
 ## Configuration boundaries
 
-`forge.config.yaml` (per-repo) — backend names, S3 buckets, governance allowlists. **May be committed.** No credentials.
+`kanon.config.yaml` (per-repo) — backend names, S3 buckets, governance allowlists. **May be committed.** No credentials.
 
 `~/.forge/config.yaml` (user-global) — credentials, tokens, personal overrides. **Must never be committed.** Gitignored at the repo root level.
 
-Use `${ENV_VAR}` syntax in `forge.config.yaml` to reference credentials at runtime without storing them. `forge validate --security` warns on credential-like values hardcoded in `mcp-servers.yaml`.
+Use `${ENV_VAR}` syntax in `kanon.config.yaml` to reference credentials at runtime without storing them. `kanon validate --security` warns on credential-like values hardcoded in `mcp-servers.yaml`.
 
-## forge publish flow
+## kanon publish flow
 
-`forge publish [--dry-run]` runs the full release pipeline: validate → rebuild bridge → build all harnesses → generate catalog → create release manifest → package per-harness tarballs → `gh release create`. The `--dry-run` flag stops before any upload.
+`kanon publish [--dry-run]` runs the full release pipeline: validate → rebuild bridge → build all harnesses → generate catalog → create release manifest → package per-harness tarballs → `gh release create`. The `--dry-run` flag stops before any upload.

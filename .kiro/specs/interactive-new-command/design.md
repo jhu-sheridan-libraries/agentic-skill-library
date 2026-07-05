@@ -2,7 +2,7 @@
 
 ## Overview
 
-This design transforms the `forge new` command from a passive scaffold-and-print-instructions flow into a guided interactive wizard powered by `@clack/prompts`. The wizard walks artifact authors — including researchers with no YAML/schema knowledge — through every frontmatter field, optional hook and MCP server configuration, and knowledge body content, then writes validated files and prints a summary.
+This design transforms the `kanon new` command from a passive scaffold-and-print-instructions flow into a guided interactive wizard powered by `@clack/prompts`. The wizard walks artifact authors — including researchers with no YAML/schema knowledge — through every frontmatter field, optional hook and MCP server configuration, and knowledge body content, then writes validated files and prints a summary.
 
 The existing `newCommand` function in `src/new.ts` is refactored into two phases:
 1. **Scaffold phase** — unchanged directory/file creation via Nunjucks templates.
@@ -10,13 +10,13 @@ The existing `newCommand` function in `src/new.ts` is refactored into two phases
 
 A `--yes` flag bypasses the wizard for CI/scripting use cases, preserving template defaults.
 
-Additionally, a new `forge tutorial` command provides a guided first-run walkthrough for new users. The tutorial is implemented in a separate `src/tutorial.ts` module that reuses the existing wizard from `src/wizard.ts` rather than reimplementing prompts. It walks users through the full workflow — creating a sample artifact, understanding the generated files, and building — using friendly, jargon-free language aimed at researchers with no development background.
+Additionally, a new `kanon tutorial` command provides a guided first-run walkthrough for new users. The tutorial is implemented in a separate `src/tutorial.ts` module that reuses the existing wizard from `src/wizard.ts` rather than reimplementing prompts. It walks users through the full workflow — creating a sample artifact, understanding the generated files, and building — using friendly, jargon-free language aimed at researchers with no development background.
 
 ## Architecture
 
 ```mermaid
 flowchart TD
-    A["forge new &lt;name&gt;"] --> B{--yes flag?}
+    A["kanon new &lt;name&gt;"] --> B{--yes flag?}
     B -- yes --> C[Scaffold with defaults]
     B -- no --> D[Scaffold with defaults]
     D --> E[runWizard]
@@ -31,13 +31,13 @@ flowchart TD
     K --> L
     L --> M[Display summary]
 
-    T["forge tutorial"] --> T1[Welcome & concepts]
+    T["kanon tutorial"] --> T1[Welcome & concepts]
     T1 --> T2[Explain artifact files]
     T2 --> T3[Create sample artifact]
     T3 --> D2[Scaffold hello-world]
     D2 --> E2[runWizard with suggestions]
     E2 --> T4[Explain generated files]
-    T4 --> T5[Run forge build]
+    T4 --> T5[Run kanon build]
     T5 --> T6[Explain build output]
     T6 --> T7[Completion summary]
 
@@ -63,7 +63,7 @@ The wizard is a linear pipeline of prompt groups. Each group collects data, vali
 
 4. **Separate wizard module**: The wizard logic lives in a new `src/wizard.ts` module, keeping `src/new.ts` thin. This makes the wizard independently testable and reusable.
 
-5. **Tutorial reuses the wizard**: The `forge tutorial` command delegates artifact creation to `runWizard()` from `src/wizard.ts` rather than reimplementing prompts. This keeps the tutorial thin — it only adds educational narration and orchestration around the existing wizard flow.
+5. **Tutorial reuses the wizard**: The `kanon tutorial` command delegates artifact creation to `runWizard()` from `src/wizard.ts` rather than reimplementing prompts. This keeps the tutorial thin — it only adds educational narration and orchestration around the existing wizard flow.
 
 6. **Tutorial as a linear step sequence**: The tutorial is modeled as an ordered array of `TutorialStep` objects, each with an explanation phase and an optional action phase. This makes steps easy to add, remove, or reorder without changing control flow logic.
 
@@ -197,13 +197,13 @@ export interface TutorialDefaults {
 
 export const TUTORIAL_DEFAULTS: TutorialDefaults = {
   artifactName: "hello-world",
-  description: "A sample artifact created during the Skill Forge tutorial",
+  description: "A sample artifact created during the Kanon tutorial",
   keywords: "tutorial, sample, getting-started",
   author: "Tutorial User",
 };
 
 /**
- * Entry point for `forge tutorial`.
+ * Entry point for `kanon tutorial`.
  * Runs the full guided walkthrough.
  */
 export async function tutorialCommand(): Promise<void>;
@@ -221,7 +221,7 @@ export function buildTutorialSteps(artifactName: string): TutorialStep[];
 export function showProgress(current: number, total: number): void;
 
 /**
- * Display the welcome message explaining Skill Forge and artifacts.
+ * Display the welcome message explaining Kanon and artifacts.
  */
 export function showWelcome(): void;
 
@@ -232,7 +232,7 @@ export function showWelcome(): void;
 export function explainGeneratedFiles(artifactDir: string): Promise<void>;
 
 /**
- * Explain the build output after `forge build` completes.
+ * Explain the build output after `kanon build` completes.
  */
 export function explainBuildOutput(): void;
 
@@ -254,7 +254,7 @@ Internal (non-exported) functions:
 |---|---|
 | `explainConcept(term, definition)` | Display an inline definition for a technical term (e.g., "YAML", "frontmatter") using `p.log.info` with chalk styling |
 | `waitForContinue(message?)` | Display a "Press Enter to continue" prompt using `p.text` with an empty default, allowing the user to read at their own pace |
-| `runTutorialBuild(artifactName)` | Execute `forge build` programmatically for the sample artifact and capture output |
+| `runTutorialBuild(artifactName)` | Execute `kanon build` programmatically for the sample artifact and capture output |
 
 ### Prompt Flow Detail
 
@@ -283,13 +283,13 @@ The tutorial presents a linear sequence of steps. Each step shows a progress ind
 
 | Step | Phase | What Happens | User Action |
 |---|---|---|---|
-| 1 | Welcome | Display Skill Forge overview: what it is, what artifacts are, why they matter | Press Enter to continue |
+| 1 | Welcome | Display Kanon overview: what it is, what artifacts are, why they matter | Press Enter to continue |
 | 2 | Concepts | Explain the three core files (knowledge.md, hooks.yaml, mcp-servers.yaml) in plain language, defining YAML and frontmatter inline | Press Enter to continue |
 | 3 | Create | Scaffold the sample artifact directory, then launch `runWizard()` with tutorial-friendly placeholder suggestions | Complete the wizard prompts |
 | 4 | Explain | Read each generated file and display annotated explanations of what the user's inputs produced; explain the `workflows/` directory | Press Enter to continue |
-| 5 | Build | Run `forge build` on the sample artifact and display the output | Automatic (build runs programmatically) |
+| 5 | Build | Run `kanon build` on the sample artifact and display the output | Automatic (build runs programmatically) |
 | 6 | Results | Explain what the build produced, where compiled output lives, and how harnesses consume it | Press Enter to continue |
-| 7 | Complete | Show completion summary, list what was accomplished, suggest `forge new` for a real artifact and link to docs | None (tutorial ends) |
+| 7 | Complete | Show completion summary, list what was accomplished, suggest `kanon new` for a real artifact and link to docs | None (tutorial ends) |
 
 The tutorial uses `p.log.info`, `p.log.step`, and `p.note` for explanatory text rather than prompts that require input, keeping the flow lightweight. Only the wizard step (Step 3) and the "Press Enter to continue" pauses require user interaction.
 
@@ -437,7 +437,7 @@ interface TutorialDefaults {
 | Template engine failure | Propagate existing `TemplateError` handling from `template-engine.ts`. |
 | Tutorial: sample artifact already exists | Prompt user to overwrite or choose a different name via `resolveArtifactName()`. If user cancels, exit gracefully. |
 | Tutorial: user cancels during walkthrough | `p.isCancel()` check after every prompt → friendly exit message → `process.exit(0)`. Sample artifact files created before cancellation are retained on disk. |
-| Tutorial: `forge build` fails during walkthrough | Catch build errors, display a friendly message explaining the build failed, suggest running `forge validate` to diagnose, and continue to the completion step. |
+| Tutorial: `kanon build` fails during walkthrough | Catch build errors, display a friendly message explaining the build failed, suggest running `kanon validate` to diagnose, and continue to the completion step. |
 
 ### Cancellation Safety
 
@@ -477,10 +477,10 @@ Each test is tagged: `Feature: interactive-new-command, Property N: <property te
 | CLI flag routing | `src/__tests__/new.test.ts` | `--yes` skips wizard; no flag launches wizard; existing dir errors |
 | Conditional prompts | `src/__tests__/wizard.test.ts` | fileMatch shows file_patterns; file events show file_patterns; tool events show tool_types; ask_agent shows prompt field; run_command shows command field |
 | Cancellation | `src/__tests__/wizard.test.ts` | Cancel at each major prompt group; verify no file writes |
-| Summary output | `src/__tests__/wizard.test.ts` | Verify outro lists written files; verify "forge build" suggestion |
+| Summary output | `src/__tests__/wizard.test.ts` | Verify outro lists written files; verify "kanon build" suggestion |
 | Edge cases | `src/__tests__/wizard-parsing.test.ts` | Empty input; all-whitespace input; single value (no commas); trailing commas |
-| Tutorial: CLI registration | `src/__tests__/tutorial.test.ts` | `forge tutorial` launches tutorial runner; unknown flags are rejected |
-| Tutorial: welcome & concepts | `src/__tests__/tutorial.test.ts` | Welcome message contains "Skill Forge" and "artifact"; concepts step explains all three file types |
+| Tutorial: CLI registration | `src/__tests__/tutorial.test.ts` | `kanon tutorial` launches tutorial runner; unknown flags are rejected |
+| Tutorial: welcome & concepts | `src/__tests__/tutorial.test.ts` | Welcome message contains "Kanon" and "artifact"; concepts step explains all three file types |
 | Tutorial: wizard integration | `src/__tests__/tutorial.test.ts` | Tutorial calls `runWizard` with correct artifact name; wizard result is written to disk |
 | Tutorial: build step | `src/__tests__/tutorial.test.ts` | Build is invoked on sample artifact; build failure is caught and reported gracefully |
 | Tutorial: cancellation | `src/__tests__/tutorial.test.ts` | Cancel at welcome step exits cleanly; cancel after wizard retains created files |

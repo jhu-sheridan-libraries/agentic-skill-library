@@ -2,7 +2,7 @@
 
 ## Overview
 
-The static catalog export (`forge catalog export`) produces a self-contained HTML page that embeds catalog data inline via `window.__CATALOG_DATA__` and `window.__ARTIFACT_CONTENT__` globals. Currently, the static page shares the exact same HTML template as the live `forge catalog browse` server, which means it renders interactive tabs (Collections, Manifest, Dependencies, Workspace, Build) and header action buttons (Import, Build, + New Artifact) that require live API endpoints to function. These non-functional elements confuse users on GitHub Pages.
+The static catalog export (`kanon catalog export`) produces a self-contained HTML page that embeds catalog data inline via `window.__CATALOG_DATA__` and `window.__ARTIFACT_CONTENT__` globals. Currently, the static page shares the exact same HTML template as the live `kanon catalog browse` server, which means it renders interactive tabs (Collections, Manifest, Dependencies, Workspace, Build) and header action buttons (Import, Build, + New Artifact) that require live API endpoints to function. These non-functional elements confuse users on GitHub Pages.
 
 This design adds a client-side static-mode detection layer that hides server-dependent UI elements and pre-selects the "jhu" collection filter when the page is loaded in static mode. The approach keeps the shared HTML template intact and applies all conditional behavior via JavaScript at initialization time, so the live browse server remains completely unaffected.
 

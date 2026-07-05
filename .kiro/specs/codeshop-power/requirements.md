@@ -169,16 +169,16 @@ The codeshop power consolidates ~20 agent skills (originally authored for Claude
 
 ### Requirement 12: author-knowledge Adaptation
 
-**User Story:** As a developer, I want the `author-knowledge` steering file (from `write-a-skill`) refocused on authoring canonical knowledge artifacts (`knowledge.md` + supplementary files), so that the output composes naturally with Skill Forge's build pipeline which handles compilation to any harness format.
+**User Story:** As a developer, I want the `author-knowledge` steering file (from `write-a-skill`) refocused on authoring canonical knowledge artifacts (`knowledge.md` + supplementary files), so that the output composes naturally with Kanon's build pipeline which handles compilation to any harness format.
 
 #### Acceptance Criteria
 
 1. THE steering file `author-knowledge.md` SHALL guide the user through authoring a canonical knowledge artifact: `knowledge.md` with YAML frontmatter and markdown body, optional `hooks.yaml`, optional `mcp-servers.yaml`, and optional `workflows/` phase files.
 2. THE steering file `author-knowledge.md` SHALL document the `FrontmatterSchema` fields (name, displayName, description, keywords, author, version, type, harnesses, inclusion, categories, ecosystem, depends, enhances, maturity) as a reference template.
-3. THE steering file `author-knowledge.md` SHALL explain that the canonical artifact is harness-agnostic — Skill Forge compiles it to skills, powers, rules, or agents depending on the `type` and `harness-config` fields, so the author focuses on content, not output format.
+3. THE steering file `author-knowledge.md` SHALL explain that the canonical artifact is harness-agnostic — Kanon compiles it to skills, powers, rules, or agents depending on the `type` and `harness-config` fields, so the author focuses on content, not output format.
 4. THE steering file `author-knowledge.md` SHALL include guidance on when to add `workflows/` phase files (ordered multi-step processes) vs keeping content in the body (reference material, behavioral modes).
 5. THE steering file `author-knowledge.md` SHALL include guidance on when to add `hooks.yaml` (proactive agent behavior tied to IDE events) and `mcp-servers.yaml` (MCP server dependencies).
-6. THE steering file `author-knowledge.md` SHALL reference the Skill Forge build commands (`bun run dev build`, `bun run dev validate`) as the mechanism for compiling the artifact to any target harness.
+6. THE steering file `author-knowledge.md` SHALL reference the Kanon build commands (`bun run dev build`, `bun run dev validate`) as the mechanism for compiling the artifact to any target harness.
 
 ### Requirement 13: Workflow vs Knowledge Classification
 
@@ -297,7 +297,7 @@ The codeshop power consolidates ~20 agent skills (originally authored for Claude
 
 #### Acceptance Criteria
 
-1. THE Power SHALL include a Workflow_Skill called `review-changes` sourced from the existing `review-ritual` knowledge artifact in the Skill Forge catalog.
+1. THE Power SHALL include a Workflow_Skill called `review-changes` sourced from the existing `review-ritual` knowledge artifact in the Kanon catalog.
 2. THE `review-changes` workflow SHALL have the following ordered phases: Orient, Read, Comment, Decide.
 3. THE Orient phase SHALL instruct the agent to read the PR description and skim the full diff to understand scope and intent before reviewing any individual file.
 4. THE Read phase SHALL instruct the agent to read changed tests first (they explain expected behavior), then read the implementation to verify it matches the tests and description.
@@ -313,7 +313,7 @@ The codeshop power consolidates ~20 agent skills (originally authored for Claude
 
 #### Acceptance Criteria
 
-1. THE Power SHALL include a Knowledge_Skill called `craft-commits` sourced from the existing `commit-craft` knowledge artifact in the Skill Forge catalog.
+1. THE Power SHALL include a Knowledge_Skill called `craft-commits` sourced from the existing `commit-craft` knowledge artifact in the Kanon catalog.
 2. THE `craft-commits` steering file SHALL contain the commit-craft content adapted for Kiro: conventional commit format, the "rule of thumb" test, examples of good and bad messages, and anti-patterns.
 3. THE `craft-commits` steering file SHALL be a flat Knowledge_Skill (no phase files) since commit message guidance is reference material, not an ordered workflow.
 4. THE Skill_Router SHALL list `craft-commits` under the "Writing and Knowledge" category with trigger phrases including: "commit message", "write commit", "conventional commit", "commit craft".
@@ -325,7 +325,7 @@ The codeshop power consolidates ~20 agent skills (originally authored for Claude
 
 #### Acceptance Criteria
 
-1. THE Power SHALL include a Workflow_Skill called `journal-debug` sourced from the existing `debug-journal` knowledge artifact in the Skill Forge catalog.
+1. THE Power SHALL include a Workflow_Skill called `journal-debug` sourced from the existing `debug-journal` knowledge artifact in the Kanon catalog.
 2. THE `journal-debug` workflow SHALL reuse the existing phase files from `debug-journal/workflows/`: Articulate (01-articulate.md), Isolate (02-isolate.md), Fix and Verify (03-fix-and-verify.md).
 3. THE Articulate phase SHALL enforce the three-sentence rule: (1) what I expected, (2) what actually happened, (3) what I already know it is not. The agent SHALL NOT proceed to isolation until all three sentences are written and at least one hypothesis is ruled out.
 4. THE Isolate phase SHALL instruct the agent to shrink the problem surface using binary search, minimal reproduction, and one-variable-at-a-time techniques.

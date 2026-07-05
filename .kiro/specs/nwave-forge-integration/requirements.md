@@ -2,17 +2,17 @@
 
 ## Introduction
 
-This spec covers the integration of nWave methodology concepts into the Skill Forge ecosystem. It spans two categories: (A) new codeshop knowledge skills that document decision frameworks for rigor tuning and outcome registration, and (B) architectural enhancements to the Forge CLI inspired by nWave's DES execution model, catalog governance, and mutation testing strategy.
+This spec covers the integration of nWave methodology concepts into the Kanon ecosystem. It spans two categories: (A) new codeshop knowledge skills that document decision frameworks for rigor tuning and outcome registration, and (B) architectural enhancements to the Forge CLI inspired by nWave's DES execution model, catalog governance, and mutation testing strategy.
 
 Three nWave-inspired items (analyze-hotspots, trim-tests, diverge-options) have already been added directly to codeshop as steering files. The remaining five items require structured implementation through this spec.
 
 ## Glossary
 
-- **Forge**: The Skill Forge CLI tool (`skill-forge/`) that compiles knowledge artifacts to harness-native formats.
-- **Codeshop**: A knowledge artifact (`skill-forge/knowledge/codeshop/`) containing developer workflow skills compiled as a Kiro power.
+- **Forge**: The Kanon CLI tool (`kanon/`) that compiles knowledge artifacts to harness-native formats.
+- **Codeshop**: A knowledge artifact (`kanon/knowledge/codeshop/`) containing developer workflow skills compiled as a Kiro power.
 - **Knowledge_Skill**: A workflow steering file within a knowledge artifact that documents a decision framework or methodology for developers.
-- **Adapter**: A pure function in `skill-forge/src/adapters/` that transforms a parsed knowledge artifact into harness-specific output files.
-- **Catalog**: The generated `catalog.json` index of all knowledge artifacts, produced by `forge catalog`.
+- **Adapter**: A pure function in `kanon/src/adapters/` that transforms a parsed knowledge artifact into harness-specific output files.
+- **Catalog**: The generated `catalog.json` index of all knowledge artifacts, produced by `kanon catalog`.
 - **Hook**: An event-driven automation defined in `hooks.yaml` that triggers agent actions in response to IDE events.
 - **Rigor_Profile**: A named configuration (lean/standard/thorough/exhaustive) that scales quality practices up or down based on task criticality.
 - **Outcomes_Registry**: The aggregated set of outcome declarations across all artifacts, used for collision detection during validate and guild sync.
@@ -24,7 +24,7 @@ Three nWave-inspired items (analyze-hotspots, trim-tests, diverge-options) have 
 - **Kill_Rate**: The percentage of introduced mutants that are detected by the test suite; higher is better.
 - **Nightly_Delta_Strategy**: Running mutation testing only on modules changed since the last run, reducing CI cost while maintaining coverage.
 - **Frontmatter**: The YAML metadata block at the top of a `knowledge.md` file, validated by Zod schemas.
-- **Collection_Manifest**: A YAML file in `skill-forge/collections/` that defines metadata for a group of related artifacts.
+- **Collection_Manifest**: A YAML file in `kanon/collections/` that defines metadata for a group of related artifacts.
 - **Jaccard_Similarity**: A set-similarity metric (intersection over union) used to compare keyword overlap between outcomes.
 
 ## Requirements
@@ -35,7 +35,7 @@ Three nWave-inspired items (analyze-hotspots, trim-tests, diverge-options) have 
 
 #### Acceptance Criteria
 
-1. THE Knowledge_Skill SHALL include a file at `skill-forge/knowledge/codeshop/workflows/tune-rigor.md` that documents four named rigor profiles: lean, standard, thorough, and exhaustive.
+1. THE Knowledge_Skill SHALL include a file at `kanon/knowledge/codeshop/workflows/tune-rigor.md` that documents four named rigor profiles: lean, standard, thorough, and exhaustive.
 2. WHEN a developer activates the tune-rigor skill, THE Knowledge_Skill SHALL provide a decision matrix that maps four task dimensions (criticality rated low/medium/high/critical, blast radius rated single-file/module/system-wide, reversibility rated trivial/moderate/difficult, and audience rated self/team/public) to a single recommended rigor profile.
 3. THE Knowledge_Skill SHALL define for each profile which quality practices are included: TDD depth (unit-only vs acceptance+unit), review passes (zero, single, or double), refactoring pass (yes/no), and mutation testing (yes/no).
 4. THE Knowledge_Skill SHALL define for each profile which quality practices are excluded, stating each omitted practice by name and a one-sentence rationale for why it is safe to omit at that rigor level.
@@ -51,7 +51,7 @@ Three nWave-inspired items (analyze-hotspots, trim-tests, diverge-options) have 
 
 #### 2A: Methodology (Steering File)
 
-1. THE Forge SHALL include a knowledge skill file at `skill-forge/knowledge/codeshop/workflows/register-outcomes.md` that documents the outcomes registration pattern, collision detection algorithm, and resolution workflow.
+1. THE Forge SHALL include a knowledge skill file at `kanon/knowledge/codeshop/workflows/register-outcomes.md` that documents the outcomes registration pattern, collision detection algorithm, and resolution workflow.
 2. THE Knowledge_Skill SHALL be language-agnostic, using type-shape notation limited to generic constructs available in all typed languages (e.g., primitives, arrays/lists, maps/dictionaries, tuples, union types, and named record shapes) without referencing language-specific syntax.
 
 #### 2B: Outcome Data Model
@@ -62,7 +62,7 @@ Three nWave-inspired items (analyze-hotspots, trim-tests, diverge-options) have 
 #### 2C: Artifact-Level Declaration (Frontmatter)
 
 1. THE Forge SHALL extend the frontmatter schema to support an optional `outcomes` array field where each entry conforms to the outcome data model defined in 2B.
-2. WHEN an artifact declares outcomes in frontmatter, THE Forge SHALL validate each outcome entry against the outcome data model schema during `forge validate`.
+2. WHEN an artifact declares outcomes in frontmatter, THE Forge SHALL validate each outcome entry against the outcome data model schema during `kanon validate`.
 3. THE outcome ID format SHALL follow skill-forge's kebab-case convention (`out-kebab-case`), matching the pattern `^out-[a-z0-9]+(-[a-z0-9]+)*$` with a maximum length of 64 characters.
 
 #### 2D: Shape Normalization
@@ -79,14 +79,14 @@ Three nWave-inspired items (analyze-hotspots, trim-tests, diverge-options) have 
 
 #### 2F: Validate Integration (Cross-Artifact)
 
-1. WHEN `forge validate` runs, THE Forge SHALL aggregate all outcomes declared across all artifacts and run pairwise collision detection.
-2. IF a COLLISION is detected between two outcomes that do NOT reference each other via `related`, THEN `forge validate` SHALL report an error with both outcome IDs, their artifact names, the matching shapes, and the Jaccard score, and SHALL exit with non-zero status.
-3. IF an AMBIGUOUS verdict is detected, THEN `forge validate` SHALL report a warning with both outcome IDs and their artifact names, but SHALL NOT block validation.
+1. WHEN `kanon validate` runs, THE Forge SHALL aggregate all outcomes declared across all artifacts and run pairwise collision detection.
+2. IF a COLLISION is detected between two outcomes that do NOT reference each other via `related`, THEN `kanon validate` SHALL report an error with both outcome IDs, their artifact names, the matching shapes, and the Jaccard score, and SHALL exit with non-zero status.
+3. IF an AMBIGUOUS verdict is detected, THEN `kanon validate` SHALL report a warning with both outcome IDs and their artifact names, but SHALL NOT block validation.
 4. THE Forge SHALL detect duplicate outcome IDs across artifacts and report them as errors (IDs must be globally unique).
 
 #### 2G: Guild Sync Integration
 
-1. WHEN `forge guild sync` resolves artifacts from the manifest, THE Forge SHALL aggregate outcomes from all resolved artifacts and run pairwise collision detection before materializing files.
+1. WHEN `kanon guild sync` resolves artifacts from the manifest, THE Forge SHALL aggregate outcomes from all resolved artifacts and run pairwise collision detection before materializing files.
 2. IF a COLLISION is detected during guild sync between two manifest artifacts that do NOT reference each other via `related`, THEN guild sync SHALL print the collision details and exit with non-zero status.
 3. WHEN the `--force` flag is provided to guild sync, THE Forge SHALL print collision warnings but proceed with materialization regardless of COLLISION verdicts.
 4. AMBIGUOUS verdicts during guild sync SHALL be reported as warnings and SHALL NOT block sync.
@@ -125,23 +125,23 @@ Three nWave-inspired items (analyze-hotspots, trim-tests, diverge-options) have 
 5. WHEN an artifact has `visibility: private`, THE Forge SHALL exclude the artifact entirely from the generated `catalog.json` output.
 6. WHEN an artifact has `visibility: unlisted`, THE Forge SHALL include the artifact in `catalog.json` with a `visibility` field set to `"unlisted"` so that browse commands can filter it from default listings.
 7. THE Forge SHALL sort catalog entries in `catalog.json` first by priority descending (higher values first), then alphabetically by name ascending for entries with equal priority values.
-8. WHEN the `forge catalog browse` command runs without the `--all` flag, THE Forge SHALL hide artifacts with `visibility: private` and hide artifacts with `visibility: unlisted` from the default listing.
-9. WHEN the `forge catalog browse` command runs with the `--all` flag, THE Forge SHALL display all artifacts including those with `visibility: unlisted`, but SHALL continue to hide artifacts with `visibility: private`.
+8. WHEN the `kanon catalog browse` command runs without the `--all` flag, THE Forge SHALL hide artifacts with `visibility: private` and hide artifacts with `visibility: unlisted` from the default listing.
+9. WHEN the `kanon catalog browse` command runs with the `--all` flag, THE Forge SHALL display all artifacts including those with `visibility: unlisted`, but SHALL continue to hide artifacts with `visibility: private`.
 10. IF the `priority` field in frontmatter contains a value outside the range 1 to 100 inclusive or a non-integer value, THEN THE Forge SHALL reject the artifact with a validation error indicating the priority value is invalid.
 
 ### Requirement 5: Mutation Testing Integration
 
-**User Story:** As a forge maintainer, I want a `forge eval --mutation` mode that runs mutation testing on adapter functions, so that I can verify the test suite catches real bugs and not just achieves coverage.
+**User Story:** As a forge maintainer, I want a `kanon eval --mutation` mode that runs mutation testing on adapter functions, so that I can verify the test suite catches real bugs and not just achieves coverage.
 
 #### Acceptance Criteria
 
-1. THE Forge SHALL provide a `forge eval --mutation` command that runs mutation testing on adapter source files in `skill-forge/src/adapters/`.
-2. WHEN `forge eval --mutation` runs, THE Forge SHALL identify adapter source files by scanning `skill-forge/src/adapters/` for TypeScript files that export functions matching the `HarnessAdapter` type signature, excluding `types.ts`, `index.ts`, and `capabilities.ts`.
+1. THE Forge SHALL provide a `kanon eval --mutation` command that runs mutation testing on adapter source files in `kanon/src/adapters/`.
+2. WHEN `kanon eval --mutation` runs, THE Forge SHALL identify adapter source files by scanning `kanon/src/adapters/` for TypeScript files that export functions matching the `HarnessAdapter` type signature, excluding `types.ts`, `index.ts`, and `capabilities.ts`.
 3. THE Forge SHALL generate mutants by applying mutation operators configured via a `mutationOperators` array in `forge.config.yaml`, defaulting to all five operators (statement deletion, conditional boundary changes, arithmetic operator replacement, string literal modification, and return value alteration) when no configuration is present, generating at most 50 mutants per adapter source file.
 4. WHEN a mutant is generated, THE Forge SHALL run the project test suite via `bun test` against the mutated code and record whether the mutant was killed (at least one test failed) or survived (all tests still pass), applying a timeout of 30 seconds per mutant test run after which the mutant is marked as killed.
 5. THE Forge SHALL report a kill rate as the percentage of killed mutants over total generated mutants, and exit with code 1 if the kill rate falls below the threshold specified by the `--threshold` CLI flag (a decimal between 0.0 and 1.0, default: 0.80).
-6. WHEN the `--delta` flag is provided, THE Forge SHALL apply the nightly-delta strategy: only mutate adapter modules that have changed since the last recorded mutation run in `skill-forge/evals/mutation-history.jsonl`, using `git diff` to identify changed files.
-7. IF the `--delta` flag is provided and no prior mutation run exists in `skill-forge/evals/mutation-history.jsonl`, THEN THE Forge SHALL fall back to a full mutation run across all adapter source files and emit a warning indicating no baseline was found.
-8. THE Forge SHALL persist mutation run results to `skill-forge/evals/mutation-history.jsonl` as one JSON object per line containing fields: `ts` (ISO 8601 timestamp), `sha` (short git commit hash), `killRate` (decimal), `totalMutants` (integer), `killed` (integer), `survived` (integer), and `operators` (array of operator names used), enabling trend tracking via `forge eval --mutation --trend`.
+6. WHEN the `--delta` flag is provided, THE Forge SHALL apply the nightly-delta strategy: only mutate adapter modules that have changed since the last recorded mutation run in `kanon/evals/mutation-history.jsonl`, using `git diff` to identify changed files.
+7. IF the `--delta` flag is provided and no prior mutation run exists in `kanon/evals/mutation-history.jsonl`, THEN THE Forge SHALL fall back to a full mutation run across all adapter source files and emit a warning indicating no baseline was found.
+8. THE Forge SHALL persist mutation run results to `kanon/evals/mutation-history.jsonl` as one JSON object per line containing fields: `ts` (ISO 8601 timestamp), `sha` (short git commit hash), `killRate` (decimal), `totalMutants` (integer), `killed` (integer), `survived` (integer), and `operators` (array of operator names used), enabling trend tracking via `kanon eval --mutation --trend`.
 9. IF a mutant survives, THEN THE Forge SHALL report the surviving mutant's file path, line number, the mutation operator applied, and the original and mutated code showing up to 3 lines of context above and below the mutation point.
-10. IF no adapter source files are found in `skill-forge/src/adapters/`, THEN THE Forge SHALL exit with code 1 and print an error message indicating no adapter files were detected.
+10. IF no adapter source files are found in `kanon/src/adapters/`, THEN THE Forge SHALL exit with code 1 and print an error message indicating no adapter files were detected.

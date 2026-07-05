@@ -8,7 +8,7 @@ inclusion: always
 
 ```
 context-bazaar/                    # Root repo
-├── skill-forge/                   # The forge CLI tool (main codebase)
+├── kanon/                          # The kanon CLI tool (main codebase)
 │   ├── src/                       # CLI and core modules
 │   │   ├── cli.ts                 # CLI entry point (Commander-based)
 │   │   ├── schemas.ts             # All Zod schemas (central validation)
@@ -55,7 +55,7 @@ context-bazaar/                    # Root repo
 │   ├── collections/               # Collection manifests (YAML, metadata only)
 │   ├── templates/
 │   │   ├── harness-adapters/      # Per-harness Nunjucks output templates
-│   │   ├── knowledge/             # Scaffold templates for `forge new`
+│   │   ├── knowledge/             # Scaffold templates for `kanon new`
 │   │   └── eval-contexts/         # Harness context simulation for evals
 │   ├── bridge/                    # Compiled MCP server (CJS)
 │   ├── dist/                      # Compiled harness output (generated, gitignored)

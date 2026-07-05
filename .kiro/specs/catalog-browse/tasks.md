@@ -2,7 +2,7 @@
 
 ## Overview
 
-Add a `forge catalog browse` subcommand that starts a temporary local Bun HTTP server serving a self-contained single-page catalog browser. The existing `catalog` command becomes a command group with `generate` and `browse` subcommands. The browse module (`src/browse.ts`) handles server lifecycle, routing, and inline HTML/CSS/JS generation. The SPA displays artifact cards with search, harness/type filtering, and a detail view with raw knowledge.md preview — all styled with a minimal academic computing aesthetic.
+Add a `kanon catalog browse` subcommand that starts a temporary local Bun HTTP server serving a self-contained single-page catalog browser. The existing `catalog` command becomes a command group with `generate` and `browse` subcommands. The browse module (`src/browse.ts`) handles server lifecycle, routing, and inline HTML/CSS/JS generation. The SPA displays artifact cards with search, harness/type filtering, and a detail view with raw knowledge.md preview — all styled with a minimal academic computing aesthetic.
 
 ## Tasks
 
@@ -43,7 +43,7 @@ Add a `forge catalog browse` subcommand that starts a temporary local Bun HTTP s
   - [x] 3.2 Implement `generateHtmlPage(): string` in `src/browse.ts` — the HTML document shell
     - Generate a valid HTML5 document (`<!DOCTYPE html>`, `<html>`, `<head>`, `<body>`)
     - Inline all CSS in a `<style>` block and all JS in a `<script>` block — no external resources
-    - Include a header with "Skill Forge Catalog" title and a `<span>` for artifact count
+    - Include a header with "Kanon Catalog" title and a `<span>` for artifact count
     - Include a search text input, a harness filter (multi-select or checkboxes), and a type filter (skill/power/rule checkboxes)
     - Include a container div for the card grid and a container div for the detail view (initially hidden)
     - _Requirements: 5.1, 5.2, 5.3, 9.1, 9.2_
@@ -86,7 +86,7 @@ Add a `forge catalog browse` subcommand that starts a temporary local Bun HTTP s
 
 - [x] 7. Integration wiring and final validation
   - [x] 7.1 Verify end-to-end wiring: `cli.ts` → `browseCommand` → `startBrowseServer` → `handleRequest`
-    - Ensure `forge catalog browse` starts the server and `forge catalog generate` still works as before
+    - Ensure `kanon catalog browse` starts the server and `kanon catalog generate` still works as before
     - Confirm all imports resolve and there are no TypeScript errors
     - _Requirements: 1.1, 1.3_
 

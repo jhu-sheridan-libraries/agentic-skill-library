@@ -2,7 +2,7 @@
 
 ## Overview
 
-Transform `forge new` into a guided interactive wizard using `@clack/prompts`, add a `forge tutorial` command for first-time users, and wire everything together with validation, file writing, and comprehensive tests. Each task builds incrementally — utility functions first, then the wizard, then file writing, then CLI integration, then the tutorial.
+Transform `kanon new` into a guided interactive wizard using `@clack/prompts`, add a `kanon tutorial` command for first-time users, and wire everything together with validation, file writing, and comprehensive tests. Each task builds incrementally — utility functions first, then the wizard, then file writing, then CLI integration, then the tutorial.
 
 ## Tasks
 
@@ -85,7 +85,7 @@ Transform `forge new` into a guided interactive wizard using `@clack/prompts`, a
     - Mock `@clack/prompts` to simulate user input sequences
     - Test: fileMatch shows file_patterns prompt, file events show file_patterns, tool events show tool_types, ask_agent shows prompt field, run_command shows command field
     - Test: cancellation at each major prompt group verifies no file writes
-    - Test: outro lists written files and suggests `forge build`
+    - Test: outro lists written files and suggests `kanon build`
     - _Requirements: 2.5, 2.6, 5.2–5.7, 8.1–8.3_
 
 - [x] 3. Implement file writer module
@@ -110,12 +110,12 @@ Transform `forge new` into a guided interactive wizard using `@clack/prompts`, a
 - [x] 4. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [x] 5. Integrate wizard into `forge new` command
+- [x] 5. Integrate wizard into `kanon new` command
   - [x] 5.1 Modify `src/new.ts` to accept `NewCommandOptions` with `--yes` flag and call `runWizard` + `writeWizardResult`
     - Update `newCommand` signature to `(artifactName: string, options: NewCommandOptions)`
     - After scaffold creation, call `runWizard()` unless `--yes` is set
     - On wizard success, call `writeWizardResult()` to overwrite scaffold files
-    - Display outro summary listing written files and suggesting `forge build`
+    - Display outro summary listing written files and suggesting `kanon build`
     - _Requirements: 1.1–1.3, 7.4, 7.5_
 
   - [x] 5.2 Modify `src/cli.ts` to add `--yes` option to the `new` command
@@ -136,11 +136,11 @@ Transform `forge new` into a guided interactive wizard using `@clack/prompts`, a
     - _Requirements: 10.1, 11.1_
 
   - [x] 6.2 Implement `showWelcome`, `showProgress`, `explainGeneratedFiles`, `explainBuildOutput`, `showCompletion`, and `resolveArtifactName` in `src/tutorial.ts`
-    - `showWelcome()`: display Skill Forge overview using `p.log.info` and `p.note`, define "artifact" in plain language
+    - `showWelcome()`: display Kanon overview using `p.log.info` and `p.note`, define "artifact" in plain language
     - `showProgress(current, total)`: output "Step N of M" using `p.log.step`
     - `explainGeneratedFiles(artifactDir)`: read each file and display annotated explanations using `p.note`
     - `explainBuildOutput()`: explain build output location and harness consumption
-    - `showCompletion()`: display completion summary, suggest `forge new` for real artifacts
+    - `showCompletion()`: display completion summary, suggest `kanon new` for real artifacts
     - `resolveArtifactName(defaultName)`: check if `knowledge/<name>` exists, prompt for overwrite or alternative name
     - Internal helpers: `explainConcept(term, definition)`, `waitForContinue(message?)`, `runTutorialBuild(artifactName)`
     - _Requirements: 9.2–9.4, 10.2–10.6, 11.1, 11.4, 11.5_
@@ -148,10 +148,10 @@ Transform `forge new` into a guided interactive wizard using `@clack/prompts`, a
   - [x] 6.3 Implement `tutorialCommand()` entry point in `src/tutorial.ts`
     - Orchestrate: resolve artifact name → show welcome → iterate through `buildTutorialSteps` calling `showProgress` and each step's action → show completion
     - Handle cancellation at every prompt via `handleCancel`
-    - Catch build errors gracefully, suggest `forge validate`
+    - Catch build errors gracefully, suggest `kanon validate`
     - _Requirements: 9.1, 10.1, 10.4, 11.2, 11.3_
 
-  - [x] 6.4 Register `forge tutorial` command in `src/cli.ts`
+  - [x] 6.4 Register `kanon tutorial` command in `src/cli.ts`
     - Import `tutorialCommand` from `./tutorial`
     - Add `.command("tutorial").description("Guided walkthrough for first-time artifact authors").action(tutorialCommand)`
     - _Requirements: 9.1_
@@ -170,7 +170,7 @@ Transform `forge new` into a guided interactive wizard using `@clack/prompts`, a
   - [x] 6.6 Write unit tests for tutorial flow
     - Add to `src/__tests__/tutorial.test.ts`
     - Mock `@clack/prompts` and `runWizard`
-    - Test: welcome message contains "Skill Forge" and "artifact"; concepts step explains all three file types; tutorial calls `runWizard` with correct artifact name; build failure is caught gracefully; cancellation exits cleanly; progress shows correct "Step N of M"; existing `hello-world` prompts for overwrite/rename
+    - Test: welcome message contains "Kanon" and "artifact"; concepts step explains all three file types; tutorial calls `runWizard` with correct artifact name; build failure is caught gracefully; cancellation exits cleanly; progress shows correct "Step N of M"; existing `hello-world` prompts for overwrite/rename
     - _Requirements: 9.1–9.4, 10.1–10.6, 11.1–11.5_
 
 - [x] 7. Final checkpoint - Ensure all tests pass

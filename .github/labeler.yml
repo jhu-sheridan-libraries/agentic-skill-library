@@ -3,32 +3,32 @@
 
 artifact:
   - changed-files:
-      - any-glob-to-any-file: knowledge/**
+      - any-glob-to-any-file: kanon/knowledge/**
 
 collection:
   - changed-files:
-      - any-glob-to-any-file: collections/**
+      - any-glob-to-any-file: kanon/collections/**
 
 tool:
   - changed-files:
       - any-glob-to-any-file:
-          - src/**
-          - templates/**
-          - scripts/**
+          - kanon/src/**
+          - kanon/templates/**
+          - kanon/scripts/**
 
 bridge:
   - changed-files:
       - any-glob-to-any-file:
-          - src/mcp-bridge.ts
-          - bridge/**
+          - kanon/src/mcp-bridge.ts
+          - kanon/bridge/**
 
 schemas:
   - changed-files:
-      - any-glob-to-any-file: src/schemas.ts
+      - any-glob-to-any-file: kanon/src/schemas.ts
 
 adapters:
   - changed-files:
-      - any-glob-to-any-file: src/adapters/**
+      - any-glob-to-any-file: kanon/src/adapters/**
 
 ci:
   - changed-files:
@@ -38,15 +38,14 @@ docs:
   - changed-files:
       - any-glob-to-any-file:
           - "*.md"
-          - docs/**
-          - skill-forge/docs/**
+          - kanon/docs/**
 
 adr:
   - changed-files:
-      - any-glob-to-any-file: docs/adr/**
+      - any-glob-to-any-file: kanon/docs/adr/**
 
 dependencies:
   - changed-files:
       - any-glob-to-any-file:
-          - package.json
-          - bun.lockb
+          - kanon/package.json
+          - kanon/bun.lock

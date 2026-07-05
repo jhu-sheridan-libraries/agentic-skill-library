@@ -3,4 +3,4 @@ inclusion: manual
 description: "Manually triggered hook to add a changelog entry. The agent will ask what changed and run the Bun changelog script."
 ---
 
-The user wants to add a changelog fragment. Ask them what changed and which type it is (added, changed, deprecated, removed, fixed, security). Then run: bun run skill-forge/scripts/changelog-fragment.ts --type TYPE --message "DESCRIPTION" with their answers. Mention they can run 'bun run changelog:draft' to preview or 'bun run changelog:compile --version X.Y.Z' to compile all fragments into CHANGELOG.md at release time.
+The user wants to add a changelog fragment. Ask them what changed and which type it is (added, changed, deprecated, removed, fixed, security). Then run: bun run kanon/scripts/changelog-fragment.ts --type TYPE --message "DESCRIPTION" with their answers. Mention they can run 'bun run changelog:draft' to preview or 'bun run changelog:compile --version X.Y.Z' to compile all fragments into CHANGELOG.md at release time.

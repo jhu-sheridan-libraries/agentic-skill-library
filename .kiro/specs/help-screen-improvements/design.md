@@ -2,7 +2,7 @@
 
 ## Overview
 
-This design introduces a `Help_Renderer` module and a `forge help` command to replace Commander.js's default help output with styled, structured, and deterministic help screens. The renderer applies chalk-based color styling, organizes options into logical groups, injects per-command usage examples, and supports a `--no-color` flag for plain-text output. A Levenshtein-based typo correction system handles unknown commands.
+This design introduces a `Help_Renderer` module and a `kanon help` command to replace Commander.js's default help output with styled, structured, and deterministic help screens. The renderer applies chalk-based color styling, organizes options into logical groups, injects per-command usage examples, and supports a `--no-color` flag for plain-text output. A Levenshtein-based typo correction system handles unknown commands.
 
 The design keeps all help metadata co-located with command definitions via a declarative registry, making it easy to add examples or option groups when new commands are introduced. The renderer is a set of pure functions that take structured data and produce strings — no side effects, no terminal-width sniffing — which makes the output deterministic and testable.
 
@@ -64,7 +64,7 @@ The architecture follows a layered approach:
 
 export interface UsageExample {
   comment: string;   // e.g., "Build for all harnesses"
-  invocation: string; // e.g., "forge build"
+  invocation: string; // e.g., "kanon build"
 }
 
 export interface OptionGroup {
@@ -127,7 +127,7 @@ export function suggestCommand(
 ```typescript
 // Modifications to src/cli.ts
 
-// 1. Register `forge help [command]` subcommand
+// 1. Register `kanon help [command]` subcommand
 // 2. Override helpInformation() on each command to use HelpRenderer
 // 3. Move banner logic: only print on `process.argv.length <= 2` AND not --help
 // 4. Override version output to include Bun version + OS platform
@@ -144,15 +144,15 @@ The registry is a plain `Record<string, CommandHelpMeta>` object. Key examples:
 {
   "build": {
     examples: [
-      { comment: "Build for all harnesses", invocation: "forge build" },
-      { comment: "Build for Kiro only", invocation: "forge build --harness kiro" },
+      { comment: "Build for all harnesses", invocation: "kanon build" },
+      { comment: "Build for Kiro only", invocation: "kanon build --harness kiro" },
     ],
     showHarnessList: true,
   },
   "install": {
     examples: [
-      { comment: "Install all artifacts for Kiro", invocation: "forge install --harness kiro --all" },
-      { comment: "Dry-run install from a release", invocation: "forge install --from-release v0.1.0 --dry-run" },
+      { comment: "Install all artifacts for Kiro", invocation: "kanon install --harness kiro --all" },
+      { comment: "Dry-run install from a release", invocation: "kanon install --from-release v0.1.0 --dry-run" },
     ],
     optionGroups: [
       { label: "Source Options", options: ["--source", "--from-release", "--harness"] },
@@ -162,8 +162,8 @@ The registry is a plain `Record<string, CommandHelpMeta>` object. Key examples:
   },
   "eval": {
     examples: [
-      { comment: "Run evals for all harnesses", invocation: "forge eval" },
-      { comment: "Run evals for Cursor with a custom threshold", invocation: "forge eval --harness cursor --threshold 0.8" },
+      { comment: "Run evals for all harnesses", invocation: "kanon eval" },
+      { comment: "Run evals for Cursor with a custom threshold", invocation: "kanon eval --harness cursor --threshold 0.8" },
     ],
     optionGroups: [
       { label: "Execution Options", options: ["--harness", "--provider", "--threshold"] },
@@ -179,9 +179,9 @@ The registry is a plain `Record<string, CommandHelpMeta>` object. Key examples:
 Each help screen is a single string composed of ordered sections. The root help follows this layout:
 
 ```
-  Skill Forge — write knowledge once, compile to every harness
+  Kanon — write knowledge once, compile to every harness
 
-  Usage: forge <command> [options]
+  Usage: kanon <command> [options]
 
   Commands:
     build              Compile knowledge artifacts to harness-native formats
@@ -198,7 +198,7 @@ Each help screen is a single string composed of ordered sections. The root help 
     --no-color         Disable color output
 
   Getting Started:
-    Run forge new <name> to create your first knowledge artifact.
+    Run kanon new <name> to create your first knowledge artifact.
 ```
 
 Command help follows this layout:
@@ -206,7 +206,7 @@ Command help follows this layout:
 ```
   <description>
 
-  Usage: forge <command> [args] [options]
+  Usage: kanon <command> [args] [options]
 
   <Option Group 1>:
     --flag <arg>  Description
@@ -217,10 +217,10 @@ Command help follows this layout:
 
   Examples:
     # Comment describing intent
-    $ forge command --flag value
+    $ kanon command --flag value
 
     # Another example
-    $ forge command --other-flag
+    $ kanon command --other-flag
 ```
 
 
@@ -254,7 +254,7 @@ Command help follows this layout:
 
 ### Property 5: Help output equivalence across invocation paths
 
-*For any* valid command name, the output produced by rendering that command's help (as invoked via `forge help <command>`) SHALL be identical to the output produced by rendering it via `forge <command> --help`, given the same `useColor` setting.
+*For any* valid command name, the output produced by rendering that command's help (as invoked via `kanon help <command>`) SHALL be identical to the output produced by rendering it via `kanon <command> --help`, given the same `useColor` setting.
 
 **Validates: Requirements 4.2, 7.3**
 
@@ -280,8 +280,8 @@ Command help follows this layout:
 
 | Scenario | Behavior |
 |---|---|
-| `forge <unknown-command>` | Print error with unrecognized command name. If Levenshtein distance ≤ 2 from a valid command, suggest it (`Did you mean "build"?`). Always list available commands. Exit code 1. |
-| `forge help <unknown-command>` | Same behavior as above — error message, optional suggestion, available commands list. Exit code 1. |
+| `kanon <unknown-command>` | Print error with unrecognized command name. If Levenshtein distance ≤ 2 from a valid command, suggest it (`Did you mean "build"?`). Always list available commands. Exit code 1. |
+| `kanon help <unknown-command>` | Same behavior as above — error message, optional suggestion, available commands list. Exit code 1. |
 | `--no-color` with color-dependent terminal | chalk level set to 0 early in CLI bootstrap. All render functions receive `useColor: false`. No ANSI codes emitted. |
 | `--version` in non-Bun runtime | Gracefully degrade: show "unknown" for Bun version if `Bun.version` is unavailable. `process.platform` and `process.arch` are always available in Node-compatible runtimes. |
 | Metadata registry missing entry for a command | Render command help without examples or option groups — fall back to a flat option list. No crash. |
@@ -304,13 +304,13 @@ The project already uses `fast-check` (in devDependencies). Each correctness pro
 ### Unit Tests (example-based)
 
 - Root help contains all required sections in order (1.1)
-- Root help contains "Getting Started" tip with `forge new` (1.4)
+- Root help contains "Getting Started" tip with `kanon new` (1.4)
 - Color styling is applied when `useColor: true` (1.2)
 - Example comment lines use muted styling, invocations use bright styling (2.4)
 - Metadata registry has examples for all 7 required commands (2.3)
 - Install command has ≥ 2 option groups (3.3)
 - Eval command has ≥ 2 option groups (3.4)
-- `forge help` with no args produces root help (4.3)
+- `kanon help` with no args produces root help (4.3)
 - Build/install/eval help shows all 7 harness names inline (5.1, 5.2, 5.3, 5.4)
 - Version output includes version number, Bun version, and platform (6.1, 6.2)
 - No timestamps in help output (7.2)

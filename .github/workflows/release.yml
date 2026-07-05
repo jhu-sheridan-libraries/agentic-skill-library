@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: skill-forge
+        working-directory: kanon
     steps:
       - uses: actions/checkout@v7
 
@@ -38,8 +38,8 @@ jobs:
         with:
           path: |
             ~/.bun/install/cache
-            skill-forge/node_modules
-          key: bun-${{ runner.os }}-${{ hashFiles('skill-forge/bun.lock') }}
+            kanon/node_modules
+          key: bun-${{ runner.os }}-${{ hashFiles('kanon/bun.lock') }}
           restore-keys: |
             bun-${{ runner.os }}-
 
@@ -65,20 +65,20 @@ jobs:
         include:
           - os: ubuntu-latest
             target: bun-linux-x64
-            artifact: forge-linux-x64
+            artifact: kanon-linux-x64
           - os: ubuntu-latest
             target: bun-linux-arm64
-            artifact: forge-linux-arm64
+            artifact: kanon-linux-arm64
           - os: macos-latest
             target: bun-darwin-x64
-            artifact: forge-darwin-x64
+            artifact: kanon-darwin-x64
           - os: macos-latest
             target: bun-darwin-arm64
-            artifact: forge-darwin-arm64
+            artifact: kanon-darwin-arm64
     runs-on: ${{ matrix.os }}
     defaults:
       run:
-        working-directory: skill-forge
+        working-directory: kanon
     steps:
       - uses: actions/checkout@v7
 
@@ -99,8 +99,8 @@ jobs:
         with:
           path: |
             ~/.bun/install/cache
-            skill-forge/node_modules
-          key: bun-${{ runner.os }}-${{ hashFiles('skill-forge/bun.lock') }}
+            kanon/node_modules
+          key: bun-${{ runner.os }}-${{ hashFiles('kanon/bun.lock') }}
           restore-keys: |
             bun-${{ runner.os }}-
 
@@ -123,7 +123,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact }}
-          path: skill-forge/${{ matrix.artifact }}.tar.gz
+          path: kanon/${{ matrix.artifact }}.tar.gz
           retention-days: 5
 
   # ── Compile changelog & create the GitHub Release ──
@@ -132,7 +132,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: skill-forge
+        working-directory: kanon
     steps:
       - uses: actions/checkout@v7
         with:
@@ -151,8 +151,8 @@ jobs:
         with:
           path: |
             ~/.bun/install/cache
-            skill-forge/node_modules
-          key: bun-${{ runner.os }}-${{ hashFiles('skill-forge/bun.lock') }}
+            kanon/node_modules
+          key: bun-${{ runner.os }}-${{ hashFiles('kanon/bun.lock') }}
           restore-keys: |
             bun-${{ runner.os }}-
 
@@ -205,11 +205,11 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
-          body_path: skill-forge/release-notes.md
+          body_path: kanon/release-notes.md
           prerelease: ${{ steps.prerelease.outputs.flag }}
           files: |
             binaries/*.tar.gz
-            skill-forge/dist-${{ steps.version.outputs.version }}.tar.gz
+            kanon/dist-${{ steps.version.outputs.version }}.tar.gz
           generate_release_notes: false
 
       # Commit the updated CHANGELOG.md back to main so the repo stays in sync
@@ -219,7 +219,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout main
-          git add skill-forge/CHANGELOG.md skill-forge/changes/
+          git add kanon/CHANGELOG.md kanon/changes/
           git diff --cached --quiet && echo "No changelog changes to commit" && exit 0
           git commit -m "chore: compile changelog for ${{ github.ref_name }}"
           git push origin main
@@ -233,7 +233,7 @@ jobs:
     environment: npm # use a GitHub environment for approval gates if desired
     defaults:
       run:
-        working-directory: skill-forge
+        working-directory: kanon
     steps:
       - uses: actions/checkout@v7
         with:
@@ -252,8 +252,8 @@ jobs:
         with:
           path: |
             ~/.bun/install/cache
-            skill-forge/node_modules
-          key: bun-${{ runner.os }}-${{ hashFiles('skill-forge/bun.lock') }}
+            kanon/node_modules
+          key: bun-${{ runner.os }}-${{ hashFiles('kanon/bun.lock') }}
           restore-keys: |
             bun-${{ runner.os }}-
 

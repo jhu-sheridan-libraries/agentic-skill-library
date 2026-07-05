@@ -3,13 +3,13 @@ name: Eval – Kiro Progressive Steering
 on:
   pull_request:
     paths:
-      - 'skill-forge/src/adapters/kiro*.ts'
-      - 'skill-forge/templates/harness-adapters/kiro/**'
-      - 'skill-forge/src/schemas.ts'
-      - 'skill-forge/src/validate.ts'
-      - 'skill-forge/src/wizard.ts'
-      - 'skill-forge/src/eval/rubrics/kiro-progressive-steering.ts'
-      - 'skill-forge/fixtures/eval/kiro-progressive-steering/**'
+      - 'kanon/src/adapters/kiro*.ts'
+      - 'kanon/templates/harness-adapters/kiro/**'
+      - 'kanon/src/schemas.ts'
+      - 'kanon/src/validate.ts'
+      - 'kanon/src/wizard.ts'
+      - 'kanon/src/eval/rubrics/kiro-progressive-steering.ts'
+      - 'kanon/fixtures/eval/kiro-progressive-steering/**'
 
 permissions:
   contents: read
@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: skill-forge
+        working-directory: kanon
     steps:
       - uses: actions/checkout@v7
 
@@ -37,8 +37,8 @@ jobs:
         with:
           path: |
             ~/.bun/install/cache
-            skill-forge/node_modules
-          key: bun-${{ runner.os }}-${{ hashFiles('skill-forge/bun.lock') }}
+            kanon/node_modules
+          key: bun-${{ runner.os }}-${{ hashFiles('kanon/bun.lock') }}
           restore-keys: |
             bun-${{ runner.os }}-
 
@@ -46,7 +46,7 @@ jobs:
 
       - name: Build scenario-mixed fixture
         run: bun run dev build --harness kiro
-        working-directory: skill-forge/fixtures/eval/kiro-progressive-steering/scenario-mixed
+        working-directory: kanon/fixtures/eval/kiro-progressive-steering/scenario-mixed
 
       - name: Run progressive-steering rubric
         run: |
@@ -62,5 +62,5 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: rubric-kiro-progressive-steering
-          path: skill-forge/rubric.json
+          path: kanon/rubric.json
           retention-days: 90

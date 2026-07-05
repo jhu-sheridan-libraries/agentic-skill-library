@@ -23,4 +23,4 @@ Ask the assistant: *"what's in the neon-caravan collection?"* or *"show me the c
 
 ## How It Works
 
-The plugin ships a pre-compiled MCP bridge (`skill-forge/bridge/mcp-server.cjs`) that reads from `skill-forge/catalog.json`. Both the bridge and catalog are committed to the repository, so no build step is needed after installation.
+The plugin ships a pre-compiled MCP bridge (`kanon/bridge/mcp-server.cjs`) that reads from `kanon/catalog.json`. Both the bridge and catalog are committed to the repository, so no build step is needed after installation.

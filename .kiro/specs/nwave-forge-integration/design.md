@@ -2,12 +2,12 @@
 
 ## Overview
 
-This feature integrates five nWave-inspired capabilities into the Skill Forge ecosystem. They split into two natures:
+This feature integrates five nWave-inspired capabilities into the Kanon ecosystem. They split into two natures:
 
-- **Knowledge skills** (Requirements 1 and 2A) — prose decision frameworks authored as codeshop workflow steering files. These ship as Markdown content under `skill-forge/knowledge/codeshop/workflows/` and require no code beyond their authoring.
+- **Knowledge skills** (Requirements 1 and 2A) — prose decision frameworks authored as codeshop workflow steering files. These ship as Markdown content under `kanon/knowledge/codeshop/workflows/` and require no code beyond their authoring.
 - **CLI / pipeline enhancements** (Requirements 2B–2H, 3, 4, 5) — schema extensions, new pure-function algorithm modules, and wiring into the existing `validate`, `guild sync`, `catalog`, `build`, and `eval` flows.
 
-The design honors the established Skill Forge architecture: a `source → parse → adapt → write` pipeline, central Zod schemas in `src/schemas.ts`, pure-function adapters in `src/adapters/`, Nunjucks templates for output, and a strict separation between **pure logic** (deterministic, no I/O) and **I/O orchestration** (file reads, git, subprocess execution).
+The design honors the established Kanon architecture: a `source → parse → adapt → write` pipeline, central Zod schemas in `src/schemas.ts`, pure-function adapters in `src/adapters/`, Nunjucks templates for output, and a strict separation between **pure logic** (deterministic, no I/O) and **I/O orchestration** (file reads, git, subprocess execution).
 
 The most algorithmically substantial work is the **Outcomes Registry** (shape normalization + two-tier collision detection) and the **DES hook execution engine** (expression evaluation over a shared state context). Both are designed as pure functions so they can be exhaustively verified with property-based tests. Mutation testing, catalog metadata, and the knowledge skills are largely orchestration, schema, and content work respectively, and lean on example/snapshot tests.
 
@@ -23,7 +23,7 @@ The most algorithmically substantial work is the **Outcomes Registry** (shape no
 ### Module Map
 
 ```
-skill-forge/
+kanon/
 ├── knowledge/codeshop/workflows/
 │   ├── tune-rigor.md             # NEW — Req 1 (rigor profiles framework)
 │   └── register-outcomes.md      # NEW — Req 2A (outcomes methodology)
@@ -74,7 +74,7 @@ flowchart TD
     J -- CLEAN --> O[No finding]
 ```
 
-The same pure `runRegistryCheck(outcomes)` function is the single source of truth, called from both `forge validate` (cross-artifact) and `forge guild sync` (manifest-resolved artifacts). Only the surrounding I/O and exit-code policy differ (`--force` on guild sync downgrades errors to warnings).
+The same pure `runRegistryCheck(outcomes)` function is the single source of truth, called from both `kanon validate` (cross-artifact) and `kanon guild sync` (manifest-resolved artifacts). Only the surrounding I/O and exit-code policy differ (`--force` on guild sync downgrades errors to warnings).
 
 ### Data Flow — DES Hook Execution
 
@@ -343,7 +343,7 @@ export function sortCatalogEntries(entries: CatalogEntry[]): CatalogEntry[];
 
 #### 4.4 Browse filtering — `src/browse.ts` (Req 4.8, 4.9)
 
-`forge catalog browse` gains an `--all` flag. Default listing hides `private` and `unlisted`. With `--all`, `unlisted` is shown but `private` remains hidden. Since `private` is already absent from `catalog.json`, the browse filter only needs to hide `unlisted` by default and reveal it under `--all`.
+`kanon catalog browse` gains an `--all` flag. Default listing hides `private` and `unlisted`. With `--all`, `unlisted` is shown but `private` remains hidden. Since `private` is already absent from `catalog.json`, the browse filter only needs to hide `unlisted` by default and reveal it under `--all`.
 
 ### 5. Mutation Testing (Req 5)
 
@@ -438,7 +438,7 @@ For each survivor, the runner reports file path, line number, operator, and orig
 
 #### 5.8 CLI wiring — `src/eval.ts` / `src/cli.ts`
 
-`forge eval --mutation [--delta] [--threshold <d>] [--trend]` routes into the mutation runner, mirroring the existing `evalCommand` option handling.
+`kanon eval --mutation [--delta] [--threshold <d>] [--trend]` routes into the mutation runner, mirroring the existing `evalCommand` option handling.
 
 ## Data Models
 

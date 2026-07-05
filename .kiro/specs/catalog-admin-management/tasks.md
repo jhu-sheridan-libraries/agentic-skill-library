@@ -2,7 +2,7 @@
 
 ## Overview
 
-Add full CRUD capabilities to the `forge catalog browse` server for artifacts, collections, and manifest entries. This involves creating three backend modules (`admin.ts`, `collection-admin.ts`, `manifest-admin.ts`), extending `browse.ts` with mutation routes and mutable state, and building a unified frontend UI using a shared design system (design tokens, reusable render functions, DRY component patterns). Implementation uses TypeScript with Bun, consistent with the existing codebase.
+Add full CRUD capabilities to the `kanon catalog browse` server for artifacts, collections, and manifest entries. This involves creating three backend modules (`admin.ts`, `collection-admin.ts`, `manifest-admin.ts`), extending `browse.ts` with mutation routes and mutable state, and building a unified frontend UI using a shared design system (design tokens, reusable render functions, DRY component patterns). Implementation uses TypeScript with Bun, consistent with the existing codebase.
 
 ## Tasks
 

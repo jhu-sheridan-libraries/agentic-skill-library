@@ -1,4 +1,4 @@
-# Skill Forge & Context Bazaar
+# Kanon & Context Bazaar
 
 [![CI](https://img.shields.io/github/actions/workflow/status/jhu-sheridan-libraries/agentic-skill-forge/ci.yml?label=CI)](https://github.com/jhu-sheridan-libraries/agentic-skill-forge/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/thinkingsage/context-bazaar/graph/badge.svg?token=D6AVIGVORS)](https://codecov.io/gh/thinkingsage/context-bazaar)
@@ -10,20 +10,20 @@ Knowledge artifacts for AI coding assistants. Author once, compile to every harn
 
 ## What Is This?
 
-AI coding assistants (Claude Code, Kiro, Copilot, Cursor, Windsurf, Cline, Q Developer) each use a different format for rules, context, and configuration. Context Bazaar lets you author a **knowledge artifact** in a single canonical format and compile it to any supported harness with the **Skill Forge** CLI.
+AI coding assistants (Claude Code, Kiro, Copilot, Cursor, Windsurf, Cline, Q Developer) each use a different format for rules, context, and configuration. Context Bazaar lets you author a **knowledge artifact** in a single canonical format and compile it to any supported harness with the **Kanon** CLI.
 
-This repository contains the forge tool and a catalog of 41 artifacts organized into themed collections.
+This repository contains the kanon tool and a catalog of 41 artifacts organized into themed collections.
 
 ## Key Concepts
 
 | Concept | Description |
 |---|---|
-| **Knowledge artifact** | A skill, prompt, workflow, power, agent, rule, template, or reference pack. Lives in `skill-forge/knowledge/<name>/`. |
+| **Knowledge artifact** | A skill, prompt, workflow, power, agent, rule, template, or reference pack. Lives in `kanon/knowledge/<name>/`. |
 | **Harness** | An AI coding assistant target (e.g. Kiro, Claude Code, Copilot). Each has its own file format and conventions. |
 | **Collection** | A group of related artifacts. Membership is declared in each artifact's frontmatter. |
 | **Catalog** | Machine-readable index (`catalog.json`) of all artifacts. Powers the browse UI and MCP bridge. |
 | **Capability matrix** | Per-harness declaration of feature support levels (full, partial, none) with degradation strategies for unsupported features. |
-| **Skill Forge** | The CLI that validates, builds, catalogs, imports, installs, and publishes artifacts. |
+| **Kanon** | The CLI that validates, builds, catalogs, imports, installs, and publishes artifacts. |
 
 ## Supported Harnesses
 
@@ -52,7 +52,7 @@ Browse the full catalog with `bun run dev catalog browse` or see the [deployed c
 
 ```
 context-bazaar/
-├── skill-forge/             ← the forge CLI tool (TypeScript, Bun)
+├── kanon/                   ← the kanon CLI tool (TypeScript, Bun)
 │   ├── src/                 ← CLI and core modules
 │   │   ├── adapters/        ← per-harness compiler adapters (pure functions)
 │   │   ├── backends/        ← pluggable install/publish backends (GitHub, S3, HTTP, local)
@@ -70,7 +70,7 @@ context-bazaar/
 │   ├── scripts/             ← build and release scripts
 │   ├── .forge/              ← guild manifest and sync state
 │   ├── catalog.json         ← machine-readable artifact index (generated)
-│   └── forge.config.yaml    ← forge configuration (backends, workspace)
+│   └── kanon.config.yaml    ← kanon configuration (backends, workspace)
 ├── .claude-plugin/          ← Claude Code plugin manifests
 ├── .kiro/                   ← Kiro workspace config (steering, specs)
 ├── .github/                 ← CI/CD workflows, issue templates, PR template
@@ -90,7 +90,7 @@ See [Plugin Usage](PLUGIN_USAGE.md) for installation instructions. No build step
 ### Develop locally
 
 ```bash
-cd skill-forge
+cd kanon
 bun install
 
 # Build all artifacts for all harnesses
@@ -130,7 +130,7 @@ bun run dev guild sync
 The core pipeline is: **source** → **parse** → **adapt** → **write**.
 
 1. Each artifact in `knowledge/<name>/` contains a `knowledge.md` file (YAML frontmatter + Markdown body), with optional `hooks.yaml`, `mcp-servers.yaml`, and `workflows/` phase files.
-2. The forge CLI parses the frontmatter and body, validates against Zod schemas, and passes the result to per-harness **adapters**.
+2. The kanon CLI parses the frontmatter and body, validates against Zod schemas, and passes the result to per-harness **adapters**.
 3. Each adapter is a pure function that receives the parsed artifact plus a capability context, uses Nunjucks templates to produce harness-native output, and applies degradation strategies for unsupported features.
 
 Artifact types: `skill` · `power` · `rule` · `workflow` · `agent` · `prompt` · `template` · `reference-pack`
@@ -139,11 +139,11 @@ Artifact types: `skill` · `power` · `rule` · `workflow` · `agent` · `prompt
 
 | Document | Description |
 |---|---|
-| [Skill Forge README](skill-forge/README.md) | CLI commands, project structure, development guide |
+| [Kanon README](kanon/README.md) | CLI commands, project structure, development guide |
 | [Plugin Usage](PLUGIN_USAGE.md) | Claude Code plugin installation and MCP tools |
 | [Contributing](CONTRIBUTING.md) | How to add artifacts, run tests, and submit PRs |
-| [Architecture Decision Records](skill-forge/docs/adr/README.md) | 30 ADRs documenting design rationale and key technical choices |
-| [Changelog](skill-forge/CHANGELOG.md) | Release history |
+| [Architecture Decision Records](kanon/docs/adr/README.md) | 30 ADRs documenting design rationale and key technical choices |
+| [Changelog](kanon/CHANGELOG.md) | Release history |
 
 ## License
 

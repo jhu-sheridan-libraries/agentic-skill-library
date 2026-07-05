@@ -2,11 +2,11 @@
 
 ## Introduction
 
-The `forge catalog browse` subcommand extends the Skill Forge CLI with a local web-based catalog browser. While `forge catalog` generates a static `catalog.json` and `forge install` provides a TUI-based artifact picker, there is no visual way to explore the knowledge artifact library with rich metadata, search, and content preview. This feature spins up a temporary local HTTP server using Bun's built-in `Bun.serve()` and serves a single-page web UI that displays artifact cards with search, filtering, and detail views — all using inline HTML/CSS/JS with zero external frontend dependencies.
+The `kanon catalog browse` subcommand extends the Kanon CLI with a local web-based catalog browser. While `kanon catalog` generates a static `catalog.json` and `kanon install` provides a TUI-based artifact picker, there is no visual way to explore the knowledge artifact library with rich metadata, search, and content preview. This feature spins up a temporary local HTTP server using Bun's built-in `Bun.serve()` and serves a single-page web UI that displays artifact cards with search, filtering, and detail views — all using inline HTML/CSS/JS with zero external frontend dependencies.
 
 ## Glossary
 
-- **Browse_Server**: The temporary local HTTP server started by `forge catalog browse`, implemented using `Bun.serve()`, that serves the catalog browser web UI
+- **Browse_Server**: The temporary local HTTP server started by `kanon catalog browse`, implemented using `Bun.serve()`, that serves the catalog browser web UI
 - **Catalog_Browser**: The single-page web application served by the Browse_Server that displays knowledge artifact metadata with search, filter, and detail view capabilities
 - **Artifact_Card**: A visual card element in the Catalog_Browser displaying an artifact's name, description, keywords, supported harnesses, and type badge
 - **Detail_View**: A panel or page in the Catalog_Browser showing the full metadata and knowledge.md content preview for a selected artifact
@@ -19,13 +19,13 @@ The `forge catalog browse` subcommand extends the Skill Forge CLI with a local w
 
 ### Requirement 1: Browse Subcommand Registration
 
-**User Story:** As a knowledge author, I want a `forge catalog browse` subcommand, so that I can visually explore the artifact library in my browser.
+**User Story:** As a knowledge author, I want a `kanon catalog browse` subcommand, so that I can visually explore the artifact library in my browser.
 
 #### Acceptance Criteria
 
-1. THE Forge_CLI SHALL register `browse` as a subcommand of the `catalog` command, invoked as `forge catalog browse`
+1. THE Forge_CLI SHALL register `browse` as a subcommand of the `catalog` command, invoked as `kanon catalog browse`
 2. THE Forge_CLI SHALL accept a `--port <number>` option on the `browse` subcommand with a default value of 3131
-3. WHEN the user runs `forge catalog browse`, THE Forge_CLI SHALL start the Browse_Server and print the local URL to stderr
+3. WHEN the user runs `kanon catalog browse`, THE Forge_CLI SHALL start the Browse_Server and print the local URL to stderr
 4. IF the `--port` option specifies a value that is not a valid integer between 1 and 65535, THEN THE Forge_CLI SHALL exit with an error message indicating the valid port range
 
 ### Requirement 2: Local HTTP Server Lifecycle
@@ -34,7 +34,7 @@ The `forge catalog browse` subcommand extends the Skill Forge CLI with a local w
 
 #### Acceptance Criteria
 
-1. WHEN `forge catalog browse` is executed, THE Browse_Server SHALL start listening on `localhost` at the specified port using `Bun.serve()`
+1. WHEN `kanon catalog browse` is executed, THE Browse_Server SHALL start listening on `localhost` at the specified port using `Bun.serve()`
 2. WHEN the Browse_Server starts successfully, THE Forge_CLI SHALL attempt to open the default browser at the server URL
 3. WHEN the user sends a SIGINT signal (Ctrl+C), THE Browse_Server SHALL stop accepting new connections and shut down within 2 seconds
 4. WHEN the Browse_Server shuts down, THE Forge_CLI SHALL print a shutdown confirmation message to stderr
@@ -69,7 +69,7 @@ The `forge catalog browse` subcommand extends the Skill Forge CLI with a local w
 
 1. THE Browse_Server SHALL serve the Catalog_Browser as a single HTML response at the root path (`/`) containing all CSS and JavaScript inline
 2. THE Catalog_Browser SHALL render without requiring any external CDN resources, fonts, or scripts
-3. THE Catalog_Browser SHALL display a header with the title "Skill Forge Catalog" and the total artifact count
+3. THE Catalog_Browser SHALL display a header with the title "Kanon Catalog" and the total artifact count
 4. THE Catalog_Browser SHALL be usable at common viewport widths from 768px to 1920px
 
 ### Requirement 10: Visual Aesthetic

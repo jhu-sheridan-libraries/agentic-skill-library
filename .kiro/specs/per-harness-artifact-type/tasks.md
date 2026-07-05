@@ -156,7 +156,7 @@ Replace the global `type` field with per-harness output format configuration. Im
 
 - [x] 10. Add deprecation warning in validation
   - [x] 10.1 Update `src/validate.ts` to emit deprecation warning for top-level `type` without per-harness format
-    - During `forge validate`, check if an artifact has a top-level `type` field set to a non-default value but no `format` in any `harness-config` section
+    - During `kanon validate`, check if an artifact has a top-level `type` field set to a non-default value but no `format` in any `harness-config` section
     - If so, emit a deprecation warning advising migration to per-harness `format` fields
     - Surface format validation errors from the schema `superRefine` through the existing parse error path
     - _Requirements: 1.2, 7.1_

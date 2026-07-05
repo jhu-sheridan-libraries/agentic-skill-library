@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Team Mode Distribution adds a shared artifact distribution system to Skill Forge under the `forge guild` command group. Instead of vendoring compiled artifacts into every repository via `forge build` + committed `dist/` output, teams install artifacts globally and repos declare dependencies via a manifest file. The `forge guild` subcommands handle repo initialization, sync/resolve, status reporting, and shell hook integration. A sync engine resolves artifacts from the global cache into harness-specific locations, and an auto-update mechanism keeps all team members on the same artifact versions without manual intervention. Manifests can reference both individual artifacts and collections (curated bundles of artifacts), which are expanded at resolve time.
+Team Mode Distribution adds a shared artifact distribution system to Kanon under the `kanon guild` command group. Instead of vendoring compiled artifacts into every repository via `kanon build` + committed `dist/` output, teams install artifacts globally and repos declare dependencies via a manifest file. The `kanon guild` subcommands handle repo initialization, sync/resolve, status reporting, and shell hook integration. A sync engine resolves artifacts from the global cache into harness-specific locations, and an auto-update mechanism keeps all team members on the same artifact versions without manual intervention. Manifests can reference both individual artifacts and collections (curated bundles of artifacts), which are expanded at resolve time.
 
 ## Glossary
 
@@ -17,7 +17,7 @@ Team Mode Distribution adds a shared artifact distribution system to Skill Forge
 - **Resolution_Strategy**: The method used to materialize artifacts into Harness_Targets — file-copy with `.gitignore` markers to keep generated files out of version control.
 - **Version_Pin**: A semver string or semver range in a Manifest_Entry that constrains which artifact version the Sync_Engine resolves.
 - **Forge_CLI**: The `forge` command-line interface provided by the `@jhu-sheridan-libraries/skill-forge` package.
-- **Guild**: The `forge guild` command group that contains all team-mode subcommands: `init`, `sync`, `status`, and `hook`.
+- **Guild**: The `kanon guild` command group that contains all team-mode subcommands: `init`, `sync`, `status`, and `hook`.
 - **Backend**: A remote or local source from which artifacts can be fetched (GitHub releases, S3, HTTP, local filesystem), as defined in `forge.config.yaml`.
 
 ## Requirements
@@ -28,7 +28,7 @@ Team Mode Distribution adds a shared artifact distribution system to Skill Forge
 
 #### Acceptance Criteria
 
-1. WHEN the user runs `forge install --global <artifact-name>`, THE Forge_CLI SHALL download the artifact from the configured Backend and store it in the Global_Cache under `~/.forge/artifacts/<artifact-name>/<version>/`.
+1. WHEN the user runs `kanon install --global <artifact-name>`, THE Forge_CLI SHALL download the artifact from the configured Backend and store it in the Global_Cache under `~/.forge/artifacts/<artifact-name>/<version>/`.
 2. WHEN the `--global` flag is provided with a `--from-release <tag>` option, THE Forge_CLI SHALL fetch the specified version from the Backend and store it in the Global_Cache.
 3. WHEN the `--global` flag is provided without a version specifier, THE Forge_CLI SHALL fetch the latest available version from the Backend.
 4. WHEN a globally installed artifact already exists at the same version, THE Forge_CLI SHALL skip the installation and inform the user that the version is already cached.
@@ -72,14 +72,14 @@ Team Mode Distribution adds a shared artifact distribution system to Skill Forge
 
 #### Acceptance Criteria
 
-1. WHEN the user runs `forge guild init <artifact-name>`, THE Forge_CLI SHALL add a Manifest_Entry for the specified artifact to `.forge/manifest.yaml`, creating the file if it does not exist.
-2. WHEN the user runs `forge guild init <collection-name> --collection`, THE Forge_CLI SHALL add a Collection_Ref Manifest_Entry for the specified collection to `.forge/manifest.yaml`.
+1. WHEN the user runs `kanon guild init <artifact-name>`, THE Forge_CLI SHALL add a Manifest_Entry for the specified artifact to `.forge/manifest.yaml`, creating the file if it does not exist.
+2. WHEN the user runs `kanon guild init <collection-name> --collection`, THE Forge_CLI SHALL add a Collection_Ref Manifest_Entry for the specified collection to `.forge/manifest.yaml`.
 3. WHEN the `--mode required` option is provided, THE Forge_CLI SHALL set the Manifest_Entry mode to `required`.
 4. WHEN the `--mode optional` option is provided, THE Forge_CLI SHALL set the Manifest_Entry mode to `optional`.
 5. WHEN no `--mode` option is provided, THE Forge_CLI SHALL default the Manifest_Entry mode to `required`.
 6. WHEN the `--version <pin>` option is provided, THE Forge_CLI SHALL set the Manifest_Entry Version_Pin to the specified value.
 7. WHEN no `--version` option is provided, THE Forge_CLI SHALL query the Global_Cache for the latest installed version and use it as the Version_Pin.
-8. WHEN the artifact or collection is not found in the Global_Cache and no `--version` is specified, THE Forge_CLI SHALL prompt the user to run `forge install --global <name>` first and exit with a non-zero status code.
+8. WHEN the artifact or collection is not found in the Global_Cache and no `--version` is specified, THE Forge_CLI SHALL prompt the user to run `kanon install --global <name>` first and exit with a non-zero status code.
 9. THE Forge_CLI SHALL add a `.forge/` entry to the repository's `.gitignore` file (creating it if necessary) to prevent manifest-managed generated files from being committed, while preserving the manifest file itself.
 10. IF the artifact or collection already exists in the Manifest, THEN THE Forge_CLI SHALL update the existing Manifest_Entry with the new options rather than creating a duplicate entry.
 11. WHEN guild init completes successfully, THE Forge_CLI SHALL run the Sync_Engine for the newly added entry to immediately materialize it into Harness_Targets.
@@ -90,7 +90,7 @@ Team Mode Distribution adds a shared artifact distribution system to Skill Forge
 
 #### Acceptance Criteria
 
-1. WHEN the user runs `forge guild sync`, THE Sync_Engine SHALL read `.forge/manifest.yaml` and resolve each Manifest_Entry against the Global_Cache.
+1. WHEN the user runs `kanon guild sync`, THE Sync_Engine SHALL read `.forge/manifest.yaml` and resolve each Manifest_Entry against the Global_Cache.
 2. THE Sync_Engine SHALL resolve each Manifest_Entry by finding the highest version in the Global_Cache that satisfies the Version_Pin.
 3. WHEN a Manifest_Entry is a Collection_Ref, THE Sync_Engine SHALL expand the collection into its member artifacts (by reading the collection's catalog metadata from the Global_Cache) and resolve each member individually.
 4. WHEN a matching version is found, THE Sync_Engine SHALL copy the compiled artifact files from the Global_Cache into the appropriate Harness_Targets in the working directory.
@@ -108,10 +108,10 @@ Team Mode Distribution adds a shared artifact distribution system to Skill Forge
 
 #### Acceptance Criteria
 
-1. WHEN the user runs `forge guild sync --auto-update`, THE Sync_Engine SHALL check the configured Backend for newer versions of each artifact in the Manifest before resolving.
+1. WHEN the user runs `kanon guild sync --auto-update`, THE Sync_Engine SHALL check the configured Backend for newer versions of each artifact in the Manifest before resolving.
 2. WHEN a newer version is available that satisfies the Version_Pin, THE Sync_Engine SHALL download the newer version to the Global_Cache and use it for resolution.
 3. THE Sync_Engine SHALL record the current timestamp in the Throttle_State file after completing an auto-update check.
-4. WHEN `forge guild sync --auto-update` is invoked and the Throttle_State file indicates that fewer than 60 minutes have elapsed since the last check, THE Sync_Engine SHALL skip the remote version check and resolve from the existing Global_Cache.
+4. WHEN `kanon guild sync --auto-update` is invoked and the Throttle_State file indicates that fewer than 60 minutes have elapsed since the last check, THE Sync_Engine SHALL skip the remote version check and resolve from the existing Global_Cache.
 5. IF the Backend is unreachable during auto-update, THEN THE Sync_Engine SHALL silently fall back to resolving from the existing Global_Cache without displaying an error.
 6. THE Sync_Engine SHALL complete the auto-update check and sync within the same command invocation without requiring user interaction.
 7. WHEN the `--throttle <minutes>` option is provided with `--auto-update`, THE Sync_Engine SHALL use the specified interval instead of the default 60-minute throttle.
@@ -122,10 +122,10 @@ Team Mode Distribution adds a shared artifact distribution system to Skill Forge
 
 #### Acceptance Criteria
 
-1. WHEN the user runs `forge guild hook install`, THE Forge_CLI SHALL output a shell snippet suitable for appending to the user's shell profile (`.bashrc`, `.zshrc`, or equivalent).
-2. THE shell snippet SHALL detect when the user changes into a directory containing a `.forge/manifest.yaml` file and invoke `forge guild sync --auto-update` in the background.
+1. WHEN the user runs `kanon guild hook install`, THE Forge_CLI SHALL output a shell snippet suitable for appending to the user's shell profile (`.bashrc`, `.zshrc`, or equivalent).
+2. THE shell snippet SHALL detect when the user changes into a directory containing a `.forge/manifest.yaml` file and invoke `kanon guild sync --auto-update` in the background.
 3. THE shell snippet SHALL redirect all output from the background sync to `/dev/null` so that the sync is completely silent during normal operation.
-4. WHEN the user runs `forge guild hook install --shell <name>`, THE Forge_CLI SHALL generate the snippet for the specified shell (bash, zsh, fish).
+4. WHEN the user runs `kanon guild hook install --shell <name>`, THE Forge_CLI SHALL generate the snippet for the specified shell (bash, zsh, fish).
 5. WHEN no `--shell` option is provided, THE Forge_CLI SHALL detect the current shell from the `SHELL` environment variable.
 6. IF the `SHELL` environment variable is not set and no `--shell` option is provided, THEN THE Forge_CLI SHALL display an error asking the user to specify the shell explicitly.
 7. WHEN running on Windows, THE Forge_CLI SHALL generate a PowerShell profile snippet instead of a POSIX shell snippet.
@@ -148,8 +148,8 @@ Team Mode Distribution adds a shared artifact distribution system to Skill Forge
 
 #### Acceptance Criteria
 
-1. WHEN `forge guild sync` encounters a Manifest_Entry whose Version_Pin cannot be satisfied by any version in the Global_Cache, THE Sync_Engine SHALL display an error listing the artifact name, the requested Version_Pin, and the versions available in the Global_Cache.
-2. WHEN the user runs `forge guild status`, THE Forge_CLI SHALL display a table showing each Manifest_Entry (with expanded collection members), its Version_Pin, the resolved version (or "missing"), and whether the materialized files are up to date.
+1. WHEN `kanon guild sync` encounters a Manifest_Entry whose Version_Pin cannot be satisfied by any version in the Global_Cache, THE Sync_Engine SHALL display an error listing the artifact name, the requested Version_Pin, and the versions available in the Global_Cache.
+2. WHEN the user runs `kanon guild status`, THE Forge_CLI SHALL display a table showing each Manifest_Entry (with expanded collection members), its Version_Pin, the resolved version (or "missing"), and whether the materialized files are up to date.
 3. WHEN the sync-lock.json records a version that no longer exists in the Global_Cache, THE Sync_Engine SHALL treat the artifact as unresolved and attempt re-resolution from available versions.
 
 ### Requirement 10: Offline Operation
@@ -158,9 +158,9 @@ Team Mode Distribution adds a shared artifact distribution system to Skill Forge
 
 #### Acceptance Criteria
 
-1. WHEN `forge guild sync` is run without the `--auto-update` flag, THE Sync_Engine SHALL resolve artifacts exclusively from the Global_Cache without making any network requests.
-2. WHEN `forge guild sync --auto-update` is run and the Backend is unreachable, THE Sync_Engine SHALL resolve from the Global_Cache and emit a single debug-level log message indicating that the remote check was skipped.
-3. THE Forge_CLI SHALL cache the artifact catalog metadata alongside artifact files in the Global_Cache so that `forge guild status` can display version information without network access.
+1. WHEN `kanon guild sync` is run without the `--auto-update` flag, THE Sync_Engine SHALL resolve artifacts exclusively from the Global_Cache without making any network requests.
+2. WHEN `kanon guild sync --auto-update` is run and the Backend is unreachable, THE Sync_Engine SHALL resolve from the Global_Cache and emit a single debug-level log message indicating that the remote check was skipped.
+3. THE Forge_CLI SHALL cache the artifact catalog metadata alongside artifact files in the Global_Cache so that `kanon guild status` can display version information without network access.
 
 ### Requirement 11: Collection Expansion
 
@@ -173,7 +173,7 @@ Team Mode Distribution adds a shared artifact distribution system to Skill Forge
 3. WHEN a collection member is also listed as an individual Manifest_Entry, THE individual entry SHALL take precedence over the collection-inherited settings (mode, version, harnesses, backend).
 4. THE sync-lock.json SHALL record expanded collection members individually, with a `source` field indicating which collection they originated from.
 5. WHEN a collection's member list changes between versions (artifact added or removed), THE Sync_Engine SHALL detect the difference during `--auto-update` and materialize or remove artifacts accordingly.
-6. WHEN the user runs `forge guild status`, THE Forge_CLI SHALL display collection members grouped under their collection name, with an indicator showing which entries are collection-inherited vs. individually declared.
+6. WHEN the user runs `kanon guild status`, THE Forge_CLI SHALL display collection members grouped under their collection name, with an indicator showing which entries are collection-inherited vs. individually declared.
 
 ### Requirement 12: Backend Integration
 
@@ -182,7 +182,7 @@ Team Mode Distribution adds a shared artifact distribution system to Skill Forge
 #### Acceptance Criteria
 
 1. THE Sync_Engine SHALL resolve the Backend for each Manifest_Entry by checking (in order): the entry-level `backend` field, the manifest-level `backend` field, and the default backend from `forge.config.yaml`.
-2. WHEN `forge guild sync --auto-update` checks for newer versions, IT SHALL call `listVersions()` on the resolved Backend for each artifact.
-3. WHEN `forge guild sync --auto-update` downloads a newer version, IT SHALL call `fetchArtifact()` on the resolved Backend and store the result in the Global_Cache.
-4. WHEN `forge install --global <name> --backend <backend-name>` is used, THE Forge_CLI SHALL record the backend name in the Global_Cache metadata so that subsequent auto-update checks use the same backend.
+2. WHEN `kanon guild sync --auto-update` checks for newer versions, IT SHALL call `listVersions()` on the resolved Backend for each artifact.
+3. WHEN `kanon guild sync --auto-update` downloads a newer version, IT SHALL call `fetchArtifact()` on the resolved Backend and store the result in the Global_Cache.
+4. WHEN `kanon install --global <name> --backend <backend-name>` is used, THE Forge_CLI SHALL record the backend name in the Global_Cache metadata so that subsequent auto-update checks use the same backend.
 5. IF a Manifest_Entry specifies a `backend` name that is not defined in `forge.config.yaml`, THEN THE Forge_CLI SHALL display an error listing the unknown backend name and the available configured backends.

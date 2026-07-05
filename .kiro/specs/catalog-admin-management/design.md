@@ -2,7 +2,7 @@
 
 ## Overview
 
-This feature extends the existing `forge catalog browse` server with full CRUD (Create, Read, Update, Delete) capabilities for knowledge artifacts, collections, and manifest entries. Currently the browse server is read-only — it serves a static HTML SPA with a JSON API for listing and viewing artifacts. The admin management feature adds:
+This feature extends the existing `kanon catalog browse` server with full CRUD (Create, Read, Update, Delete) capabilities for knowledge artifacts, collections, and manifest entries. Currently the browse server is read-only — it serves a static HTML SPA with a JSON API for listing and viewing artifacts. The admin management feature adds:
 
 1. **Artifact admin** — Three mutation endpoints (`POST /api/artifact`, `PUT /api/artifact/:name`, `DELETE /api/artifact/:name`) and corresponding frontend UI (create form, edit form, delete confirmation, notifications) to manage knowledge artifacts directly from the browser.
 2. **Collection admin** — CRUD endpoints for collection YAML files (`GET/POST /api/collections`, `GET/PUT/DELETE /api/collections/:name`) and a collection management UI (list, detail, create/edit/delete forms) to manage curated artifact bundles.

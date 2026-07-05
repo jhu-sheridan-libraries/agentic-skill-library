@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Skill Forge is a monorepo that serves as a universal skills-and-powers library for AI coding assistants. The core principle is "write knowledge once, compile to every harness format." Authors maintain canonical knowledge artifacts in a harness-agnostic `knowledge/` directory (Markdown + YAML), and a build tool (`forge`) compiles those artifacts into each target harness's native format under `dist/`. The system supports seven first-party harnesses: Kiro, Claude Code, GitHub Copilot, Cursor, Windsurf, Cline, and Amazon Q Developer.
+Kanon is a monorepo that serves as a universal skills-and-powers library for AI coding assistants. The core principle is "write knowledge once, compile to every harness format." Authors maintain canonical knowledge artifacts in a harness-agnostic `knowledge/` directory (Markdown + YAML), and a build tool (`forge`) compiles those artifacts into each target harness's native format under `dist/`. The system supports seven first-party harnesses: Kiro, Claude Code, GitHub Copilot, Cursor, Windsurf, Cline, and Amazon Q Developer.
 
 The monorepo includes a CLI tool (`forge`), a template-driven adapter system for harness-specific transformations, a canonical hook format that translates across harnesses, shared MCP server composition, a machine-readable catalog, and a phased scaling path from local git clone through GitHub releases to community contributions.
 
@@ -29,7 +29,7 @@ The repository lives at `jhu-sheridan-libraries/agentic-skill-forge` and is buil
 - **QDeveloper_Harness**: Amazon Q Developer, consuming `.q/rules/*.md` or `.amazonq/rules/*.md`, `.q/agents/`, and MCP via IDE configuration
 - **Build_Manifest**: The per-artifact metadata (harness compatibility, template overrides, feature flags) that controls how the Forge_CLI compiles a Knowledge_Artifact
 - **Harness_Config**: An optional `harness-config` mapping in a Knowledge_Artifact's frontmatter that provides per-harness configuration overrides and harness-specific features (e.g., Kiro spec hooks, Cline toggleable states, Copilot path-scoped instructions, Cursor inclusion mode overrides)
-- **Install_Target**: A local project directory where `forge install` copies compiled harness output from Dist_Directory into the project's native harness configuration paths
+- **Install_Target**: A local project directory where `kanon install` copies compiled harness output from Dist_Directory into the project's native harness configuration paths
 
 ## Requirements
 
@@ -92,7 +92,7 @@ The repository lives at `jhu-sheridan-libraries/agentic-skill-forge` and is buil
 
 #### Acceptance Criteria
 
-1. WHEN the user runs `forge build`, THE Forge_CLI SHALL iterate over every Knowledge_Artifact in the Knowledge_Directory and compile each to every harness listed in its frontmatter `harnesses` field
+1. WHEN the user runs `kanon build`, THE Forge_CLI SHALL iterate over every Knowledge_Artifact in the Knowledge_Directory and compile each to every harness listed in its frontmatter `harnesses` field
 2. THE Forge_CLI SHALL write compiled output to `dist/<harness-name>/<artifact-name>/` preserving the harness-specific directory structure
 3. THE Forge_CLI SHALL clear the Dist_Directory before writing new output to prevent stale files from previous builds
 4. THE Forge_CLI SHALL invoke the appropriate Harness_Adapter for each target harness, passing the parsed Knowledge_Artifact and resolved templates
@@ -105,7 +105,7 @@ The repository lives at `jhu-sheridan-libraries/agentic-skill-forge` and is buil
 
 #### Acceptance Criteria
 
-1. WHEN the user runs `forge build --harness <harness-name>`, THE Forge_CLI SHALL compile only the output for the specified harness across all applicable Knowledge_Artifacts
+1. WHEN the user runs `kanon build --harness <harness-name>`, THE Forge_CLI SHALL compile only the output for the specified harness across all applicable Knowledge_Artifacts
 2. THE Forge_CLI SHALL clear only the `dist/<harness-name>/` subdirectory before writing, leaving other harness outputs untouched
 3. IF the specified harness name does not match any supported harness, THEN THE Forge_CLI SHALL return an error listing the valid harness names
 4. WHEN a Knowledge_Artifact's frontmatter `harnesses` list does not include the specified harness, THE Forge_CLI SHALL skip that artifact and emit a debug message
@@ -212,11 +212,11 @@ The repository lives at `jhu-sheridan-libraries/agentic-skill-forge` and is buil
 
 #### Acceptance Criteria
 
-1. WHEN the user runs `forge install <artifact-name> --harness <harness-name>`, THE Forge_CLI SHALL copy the compiled output from `dist/<harness-name>/<artifact-name>/` into the current working directory at the harness's expected paths
+1. WHEN the user runs `kanon install <artifact-name> --harness <harness-name>`, THE Forge_CLI SHALL copy the compiled output from `dist/<harness-name>/<artifact-name>/` into the current working directory at the harness's expected paths
 2. THE Forge_CLI SHALL create any missing directories in the Install_Target required by the harness's file layout (e.g., `.kiro/steering/`, `.cursor/rules/`)
 3. WHEN the Install_Target already contains files that would be overwritten, THE Forge_CLI SHALL prompt the user for confirmation before overwriting, unless `--force` is provided
 4. THE Forge_CLI SHALL print a summary to stderr listing each file installed and its destination path
-5. IF the specified artifact has not been built for the specified harness, THEN THE Forge_CLI SHALL return an error suggesting the user run `forge build --harness <harness-name>` first
+5. IF the specified artifact has not been built for the specified harness, THEN THE Forge_CLI SHALL return an error suggesting the user run `kanon build --harness <harness-name>` first
 
 ### Requirement 16: Forge Install — All Harnesses
 
@@ -224,7 +224,7 @@ The repository lives at `jhu-sheridan-libraries/agentic-skill-forge` and is buil
 
 #### Acceptance Criteria
 
-1. WHEN the user runs `forge install <artifact-name> --all`, THE Forge_CLI SHALL copy the compiled output for every harness that has a built artifact into the current working directory
+1. WHEN the user runs `kanon install <artifact-name> --all`, THE Forge_CLI SHALL copy the compiled output for every harness that has a built artifact into the current working directory
 2. THE Forge_CLI SHALL create any missing directories in the Install_Target required by each harness's file layout
 3. WHEN the Install_Target already contains files that would be overwritten, THE Forge_CLI SHALL prompt the user for confirmation before overwriting, unless `--force` is provided
 4. THE Forge_CLI SHALL print a summary to stderr listing each file installed, grouped by harness
@@ -235,7 +235,7 @@ The repository lives at `jhu-sheridan-libraries/agentic-skill-forge` and is buil
 
 #### Acceptance Criteria
 
-1. WHEN the user runs `forge new <artifact-name>`, THE Forge_CLI SHALL create a new directory at `knowledge/<artifact-name>/` containing a `knowledge.md` file with frontmatter template, an empty `workflows/` directory, and stub `hooks.yaml` and `mcp-servers.yaml` files
+1. WHEN the user runs `kanon new <artifact-name>`, THE Forge_CLI SHALL create a new directory at `knowledge/<artifact-name>/` containing a `knowledge.md` file with frontmatter template, an empty `workflows/` directory, and stub `hooks.yaml` and `mcp-servers.yaml` files
 2. THE Forge_CLI SHALL populate the `knowledge.md` frontmatter with `name` set to the artifact name, `displayName` as a title-cased version, `description` as a placeholder, `keywords` as an empty list, `author` as a placeholder, and `harnesses` listing all seven supported harnesses
 3. THE Forge_CLI SHALL load scaffold templates from `templates/knowledge/` to generate the boilerplate files
 4. IF a directory at `knowledge/<artifact-name>/` already exists, THEN THE Forge_CLI SHALL return an error indicating the artifact already exists and suggest using a different name
@@ -247,8 +247,8 @@ The repository lives at `jhu-sheridan-libraries/agentic-skill-forge` and is buil
 
 #### Acceptance Criteria
 
-1. WHEN the user runs `forge validate`, THE Forge_CLI SHALL validate every Knowledge_Artifact in the Knowledge_Directory
-2. WHEN the user runs `forge validate <artifact-path>`, THE Forge_CLI SHALL validate only the specified Knowledge_Artifact
+1. WHEN the user runs `kanon validate`, THE Forge_CLI SHALL validate every Knowledge_Artifact in the Knowledge_Directory
+2. WHEN the user runs `kanon validate <artifact-path>`, THE Forge_CLI SHALL validate only the specified Knowledge_Artifact
 3. THE Forge_CLI SHALL verify that each Knowledge_Artifact contains a `knowledge.md` file with valid YAML frontmatter
 4. THE Forge_CLI SHALL verify that `hooks.yaml` (if present) contains only supported event types and action types
 5. THE Forge_CLI SHALL verify that `mcp-servers.yaml` (if present) contains valid server definitions with required fields (`name`, `command`)
@@ -262,7 +262,7 @@ The repository lives at `jhu-sheridan-libraries/agentic-skill-forge` and is buil
 
 #### Acceptance Criteria
 
-1. WHEN the user runs `forge build`, THE Forge_CLI SHALL regenerate `catalog.json` at the repository root after compiling all artifacts
+1. WHEN the user runs `kanon build`, THE Forge_CLI SHALL regenerate `catalog.json` at the repository root after compiling all artifacts
 2. THE Forge_CLI SHALL include an entry for each Knowledge_Artifact containing: `name`, `displayName`, `description`, `keywords`, `author`, `version`, `harnesses` (list of supported harness names), `type` (skill, power, or rule), and `path` (relative path to the knowledge directory)
 3. THE Forge_CLI SHALL sort catalog entries alphabetically by `name`
 4. FOR ALL Knowledge_Artifacts in the Knowledge_Directory, the catalog SHALL contain exactly one entry per artifact with no duplicates and no missing entries
@@ -315,8 +315,8 @@ The repository lives at `jhu-sheridan-libraries/agentic-skill-forge` and is buil
 
 #### Acceptance Criteria
 
-1. FOR ALL valid Knowledge_Directories, running `forge build` twice without modifying any source files SHALL produce byte-identical output in the Dist_Directory
-2. FOR ALL valid Knowledge_Directories, running `forge build` twice without modifying any source files SHALL produce byte-identical `catalog.json` output
+1. FOR ALL valid Knowledge_Directories, running `kanon build` twice without modifying any source files SHALL produce byte-identical output in the Dist_Directory
+2. FOR ALL valid Knowledge_Directories, running `kanon build` twice without modifying any source files SHALL produce byte-identical `catalog.json` output
 3. THE Forge_CLI SHALL not include timestamps, random values, or other non-deterministic content in generated output unless explicitly configured in the Knowledge_Artifact's frontmatter
 
 ### Requirement 25: Monorepo Directory Structure
@@ -337,8 +337,8 @@ The repository lives at `jhu-sheridan-libraries/agentic-skill-forge` and is buil
 
 #### Acceptance Criteria
 
-1. THE GitHub Actions workflow SHALL run `forge validate` on every pull request that modifies files under `knowledge/`, `templates/`, or `scripts/`
-2. THE GitHub Actions workflow SHALL run `forge build` and verify that the generated `dist/` directory matches the committed `dist/` directory, failing if there are uncommitted build differences
+1. THE GitHub Actions workflow SHALL run `kanon validate` on every pull request that modifies files under `knowledge/`, `templates/`, or `scripts/`
+2. THE GitHub Actions workflow SHALL run `kanon build` and verify that the generated `dist/` directory matches the committed `dist/` directory, failing if there are uncommitted build differences
 3. THE GitHub Actions workflow SHALL run the project's test suite including property-based tests
 4. IF validation or build fails, THEN THE GitHub Actions workflow SHALL post a comment on the pull request summarizing the errors
 
@@ -348,8 +348,8 @@ The repository lives at `jhu-sheridan-libraries/agentic-skill-forge` and is buil
 
 #### Acceptance Criteria
 
-1. IF the user runs `forge build` with no Knowledge_Artifacts in the Knowledge_Directory, THEN THE Forge_CLI SHALL print a message to stderr indicating no artifacts were found and suggest running `forge new`
-2. IF the user runs `forge install` with an artifact name that does not exist in the Dist_Directory, THEN THE Forge_CLI SHALL return an error listing available artifacts
+1. IF the user runs `kanon build` with no Knowledge_Artifacts in the Knowledge_Directory, THEN THE Forge_CLI SHALL print a message to stderr indicating no artifacts were found and suggest running `kanon new`
+2. IF the user runs `kanon install` with an artifact name that does not exist in the Dist_Directory, THEN THE Forge_CLI SHALL return an error listing available artifacts
 3. IF a Nunjucks template references a variable not present in the template context, THEN THE Forge_CLI SHALL return a TemplateError identifying the missing variable and the template file
 4. THE Forge_CLI SHALL exit with status code 0 on success and a non-zero status code on any error
 5. THE Forge_CLI SHALL print all diagnostic and progress messages to stderr and reserve stdout for machine-readable output (e.g., JSON catalog data)
@@ -360,8 +360,8 @@ The repository lives at `jhu-sheridan-libraries/agentic-skill-forge` and is buil
 
 #### Acceptance Criteria
 
-1. THE README SHALL document the workflow: clone the repository, run `forge build`, then run `forge install <artifact> --harness <harness>` from the target project directory
-2. THE Forge_CLI SHALL support a `--source <path>` option on `forge install` to specify the skill-forge repository path when running from a different directory
+1. THE README SHALL document the workflow: clone the repository, run `kanon build`, then run `kanon install <artifact> --harness <harness>` from the target project directory
+2. THE Forge_CLI SHALL support a `--source <path>` option on `kanon install` to specify the skill-forge repository path when running from a different directory
 3. THE Forge_CLI SHALL work without network access after the initial clone, using only local files for build and install operations
 
 ### Requirement 29: Scaling Phase 2 — GitHub Releases Distribution
@@ -370,7 +370,7 @@ The repository lives at `jhu-sheridan-libraries/agentic-skill-forge` and is buil
 
 #### Acceptance Criteria
 
-1. THE Forge_CLI SHALL support a `--from-release <tag>` option on `forge install` that downloads the specified artifact's pre-built dist files from a GitHub release asset
+1. THE Forge_CLI SHALL support a `--from-release <tag>` option on `kanon install` that downloads the specified artifact's pre-built dist files from a GitHub release asset
 2. THE GitHub Actions workflow SHALL create a release asset containing the `dist/` directory and `catalog.json` on each tagged release
 3. THE Forge_CLI SHALL cache downloaded release assets locally to avoid redundant downloads
 
@@ -393,13 +393,13 @@ The repository lives at `jhu-sheridan-libraries/agentic-skill-forge` and is buil
 
 #### Acceptance Criteria
 
-1. WHEN the user runs `forge install` with no arguments, THE Forge_CLI SHALL launch an interactive prompt-based installer
+1. WHEN the user runs `kanon install` with no arguments, THE Forge_CLI SHALL launch an interactive prompt-based installer
 2. THE interactive installer SHALL present a searchable multi-select list of available Knowledge_Artifacts from the catalog, displaying each artifact's `displayName`, `description`, and `keywords`
 3. AFTER the user selects one or more artifacts, THE interactive installer SHALL present a multi-select list of supported harnesses, pre-selecting harnesses detected in the current working directory (e.g., if `.kiro/` exists, pre-select Kiro; if `.cursor/` exists, pre-select Cursor)
 4. THE interactive installer SHALL display a confirmation summary showing the selected artifacts, target harnesses, and files that will be created or overwritten before proceeding
 5. WHEN the user confirms, THE interactive installer SHALL install all selected artifact-harness combinations and print a summary of installed files
 6. THE interactive installer SHALL support a `--dry-run` flag that displays the confirmation summary and file list without writing any files
-7. IF the Dist_Directory does not contain pre-built output for a selected artifact-harness combination, THE interactive installer SHALL offer to run `forge build` automatically before installing
+7. IF the Dist_Directory does not contain pre-built output for a selected artifact-harness combination, THE interactive installer SHALL offer to run `kanon build` automatically before installing
 8. THE interactive installer SHALL use Bun-compatible terminal UI prompts (e.g., `@clack/prompts` or `@inquirer/prompts`) for selection, confirmation, and progress display
 
 ### Requirement 32: Eval Test Suite Structure
@@ -420,9 +420,9 @@ The repository lives at `jhu-sheridan-libraries/agentic-skill-forge` and is buil
 
 #### Acceptance Criteria
 
-1. WHEN the user runs `forge eval`, THE Forge_CLI SHALL discover and execute all eval configuration files across all Knowledge_Artifacts and the top-level `evals/` directory
-2. WHEN the user runs `forge eval <artifact-name>`, THE Forge_CLI SHALL execute only the eval files within the specified artifact's `evals/` subdirectory
-3. WHEN the user runs `forge eval --harness <harness-name>`, THE Forge_CLI SHALL execute only eval files that reference compiled output for the specified harness
+1. WHEN the user runs `kanon eval`, THE Forge_CLI SHALL discover and execute all eval configuration files across all Knowledge_Artifacts and the top-level `evals/` directory
+2. WHEN the user runs `kanon eval <artifact-name>`, THE Forge_CLI SHALL execute only the eval files within the specified artifact's `evals/` subdirectory
+3. WHEN the user runs `kanon eval --harness <harness-name>`, THE Forge_CLI SHALL execute only eval files that reference compiled output for the specified harness
 4. THE Forge_CLI SHALL invoke promptfoo programmatically (via its Node.js API) to execute eval configurations, passing resolved prompt file paths from the Dist_Directory
 5. THE Forge_CLI SHALL print eval results to stderr with pass/fail status per test case, aggregate scores, and a summary count
 6. IF any eval test case fails, THEN THE Forge_CLI SHALL exit with a non-zero status code
@@ -448,7 +448,7 @@ The repository lives at `jhu-sheridan-libraries/agentic-skill-forge` and is buil
 
 #### Acceptance Criteria
 
-1. WHEN the user runs `forge eval --init <artifact-name>`, THE Forge_CLI SHALL generate a starter `evals/` subdirectory within the specified Knowledge_Artifact
+1. WHEN the user runs `kanon eval --init <artifact-name>`, THE Forge_CLI SHALL generate a starter `evals/` subdirectory within the specified Knowledge_Artifact
 2. THE generated eval configuration SHALL include a `promptfooconfig.yaml` file with the artifact's compiled steering file content as the prompt, a default provider configuration, and placeholder test cases
 3. FOR EACH harness in the artifact's `harnesses` list, THE generated eval configuration SHALL include at least one test case that validates the compiled output contains the artifact's core content
 4. FOR EACH Canonical_Hook in the artifact's `hooks.yaml`, THE generated eval configuration SHALL include a test case that validates the hook's prompt or command appears in the compiled harness output
@@ -460,12 +460,12 @@ The repository lives at `jhu-sheridan-libraries/agentic-skill-forge` and is buil
 
 #### Acceptance Criteria
 
-1. THE GitHub Actions workflow SHALL run `forge eval` on pull requests that modify files under `knowledge/`, `templates/`, or `evals/`
+1. THE GitHub Actions workflow SHALL run `kanon eval` on pull requests that modify files under `knowledge/`, `templates/`, or `evals/`
 2. THE GitHub Actions workflow SHALL configure LLM provider credentials via GitHub Actions secrets (e.g., `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`) and pass them as environment variables to the eval runner
-3. THE GitHub Actions workflow SHALL support a `--ci` flag on `forge eval` that disables interactive output, uses machine-readable JSON output, and enforces the configured threshold strictly
+3. THE GitHub Actions workflow SHALL support a `--ci` flag on `kanon eval` that disables interactive output, uses machine-readable JSON output, and enforces the configured threshold strictly
 4. IF any eval test fails in CI, THEN THE GitHub Actions workflow SHALL post a comment on the pull request summarizing the failed test cases, their expected vs. actual outputs, and the aggregate score
 5. THE GitHub Actions workflow SHALL cache eval results keyed by the hash of the compiled dist output and eval configuration files, skipping re-evaluation when neither has changed
-6. THE eval CI step SHALL run after the `forge build` and `forge validate` steps, ensuring compiled output is up-to-date before evaluation
+6. THE eval CI step SHALL run after the `kanon build` and `kanon validate` steps, ensuring compiled output is up-to-date before evaluation
 
 ### Requirement 37: Eval Provider Configuration
 
@@ -476,7 +476,7 @@ The repository lives at `jhu-sheridan-libraries/agentic-skill-forge` and is buil
 1. THE eval framework SHALL support configuring multiple LLM providers per eval file, enabling side-by-side comparison of how different models respond to the same compiled prompts
 2. THE eval framework SHALL support provider configuration via the shared `evals/providers.yaml` file, per-artifact eval files, or inline provider definitions within test cases
 3. THE eval framework SHALL support environment variable references in provider configurations (e.g., `${OPENAI_API_KEY}`) for secure credential management
-4. THE eval framework SHALL support a `--provider <name>` flag on `forge eval` to run evals against a single specified provider, overriding the eval file's provider list
+4. THE eval framework SHALL support a `--provider <name>` flag on `kanon eval` to run evals against a single specified provider, overriding the eval file's provider list
 5. THE eval framework SHALL support Amazon Bedrock, OpenAI, and Anthropic as first-class provider types, with extensibility for additional providers via promptfoo's provider plugin system
 
 ### Requirement 38: Harness-Specific Eval Contexts
@@ -487,5 +487,5 @@ The repository lives at `jhu-sheridan-libraries/agentic-skill-forge` and is buil
 
 1. THE eval framework SHALL support a `harness-context` field in eval test cases that wraps the compiled artifact content in a simulated harness system prompt (e.g., Kiro's steering file injection format, Cursor's rule file preamble)
 2. THE Forge_CLI SHALL provide built-in harness context templates under `templates/eval-contexts/` for each supported harness, representing how each harness typically injects steering content into the LLM context
-3. WHEN the user runs `forge eval --harness <harness-name>`, THE Forge_CLI SHALL automatically apply the corresponding harness context template to all test cases unless a test case explicitly overrides it
+3. WHEN the user runs `kanon eval --harness <harness-name>`, THE Forge_CLI SHALL automatically apply the corresponding harness context template to all test cases unless a test case explicitly overrides it
 4. THE eval framework SHALL support a `--no-context` flag to run evals with raw compiled output only, without harness context wrapping, for baseline comparison

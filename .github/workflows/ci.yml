@@ -3,13 +3,13 @@ name: CI
 on:
   pull_request:
     paths:
-      - "skill-forge/knowledge/**"
-      - "skill-forge/templates/**"
-      - "skill-forge/evals/**"
-      - "skill-forge/src/**"
-      - "skill-forge/scripts/**"
-      - "skill-forge/package.json"
-      - "skill-forge/bun.lock"
+      - "kanon/knowledge/**"
+      - "kanon/templates/**"
+      - "kanon/evals/**"
+      - "kanon/src/**"
+      - "kanon/scripts/**"
+      - "kanon/package.json"
+      - "kanon/bun.lock"
   workflow_dispatch:
     inputs:
       skip-lint:
@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: skill-forge
+        working-directory: kanon
     steps:
       - uses: actions/checkout@v7
 
@@ -69,8 +69,8 @@ jobs:
         with:
           path: |
             ~/.bun/install/cache
-            skill-forge/node_modules
-          key: bun-${{ runner.os }}-${{ hashFiles('skill-forge/bun.lock') }}
+            kanon/node_modules
+          key: bun-${{ runner.os }}-${{ hashFiles('kanon/bun.lock') }}
           restore-keys: |
             bun-${{ runner.os }}-
 
@@ -90,7 +90,7 @@ jobs:
     if: ${{ !inputs.skip-test }}
     defaults:
       run:
-        working-directory: skill-forge
+        working-directory: kanon
     steps:
       - uses: actions/checkout@v7
 
@@ -103,8 +103,8 @@ jobs:
         with:
           path: |
             ~/.bun/install/cache
-            skill-forge/node_modules
-          key: bun-${{ runner.os }}-${{ hashFiles('skill-forge/bun.lock') }}
+            kanon/node_modules
+          key: bun-${{ runner.os }}-${{ hashFiles('kanon/bun.lock') }}
           restore-keys: |
             bun-${{ runner.os }}-
 
@@ -117,7 +117,7 @@ jobs:
         if: ${{ !inputs.skip-test }}
         uses: codecov/codecov-action@v7
         with:
-          files: skill-forge/coverage/lcov.info
+          files: kanon/coverage/lcov.info
           fail_ci_if_error: false
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -127,7 +127,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: skill-forge
+        working-directory: kanon
     steps:
       - uses: actions/checkout@v7
 
@@ -144,8 +144,8 @@ jobs:
         with:
           path: |
             ~/.bun/install/cache
-            skill-forge/node_modules
-          key: bun-${{ runner.os }}-${{ hashFiles('skill-forge/bun.lock') }}
+            kanon/node_modules
+          key: bun-${{ runner.os }}-${{ hashFiles('kanon/bun.lock') }}
           restore-keys: |
             bun-${{ runner.os }}-
 
@@ -177,8 +177,8 @@ jobs:
         with:
           name: dist-${{ github.sha }}
           path: |
-            skill-forge/dist/
-            skill-forge/catalog.json
+            kanon/dist/
+            kanon/catalog.json
           retention-days: 30
 
       - name: Verify MCP bridge compiles
@@ -205,7 +205,7 @@ jobs:
           CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
 
           # Check if any source/artifact files changed (not just docs/CI)
-          SRC_CHANGED=$(echo "$CHANGED" | grep -E '^skill-forge/(src|knowledge|templates|scripts)/' || true)
+          SRC_CHANGED=$(echo "$CHANGED" | grep -E '^kanon/(src|knowledge|templates|scripts)/' || true)
 
           if [ -z "$SRC_CHANGED" ]; then
             echo "No source files changed — changelog fragment not required."
@@ -220,10 +220,10 @@ jobs:
           fi
 
           # Check if a changelog fragment was added
-          FRAGMENT=$(echo "$CHANGED" | grep '^skill-forge/changes/.*\.md$' || true)
+          FRAGMENT=$(echo "$CHANGED" | grep '^kanon/changes/.*\.md$' || true)
 
           if [ -z "$FRAGMENT" ]; then
-            echo "::error::Source files changed but no changelog fragment found in skill-forge/changes/."
+            echo "::error::Source files changed but no changelog fragment found in kanon/changes/."
             echo "::error::Run 'bun run changelog:new --type <added|changed|fixed|...> --message \"description\"' to create one."
             echo "::error::Or add the 'skip-changelog' label to bypass this check."
             exit 1
@@ -237,7 +237,7 @@ jobs:
     needs: validate-and-build
     defaults:
       run:
-        working-directory: skill-forge
+        working-directory: kanon
     if: >-
       ${{
         !inputs.skip-eval &&
@@ -269,8 +269,8 @@ jobs:
         with:
           path: |
             ~/.bun/install/cache
-            skill-forge/node_modules
-          key: bun-${{ runner.os }}-${{ hashFiles('skill-forge/bun.lock') }}
+            kanon/node_modules
+          key: bun-${{ runner.os }}-${{ hashFiles('kanon/bun.lock') }}
           restore-keys: |
             bun-${{ runner.os }}-
 
@@ -287,4 +287,4 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: eval-results
-          path: skill-forge/eval-results.json
+          path: kanon/eval-results.json

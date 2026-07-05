@@ -5,10 +5,10 @@ on:
     branches:
       - jhu-main
     paths:
-      - "skill-forge/knowledge/**"
-      - "skill-forge/src/**"
-      - "skill-forge/templates/**"
-      - "skill-forge/collections/**"
+      - "kanon/knowledge/**"
+      - "kanon/src/**"
+      - "kanon/templates/**"
+      - "kanon/collections/**"
   workflow_dispatch:
 
 permissions:
@@ -39,25 +39,25 @@ jobs:
         with:
           path: |
             ~/.bun/install/cache
-            skill-forge/node_modules
-          key: bun-${{ runner.os }}-${{ hashFiles('skill-forge/bun.lock') }}
+            kanon/node_modules
+          key: bun-${{ runner.os }}-${{ hashFiles('kanon/bun.lock') }}
           restore-keys: |
             bun-${{ runner.os }}-
 
       - run: bun install --frozen-lockfile
-        working-directory: skill-forge
+        working-directory: kanon
 
       - name: Build artifacts
         run: bun run dev build
-        working-directory: skill-forge
+        working-directory: kanon
 
       - name: Generate catalog
         run: bun run dev catalog generate
-        working-directory: skill-forge
+        working-directory: kanon
 
       - name: Export static catalog
         run: bun run dev catalog export --output ../site
-        working-directory: skill-forge
+        working-directory: kanon
 
       - uses: actions/configure-pages@v6
 

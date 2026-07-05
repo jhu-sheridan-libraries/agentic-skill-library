@@ -2,11 +2,11 @@
 
 ## Introduction
 
-Skill Forge currently compiles knowledge artifacts to seven AI coding assistant harnesses: Kiro, Claude Code, GitHub Copilot, Cursor, Windsurf, Cline, and Amazon Q Developer. This feature adds three new harness targets — Zed, JetBrains AI (Junie), and Aider — to expand coverage to the next most impactful developer audiences. Each new harness follows the established adapter pattern: a pure-function adapter, Nunjucks templates, format registry entry, schema integration, and full test coverage.
+Kanon currently compiles knowledge artifacts to eight AI coding assistant harnesses: Kiro, Claude Code, Codex, GitHub Copilot, Cursor, Windsurf, Cline, and Amazon Q Developer. This feature adds three new harness targets — Zed, JetBrains AI (Junie), and Aider — to expand coverage to eleven harnesses total, reaching the next most impactful developer audiences. Each new harness follows the established adapter pattern: a pure-function adapter, Nunjucks templates, format registry entry, schema integration, and full test coverage.
 
 ## Glossary
 
-- **Harness**: A target AI coding assistant that Skill Forge compiles artifacts for. Each harness has its own file format, directory conventions, and feature support.
+- **Harness**: A target AI coding assistant that Kanon compiles artifacts for. Each harness has its own file format, directory conventions, and feature support.
 - **Adapter**: A pure function in `src/adapters/` that receives a `KnowledgeArtifact` and a Nunjucks `Environment`, and returns an `AdapterResult` containing output files and warnings.
 - **Format_Registry**: The `HARNESS_FORMAT_REGISTRY` constant in `src/format-registry.ts` that maps each harness to its valid output formats and default format.
 - **HarnessName**: The Zod enum in `src/schemas.ts` listing all supported harness identifiers.
@@ -19,7 +19,7 @@ Skill Forge currently compiles knowledge artifacts to seven AI coding assistant 
 
 ### Requirement 1: Zed Harness Adapter
 
-**User Story:** As an artifact author targeting Zed, I want Skill Forge to compile my knowledge artifacts into Zed-native prompt files and context server configuration, so that my artifacts work seamlessly in the Zed editor.
+**User Story:** As an artifact author targeting Zed, I want Kanon to compile my knowledge artifacts into Zed-native prompt files and context server configuration, so that my artifacts work seamlessly in the Zed editor.
 
 #### Acceptance Criteria
 
@@ -32,7 +32,7 @@ Skill Forge currently compiles knowledge artifacts to seven AI coding assistant 
 
 ### Requirement 2: JetBrains AI Harness Adapter
 
-**User Story:** As an artifact author targeting JetBrains IDEs, I want Skill Forge to compile my knowledge artifacts into Junie-compatible guidelines and MCP configuration, so that my artifacts work in IntelliJ, PyCharm, WebStorm, and other JetBrains products.
+**User Story:** As an artifact author targeting JetBrains IDEs, I want Kanon to compile my knowledge artifacts into Junie-compatible guidelines and MCP configuration, so that my artifacts work in IntelliJ, PyCharm, WebStorm, and other JetBrains products.
 
 #### Acceptance Criteria
 
@@ -45,7 +45,7 @@ Skill Forge currently compiles knowledge artifacts to seven AI coding assistant 
 
 ### Requirement 3: Aider Harness Adapter
 
-**User Story:** As an artifact author targeting Aider, I want Skill Forge to compile my knowledge artifacts into Aider-compatible convention files, so that my artifacts can be loaded via Aider's `--read` flag.
+**User Story:** As an artifact author targeting Aider, I want Kanon to compile my knowledge artifacts into Aider-compatible convention files, so that my artifacts can be loaded via Aider's `--read` flag.
 
 #### Acceptance Criteria
 
@@ -62,12 +62,12 @@ Skill Forge currently compiles knowledge artifacts to seven AI coding assistant 
 
 #### Acceptance Criteria
 
-1. THE `SUPPORTED_HARNESSES` array in `src/schemas.ts` SHALL include `"zed"`, `"jetbrains"`, and `"aider"` alongside the existing seven harnesses.
+1. THE `SUPPORTED_HARNESSES` array in `src/schemas.ts` SHALL include `"zed"`, `"jetbrains"`, and `"aider"` alongside the existing eight harnesses.
 2. THE `HARNESS_FORMAT_REGISTRY` in `src/format-registry.ts` SHALL include entries for `zed`, `jetbrains`, and `aider` with their respective formats and defaults.
 3. THE `adapterRegistry` in `src/adapters/index.ts` SHALL map `zed`, `jetbrains`, and `aider` to their respective adapter functions.
 4. THE `FrontmatterSchema` SHALL accept the new harness names in the `harnesses` array and in `harness-config` keys.
 5. THE `FrontmatterSchema` SHALL validate `format` fields in `harness-config.zed`, `harness-config.jetbrains`, and `harness-config.aider` against their respective valid format sets.
-6. WHEN an artifact's `harnesses` array defaults (no explicit harnesses specified), THE default SHALL include all ten harnesses.
+6. WHEN an artifact's `harnesses` array defaults (no explicit harnesses specified), THE default SHALL include all eleven harnesses.
 
 ### Requirement 5: Template Creation
 
@@ -82,14 +82,14 @@ Skill Forge currently compiles knowledge artifacts to seven AI coding assistant 
 
 ### Requirement 6: Build Pipeline Integration
 
-**User Story:** As an artifact author, I want `forge build` to produce output for the new harnesses in `dist/`, so that I can use the compiled artifacts immediately.
+**User Story:** As an artifact author, I want `kanon build` to produce output for the new harnesses in `dist/`, so that I can use the compiled artifacts immediately.
 
 #### Acceptance Criteria
 
-1. WHEN running `forge build`, THE build pipeline SHALL produce output directories `dist/zed/`, `dist/jetbrains/`, and `dist/aider/` for artifacts that target those harnesses.
-2. WHEN running `forge build --harness zed`, THE build pipeline SHALL produce output only for the Zed harness.
-3. WHEN running `forge build --harness jetbrains`, THE build pipeline SHALL produce output only for the JetBrains harness.
-4. WHEN running `forge build --harness aider`, THE build pipeline SHALL produce output only for the Aider harness.
+1. WHEN running `kanon build`, THE build pipeline SHALL produce output directories `dist/zed/`, `dist/jetbrains/`, and `dist/aider/` for artifacts that target those harnesses.
+2. WHEN running `kanon build --harness zed`, THE build pipeline SHALL produce output only for the Zed harness.
+3. WHEN running `kanon build --harness jetbrains`, THE build pipeline SHALL produce output only for the JetBrains harness.
+4. WHEN running `kanon build --harness aider`, THE build pipeline SHALL produce output only for the Aider harness.
 5. THE build pipeline SHALL require no changes beyond the schema, registry, and adapter additions — the existing build orchestration SHALL discover new harnesses automatically via the adapter registry.
 
 ### Requirement 7: Catalog and Browse Integration
@@ -107,7 +107,7 @@ Skill Forge currently compiles knowledge artifacts to seven AI coding assistant 
 
 ### Requirement 8: Validation Support
 
-**User Story:** As an artifact author, I want `forge validate` to correctly validate artifacts targeting the new harnesses, so that I get clear error messages for invalid configuration.
+**User Story:** As an artifact author, I want `kanon validate` to correctly validate artifacts targeting the new harnesses, so that I get clear error messages for invalid configuration.
 
 #### Acceptance Criteria
 
@@ -122,8 +122,8 @@ Skill Forge currently compiles knowledge artifacts to seven AI coding assistant 
 
 #### Acceptance Criteria
 
-1. WHEN an existing artifact's `harnesses` array explicitly lists only the original seven harnesses, THE system SHALL continue to build only for those seven harnesses with no change in behavior.
-2. WHEN an existing artifact omits the `harnesses` field (relying on the default), THE default SHALL expand to include all ten harnesses, and the new harnesses SHALL produce valid output using their default formats.
+1. WHEN an existing artifact's `harnesses` array explicitly lists only the original eight harnesses, THE system SHALL continue to build only for those eight harnesses with no change in behavior.
+2. WHEN an existing artifact omits the `harnesses` field (relying on the default), THE default SHALL expand to include all eleven harnesses, and the new harnesses SHALL produce valid output using their default formats.
 3. THE addition of new harnesses SHALL NOT change the output of any existing harness adapter for any existing artifact.
 
 ### Requirement 10: Test Coverage

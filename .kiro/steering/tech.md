@@ -22,7 +22,7 @@ inclusion: always
 
 ## Common Commands
 
-All commands run from the `skill-forge/` directory:
+All commands run from the `kanon/` directory:
 
 ```bash
 # Install dependencies
@@ -83,5 +83,5 @@ bun run changelog:compile
 - Schemas are defined centrally in `src/schemas.ts` using Zod.
 - Templates live in `templates/harness-adapters/<harness>/` as `.njk` files.
 - Names use **kebab-case** everywhere: artifact names, collection names, directory names.
-- Every substantive change requires a **changelog fragment** in `skill-forge/changes/`.
+- Every substantive change requires a **changelog fragment** in `kanon/changes/`.
 - **Testing and validation are performed with Bun** — `bun test` for the suite, `bun run dev validate` for artifacts, and `bun x tsc --noEmit` for type checks. One-off checks and ad-hoc validation scripts also use Bun (`bun run <script>.ts` or `bun -e`), not Python or other runtimes. This repo has no Python project (no `pyproject.toml`); do not introduce one for validation tasks.

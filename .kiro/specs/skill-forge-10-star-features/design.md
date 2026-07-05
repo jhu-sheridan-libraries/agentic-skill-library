@@ -1,4 +1,4 @@
-# Design Document: Skill Forge 10-Star Features
+# Design Document: Kanon 10-Star Features
 
 ## Implementation Status
 
@@ -7,7 +7,7 @@
 | Feature | Status | Existing Infrastructure |
 |---------|--------|------------------------|
 | 1. Capability Matrix | 🟡 Partially Started | `src/format-registry.ts` (HARNESS_FORMAT_REGISTRY, resolveFormat), `src/compatibility.ts` (ASSET_HARNESS_COMPATIBILITY, getCompatibility), `--strict` flag on build |
-| 2. Import (Multi-Harness) | 🟡 Partially Started | `src/import.ts` (forge import with --all, --format, --dry-run, --collections, --knowledge-dir for Kiro powers/skills) |
+| 2. Import (Multi-Harness) | 🟡 Partially Started | `src/import.ts` (kanon import with --all, --format, --dry-run, --collections, --knowledge-dir for Kiro powers/skills) |
 | 3. Versioning + Migration | 🟡 Partially Started | `src/guild/` (manifest-driven distribution, version-resolver, global-cache, sync-lock), `FrontmatterSchema.version` defaults to "0.1.0" |
 | 4. Workspace Support | 🟡 Partially Started | `forge.config.yaml` (backends config), Guild manifest (`.forge/manifest.yaml`) |
 | 5. Temper / Preview | 🔴 Not Started | `src/browse.ts` (Browse_SPA patterns, local HTTP server, handleRequest) |
@@ -17,13 +17,13 @@
 
 ## Overview
 
-This design extends Skill Forge with eight major capabilities that transform it from a one-way compiler into a full-lifecycle knowledge management platform. The features are:
+This design extends Kanon with eight major capabilities that transform it from a one-way compiler into a full-lifecycle knowledge management platform. The features are:
 
 1. **Harness Capability Matrix + Graceful Degradation** — A machine-readable matrix declaring what each harness supports, with configurable strategies (`inline`, `comment`, `omit`) for handling unsupported features during compilation. Extends the existing `HARNESS_FORMAT_REGISTRY` and `ASSET_HARNESS_COMPATIBILITY`.
-2. **Bidirectional Sync / `forge import`** — Extends the existing `forge import` command (which handles Kiro powers/skills) to support all 7 harness-native formats, adding `--harness` scanning and `--force` overwrite.
-3. **Artifact Versioning + Migration** — Authoring-level versioning (distinct from the Guild_System's distribution-level versioning): version embedding in compiled output, `forge upgrade` command, and optional migration scripts.
+2. **Bidirectional Sync / `kanon import`** — Extends the existing `kanon import` command (which handles Kiro powers/skills) to support all 7 harness-native formats, adding `--harness` scanning and `--force` overwrite.
+3. **Artifact Versioning + Migration** — Authoring-level versioning (distinct from the Guild_System's distribution-level versioning): version embedding in compiled output, `kanon upgrade` command, and optional migration scripts.
 4. **Multi-Repo / Monorepo Workspace Support** — Extends the existing `forge.config.yaml` (which currently defines backends) with workspace project definitions for monorepo artifact management.
-5. **Interactive Temper / Preview** — A `forge temper` command that renders a human-readable preview of the "AI experience" for a given artifact-harness combination, leveraging the Browse_SPA infrastructure for web mode.
+5. **Interactive Temper / Preview** — A `kanon temper` command that renders a human-readable preview of the "AI experience" for a given artifact-harness combination, leveraging the Browse_SPA infrastructure for web mode.
 6. **Admin UX Integration** — Surfaces capability data, temper previews, import actions, version/upgrade info, and workspace management directly in the Browse_SPA admin UI via new API endpoints and inline UI components.
 7. **Dependency Graph Visualization** — An interactive inline SVG graph rendering artifact dependency relationships (`depends`/`enhances`) within the admin UI, with click-to-navigate, hover highlighting, and type filtering.
 8. **Build Dashboard** — A build trigger, status display, and history panel within the admin UI, allowing users to configure and run builds without switching to the terminal.
@@ -172,7 +172,7 @@ graph TD
 
 ```mermaid
 sequenceDiagram
-    participant CLI as forge build
+    participant CLI as kanon build
     participant WS as Workspace Config
     participant Build as Build Orchestrator
     participant Cap as Capability Matrix
@@ -213,7 +213,7 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant CLI as forge import
+    participant CLI as kanon import
     participant Detect as Auto-Detector
     participant Parser as Import Parser (src/import.ts)
     participant Writer as Artifact Writer
@@ -792,7 +792,7 @@ export async function startTemperServer(
 
 ### 8. CLI Registration (`src/cli.ts` modifications)
 
-New commands and flags added to the existing Commander.js program. Note: `forge import` already exists — only new flags are added.
+New commands and flags added to the existing Commander.js program. Note: `kanon import` already exists — only new flags are added.
 
 ```typescript
 // Extend existing import command with new flags
@@ -1639,14 +1639,14 @@ All new commands follow the existing convention (consistent with `src/build.ts`,
 
 ```
 Error: Artifact "my-skill" not built for harness "cursor".
-  → Run `forge build --harness cursor` first, or use `forge temper --harness kiro` instead.
+  → Run `kanon build --harness cursor` first, or use `kanon temper --harness kiro` instead.
 
 Error: Workspace project "api" not found in forge.config.yaml.
   → Available projects: api-server, web-client, shared-lib
 
 Error: No harness-native files detected in current directory.
   → Checked: .kiro/, .cursor/, .claude/, .github/, .windsurf/, .clinerules/, .q/, .amazonq/
-  → Run `forge new <name>` to create a new artifact from scratch.
+  → Run `kanon new <name>` to create a new artifact from scratch.
 
 Error: Migration script missing for version gap 1.0.0 → 3.0.0.
   → Expected: knowledge/my-skill/migrations/1.0.0-to-2.0.0.ts

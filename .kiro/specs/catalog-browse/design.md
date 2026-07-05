@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `forge catalog browse` feature adds a local web-based catalog browser to the Skill Forge CLI. It introduces a new `browse` subcommand under the existing `catalog` command group that starts a temporary `Bun.serve()` HTTP server serving a self-contained single-page application (SPA). The SPA displays knowledge artifact metadata as cards with search, filtering by harness/type, and a detail view that previews the raw `knowledge.md` content.
+The `kanon catalog browse` feature adds a local web-based catalog browser to the Kanon CLI. It introduces a new `browse` subcommand under the existing `catalog` command group that starts a temporary `Bun.serve()` HTTP server serving a self-contained single-page application (SPA). The SPA displays knowledge artifact metadata as cards with search, filtering by harness/type, and a detail view that previews the raw `knowledge.md` content.
 
 The implementation requires a single new module (`src/browse.ts`) and a small registration change in `src/cli.ts`. No new npm dependencies are needed — the server uses Bun's built-in HTTP primitives, and the frontend is entirely inline HTML/CSS/JS.
 
@@ -18,7 +18,7 @@ The implementation requires a single new module (`src/browse.ts`) and a small re
 ```mermaid
 graph TD
     subgraph "CLI Layer"
-        CLI["forge catalog browse<br/>--port 3131"]
+        CLI["kanon catalog browse<br/>--port 3131"]
     end
 
     subgraph "Server Layer (src/browse.ts)"
@@ -83,7 +83,7 @@ sequenceDiagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Initializing: forge catalog browse
+    [*] --> Initializing: kanon catalog browse
     Initializing --> Loading: Validate port
     Loading --> Listening: generateCatalog() + Bun.serve()
     Listening --> Listening: Handle requests
@@ -99,7 +99,7 @@ stateDiagram-v2
 
 ### 1. CLI Registration (`src/cli.ts` modification)
 
-The existing `catalog` command is converted from a simple command to a command group with subcommands. The current `forge catalog` behavior (generating `catalog.json`) becomes `forge catalog generate`, and `forge catalog browse` is added.
+The existing `catalog` command is converted from a simple command to a command group with subcommands. The current `kanon catalog` behavior (generating `catalog.json`) becomes `kanon catalog generate`, and `kanon catalog browse` is added.
 
 ```typescript
 // src/cli.ts — modified catalog command registration

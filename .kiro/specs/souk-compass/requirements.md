@@ -6,7 +6,7 @@ Souk Compass is a Solr-backed semantic search capability for the context-bazaar,
 
 The implementation adapts the "Looking Glass" concept from a companion project (Apache Solr 9.x with DenseVectorField / HNSW indexing) into the context-bazaar ecosystem. Key adaptations: Bun + TypeScript runtime, MCP server interface (not CLI), pluggable embedding providers (local-first with optional cloud providers), and indexing of knowledge artifacts from the bazaar catalog plus user-supplied document collections.
 
-Souk Compass runs as a standalone MCP server in `skill-forge/mcp-servers/souk-compass/`, separate from the existing catalog bridge. It connects to a local or remote Solr 9.x instance, generates embeddings via a pluggable provider interface, and provides tools for indexing artifacts, indexing user documents, and performing semantic queries. Configuration follows the project's existing pattern: environment variables with sensible defaults.
+Souk Compass runs as a standalone MCP server in `kanon/mcp-servers/souk-compass/`, separate from the existing catalog bridge. It connects to a local or remote Solr 9.x instance, generates embeddings via a pluggable provider interface, and provides tools for indexing artifacts, indexing user documents, and performing semantic queries. Configuration follows the project's existing pattern: environment variables with sensible defaults.
 
 Beyond core vector search, Souk Compass supports hybrid search combining BM25 keyword relevance with kNN vector similarity for improved result quality, chunk-level indexing of long artifacts for finer-grained retrieval, search result snippets for quick relevance previews, an in-memory LRU embedding cache to avoid redundant API calls, automatic re-indexing on catalog changes, and configurable similarity score thresholds to filter low-relevance noise.
 
@@ -44,7 +44,7 @@ This spec supersedes the earlier `looking-glass-bazaar` spec by introducing a pl
 - **Memory_Note**: A structured observation or preference indexed by the assistant into the user document collection, enabling cross-session recall of user preferences, project conventions, and past recommendations
 - **Workspace_Profile**: An embedding-based representation of a user's workspace derived from project files (package.json, config files, source structure), used to match relevant artifacts by comparing workspace embeddings against artifact embeddings
 - **Cross_Tool_Chaining**: The pattern where `compass_search` results include sufficient metadata (artifact name, type, path) for the assistant to seamlessly invoke `artifact_content` from the catalog bridge to retrieve full artifact content
-- **Auto_Index_Hook**: A hook that triggers `compass_reindex` after `forge build` completes, keeping the Solr index synchronized with the catalog without manual intervention
+- **Auto_Index_Hook**: A hook that triggers `compass_reindex` after `kanon build` completes, keeping the Solr index synchronized with the catalog without manual intervention
 - **Plugin_Memory**: The persistent knowledge layer formed by the combination of the Solr index, SQLite embedding cache, and user document collection, enabling the assistant to retain and recall context across Claude Code sessions
 
 ## Requirements
@@ -133,7 +133,7 @@ This spec supersedes the earlier `looking-glass-bazaar` spec by introducing a pl
 
 #### Acceptance Criteria
 
-1. THE Souk_Compass SHALL be implemented as a standalone MCP server in `skill-forge/mcp-servers/souk-compass/` using the `@modelcontextprotocol/sdk` package with stdio transport
+1. THE Souk_Compass SHALL be implemented as a standalone MCP server in `kanon/mcp-servers/souk-compass/` using the `@modelcontextprotocol/sdk` package with stdio transport
 2. THE Souk_Compass MCP server SHALL register the following tools: `compass_setup`, `compass_index_artifacts`, `compass_search`, `compass_index_document`, `compass_status`, and `compass_health`
 3. THE `compass_health` tool SHALL check connectivity to the configured Solr_Instance and report whether the instance is reachable and the configured collections exist
 4. THE `compass_status` tool SHALL query Solr for the count of indexed documents in each configured collection and return the totals
@@ -162,10 +162,10 @@ This spec supersedes the earlier `looking-glass-bazaar` spec by introducing a pl
 
 #### Acceptance Criteria
 
-1. THE project SHALL include a Solr schema definition file at `skill-forge/mcp-servers/souk-compass/solr/schema.xml` defining the required fields: `id` (string, unique key), `text` (text_general, stored, indexed), `vector` (DenseVectorField, 1024 dimensions, HNSW algorithm, cosine similarity), `artifact_name` (string, stored, indexed), `artifact_type` (string, stored, indexed), `display_name` (string, stored), `collection_names` (string, multiValued, stored, indexed), `keywords` (string, multiValued, stored, indexed), `maturity` (string, stored, indexed), `author` (string, stored, indexed), `version` (string, stored, indexed), `doc_source` (string, stored, indexed), and dynamic fields `metadata_*` (string, stored, indexed)
-2. THE project SHALL include a `skill-forge/mcp-servers/souk-compass/solr/README.md` with setup instructions covering local Docker-based development using the official `solr:9` image and remote Solr deployment
+1. THE project SHALL include a Solr schema definition file at `kanon/mcp-servers/souk-compass/solr/schema.xml` defining the required fields: `id` (string, unique key), `text` (text_general, stored, indexed), `vector` (DenseVectorField, 1024 dimensions, HNSW algorithm, cosine similarity), `artifact_name` (string, stored, indexed), `artifact_type` (string, stored, indexed), `display_name` (string, stored), `collection_names` (string, multiValued, stored, indexed), `keywords` (string, multiValued, stored, indexed), `maturity` (string, stored, indexed), `author` (string, stored, indexed), `version` (string, stored, indexed), `doc_source` (string, stored, indexed), and dynamic fields `metadata_*` (string, stored, indexed)
+2. THE project SHALL include a `kanon/mcp-servers/souk-compass/solr/README.md` with setup instructions covering local Docker-based development using the official `solr:9` image and remote Solr deployment
 3. THE schema SHALL define the vector field with HNSW parameters: `hnswMaxConnections=16` and `hnswBeamWidth=100` as sensible defaults
-4. THE project SHALL include a `docker-compose.yml` in `skill-forge/mcp-servers/souk-compass/` that starts a local Solr 9.x instance with the schema pre-loaded for development use
+4. THE project SHALL include a `docker-compose.yml` in `kanon/mcp-servers/souk-compass/` that starts a local Solr 9.x instance with the schema pre-loaded for development use
 5. THE schema SHALL support both the artifact collection and the user document collection using the same field definitions, differentiated by the `doc_source` field
 
 ### Requirement 9: Zod Schemas for Souk Compass Types
@@ -178,7 +178,7 @@ This spec supersedes the earlier `looking-glass-bazaar` spec by introducing a pl
 2. THE Souk_Compass SHALL define a `SolrDocumentSchema` using Zod that validates the shape of documents upserted to Solr, including id, text, vector, and all metadata fields
 3. THE Souk_Compass SHALL define a `SearchResultSchema` using Zod that validates individual search results returned from Solr, including score, artifact name, display name, type, description, maturity, and collections
 4. THE Souk_Compass SHALL define a `ToolInputSchemas` object containing Zod schemas for each MCP tool's input parameters (`compass_setup`, `compass_index_artifacts`, `compass_search`, `compass_index_document`, `compass_status`, `compass_health`)
-5. ALL Zod schemas SHALL be co-located in `skill-forge/mcp-servers/souk-compass/src/schemas.ts` and export both the schema and the inferred TypeScript type
+5. ALL Zod schemas SHALL be co-located in `kanon/mcp-servers/souk-compass/src/schemas.ts` and export both the schema and the inferred TypeScript type
 
 ### Requirement 10: Error Handling and Graceful Degradation
 
@@ -332,8 +332,8 @@ This spec supersedes the earlier `looking-glass-bazaar` spec by introducing a pl
 
 #### Acceptance Criteria
 
-1. THE project SHALL include a hook configuration file at `skill-forge/mcp-servers/souk-compass/hooks/auto-reindex.json` that triggers `compass_reindex` after `forge build` completes
-2. THE hook SHALL be configured as a `postToolUse` hook that fires after the `forge build` shell command completes, invoking `compass_reindex` via an `askAgent` action with the prompt "The catalog has been rebuilt. Run compass_reindex to update the semantic search index."
+1. THE project SHALL include a hook configuration file at `kanon/mcp-servers/souk-compass/hooks/auto-reindex.json` that triggers `compass_reindex` after `kanon build` completes
+2. THE hook SHALL be configured as a `postToolUse` hook that fires after the `kanon build` shell command completes, invoking `compass_reindex` via an `askAgent` action with the prompt "The catalog has been rebuilt. Run compass_reindex to update the semantic search index."
 3. THE hook SHALL only trigger when the build command exits successfully (exit code 0)
 4. THE `compass_reindex` tool (from Requirement 14) SHALL serve as the hook's target, using content-hash change detection to re-index only changed artifacts
 5. IF Solr is not running when the hook fires, THE `compass_reindex` tool SHALL return a non-fatal error message and the hook SHALL NOT block subsequent operations
@@ -348,7 +348,7 @@ This spec supersedes the earlier `looking-glass-bazaar` spec by introducing a pl
 1. THE Souk Compass MCP server SHALL be bundled into the existing context-bazaar Claude Code plugin by adding its server entry to the root `.mcp.json` file alongside the existing `context-bazaar` bridge entry
 2. THE `.claude-plugin/plugin.json` SHALL be updated to include Souk Compass in its `keywords` array (adding `"semantic-search"`, `"vector-search"`, `"solr"`, `"embeddings"`) and update the `description` to mention semantic search capabilities
 3. THE `.claude-plugin/marketplace.json` SHALL be updated to add `"semantic-search"`, `"vector-search"`, `"solr"` to the plugin's `tags` array and update the plugin `description` to mention Souk Compass semantic search
-4. THE Souk Compass MCP server CJS bundle SHALL be built and placed at `skill-forge/mcp-servers/souk-compass/dist/mcp-server.cjs` as part of the project's build process, alongside the existing `bridge/mcp-server.cjs`
+4. THE Souk Compass MCP server CJS bundle SHALL be built and placed at `kanon/mcp-servers/souk-compass/dist/mcp-server.cjs` as part of the project's build process, alongside the existing `bridge/mcp-server.cjs`
 5. THE `.mcp.json` Souk Compass entry SHALL include sensible default environment variables (`SOUK_COMPASS_SOLR_URL`, `SOUK_COMPASS_SOLR_COLLECTION`, `SOUK_COMPASS_EMBED_PROVIDER`) so the plugin works with a local Solr instance out of the box
 6. IF Solr is not available when the plugin loads, THE Souk Compass MCP server SHALL start normally and return helpful error messages when tools are invoked, explaining that Solr setup is required and suggesting `compass_setup` as the first step
 7. THE `compass_setup` tool SHALL detect whether it is running inside a Claude Code plugin context (via `CLAUDE_PLUGIN_ROOT` environment variable) and resolve paths to the bundled `docker-compose.yml` and `schema.xml` relative to the plugin root

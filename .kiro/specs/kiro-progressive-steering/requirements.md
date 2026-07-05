@@ -4,9 +4,9 @@
 
 Kiro supports three steering inclusion modes that together form what we call **Progressive Steering**: `always` (loaded into every agent interaction), `fileMatch` (loaded only when a file matching a glob is in context), and `manual` (loaded only when a user references the steering file via `#`). Progressive Steering means choosing the lightest inclusion mode that still delivers the steering at the right moment, so every prompt is not bloated with always-on context.
 
-Skill Forge's Kiro adapter and Nunjucks templates support the three modes mechanically — `templates/harness-adapters/kiro/steering.md.njk` renders the `inclusion:` and `fileMatchPattern:` frontmatter fields — but the rest of the pipeline does not help authors pick the right mode, does not validate it, and does not surface the distribution of inclusion modes on build or install. The default when `inclusion` is absent is `always`, which turns every steering file shipped via Skill Forge into global context whether or not it needs to be. That defeats the value Kiro's Progressive Steering is designed to offer.
+Kanon's Kiro adapter and Nunjucks templates support the three modes mechanically — `templates/harness-adapters/kiro/steering.md.njk` renders the `inclusion:` and `fileMatchPattern:` frontmatter fields — but the rest of the pipeline does not help authors pick the right mode, does not validate it, and does not surface the distribution of inclusion modes on build or install. The default when `inclusion` is absent is `always`, which turns every steering file shipped via Kanon into global context whether or not it needs to be. That defeats the value Kiro's Progressive Steering is designed to offer.
 
-This feature closes that gap across the Skill Forge build pipeline, install pipeline, Kiro adapter (for both `steering` and `power` formats), validator, and interactive `new`/wizard flow. The goal is that by the time a Kiro artifact lands in a consumer's `.kiro/steering/` directory, its inclusion mode is a deliberate choice by the author, validated and summarized by the tooling, rather than an accidental `always`.
+This feature closes that gap across the Kanon build pipeline, install pipeline, Kiro adapter (for both `steering` and `power` formats), validator, and interactive `new`/wizard flow. The goal is that by the time a Kiro artifact lands in a consumer's `.kiro/steering/` directory, its inclusion mode is a deliberate choice by the author, validated and summarized by the tooling, rather than an accidental `always`.
 
 ## Glossary
 
@@ -79,14 +79,14 @@ This feature closes that gap across the Skill Forge build pipeline, install pipe
 
 ### Requirement 5: Build Pipeline Emits an Inclusion Summary for Kiro
 
-**User Story:** As an author running `forge build`, I want a summary of how many compiled Kiro steering files use each Inclusion_Mode, so that I can see at a glance whether my build is Progressive_Steering-friendly.
+**User Story:** As an author running `kanon build`, I want a summary of how many compiled Kiro steering files use each Inclusion_Mode, so that I can see at a glance whether my build is Progressive_Steering-friendly.
 
 #### Acceptance Criteria
 
-1. WHEN `forge build` compiles at least one artifact for the Kiro harness, THE Build_Pipeline SHALL print an Inclusion_Summary to stderr that lists, for the Kiro harness, the count of compiled Steering_Files grouped by resolved `Inclusion_Mode` (`always`, `fileMatch`, `manual`).
+1. WHEN `kanon build` compiles at least one artifact for the Kiro harness, THE Build_Pipeline SHALL print an Inclusion_Summary to stderr that lists, for the Kiro harness, the count of compiled Steering_Files grouped by resolved `Inclusion_Mode` (`always`, `fileMatch`, `manual`).
 2. THE Inclusion_Summary SHALL include the total number of Kiro Steering_Files compiled and the percentage of those using a Progressive_Inclusion_Mode.
-3. WHEN `forge build --harness kiro` is run with no artifacts targeting Kiro, THE Build_Pipeline SHALL NOT print an Inclusion_Summary.
-4. THE Inclusion_Summary SHALL NOT alter the exit code of `forge build`.
+3. WHEN `kanon build --harness kiro` is run with no artifacts targeting Kiro, THE Build_Pipeline SHALL NOT print an Inclusion_Summary.
+4. THE Inclusion_Summary SHALL NOT alter the exit code of `kanon build`.
 5. THE Inclusion_Summary SHALL distinguish Power_Format artifacts from Steering_Format artifacts in the count, so authors can see which always-on files come from powers versus bare steering.
 
 ### Requirement 6: Build Pipeline Warns When Always-On Share Exceeds a Threshold
@@ -98,18 +98,18 @@ This feature closes that gap across the Skill Forge build pipeline, install pipe
 1. WHEN more than fifty percent of compiled Kiro Steering_Files resolve to `inclusion: "always"` AND at least two Kiro Steering_Files are compiled, THE Build_Pipeline SHALL emit a warning through the existing `AdapterWarning` channel naming each artifact that contributes to the `always` count.
 2. THE threshold value from criterion 1 SHALL be configurable via `forge.config.yaml` under `kiro.progressiveSteering.alwaysWarnThreshold` as a number between 0 and 1, with a default of 0.5.
 3. WHEN `kiro.progressiveSteering.alwaysWarnThreshold` is set to 1, THE Build_Pipeline SHALL NOT emit the warning from criterion 1 regardless of the computed ratio.
-4. WHEN `forge build --strict` is used AND the threshold from criterion 1 is exceeded, THE Build_Pipeline SHALL treat the warning as an error and exit with a non-zero code.
+4. WHEN `kanon build --strict` is used AND the threshold from criterion 1 is exceeded, THE Build_Pipeline SHALL treat the warning as an error and exit with a non-zero code.
 5. THE warning SHALL be separate from per-artifact validation warnings and SHALL NOT be produced by the Validator.
 
 ### Requirement 7: Install Pipeline Surfaces Inclusion Distribution and Gates Always-On Installs
 
-**User Story:** As an operator running `forge install`, I want to see the inclusion-mode distribution of the Kiro steering files that are about to be installed into my repo's `.kiro/` and I want an opt-in safeguard against flooding my repo with always-on steering, so that I can keep my Kiro agent prompts lean.
+**User Story:** As an operator running `kanon install`, I want to see the inclusion-mode distribution of the Kiro steering files that are about to be installed into my repo's `.kiro/` and I want an opt-in safeguard against flooding my repo with always-on steering, so that I can keep my Kiro agent prompts lean.
 
 #### Acceptance Criteria
 
 1. WHEN the Install_Pipeline installs one or more files to a Kiro install destination, THE Install_Pipeline SHALL parse the installed Steering_Files' YAML frontmatter and print an Inclusion_Summary grouped by resolved `Inclusion_Mode` to stderr after the install, covering the files just written.
 2. WHEN `--dry-run` is used with a Kiro install target, THE Install_Pipeline SHALL still compute and print the Inclusion_Summary for the files that would be written.
-3. THE Install_Pipeline SHALL accept a new option `--max-always <N>` that limits the number of newly installed Kiro Steering_Files with `inclusion: "always"` per `forge install` invocation.
+3. THE Install_Pipeline SHALL accept a new option `--max-always <N>` that limits the number of newly installed Kiro Steering_Files with `inclusion: "always"` per `kanon install` invocation.
 4. WHEN the number of `always` Kiro Steering_Files that would be written exceeds the value of `--max-always`, THE Install_Pipeline SHALL abort the install with a non-zero exit code, SHALL name each file that would exceed the limit, and SHALL NOT modify the filesystem except for files already copied before the limit was reached (those SHALL be listed in the error message).
 5. THE Install_Pipeline SHALL support `--max-always 0` to mean "reject any install that would add a new always-on Kiro steering file" and SHALL NOT apply the limit when `--max-always` is absent.
 6. WHEN a target Kiro Steering_File lacks a parseable `inclusion:` field in its frontmatter, THE Install_Pipeline SHALL treat it as `"always"` for the purposes of the Inclusion_Summary and `--max-always` check, and SHALL emit a warning that the file is missing an explicit inclusion mode.
@@ -125,9 +125,9 @@ This feature closes that gap across the Skill Forge build pipeline, install pipe
 3. THE informational warning from criterion 2 SHALL be suppressible per artifact by setting `harness-config.kiro.inclusion: "always"` explicitly.
 4. THE behaviour of any non-Kiro harness adapter SHALL NOT change as a result of this feature.
 
-### Requirement 9: Wizard and `forge new` Prompt for Kiro Inclusion Progressively
+### Requirement 9: Wizard and `kanon new` Prompt for Kiro Inclusion Progressively
 
-**User Story:** As an author running `forge new`, I want the Wizard to prompt me for the Kiro inclusion mode only when the artifact actually targets Kiro, so that I make a Progressive_Steering choice up front without being nagged about Kiro when I am not using it.
+**User Story:** As an author running `kanon new`, I want the Wizard to prompt me for the Kiro inclusion mode only when the artifact actually targets Kiro, so that I make a Progressive_Steering choice up front without being nagged about Kiro when I am not using it.
 
 #### Acceptance Criteria
 
@@ -151,12 +151,12 @@ This feature closes that gap across the Skill Forge build pipeline, install pipe
 
 ### Requirement 11: Documentation Emitted in Build Artifacts
 
-**User Story:** As a consumer of compiled Skill Forge output, I want a record of the Progressive_Steering choices baked into each compiled artifact, so that I can audit what I installed.
+**User Story:** As a consumer of compiled Kanon output, I want a record of the Progressive_Steering choices baked into each compiled artifact, so that I can audit what I installed.
 
 #### Acceptance Criteria
 
 1. THE Kiro_Adapter SHALL include a single-line HTML comment in each emitted Steering_File body naming the resolved `Inclusion_Mode` and (when applicable) the resolved `fileMatchPattern`, in the form `<!-- forge:kiro-inclusion: <mode> [fileMatchPattern=<glob>] -->`.
-2. THE Kiro_Adapter SHALL place the comment from criterion 1 immediately after the closing `---` of the frontmatter block and before the `Generated by Skill Forge` comment emitted by the base template.
+2. THE Kiro_Adapter SHALL place the comment from criterion 1 immediately after the closing `---` of the frontmatter block and before the `Generated by Kanon` comment emitted by the base template.
 3. THE comment SHALL NOT change the behaviour of Kiro at runtime, only act as a persistent audit marker.
 
 ### Requirement 12: Parser and Round-Trip for the Install Inclusion Scanner
@@ -185,11 +185,11 @@ This feature closes that gap across the Skill Forge build pipeline, install pipe
 
 ### Requirement 14: Backward Compatibility
 
-**User Story:** As an operator with existing Skill Forge deployments, I want this feature to ship without breaking my current build and install scripts, so that I can adopt Progressive_Steering incrementally.
+**User Story:** As an operator with existing Kanon deployments, I want this feature to ship without breaking my current build and install scripts, so that I can adopt Progressive_Steering incrementally.
 
 #### Acceptance Criteria
 
 1. WHEN an existing artifact has no `harness-config.kiro` section AND no top-level `inclusion` field, THE Build_Pipeline output for Kiro SHALL be byte-identical to the pre-feature output except for the audit comment introduced by Requirement 11.
 2. WHEN an existing artifact has a top-level `inclusion` field and no `harness-config.kiro.inclusion`, THE Build_Pipeline output for Kiro SHALL carry the same emitted `inclusion:` value as before this feature.
-3. WHEN `forge install` is invoked without `--max-always`, THE Install_Pipeline SHALL NOT reject any install that would have succeeded before this feature.
+3. WHEN `kanon install` is invoked without `--max-always`, THE Install_Pipeline SHALL NOT reject any install that would have succeeded before this feature.
 4. THE default value of `kiro.progressiveSteering.alwaysWarnThreshold` from Requirement 6 criterion 2 SHALL be explicitly documented in `forge.config.yaml` sample documentation so that operators can override it without trial and error.

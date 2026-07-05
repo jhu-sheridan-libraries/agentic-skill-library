@@ -2,7 +2,7 @@
 
 ## Overview
 
-This implementation integrates five nWave-inspired capabilities into Skill Forge: two knowledge skills (Rigor Profiles, Outcomes Methodology), and three CLI/pipeline enhancements (Outcomes Registry with collision detection, DES-style hook execution, enhanced catalog metadata, and mutation testing). The plan follows the pure-core/thin-shell architecture, building schema extensions first, then pure algorithm modules, then wiring into existing commands.
+This implementation integrates five nWave-inspired capabilities into Kanon: two knowledge skills (Rigor Profiles, Outcomes Methodology), and three CLI/pipeline enhancements (Outcomes Registry with collision detection, DES-style hook execution, enhanced catalog metadata, and mutation testing). The plan follows the pure-core/thin-shell architecture, building schema extensions first, then pure algorithm modules, then wiring into existing commands.
 
 ## Tasks
 
@@ -128,7 +128,7 @@ This implementation integrates five nWave-inspired capabilities into Skill Forge
     - _Requirements: 3.6_
 
 - [x] 5. Validate and guild sync integration — outcomes + hooks
-  - [x] 5.1 Integrate outcomes collision detection into `forge validate`
+  - [x] 5.1 Integrate outcomes collision detection into `kanon validate`
     - Add cross-artifact outcomes pass to `validateAll` in `src/validate.ts`
     - Aggregate outcomes from all artifacts, call `runRegistryCheck`
     - Map COLLISION findings to `ValidationError` (include both IDs, artifact names, shapes, Jaccard)
@@ -136,13 +136,13 @@ This implementation integrates five nWave-inspired capabilities into Skill Forge
     - Errors cause non-zero exit via existing validation logic
     - _Requirements: 2F.1, 2F.2, 2F.3, 2F.4_
 
-  - [x] 5.2 Integrate hook reference validation into `forge validate`
+  - [x] 5.2 Integrate hook reference validation into `kanon validate`
     - When parsing `hooks.yaml`, for every `gate` and `postcondition` expression:
     - Parse expression and run `validateReferences` against union of all declared `state` keys in the file
     - Any undefined state key or unknown predicate yields a `ValidationError` with hook name and field
     - _Requirements: 3.7_
 
-  - [x] 5.3 Integrate outcomes collision detection into `forge guild sync`
+  - [x] 5.3 Integrate outcomes collision detection into `kanon guild sync`
     - After artifact resolution, before materialization, aggregate outcomes and run `runRegistryCheck`
     - COLLISION (non-acknowledged) → error, set hasFatalError, return before materialize
     - AMBIGUOUS → warning, continue
@@ -169,7 +169,7 @@ This implementation integrates five nWave-inspired capabilities into Skill Forge
     - _Requirements: 4.5, 4.6, 4.7, 2H.1, 2H.2_
 
   - [x] 7.2 Implement browse filtering with --all flag
-    - Extend `forge catalog browse` in `src/browse.ts` with `--all` CLI option
+    - Extend `kanon catalog browse` in `src/browse.ts` with `--all` CLI option
     - Default listing: hide private (already absent from catalog.json) and unlisted
     - With `--all`: show unlisted, continue hiding private
     - _Requirements: 4.8, 4.9_
@@ -217,7 +217,7 @@ This implementation integrates five nWave-inspired capabilities into Skill Forge
     - Report surviving mutants with file path, line, operator, original/mutated code (3 lines context)
     - _Requirements: 5.1, 5.2, 5.4, 5.5, 5.9, 5.10_
 
-  - [x] 8.6 Wire CLI for `forge eval --mutation`
+  - [x] 8.6 Wire CLI for `kanon eval --mutation`
     - Add `--mutation`, `--delta`, `--threshold <decimal>`, and `--trend` flags to eval command in `src/eval.ts` / `src/cli.ts`
     - `--delta`: read last run SHA from history, call `git diff`, pass to `selectDeltaTargets`; fall back to full run if no baseline (Req 5.7)
     - `--trend`: read and render history (reuse sparkline style)
@@ -265,10 +265,10 @@ This implementation integrates five nWave-inspired capabilities into Skill Forge
     - _Requirements: all (project convention)_
 
   - [x] 11.2 Wire all components together and verify end-to-end
-    - Ensure `forge validate` runs outcomes collision + hook reference validation in correct order
-    - Ensure `forge guild sync` gates on outcomes before materialization
-    - Ensure `forge catalog` includes outcomes, visibility, priority with correct filtering/sorting
-    - Ensure `forge eval --mutation` routes correctly and produces expected output
+    - Ensure `kanon validate` runs outcomes collision + hook reference validation in correct order
+    - Ensure `kanon guild sync` gates on outcomes before materialization
+    - Ensure `kanon catalog` includes outcomes, visibility, priority with correct filtering/sorting
+    - Ensure `kanon eval --mutation` routes correctly and produces expected output
     - Ensure existing tests still pass with schema extensions (backward compatibility via defaults)
     - _Requirements: 2C.2, 2F.1, 2G.1, 4.4, 4.5, 5.1_
 

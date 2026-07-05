@@ -2,7 +2,7 @@
 
 ## Overview
 
-Extend the Skill Forge schema layer with three new metadata dimensions — categories (controlled enum), ecosystem (freeform kebab-case), and dependency graph (depends/enhances) — then propagate through parser, catalog, validator, and scaffold template. All new fields default to empty arrays for full backward compatibility. Implementation uses TypeScript with Zod schemas, tested via fast-check property-based tests and bun:test unit tests.
+Extend the Kanon schema layer with three new metadata dimensions — categories (controlled enum), ecosystem (freeform kebab-case), and dependency graph (depends/enhances) — then propagate through parser, catalog, validator, and scaffold template. All new fields default to empty arrays for full backward compatibility. Implementation uses TypeScript with Zod schemas, tested via fast-check property-based tests and bun:test unit tests.
 
 ## Tasks
 
@@ -96,7 +96,7 @@ Extend the Skill Forge schema layer with three new metadata dimensions — categ
     - Add `enhances: []` with YAML comment explaining the field's purpose
     - _Requirements: 8.1, 8.2, 8.3, 8.4_
   - [x] 7.2 Write unit tests for template rendering
-    - Verify `forge new` output includes all four new fields with comments
+    - Verify `kanon new` output includes all four new fields with comments
     - Add tests in `new.test.ts`
     - _Requirements: 8.1, 8.2, 8.3, 8.4_
 

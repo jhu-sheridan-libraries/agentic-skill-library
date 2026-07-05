@@ -7,7 +7,7 @@ Souk Compass is a standalone MCP server providing Solr-backed semantic search ov
 ## Tasks
 
 - [x] 1. Scaffold project structure and dependencies
-  - Create `skill-forge/mcp-servers/souk-compass/` directory with `package.json`, `tsconfig.json`, and `src/` subdirectories (`src/providers/`, `src/tools/`, `src/__tests__/`)
+  - Create `kanon/mcp-servers/souk-compass/` directory with `package.json`, `tsconfig.json`, and `src/` subdirectories (`src/providers/`, `src/tools/`, `src/__tests__/`)
   - `package.json` should declare `"type": "module"`, Bun-compatible scripts, and dependencies: `@modelcontextprotocol/sdk`, `zod`, `@xenova/transformers` (or local embed HTTP fallback)
   - `tsconfig.json` should extend or mirror the project's strict ESNext + bundler module resolution settings
   - DevDependencies: `fast-check`, `@types/bun`
@@ -142,7 +142,7 @@ Souk Compass is a standalone MCP server providing Solr-backed semantic search ov
 
 - [x] 9. Implement catalog reader
   - [x] 9.1 Create `src/catalog-reader.ts`
-    - `loadCatalog(pluginRoot: string): Promise<CatalogEntry[]>` — reads and parses `catalog.json` using existing `CatalogEntrySchema` from `skill-forge/src/schemas.ts`
+    - `loadCatalog(pluginRoot: string): Promise<CatalogEntry[]>` — reads and parses `catalog.json` using existing `CatalogEntrySchema` from `kanon/src/schemas.ts`
     - `readArtifactContent(pluginRoot: string, entry: CatalogEntry): Promise<{ frontmatter, body }>` — reads `knowledge/<name>/knowledge.md`, parses frontmatter and body
     - _Requirements: 3.2, 3.3, 6.5_
 
@@ -235,7 +235,7 @@ Souk Compass is a standalone MCP server providing Solr-backed semantic search ov
 
 - [x] 15. Update `.mcp.json` and build configuration
   - [x] 15.1 Update root `.mcp.json` to add souk-compass server entry
-    - Add `"souk-compass"` entry alongside existing `"context-bazaar"` entry, pointing to `skill-forge/mcp-servers/souk-compass/dist/mcp-server.cjs` with env var defaults
+    - Add `"souk-compass"` entry alongside existing `"context-bazaar"` entry, pointing to `kanon/mcp-servers/souk-compass/dist/mcp-server.cjs` with env var defaults
     - _Requirements: 6.7_
 
   - [x] 15.2 Add build script for CJS bundle

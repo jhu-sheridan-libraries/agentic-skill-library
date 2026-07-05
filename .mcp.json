@@ -1,11 +1,11 @@
 {
   "context-bazaar": {
     "command": "node",
-    "args": ["${CLAUDE_PLUGIN_ROOT}/skill-forge/bridge/mcp-server.cjs"]
+    "args": ["${CLAUDE_PLUGIN_ROOT}/kanon/bridge/mcp-server.cjs"]
   },
   "souk-compass": {
     "command": "bun",
-    "args": ["${CLAUDE_PLUGIN_ROOT}/skill-forge/mcp-servers/souk-compass/dist/mcp-server.cjs"],
+    "args": ["${CLAUDE_PLUGIN_ROOT}/kanon/mcp-servers/souk-compass/dist/mcp-server.cjs"],
     "env": {
       "SOUK_COMPASS_SOLR_URL": "http://localhost:8983",
       "SOUK_COMPASS_SOLR_COLLECTION": "context-bazaar",
