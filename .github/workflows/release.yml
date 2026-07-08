@@ -19,9 +19,9 @@ jobs:
       run:
         working-directory: kanon
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v4
         with:
           node-version: "22"
 
@@ -34,7 +34,7 @@ jobs:
           bun-version: latest
 
       - name: Cache Bun dependencies
-        uses: actions/cache@v6
+        uses: actions/cache@v4
         with:
           path: |
             ~/.bun/install/cache
@@ -80,9 +80,9 @@ jobs:
       run:
         working-directory: kanon
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v4
         with:
           node-version: "22"
 
@@ -95,7 +95,7 @@ jobs:
           bun-version: latest
 
       - name: Cache Bun dependencies
-        uses: actions/cache@v6
+        uses: actions/cache@v4
         with:
           path: |
             ~/.bun/install/cache
@@ -120,7 +120,7 @@ jobs:
         run: tar -czf ${{ matrix.artifact }}.tar.gz ${{ matrix.artifact }}
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
           path: kanon/${{ matrix.artifact }}.tar.gz
@@ -134,11 +134,11 @@ jobs:
       run:
         working-directory: kanon
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # full history for changelog context
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v4
         with:
           node-version: "22"
 
@@ -147,7 +147,7 @@ jobs:
           bun-version: latest
 
       - name: Cache Bun dependencies
-        uses: actions/cache@v6
+        uses: actions/cache@v4
         with:
           path: |
             ~/.bun/install/cache
@@ -184,7 +184,7 @@ jobs:
           echo "Release notes extracted for v${VERSION}"
 
       - name: Download all binaries
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v4
         with:
           path: binaries
           merge-multiple: true
@@ -237,11 +237,11 @@ jobs:
       run:
         working-directory: kanon
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v4
         with:
           node-version: "22"
 
@@ -250,7 +250,7 @@ jobs:
           bun-version: latest
 
       - name: Cache Bun dependencies
-        uses: actions/cache@v6
+        uses: actions/cache@v4
         with:
           path: |
             ~/.bun/install/cache

@@ -26,14 +26,14 @@ jobs:
       run:
         working-directory: kanon
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
 
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.3.12"
 
       - name: Cache Bun dependencies
-        uses: actions/cache@v6
+        uses: actions/cache@v4
         with:
           path: |
             ~/.bun/install/cache
@@ -59,7 +59,7 @@ jobs:
 
       - name: Upload rubric result
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: rubric-kiro-progressive-steering
           path: kanon/rubric.json

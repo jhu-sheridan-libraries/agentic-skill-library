@@ -25,11 +25,7 @@ jobs:
       run:
         working-directory: kanon
     steps:
-      - uses: actions/checkout@v7
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version: "22"
+      - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
@@ -40,7 +36,7 @@ jobs:
           bun-version: latest
 
       - name: Cache Bun dependencies
-        uses: actions/cache@v6
+        uses: actions/cache@v4
         with:
           path: |
             ~/.bun/install/cache
@@ -61,22 +57,22 @@ jobs:
           # Parse JSON to count high/critical vulnerabilities precisely
           TOTAL_HIGH=$(jq '[to_entries[].value[] | select(.severity == "high" or .severity == "critical")] | length' audit-results.json 2>/dev/null || echo 0)
 
-          # Check if all high/critical vulns are from promptfoo transitive deps
-          # (dev-only eval framework, never shipped in compiled binary)
-          PROMPTFOO_PATHS=$(bun audit 2>&1 | grep -c "promptfoo" || true)
+          # Check if all high/critical vulns are from dev-only transitive deps
+          # (promptfoo: eval framework, @codecov: coverage plugin — neither shipped in compiled binary)
+          DEV_ONLY_PATHS=$(bun audit 2>&1 | grep -cE "promptfoo|@codecov" || true)
 
-          if [ "$TOTAL_HIGH" -gt 0 ] && [ "$PROMPTFOO_PATHS" -ge "$TOTAL_HIGH" ]; then
+          if [ "$TOTAL_HIGH" -gt 0 ] && [ "$DEV_ONLY_PATHS" -ge "$TOTAL_HIGH" ]; then
             echo "high_count=0" >> "$GITHUB_OUTPUT"
-            echo "::warning::Found $TOTAL_HIGH high/critical vulnerabilities in dev-only transitive deps (promptfoo). Not blocking."
+            echo "::warning::Found $TOTAL_HIGH high/critical vulnerabilities in dev-only transitive deps (promptfoo, @codecov). Not blocking."
           else
-            ACTIONABLE=$((TOTAL_HIGH - PROMPTFOO_PATHS))
+            ACTIONABLE=$((TOTAL_HIGH - DEV_ONLY_PATHS))
             if [ "$ACTIONABLE" -lt 0 ]; then ACTIONABLE=0; fi
             echo "high_count=$ACTIONABLE" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Upload audit results
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: audit-results
           path: kanon/audit-results.json
@@ -92,7 +88,7 @@ jobs:
     name: Secret scan (knowledge artifacts)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -118,7 +114,7 @@ jobs:
       id-token: write
       security-events: write
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
         with:
           persist-credentials: false
 
