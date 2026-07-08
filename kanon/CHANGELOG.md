@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-07-08
+
+### Added
+- Added Codex plugin packaging and hardened Codex harness output, including plugin manifest metadata, MCP config generation/import, native skill output, hook degradation warnings, and bundled bridge/catalog release assets.
+- skill-forge power brought to parity with adr: now a source-generated knowledge artifact (knowledge/skill-forge) using the lean Kiro power flags, with License/Privacy/Support metadata, MIT license, jh-drcc collection correction, and eval coverage
+- Kiro adapter: per-artifact harness-config.kiro flags inline-workflows and main-steering to emit lean, official-format powers (POWER.md + steering only, no inlined duplication or {name}.md duplicate)
+- ADR-0044: propose renaming Kanon to Kanon (κανών)
+- Expand alice-whiterabbit knowledge with doi-minting, preservation, and tutorials workflows
+- archon-reference-pack knowledge artifact and archon collection
+- Add Getting Started docs for project users, guild members, and skill-forge contributors
+
+### Changed
+- Renamed from Skill Forge to Kanon
+- ADR power prepared for official Kiro power submission: lean Kiro-optimized POWER.md, hooks delivered as installable native v2 JSON in steering/hooks.md (no shipped .kiro.hook files), License/Privacy/Support metadata, and license corrected to MIT
+- Upgrade Souk Compass to Solr 10 with scalar-quantized dense vectors and ACORN filtered search
+- Eval suite improvements: fixed infra (cost→latency), realism (inline context for tool-less evals), content (mandatory first-response directives), and keyword alignment across codeshop, secure-by-default, and adr artifacts
+
+### Fixed
+- Kiro adapter now emits description field in steering frontmatter for progressive steering compatibility
+
+
 ### Added
 - Added Codex plugin packaging and hardened Codex harness output, including `.codex-plugin/plugin.json`, Codex-safe MCP config, native skill output checks, Codex importer coverage, and bundled MCP bridge/catalog release assets.
 
