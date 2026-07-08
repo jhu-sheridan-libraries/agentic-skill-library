@@ -147,9 +147,9 @@ exec("git add package.json CHANGELOG.md changes/");
 exec(`git commit -m "release: ${tag}"`);
 console.log(`✓ Created release commit`);
 
-// ── Step 4: Tag ──
-exec(`git tag -a ${tag} -m "Release ${tag}"`);
-console.log(`✓ Created tag ${tag}`);
+// ── Step 4: Tag (signed) ──
+exec(`git tag -s ${tag} -m "Release ${tag}"`);
+console.log(`✓ Created signed tag ${tag}`);
 
 console.log(`\nDone! Push to trigger the release workflow:`);
 console.log(`  git push origin main --follow-tags`);
