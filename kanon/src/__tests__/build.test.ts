@@ -243,6 +243,29 @@ describe("Build orchestrator", () => {
 		expect(result.filesWritten).toBe(0);
 	});
 
+	test("single Codex harness build writes AGENTS.md output path", async () => {
+		const opts = makeBuildOptions();
+		await mkdir(opts.knowledgeDir, { recursive: true });
+		await mkdir(opts.mcpServersDir, { recursive: true });
+
+		await writeArtifact(opts.knowledgeDir, {
+			name: "codex-skill",
+			harnesses: ["codex"],
+			body: "Codex body.",
+		});
+
+		const result = await build({ ...opts, harness: "codex" });
+
+		expect(result.errors).toEqual([]);
+		expect(result.artifactsCompiled).toBe(1);
+		expect(
+			await readFile(
+				join(opts.distDir, "codex", "codex-skill", "AGENTS.md"),
+				"utf-8",
+			),
+		).toContain("Codex body.");
+	});
+
 	/**
 	 * Validates: Requirement 5.6
 	 * Build continues on adapter error, logging to stderr.

@@ -45,10 +45,10 @@ describe("hooks/auto-reindex.json", () => {
 });
 
 // ---------------------------------------------------------------------------
-// .mcp.json — souk-compass entry
+// .mcp.json — Codex context-bazaar entry
 // ---------------------------------------------------------------------------
 
-describe(".mcp.json souk-compass entry", () => {
+describe(".mcp.json Codex entry", () => {
 	const mcpPath = resolve(REPO_ROOT, ".mcp.json");
 
 	test("file exists and is valid JSON", async () => {
@@ -58,17 +58,25 @@ describe(".mcp.json souk-compass entry", () => {
 		expect(content).toBeDefined();
 	});
 
-	test("contains souk-compass server entry", async () => {
+	test("contains top-level mcpServers", async () => {
 		const mcp = await Bun.file(mcpPath).json();
-		expect(mcp["souk-compass"]).toBeDefined();
+		expect(mcp.mcpServers).toBeDefined();
 	});
 
-	test("souk-compass entry has command and args", async () => {
-		const entry = (await Bun.file(mcpPath).json())["souk-compass"];
-		expect(entry.command).toBe("bun");
+	test("context-bazaar entry has command and args", async () => {
+		const entry = (await Bun.file(mcpPath).json()).mcpServers["context-bazaar"];
+		expect(entry.command).toBe("node");
 		expect(Array.isArray(entry.args)).toBe(true);
-		expect(entry.args.length).toBeGreaterThan(0);
+		expect(entry.args).toContain("./kanon/bridge/mcp-server.cjs");
 	});
+});
+
+// ---------------------------------------------------------------------------
+// .claude-mcp.json — souk-compass entry
+// ---------------------------------------------------------------------------
+
+describe(".claude-mcp.json souk-compass entry", () => {
+	const mcpPath = resolve(REPO_ROOT, ".claude-mcp.json");
 
 	test("souk-compass entry has expected env vars", async () => {
 		const env = (await Bun.file(mcpPath).json())["souk-compass"].env;
@@ -81,6 +89,29 @@ describe(".mcp.json souk-compass entry", () => {
 		expect(env.SOUK_COMPASS_CACHE_DB).toBeDefined();
 		expect(env.SOUK_COMPASS_EMBED_CACHE_SIZE).toBeDefined();
 		expect(env.SOUK_COMPASS_EF_SEARCH_SCALE).toBeDefined();
+	});
+});
+
+// ---------------------------------------------------------------------------
+// .codex-plugin/plugin.json
+// ---------------------------------------------------------------------------
+
+describe(".codex-plugin/plugin.json", () => {
+	const pluginPath = resolve(REPO_ROOT, ".codex-plugin/plugin.json");
+
+	test("file exists and is valid JSON", async () => {
+		const file = Bun.file(pluginPath);
+		expect(await file.exists()).toBe(true);
+		const content = await file.json();
+		expect(content).toBeDefined();
+	});
+
+	test("contains Codex plugin metadata", async () => {
+		const plugin = await Bun.file(pluginPath).json();
+		expect(plugin.name).toBe("context-bazaar");
+		expect(plugin.mcpServers).toBe("./.mcp.json");
+		expect(plugin.interface.displayName).toBe("Context Bazaar");
+		expect(plugin.interface.category).toBe("Developer Tools");
 	});
 });
 
@@ -110,7 +141,7 @@ describe(".claude-plugin/plugin.json keywords", () => {
 
 	test("references mcpServers config", async () => {
 		const plugin = await Bun.file(pluginPath).json();
-		expect(plugin.mcpServers).toBe("./.mcp.json");
+		expect(plugin.mcpServers).toBe("./.claude-mcp.json");
 	});
 });
 

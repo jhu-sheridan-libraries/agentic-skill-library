@@ -15,5 +15,5 @@
     "semantic-search", "vector-search", "solr", "embeddings"
   ],
   "skills": "./kanon/dist/claude-code/",
-  "mcpServers": "./.mcp.json"
+  "mcpServers": "./.claude-mcp.json"
 }

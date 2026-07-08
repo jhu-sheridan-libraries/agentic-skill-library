@@ -32,6 +32,12 @@ describe("HARNESS_FORMAT_REGISTRY", () => {
 		expect(def.default).toBe("instructions");
 	});
 
+	test("codex has agents-md and skill formats with agents-md as default", () => {
+		const def = HARNESS_FORMAT_REGISTRY.codex;
+		expect(def.formats).toEqual(["agents-md", "skill"]);
+		expect(def.default).toBe("agents-md");
+	});
+
 	test("qdeveloper has rule and agent formats with rule as default", () => {
 		const def = HARNESS_FORMAT_REGISTRY.qdeveloper;
 		expect(def.formats).toEqual(["rule", "agent"]);

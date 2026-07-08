@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Added Codex plugin packaging and hardened Codex harness output, including `.codex-plugin/plugin.json`, Codex-safe MCP config, native skill output checks, Codex importer coverage, and bundled MCP bridge/catalog release assets.
+
 ### Changed
 - **Renamed from Skill Forge to Kanon.** The CLI, package, and all references now use the new name.
 

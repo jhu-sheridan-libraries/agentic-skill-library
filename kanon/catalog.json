@@ -1,0 +1,2761 @@
+[
+  {
+    "name": "adr",
+    "displayName": "Architecture Decision Records",
+    "description": "Create, maintain, and cross-reference Architecture Decision Records (ADRs) in MADR format. Infers decisions from git context, detects duplicates, manages supersession chains, and keeps the index up to date.",
+    "keywords": [
+      "adr",
+      "architecture-decision-record",
+      "madr",
+      "decision-log",
+      "documentation"
+    ],
+    "author": "Steven J. Miklovic",
+    "version": "0.5.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/adr",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "architecture",
+      "documentation"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": false
+    },
+    "license": "MIT",
+    "maturity": "stable",
+    "trust": "official",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "neon-caravan",
+      "jh-drcc"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "alice-whiterabbit",
+    "displayName": "JH White Rabbit",
+    "description": "Guide to ALICE (AWS Language Intelligence and Cognitive Exploration) — manage Bedrock credentials, invoke LLMs, use AI research utilities, mint DOIs, and run digital preservation workflows at Johns Hopkins. Covers CLI commands, infrastructure, TUI development, testing patterns, model selection, research prompt recipes, OAIS lifecycle, and format identification.",
+    "keywords": [
+      "alice-cli",
+      "alice",
+      "bedrock",
+      "llm-research",
+      "jh-drcc",
+      "poetry",
+      "pytest",
+      "ruff",
+      "mypy",
+      "polly",
+      "teaparty",
+      "tui",
+      "textual",
+      "tofu",
+      "terraform",
+      "sso",
+      "converse-api",
+      "click",
+      "pydub",
+      "hypothesis",
+      "moto",
+      "rich",
+      "agentcore",
+      "cite",
+      "cloud-locker",
+      "looking-glass",
+      "cheshire-gate",
+      "preserve",
+      "mint"
+    ],
+    "author": "Steven J Miklovic, Johns Hopkins DRCC",
+    "version": "0.1.1",
+    "harnesses": [
+      "kiro",
+      "claude-code",
+      "cursor"
+    ],
+    "type": "power",
+    "path": "knowledge/alice-whiterabbit",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "architecture",
+      "devops",
+      "documentation"
+    ],
+    "ecosystem": [
+      "aws",
+      "bedrock",
+      "python"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power",
+      "claude-code": "claude-md",
+      "cursor": "rule"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": true,
+      "conditionalInclusion": false
+    },
+    "maturity": "stable",
+    "trust": "community",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "jh-drcc"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "archon-reference-pack",
+    "displayName": "Archon Reference Pack",
+    "description": "Complete reference for authoring Archon workflows, commands, and using the CLI. Covers DAG node types, variables, trigger rules, conditions, structured output, hooks, MCP, skills, and all built-in workflows.",
+    "keywords": [
+      "archon",
+      "workflows",
+      "dag",
+      "ai-coding",
+      "automation",
+      "cli",
+      "agents",
+      "remote-coding",
+      "workflow-orchestration"
+    ],
+    "author": "context-bazaar",
+    "version": "0.2.0",
+    "harnesses": [
+      "kiro",
+      "claude-code",
+      "copilot",
+      "cursor",
+      "windsurf",
+      "cline",
+      "qdeveloper"
+    ],
+    "type": "reference-pack",
+    "path": "knowledge/archon-reference-pack",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "devops",
+      "architecture"
+    ],
+    "ecosystem": [
+      "archon",
+      "typescript",
+      "bun"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "steering",
+      "claude-code": "claude-md",
+      "copilot": "instructions",
+      "cursor": "rule",
+      "windsurf": "rule",
+      "cline": "rule",
+      "qdeveloper": "rule"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": false,
+      "conditionalInclusion": true
+    },
+    "license": "MIT",
+    "maturity": "experimental",
+    "trust": "community",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "archon"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "arm-soc-migration",
+    "displayName": "Perform Migration between Arm SoC",
+    "description": "Guides migration of code from one Arm SoC to another, with architecture-aware analysis and safe migration practices.",
+    "keywords": [
+      "arm",
+      "soc",
+      "migration",
+      "embedded",
+      "cortex",
+      "neon",
+      "sve",
+      "hal",
+      "platform",
+      "cross-compile"
+    ],
+    "author": "Arm",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kiro-official/arm-soc-migration",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "architecture",
+      "devops"
+    ],
+    "ecosystem": [
+      "arm",
+      "embedded"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "partner",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "aws-agentcore",
+    "displayName": "Build an agent with Amazon Bedrock AgentCore",
+    "description": "Build, test, and deploy AI agents using AWS Bedrock AgentCore with local development workflow. Amazon Bedrock AgentCore is an agentic platform for building, deploying, and operating effective agents.",
+    "keywords": [
+      "agentcore",
+      "bedrock",
+      "aws",
+      "agents",
+      "ai",
+      "development",
+      "agent"
+    ],
+    "author": "AWS",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kiro-official/aws-agentcore",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "architecture",
+      "devops"
+    ],
+    "ecosystem": [
+      "aws",
+      "bedrock"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "partner",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "aws-amplify",
+    "displayName": "Build full-stack apps with AWS Amplify",
+    "description": "Build and extend full-stack applications with AWS Amplify Gen 2 using type-safe TypeScript, guided workflows, and best practices. Covers adding features to existing Amplify backends, authentication, data models, storage, serverless functions, and AI/ML integration.",
+    "keywords": [
+      "amplify",
+      "amplify gen 2",
+      "fullstack",
+      "graphql",
+      "cognito",
+      "lambda",
+      "authentication",
+      "storage",
+      "data model",
+      "react",
+      "next.js",
+      "flutter",
+      "deployment"
+    ],
+    "author": "AWS",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kiro-official/aws-amplify",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "architecture",
+      "devops"
+    ],
+    "ecosystem": [
+      "aws",
+      "amplify"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "partner",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "aws-devops-agent",
+    "displayName": "AWS DevOps Agent",
+    "description": "AI agent for AWS operational intelligence via the AWS MCP Server. Investigate incidents, optimize costs, review architecture, map topology, and get remediation — using the aws___call_aws tool with DevOps Agent APIs.",
+    "keywords": [
+      "incident",
+      "troubleshoot",
+      "root-cause",
+      "cloudwatch",
+      "outage",
+      "latency",
+      "cost",
+      "topology",
+      "runbooks"
+    ],
+    "author": "AWS",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kiro-official/aws-devops-agent",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "devops",
+      "debugging"
+    ],
+    "ecosystem": [
+      "aws"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "partner",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "aws-healthomics",
+    "displayName": "AWS HealthOmics",
+    "description": "Create, migrate, run, debug and optimize genomics workflows in AWS HealthOmics",
+    "keywords": [
+      "healthomics",
+      "WDL",
+      "CWL",
+      "Nextflow",
+      "workflow",
+      "genomics",
+      "bioinformatics",
+      "pipeline"
+    ],
+    "author": "AWS",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kiro-official/aws-healthomics",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "devops"
+    ],
+    "ecosystem": [
+      "aws",
+      "healthomics"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "partner",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "aws-infrastructure-as-code",
+    "displayName": "Build AWS infrastructure with CDK and CloudFormation",
+    "description": "Build well-architected AWS infrastructure with CDK using latest documentation, best practices, and code samples. Validate CloudFormation templates, check resource configuration security compliance, and troubleshoot deployments.",
+    "keywords": [
+      "cdk",
+      "cloudformation",
+      "infrastructure",
+      "iac",
+      "cfn-lint",
+      "cfn-guard",
+      "compliance",
+      "stack",
+      "construct",
+      "deployment"
+    ],
+    "author": "AWS",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kiro-official/aws-infrastructure-as-code",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "architecture",
+      "devops"
+    ],
+    "ecosystem": [
+      "aws",
+      "cdk",
+      "cloudformation"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": false,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "partner",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "aws-mcp",
+    "displayName": "Work with AWS",
+    "description": "Perform complex, multi-step AWS tasks by combining real-time access to AWS documentation, syntactically correct API calls and executions, and pre-built workflows called Agent SOPs that follow AWS best practices",
+    "keywords": [
+      "aws",
+      "aws-mcp",
+      "agent-sops",
+      "aws-automation",
+      "aws-troubleshooting",
+      "aws-security",
+      "aws-cli",
+      "aws-docs",
+      "aws-cost-management",
+      "aws-best-practices"
+    ],
+    "author": "AWS",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kiro-official/aws-mcp",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "devops"
+    ],
+    "ecosystem": [
+      "aws"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": false,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "partner",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "aws-observability",
+    "displayName": "AWS Observability",
+    "description": "Comprehensive AWS observability platform combining CloudWatch Logs, Metrics, Alarms, Application Signals (APM), CloudTrail security auditing, Amazon Managed Prometheus (AMP) metric querying, and automated codebase observability gap analysis, for complete monitoring, troubleshooting, and optimization.",
+    "keywords": [
+      "cloudwatch",
+      "observability",
+      "monitoring",
+      "logs",
+      "metrics",
+      "traces",
+      "alarms",
+      "apm",
+      "application signals",
+      "opentelemetry",
+      "x-ray",
+      "latency",
+      "error rate",
+      "troubleshooting",
+      "root cause",
+      "log analysis",
+      "cloudtrail",
+      "synthetic monitoring",
+      "service map",
+      "prometheus",
+      "promql",
+      "amp",
+      "amazon managed prometheus"
+    ],
+    "author": "AWS",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kiro-official/aws-observability",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "devops",
+      "debugging",
+      "performance"
+    ],
+    "ecosystem": [
+      "aws",
+      "cloudwatch"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "partner",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "aws-sam",
+    "displayName": "AWS SAM",
+    "description": "An opinionated Kiro Power to aid development with AWS Serverless Application Model (SAM). Includes MCP tooling and common usage patterns.",
+    "keywords": [
+      "aws",
+      "sam",
+      "serverless",
+      "lambda",
+      "cloudformation",
+      "deployment"
+    ],
+    "author": "AWS",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kiro-official/aws-sam",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "architecture",
+      "devops"
+    ],
+    "ecosystem": [
+      "aws",
+      "sam",
+      "lambda"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "partner",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "book-agent-publicist",
+    "displayName": "Book Agent & Publicist",
+    "description": "A comprehensive guide for the business of books — from finding and working with literary agents to publicity campaigns, media outreach, author branding, and long-term career strategy. Covers both traditional and independent publishing paths.",
+    "keywords": [
+      "literary-agent",
+      "book-publicist",
+      "publishing",
+      "book-marketing",
+      "author-platform",
+      "media",
+      "book-launch",
+      "publicity"
+    ],
+    "author": "Kiro Power Builder",
+    "version": "0.2.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/byron-powers/book-agent-publicist",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation",
+      "writing"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "steering"
+    },
+    "features": {
+      "hooks": true,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "community",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "byron-powers"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "checkout-api-reference",
+    "displayName": "Checkout.com Global Payments",
+    "description": "Access Checkout.com's comprehensive API documentation with intelligent search and detailed operation information for payments, customers, disputes, and more.",
+    "keywords": [
+      "checkout",
+      "payments",
+      "openapi",
+      "fintech",
+      "payment processing",
+      "disputes",
+      "issuing",
+      "identity verification"
+    ],
+    "author": "Checkout.com",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kiro-official/checkout-api-reference",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation"
+    ],
+    "ecosystem": [
+      "checkout-com"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "partner",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "cloud-architect",
+    "displayName": "Build infrastructure on AWS",
+    "description": "Build AWS infrastructure with CDK in Python following AWS Well-Architected framework best practices",
+    "keywords": [
+      "aws",
+      "cdk",
+      "python",
+      "infrastructure",
+      "iac",
+      "cloudformation",
+      "lambda",
+      "well-architected"
+    ],
+    "author": "Christian Bonzelet",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kiro-official/cloud-architect",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "architecture",
+      "devops"
+    ],
+    "ecosystem": [
+      "aws",
+      "cdk",
+      "python"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "partner",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "cloudwatch-application-signals",
+    "displayName": "[DEPRECATED] Amazon CloudWatch Application Signals",
+    "description": ":warning: DEPRECATED: This power has been merged into the AWS Observability power, which provides expanded capabilities including CloudWatch Logs, Metrics, Alarms, Application Signals (APM), CloudTrail security auditing, and automated codebase observability gap analysis. We recommend installing the AWS Observability power for a more comprehensive monitoring experience. See steps in `Migrating to AWS Observability power`",
+    "keywords": [
+      "application-signals",
+      "aws",
+      "observability",
+      "apm",
+      "slo",
+      "traces",
+      "monitoring",
+      "cloudwatch",
+      "audit"
+    ],
+    "author": "AWS",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kiro-official/cloudwatch-application-signals",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "devops",
+      "performance"
+    ],
+    "ecosystem": [
+      "aws",
+      "cloudwatch"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "partner",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "codeshop",
+    "displayName": "Codeshop",
+    "description": "A collection of 25 developer workflow skills covering planning, design, development, testing, writing, and knowledge management. Actionable, phase-driven workflows with shared vocabulary and natural chaining.",
+    "keywords": [
+      "api-integration",
+      "architecture",
+      "article-editing",
+      "brainstorm",
+      "bug-triage",
+      "churn-analysis",
+      "code-review-craft",
+      "codeshop",
+      "commit-messages",
+      "data-migration",
+      "debugging-methodology",
+      "divergent-thinking",
+      "domain-modeling",
+      "hotspot-analysis",
+      "interface-design",
+      "issue-triage",
+      "living-documentation",
+      "plan-stress-test",
+      "planning",
+      "prd",
+      "qa-session",
+      "refactoring",
+      "skill-authoring",
+      "test-driven-development",
+      "test-optimization",
+      "vertical-slices"
+    ],
+    "author": "Steven J. Miklovic",
+    "version": "0.3.5",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/codeshop",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "architecture",
+      "testing",
+      "documentation"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": true,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": false
+    },
+    "license": "MIT",
+    "maturity": "stable",
+    "trust": "official",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "jh-drcc",
+      "neon-caravan"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "commit-craft",
+    "displayName": "Commit Craft",
+    "description": "Write commit messages that tell the story of why, not just what.",
+    "keywords": [
+      "git",
+      "commits",
+      "workflow",
+      "changelog"
+    ],
+    "author": "kanon",
+    "version": "0.2.0",
+    "harnesses": [
+      "kiro",
+      "claude-code",
+      "codex",
+      "copilot",
+      "cursor",
+      "windsurf",
+      "cline",
+      "qdeveloper"
+    ],
+    "type": "prompt",
+    "path": "knowledge/commit-craft",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "code-style"
+    ],
+    "ecosystem": [
+      "git"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "steering",
+      "claude-code": "claude-md",
+      "codex": "agents-md",
+      "copilot": "instructions",
+      "cursor": "rule",
+      "windsurf": "rule",
+      "cline": "rule",
+      "qdeveloper": "rule"
+    },
+    "features": {
+      "hooks": true,
+      "mcp": false,
+      "workflows": false,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "community",
+    "model-assumptions": [],
+    "collections": [
+      "neon-caravan"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "datadog",
+    "displayName": "Datadog Observability",
+    "description": "Query logs, metrics, traces, RUM events, incidents, and monitors from Datadog for production debugging and performance analysis",
+    "keywords": [
+      "datadog",
+      "observability",
+      "monitoring",
+      "logs",
+      "metrics",
+      "apm",
+      "traces",
+      "rum",
+      "incidents"
+    ],
+    "author": "Datadog",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kiro-official/datadog",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "devops",
+      "debugging",
+      "performance"
+    ],
+    "ecosystem": [
+      "datadog"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "partner",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "debug-journal",
+    "displayName": "Debug Journal",
+    "description": "A systematic debugging workflow — articulate the problem before chasing the solution.",
+    "keywords": [
+      "methodology",
+      "workflow",
+      "problem-solving"
+    ],
+    "author": "kanon",
+    "version": "0.2.1",
+    "harnesses": [
+      "kiro",
+      "claude-code",
+      "codex",
+      "copilot",
+      "cursor",
+      "windsurf",
+      "cline",
+      "qdeveloper"
+    ],
+    "type": "workflow",
+    "path": "knowledge/debug-journal",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "debugging"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "steering",
+      "claude-code": "claude-md",
+      "codex": "agents-md",
+      "copilot": "instructions",
+      "cursor": "rule",
+      "windsurf": "rule",
+      "cline": "rule",
+      "qdeveloper": "rule"
+    },
+    "features": {
+      "hooks": true,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "beta",
+    "trust": "community",
+    "model-assumptions": [],
+    "collections": [
+      "neon-caravan"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "dynatrace",
+    "displayName": "Dynatrace Observability",
+    "description": "Query logs, metrics, traces, problems, and Kubernetes events from Dynatrace using DQL for production debugging and performance analysis",
+    "keywords": [
+      "dynatrace",
+      "observability",
+      "monitoring",
+      "dql",
+      "logs",
+      "metrics",
+      "kubernetes",
+      "davis",
+      "grail"
+    ],
+    "author": "Dynatrace",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kiro-official/dynatrace",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "devops",
+      "debugging",
+      "performance"
+    ],
+    "ecosystem": [
+      "dynatrace"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "partner",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "factory-harness",
+    "displayName": "Factory Harness",
+    "description": "The team-architecture factory. Turns a domain or project description into a reusable agent team and the skills they use, using six team patterns (Pipeline, Fan-out/Fan-in, Expert Pool, Producer-Reviewer, Supervisor, Hierarchical Delegation). Use this whenever someone asks to build, compose, set up, design, engineer, audit, sync, or evolve a harness; scaffold specialist agents and the skills they use; or stand up domain automation. It realizes the same team natively on each harness — Claude Code agent teams plus skills, Codex AGENTS.md plus repo-local skills, Kiro powers plus steering plus agent hooks.",
+    "keywords": [
+      "harness",
+      "agent-team",
+      "team-architecture",
+      "meta-skill",
+      "orchestration",
+      "multi-agent",
+      "skill-architect",
+      "pipeline",
+      "fan-out-fan-in",
+      "expert-pool",
+      "producer-reviewer",
+      "supervisor",
+      "hierarchical-delegation",
+      "agent-scaffolding"
+    ],
+    "author": "robin (revfactory), adapted for Kanon by Steven J. Miklovic",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro",
+      "claude-code",
+      "codex"
+    ],
+    "type": "workflow",
+    "path": "knowledge/factory-harness",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "architecture"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power",
+      "claude-code": "claude-md",
+      "codex": "skill"
+    },
+    "features": {
+      "hooks": true,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "license": "Apache-2.0",
+    "maturity": "experimental",
+    "trust": "community",
+    "audience": "advanced",
+    "model-assumptions": [
+      "Uses the highest-reasoning model available (e.g. Claude Opus, GPT-5-class) for design and orchestration quality"
+    ],
+    "collections": [],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "fantasy-novelist",
+    "displayName": "Fantasy Novelist",
+    "description": "Genre-specific companion to the Novelist power for writing fantasy fiction. Provides magic system design, mythic world-building, non-human species and culture creation, prophecy and fate mechanics, and subgenre-aware conventions. Designed for agent consumption.",
+    "keywords": [
+      "fantasy",
+      "magic-system",
+      "world-building",
+      "epic-fantasy",
+      "urban-fantasy",
+      "grimdark",
+      "cozy-fantasy",
+      "portal-fantasy",
+      "romantasy",
+      "mythology",
+      "prophecy"
+    ],
+    "author": "Steven J. Miklovic",
+    "version": "0.2.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/byron-powers/fantasy-novelist",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation",
+      "writing"
+    ],
+    "ecosystem": [],
+    "depends": [
+      "novelist",
+      "series-continuity"
+    ],
+    "enhances": [
+      "novelist"
+    ],
+    "formatByHarness": {
+      "kiro": "steering"
+    },
+    "features": {
+      "hooks": true,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "experimental",
+    "trust": "community",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "byron-powers"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "figma",
+    "displayName": "Design to Code with Figma",
+    "description": "Connect Figma designs to code components - automatically generate design system rules, map UI components to Figma designs, and maintain design-code consistency",
+    "keywords": [
+      "ui",
+      "design",
+      "code",
+      "layout",
+      "mockup",
+      "frame",
+      "component",
+      "frontend"
+    ],
+    "author": "Figma",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kiro-official/figma",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "architecture"
+    ],
+    "ecosystem": [
+      "figma"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": false,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "partner",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "gcp-aws-migrate",
+    "displayName": "GCP to AWS Migration Advisor",
+    "description": "Expert guidance for migrating workloads from Google Cloud Platform to AWS. This no-cost tool assesses your current cloud provider's usage, geography, and billing data to estimate and compare AWS services and pricing, and recommends migration or continued use of your current provider. AWS pricing is based on current published pricing and may vary over time. The tool may generate a .migration folder containing comparison and migration execution data, which you may delete upon completion or use to migrate to AWS.",
+    "keywords": [
+      "gcp",
+      "aws",
+      "migration",
+      "cloud migration",
+      "terraform",
+      "re-platform",
+      "cost estimation"
+    ],
+    "author": "AWS",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kiro-official/gcp-aws-migrate",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "architecture",
+      "devops"
+    ],
+    "ecosystem": [
+      "aws",
+      "gcp",
+      "terraform"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "partner",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "graviton-migration-power",
+    "displayName": "Graviton Migration Power",
+    "description": "Analyzes source code to identify compatibilities with Graviton processors(Arm64 architecture). Generates reports with incompatibilities and provides suggestions for minimal required and recommended versions for language runtimes and dependency libraries.",
+    "keywords": [
+      "ec2",
+      "graviton",
+      "arm",
+      "migration",
+      "porting",
+      "dependencies",
+      "compatibilities",
+      "arm64",
+      "aarch64"
+    ],
+    "author": "AWS",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kiro-official/graviton-migration-power",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "architecture",
+      "devops",
+      "performance"
+    ],
+    "ecosystem": [
+      "aws",
+      "graviton",
+      "arm"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "partner",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "hello",
+    "displayName": "Hello",
+    "description": "A friendly test artifact that greets you in 20 languages. Use it to verify your power installation is working.",
+    "keywords": [
+      "testing",
+      "hello",
+      "greeting",
+      "onboarding"
+    ],
+    "author": "Steven",
+    "version": "0.2.0",
+    "harnesses": [
+      "kiro",
+      "claude-code"
+    ],
+    "type": "template",
+    "path": "knowledge/hello",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power",
+      "claude-code": "claude-md"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": false,
+      "conditionalInclusion": true
+    },
+    "maturity": "experimental",
+    "model-assumptions": [],
+    "collections": [],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "kanon",
+    "displayName": "Kanon & Context Bazaar",
+    "description": "Onboarding and assistant guide for using the Kanon CLI & Context Bazaar to author, build, and manage knowledge artifacts for AI coding assistants.",
+    "keywords": [
+      "kanon",
+      "knowledge-artifacts",
+      "context-bazaar",
+      "artifact-authoring",
+      "jhu-libraries",
+      "forge-cli",
+      "harness-compilation"
+    ],
+    "author": "Johns Hopkins DRCC",
+    "version": "0.2.3",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kanon",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation",
+      "devops"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": false
+    },
+    "license": "MIT",
+    "maturity": "stable",
+    "trust": "official",
+    "audience": "beginner",
+    "model-assumptions": [],
+    "collections": [
+      "jh-drcc"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "karpathy-mode",
+    "displayName": "Karpathy Mode",
+    "description": "Behavioral guidelines to reduce common LLM coding mistakes. Use when writing, reviewing, or refactoring code to avoid overcomplication, make surgical changes, surface assumptions, and define verifiable success criteria.",
+    "keywords": [
+      "karpathy",
+      "coding-guidelines",
+      "simplicity",
+      "surgical-changes",
+      "goal-driven",
+      "llm-behavior",
+      "best-practices"
+    ],
+    "author": "Andrej Karpathy (packaged by Forrest Chang)",
+    "version": "0.2.1",
+    "harnesses": [
+      "kiro",
+      "claude-code",
+      "copilot",
+      "cursor",
+      "windsurf",
+      "cline",
+      "qdeveloper"
+    ],
+    "type": "skill",
+    "path": "knowledge/karpathy-mode",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "code-style"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "steering",
+      "claude-code": "claude-md",
+      "copilot": "instructions",
+      "cursor": "rule",
+      "windsurf": "rule",
+      "cline": "rule",
+      "qdeveloper": "rule"
+    },
+    "features": {
+      "hooks": true,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": false
+    },
+    "maturity": "experimental",
+    "trust": "community",
+    "model-assumptions": [],
+    "collections": [
+      "jhu",
+      "neon-caravan"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "laconic-output",
+    "displayName": "Laconic Output",
+    "description": "Spartan communication mode — every word earns its place or gets cut. Grammar stays intact, sentences stripped to their load-bearing minimum. No warmth, no hedging, no filler.",
+    "keywords": [
+      "laconic-mode",
+      "terse-output",
+      "spartan-mode",
+      "brevity",
+      "concise-responses"
+    ],
+    "author": "kanon",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro",
+      "claude-code"
+    ],
+    "type": "skill",
+    "path": "knowledge/laconic-output",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "code-style"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "steering",
+      "claude-code": "claude-md"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": false,
+      "conditionalInclusion": false
+    },
+    "maturity": "experimental",
+    "trust": "community",
+    "model-assumptions": [],
+    "collections": [
+      "jhu",
+      "neon-caravan"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "mystery-series-novelist",
+    "displayName": "Mystery Series Novelist",
+    "description": "Genre-specific companion to the Novelist power for writing mystery and detective fiction series. Provides clue architecture, suspect management, fair-play validation, series continuity tracking, and subgenre-aware plotting. Designed for agent consumption.",
+    "keywords": [
+      "mystery",
+      "detective",
+      "whodunit",
+      "crime-fiction",
+      "thriller",
+      "cozy-mystery",
+      "noir",
+      "procedural",
+      "clue",
+      "series",
+      "suspect"
+    ],
+    "author": "Steven J. Miklovic",
+    "version": "0.2.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/byron-powers/mystery-series-novelist",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation",
+      "writing"
+    ],
+    "ecosystem": [],
+    "depends": [
+      "novelist",
+      "series-continuity"
+    ],
+    "enhances": [
+      "novelist"
+    ],
+    "formatByHarness": {
+      "kiro": "steering"
+    },
+    "features": {
+      "hooks": true,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "experimental",
+    "trust": "community",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "byron-powers"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "neon",
+    "displayName": "Build a database with Neon",
+    "description": "Serverless Postgres with database branching, autoscaling, and scale-to-zero - perfect for modern development workflows",
+    "keywords": [
+      "neon",
+      "postgres",
+      "database",
+      "serverless",
+      "branching",
+      "sql",
+      "postgresql"
+    ],
+    "author": "Neon",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kiro-official/neon",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "devops"
+    ],
+    "ecosystem": [
+      "neon",
+      "postgres"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "partner",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "novelist",
+    "displayName": "Novelty",
+    "description": "A complete novel-writing companion covering both creative craft and professional publishing. Guides authors from first idea through drafting, revision, market positioning, and agent submission with Fiction Seeds for voice consistency.",
+    "keywords": [
+      "novelist",
+      "fiction-writing",
+      "novel",
+      "creative-writing",
+      "manuscript",
+      "storytelling"
+    ],
+    "author": "Steven J. Miklovic",
+    "version": "0.2.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/byron-powers/novelist",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "writing"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "steering"
+    },
+    "features": {
+      "hooks": true,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "community",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "byron-powers"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "postman",
+    "displayName": "API Testing with Postman",
+    "description": "Automate API testing and collection management with Postman - create workspaces, collections, environments, and run tests programmatically",
+    "keywords": [
+      "postman",
+      "api",
+      "collections",
+      "rest",
+      "http",
+      "automation"
+    ],
+    "author": "Postman",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kiro-official/postman",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "testing",
+      "devops"
+    ],
+    "ecosystem": [
+      "postman"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "partner",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "power-builder",
+    "displayName": "Power Builder",
+    "description": "Complete guide for building and testing new Kiro Powers with templates, best practices, and validation",
+    "keywords": [
+      "kiro power",
+      "power builder",
+      "build power",
+      "create power",
+      "mcp power",
+      "power documentation"
+    ],
+    "author": "Kiro Team",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kiro-official/power-builder",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation",
+      "devops"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "partner",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "proofreader-review-checklist",
+    "displayName": "Proofreader Review Checklist",
+    "description": "Structured checklists for proofreading and reviewing writing documents — manuscript chapters, outlines, proposals, query letters, character sheets, and world-building docs.",
+    "keywords": [
+      "proofread",
+      "review",
+      "manuscript",
+      "checklist",
+      "query-letter",
+      "proposal",
+      "outline",
+      "consistency",
+      "chapter",
+      "character-sheet"
+    ],
+    "author": "Demo",
+    "version": "0.2.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/byron-powers/proofreader-review-checklist",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation",
+      "writing"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "steering"
+    },
+    "features": {
+      "hooks": true,
+      "mcp": false,
+      "workflows": false,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "model-assumptions": [],
+    "collections": [],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "release-manager",
+    "displayName": "Release Manager",
+    "description": "Tool-agnostic release lifecycle management — assess changes, draft changelogs and release notes, cut tagged releases, and announce. Detects whatever release tooling the project uses.",
+    "keywords": [
+      "release",
+      "changelog",
+      "semver",
+      "versioning",
+      "release-notes",
+      "git-tag"
+    ],
+    "author": "Steven J. Miklovic",
+    "version": "0.1.1",
+    "harnesses": [
+      "kiro",
+      "claude-code",
+      "copilot",
+      "cursor",
+      "windsurf",
+      "cline",
+      "qdeveloper"
+    ],
+    "type": "power",
+    "path": "knowledge/release-manager",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "devops",
+      "documentation"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power",
+      "claude-code": "claude-md",
+      "copilot": "instructions",
+      "cursor": "rule",
+      "windsurf": "rule",
+      "cline": "rule",
+      "qdeveloper": "rule"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": false
+    },
+    "maturity": "experimental",
+    "trust": "official",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "jh-drcc",
+      "neon-caravan"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "review-ritual",
+    "displayName": "Review Ritual",
+    "description": "Code review as a craft — read with intent, comment with purpose, approve with confidence.",
+    "keywords": [
+      "code-review",
+      "quality",
+      "collaboration",
+      "feedback"
+    ],
+    "author": "kanon",
+    "version": "0.2.0",
+    "harnesses": [
+      "kiro",
+      "claude-code",
+      "codex",
+      "copilot",
+      "cursor",
+      "windsurf",
+      "cline",
+      "qdeveloper"
+    ],
+    "type": "skill",
+    "path": "knowledge/review-ritual",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "testing"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "steering",
+      "claude-code": "claude-md",
+      "codex": "agents-md",
+      "copilot": "instructions",
+      "cursor": "rule",
+      "windsurf": "rule",
+      "cline": "rule",
+      "qdeveloper": "rule"
+    },
+    "features": {
+      "hooks": true,
+      "mcp": false,
+      "workflows": false,
+      "conditionalInclusion": false
+    },
+    "maturity": "stable",
+    "trust": "community",
+    "model-assumptions": [],
+    "collections": [
+      "neon-caravan"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "saas-builder",
+    "displayName": "SaaS Builder",
+    "description": "Build production-ready multi-tenant SaaS applications with serverless architecture, integrated billing, and enterprise-grade security",
+    "keywords": [
+      "saas",
+      "multi-tenant",
+      "serverless",
+      "aws",
+      "lambda",
+      "dynamodb",
+      "stripe",
+      "billing",
+      "react",
+      "typescript"
+    ],
+    "author": "Allen Helton",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kiro-official/saas-builder",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "architecture",
+      "devops",
+      "security"
+    ],
+    "ecosystem": [
+      "aws",
+      "lambda",
+      "dynamodb",
+      "stripe",
+      "react"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "partner",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "scifi-novelist",
+    "displayName": "Sci-Fi Novelist",
+    "description": "Genre-specific companion to the Novelist power for writing science fiction. Provides speculative technology design, alien species creation, hard-SF consistency validation, and subgenre-aware world-building. Designed for agent consumption.",
+    "keywords": [
+      "science-fiction",
+      "scifi",
+      "speculative-fiction",
+      "hard-sf",
+      "space-opera",
+      "cyberpunk",
+      "world-building",
+      "alien",
+      "technology",
+      "futurism"
+    ],
+    "author": "Steven J. Miklovic",
+    "version": "0.2.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/byron-powers/scifi-novelist",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation",
+      "writing"
+    ],
+    "ecosystem": [],
+    "depends": [
+      "novelist"
+    ],
+    "enhances": [
+      "novelist"
+    ],
+    "formatByHarness": {
+      "kiro": "steering"
+    },
+    "features": {
+      "hooks": true,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "experimental",
+    "trust": "community",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "byron-powers"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "secure-by-default",
+    "displayName": "Secure by Default",
+    "description": "Application security discipline — STRIDE threat modeling, auth/authz flow review, and secure coding patterns. Scoped to developer-facing application security, not infrastructure.",
+    "keywords": [
+      "security",
+      "threat-model",
+      "stride",
+      "owasp",
+      "authentication",
+      "authorization",
+      "secure-coding"
+    ],
+    "author": "Steven J. Miklovic",
+    "version": "0.1.1",
+    "harnesses": [
+      "kiro",
+      "claude-code",
+      "copilot",
+      "cursor",
+      "windsurf",
+      "cline",
+      "qdeveloper"
+    ],
+    "type": "power",
+    "path": "knowledge/secure-by-default",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "security",
+      "code-style"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power",
+      "claude-code": "claude-md",
+      "copilot": "instructions",
+      "cursor": "rule",
+      "windsurf": "rule",
+      "cline": "rule",
+      "qdeveloper": "rule"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": false
+    },
+    "maturity": "experimental",
+    "trust": "official",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "jh-drcc",
+      "neon-caravan"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "series-continuity",
+    "displayName": "Series Continuity",
+    "description": "Genre-agnostic continuity tracking for fiction series and standalone novels. Manages character state, setting consistency, timeline integrity, within-book continuity, and cross-book series arcs. Designed for agent consumption.",
+    "keywords": [
+      "continuity",
+      "series",
+      "series-bible",
+      "character-tracking",
+      "timeline",
+      "consistency",
+      "sequel",
+      "recurring-characters",
+      "world-bible",
+      "canon"
+    ],
+    "author": "Steven J. Miklovic",
+    "version": "0.2.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/byron-powers/series-continuity",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "writing"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [
+      "novelist",
+      "scifi-novelist",
+      "mystery-series-novelist"
+    ],
+    "formatByHarness": {
+      "kiro": "steering"
+    },
+    "features": {
+      "hooks": true,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "experimental",
+    "trust": "community",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "byron-powers"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "spark-troubleshooting-agent",
+    "displayName": "Troubleshoot Spark applications on AWS",
+    "description": "Troubleshoot Spark applications on AWS EMR, Glue, and SageMaker - analyze failures, identify bottlenecks, get code recommendations. For more info, please see: https://docs.aws.amazon.com/emr/latest/ReleaseGuide/spark-troubleshoot.html",
+    "keywords": [
+      "spark",
+      "emr",
+      "glue",
+      "sagemaker",
+      "troubleshooting",
+      "pyspark",
+      "scala",
+      "aws"
+    ],
+    "author": "AWS",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kiro-official/spark-troubleshooting-agent",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "debugging",
+      "devops",
+      "performance"
+    ],
+    "ecosystem": [
+      "aws",
+      "spark",
+      "emr"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": false,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "partner",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "stackgen",
+    "displayName": "StackGen Infrastructure as Code",
+    "description": "Design, manage, and deploy cloud infrastructure with StackGen - create appstacks, manage resources, configure environments, and push IaC to Git",
+    "keywords": [
+      "infrastructure",
+      "iac",
+      "cloud",
+      "terraform",
+      "aws",
+      "azure",
+      "gcp",
+      "deployment"
+    ],
+    "author": "StackGen",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kiro-official/stackgen",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "architecture",
+      "devops"
+    ],
+    "ecosystem": [
+      "stackgen",
+      "terraform"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": false,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "partner",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "strands",
+    "displayName": "Build an agent with Strands SDK",
+    "description": "Build AI agents with Strands SDK using Bedrock, Anthropic, OpenAI, Gemini, or Llama models",
+    "keywords": [
+      "agents",
+      "ai",
+      "llm",
+      "bedrock",
+      "anthropic",
+      "openai",
+      "gemini",
+      "strands",
+      "tools"
+    ],
+    "author": "AWS",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kiro-official/strands",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "architecture",
+      "devops"
+    ],
+    "ecosystem": [
+      "aws",
+      "strands",
+      "bedrock"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "partner",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "stripe",
+    "displayName": "Stripe Payments",
+    "description": "Build payment integrations with Stripe - accept payments, manage subscriptions, handle billing, and process refunds",
+    "keywords": [
+      "stripe",
+      "payments",
+      "checkout",
+      "subscriptions",
+      "billing",
+      "invoices",
+      "refunds",
+      "payment-intents"
+    ],
+    "author": "Stripe",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kiro-official/stripe",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "devops",
+      "security"
+    ],
+    "ecosystem": [
+      "stripe"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "partner",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "technical-author",
+    "displayName": "Technical Author",
+    "description": "A methodical guide for writing technical books from initial concept to published manuscript. Walks authors through every phase of the technical publishing process with structured workflows and practical techniques, tailored for publishers like O'Reilly, Pragmatic Bookshelf, Manning, and Addison-Wesley.",
+    "keywords": [
+      "technical-writing",
+      "technical-book",
+      "oreilly",
+      "publishing",
+      "manuscript",
+      "nonfiction"
+    ],
+    "author": "Kiro Power Builder",
+    "version": "0.2.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/byron-powers/technical-author",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation",
+      "writing"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "steering"
+    },
+    "features": {
+      "hooks": true,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "community",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "byron-powers"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "terraform",
+    "displayName": "Deploy infrastructure with Terraform",
+    "description": "Build and manage Infrastructure as Code with Terraform - access registry providers, modules, policies, and HCP Terraform workflow management",
+    "keywords": [
+      "terraform",
+      "hashicorp",
+      "infrastructure",
+      "iac",
+      "hcp",
+      "providers",
+      "modules",
+      "registry"
+    ],
+    "author": "HashiCorp",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "power",
+    "path": "knowledge/kiro-official/terraform",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "architecture",
+      "devops"
+    ],
+    "ecosystem": [
+      "terraform",
+      "hashicorp"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "partner",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "type-guardian",
+    "displayName": "Type Guardian",
+    "description": "TypeScript type discipline — keep the compiler working for you, not against you.",
+    "keywords": [
+      "typescript",
+      "types",
+      "safety",
+      "strictness"
+    ],
+    "author": "kanon",
+    "version": "0.2.0",
+    "harnesses": [
+      "kiro",
+      "claude-code",
+      "codex",
+      "copilot",
+      "cursor",
+      "windsurf",
+      "cline",
+      "qdeveloper"
+    ],
+    "type": "skill",
+    "path": "knowledge/type-guardian",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "code-style"
+    ],
+    "ecosystem": [
+      "typescript"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "steering",
+      "claude-code": "claude-md",
+      "codex": "agents-md",
+      "copilot": "instructions",
+      "cursor": "rule",
+      "windsurf": "rule",
+      "cline": "rule",
+      "qdeveloper": "rule"
+    },
+    "features": {
+      "hooks": true,
+      "mcp": false,
+      "workflows": false,
+      "conditionalInclusion": false
+    },
+    "maturity": "stable",
+    "trust": "community",
+    "model-assumptions": [],
+    "collections": [
+      "neon-caravan"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  }
+]

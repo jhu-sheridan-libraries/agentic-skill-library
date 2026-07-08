@@ -12,6 +12,7 @@ kanon build
 
 # Build for a single harness
 kanon build --harness kiro
+kanon build --harness codex
 
 # Validate artifacts (including security checks)
 kanon validate
@@ -29,6 +30,7 @@ bun run dev catalog browse
 
 # Install into your project
 kanon install my-artifact --harness kiro --source .
+kanon install my-artifact --harness codex --source .
 
 # Scaffold a new knowledge artifact
 kanon new my-artifact
@@ -56,19 +58,22 @@ bun run dev tutorial
 | `kanon guild` | Team-mode artifact distribution (init, sync, status, hook) |
 | `kanon help [command]` | Show help for any command |
 
+The deprecated `forge` alias remains available for one release, so existing Skill Forge commands such as `forge build --harness codex` and `forge install my-artifact --harness codex --source .` continue to work while projects migrate to `kanon`.
+
 ## Supported Harnesses
 
 | Harness | Output Formats |
 |---------|---------------|
 | **Kiro** | Steering files, hooks, powers, skills |
 | **Claude Code** | CLAUDE.md, settings.json, MCP config |
+| **OpenAI Codex** | AGENTS.md, native skills, MCP config |
 | **GitHub Copilot** | Instructions, path-scoped instructions, AGENTS.md |
 | **Cursor** | Rules, MCP config |
 | **Windsurf** | Rules, workflows, MCP config |
 | **Cline** | Toggleable rules, hook scripts, MCP config |
 | **Amazon Q Developer** | Rules, agents, MCP config |
 
-Each harness has a capability matrix declaring support levels (full, partial, none) for features like hooks, MCP servers, path scoping, and workflows. Unsupported features are handled via configurable degradation strategies (inline, comment, omit). Use `--strict` on build to treat unsupported capabilities as errors.
+Each harness has a capability matrix declaring support levels (full, partial, none) for features like hooks, MCP servers, path scoping, and workflows. Unsupported features are handled via configurable degradation strategies (inline, comment, omit). Codex has no declarative event hooks, so hook definitions are rendered as manual guidance with warnings. Use `--strict` on build to surface unsupported capabilities explicitly.
 
 ## Core Pipeline
 

@@ -1,1 +1,6 @@
 {% extends "../_base/base.md.njk" %}
+{% block footer %}
+{% for section in degradedSections %}
+{{ section }}
+{% endfor %}
+{% endblock %}

@@ -109,6 +109,27 @@ describe("Install module", () => {
 		);
 	});
 
+	test("codex install writes root AGENTS.md and nested config", async () => {
+		await seedDist("codex", "my-skill", {
+			"AGENTS.md": "# Codex agents",
+			".codex/config.toml": '[mcp_servers.local]\ncommand = "node"\n',
+		});
+
+		await install({
+			artifactName: "my-skill",
+			harness: "codex",
+			force: true,
+			source: tempDir,
+		});
+
+		expect(await readFile(join(tempDir, "AGENTS.md"), "utf-8")).toBe(
+			"# Codex agents",
+		);
+		expect(
+			await readFile(join(tempDir, ".codex", "config.toml"), "utf-8"),
+		).toContain("[mcp_servers.local]");
+	});
+
 	/**
 	 * Validates: Requirements 15.1, 15.4
 	 * --dry-run produces a plan without actually writing files.

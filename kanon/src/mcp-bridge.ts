@@ -12,7 +12,7 @@
  *   collection_list   — list collections with member counts
  */
 
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -22,15 +22,37 @@ import {
 	ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 
-// Resolve plugin root — works whether installed as plugin or run locally
+// Resolve the Kanon data root — works when installed as a Claude or Codex
+// plugin, and also when run from the checked-out source tree.
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const PLUGIN_ROOT = process.env.CLAUDE_PLUGIN_ROOT ?? resolve(__dirname, "..");
+const ENV_PLUGIN_ROOT =
+	process.env.CODEX_PLUGIN_ROOT ?? process.env.CLAUDE_PLUGIN_ROOT;
+const PLUGIN_ROOT_CANDIDATES = [
+	...(ENV_PLUGIN_ROOT ? [join(ENV_PLUGIN_ROOT, "kanon"), ENV_PLUGIN_ROOT] : []),
+	resolve(__dirname, ".."),
+];
+
+async function resolvePluginRoot() {
+	for (const root of PLUGIN_ROOT_CANDIDATES) {
+		try {
+			await access(join(root, "catalog.json"));
+			return root;
+		} catch {
+			// Try the next root shape.
+		}
+	}
+	return PLUGIN_ROOT_CANDIDATES[PLUGIN_ROOT_CANDIDATES.length - 1];
+}
 
 async function loadCatalog() {
-	const catalogPath = join(PLUGIN_ROOT, "catalog.json");
+	const pluginRoot = await resolvePluginRoot();
+	const catalogPath = join(pluginRoot, "catalog.json");
 	const raw = await readFile(catalogPath, "utf-8");
-	return JSON.parse(raw) as Array<Record<string, unknown>>;
+	return {
+		entries: JSON.parse(raw) as Array<Record<string, unknown>>,
+		pluginRoot,
+	};
 }
 
 const server = new Server(
@@ -89,7 +111,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 }));
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
-	const catalog = await loadCatalog();
+	const { entries: catalog, pluginRoot } = await loadCatalog();
 	const args = (request.params.arguments ?? {}) as Record<string, string>;
 
 	switch (request.params.name) {
@@ -140,7 +162,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 				};
 			}
 
-			const contentPath = join(PLUGIN_ROOT, String(entry.path), "knowledge.md");
+			const contentPath = join(pluginRoot, String(entry.path), "knowledge.md");
 			let content: string;
 			try {
 				content = await readFile(contentPath, "utf-8");

@@ -20,7 +20,7 @@ afterEach(async () => {
 });
 
 describe("HARNESS_NATIVE_PATHS", () => {
-	test("has entries for all 7 supported harnesses", () => {
+	test("has entries for all supported harnesses", () => {
 		for (const harness of SUPPORTED_HARNESSES) {
 			expect(HARNESS_NATIVE_PATHS[harness]).toBeDefined();
 			expect(HARNESS_NATIVE_PATHS[harness].length).toBeGreaterThan(0);
@@ -38,7 +38,7 @@ describe("HARNESS_NATIVE_PATHS", () => {
 });
 
 describe("importerRegistry", () => {
-	test("has entries for all 7 supported harnesses", () => {
+	test("has entries for all supported harnesses", () => {
 		for (const harness of SUPPORTED_HARNESSES) {
 			expect(importerRegistry[harness]).toBeDefined();
 			expect(importerRegistry[harness].nativePaths).toBeDefined();
@@ -114,6 +114,25 @@ describe("detectHarnessFiles", () => {
 		);
 		const result = await detectHarnessFiles(tempDir);
 		expect(result.copilot).toContain(".github/copilot-instructions.md");
+	});
+
+	test("detects Codex AGENTS.md, skills, and config.toml", async () => {
+		await writeFile(join(tempDir, "AGENTS.md"), "# Codex agents");
+		await mkdir(join(tempDir, ".codex", "skills", "my-skill"), {
+			recursive: true,
+		});
+		await writeFile(
+			join(tempDir, ".codex", "skills", "my-skill", "SKILL.md"),
+			"# Skill",
+		);
+		await mkdir(join(tempDir, ".codex"), { recursive: true });
+		await writeFile(join(tempDir, ".codex", "config.toml"), "# MCP");
+
+		const result = await detectHarnessFiles(tempDir);
+
+		expect(result.codex).toContain("AGENTS.md");
+		expect(result.codex).toContain(".codex/skills/my-skill/SKILL.md");
+		expect(result.codex).toContain(".codex/config.toml");
 	});
 
 	test("detects .clinerules/*.md for cline", async () => {

@@ -13670,15 +13670,32 @@ class StdioServerTransport {
 }
 
 // src/mcp-bridge.ts
-var __filename2 = import_node_url.fileURLToPath("file:///Users/stevenm/jhu.edu/agentic-skill-forge/kanon/src/mcp-bridge.ts");
+var __filename2 = import_node_url.fileURLToPath("file:///Users/stevenm/jhu.edu/context-bazaar/kanon/src/mcp-bridge.ts");
 var __dirname2 = import_node_path.dirname(__filename2);
-var PLUGIN_ROOT = process.env.CLAUDE_PLUGIN_ROOT ?? import_node_path.resolve(__dirname2, "..");
-async function loadCatalog() {
-  const catalogPath = import_node_path.join(PLUGIN_ROOT, "catalog.json");
-  const raw = await import_promises.readFile(catalogPath, "utf-8");
-  return JSON.parse(raw);
+var ENV_PLUGIN_ROOT = process.env.CODEX_PLUGIN_ROOT ?? process.env.CLAUDE_PLUGIN_ROOT;
+var PLUGIN_ROOT_CANDIDATES = [
+  ...ENV_PLUGIN_ROOT ? [import_node_path.join(ENV_PLUGIN_ROOT, "kanon"), ENV_PLUGIN_ROOT] : [],
+  import_node_path.resolve(__dirname2, "..")
+];
+async function resolvePluginRoot() {
+  for (const root of PLUGIN_ROOT_CANDIDATES) {
+    try {
+      await import_promises.access(import_node_path.join(root, "catalog.json"));
+      return root;
+    } catch {}
+  }
+  return PLUGIN_ROOT_CANDIDATES[PLUGIN_ROOT_CANDIDATES.length - 1];
 }
-var server = new Server({ name: "context-bazaar", version: "0.1.0" }, { capabilities: { tools: {} } });
+async function loadCatalog() {
+  const pluginRoot = await resolvePluginRoot();
+  const catalogPath = import_node_path.join(pluginRoot, "catalog.json");
+  const raw = await import_promises.readFile(catalogPath, "utf-8");
+  return {
+    entries: JSON.parse(raw),
+    pluginRoot
+  };
+}
+var server = new Server({ name: "context-bazaar", version: "0.2.0" }, { capabilities: { tools: {} } });
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
     {
@@ -13723,7 +13740,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
   ]
 }));
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const catalog = await loadCatalog();
+  const { entries: catalog, pluginRoot } = await loadCatalog();
   const args = request.params.arguments ?? {};
   switch (request.params.name) {
     case "catalog_list": {
@@ -13767,7 +13784,7 @@ ${JSON.stringify(summary, null, 2)}`
           isError: true
         };
       }
-      const contentPath = import_node_path.join(PLUGIN_ROOT, String(entry.path), "knowledge.md");
+      const contentPath = import_node_path.join(pluginRoot, String(entry.path), "knowledge.md");
       let content;
       try {
         content = await import_promises.readFile(contentPath, "utf-8");

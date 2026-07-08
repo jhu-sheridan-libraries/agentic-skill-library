@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import type nunjucks from "nunjucks";
 import { claudeCodeAdapter } from "../adapters/claude-code";
 import { clineAdapter } from "../adapters/cline";
+import { codexAdapter } from "../adapters/codex";
 import { copilotAdapter } from "../adapters/copilot";
 import { cursorAdapter } from "../adapters/cursor";
 import { kiroAdapter } from "../adapters/kiro";
@@ -31,6 +32,7 @@ function makeFrontmatter(overrides: Partial<Frontmatter> = {}): Frontmatter {
 		harnesses: [
 			"kiro",
 			"claude-code",
+			"codex",
 			"copilot",
 			"cursor",
 			"windsurf",
@@ -216,6 +218,58 @@ describe("copilotAdapter format resolution", () => {
 		const result = copilotAdapter(artifact, templateEnv);
 		const agentsFile = result.files.find((f) => f.relativePath === "AGENTS.md");
 		expect(agentsFile).toBeUndefined();
+	});
+});
+
+// =============================================================================
+// Codex Adapter Format Resolution Tests
+// =============================================================================
+
+describe("codexAdapter format resolution", () => {
+	test("produces AGENTS.md when format is 'agents-md'", () => {
+		const artifact = makeArtifact({
+			frontmatter: makeFrontmatter({
+				harnesses: ["codex"],
+				"harness-config": { codex: { format: "agents-md" } },
+			}),
+		});
+
+		const result = codexAdapter(artifact, templateEnv);
+		const agentsFile = result.files.find((f) => f.relativePath === "AGENTS.md");
+		expect(agentsFile).toBeDefined();
+	});
+
+	test("produces AGENTS.md when format is omitted (default)", () => {
+		const artifact = makeArtifact({
+			frontmatter: makeFrontmatter({ harnesses: ["codex"] }),
+		});
+
+		const result = codexAdapter(artifact, templateEnv);
+		const agentsFile = result.files.find((f) => f.relativePath === "AGENTS.md");
+		expect(agentsFile).toBeDefined();
+		expect(
+			result.files.find((f) => f.relativePath.endsWith("SKILL.md")),
+		).toBeUndefined();
+	});
+
+	test("produces native skill output when format is 'skill'", () => {
+		const artifact = makeArtifact({
+			name: "native-skill",
+			frontmatter: makeFrontmatter({
+				name: "native-skill",
+				harnesses: ["codex"],
+				"harness-config": { codex: { format: "skill" } },
+			}),
+		});
+
+		const result = codexAdapter(artifact, templateEnv);
+		const skillFile = result.files.find(
+			(f) => f.relativePath === ".codex/skills/native-skill/SKILL.md",
+		);
+		expect(skillFile).toBeDefined();
+		expect(
+			result.files.find((f) => f.relativePath === "AGENTS.md"),
+		).toBeDefined();
 	});
 });
 

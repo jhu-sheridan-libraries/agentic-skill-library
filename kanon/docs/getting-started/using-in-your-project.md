@@ -5,7 +5,7 @@ This guide walks you through adding Kanon to an existing project so your AI codi
 ## Prerequisites
 
 - [Bun](https://bun.sh) ≥ 1.0 installed locally
-- A project with at least one supported harness (Kiro, Claude Code, Cursor, Copilot, Windsurf, Cline, or Amazon Q Developer)
+- A project with at least one supported harness (Kiro, Claude Code, Codex, Cursor, Copilot, Windsurf, Cline, or Amazon Q Developer)
 - Access to a Kanon release backend — the public JHU library at `jhu-sheridan-libraries/agentic-skill-forge` by default, or an internal fork
 
 ## 1. Add a `kanon.config.yaml`
@@ -47,7 +47,7 @@ For monorepos, declare one project per subdirectory and list which harnesses eac
 projects:
   - name: backend
     root: services/backend
-    harnesses: [kiro, claude-code]
+    harnesses: [kiro, claude-code, codex]
   - name: frontend
     root: services/frontend
     harnesses: [cursor, copilot]
@@ -93,6 +93,7 @@ bunx @thinkingsage/kanon install adr --backend jhu --harness kiro --dry-run
 |---|---|
 | Kiro | `.kiro/` (steering files, hooks, `mcp.json`, `POWER.md`) |
 | Claude Code | `.claude/`, `CLAUDE.md` at project root |
+| Codex | `AGENTS.md`, `.codex/skills/<name>/SKILL.md`, `.codex/config.toml` |
 | Cursor | `.cursor/rules/`, `.cursor/mcp.json` |
 | Copilot | `.github/instructions/`, `AGENTS.md` |
 | Windsurf | `.windsurf/rules/`, `.windsurf/workflows/` |

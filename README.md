@@ -10,7 +10,7 @@ Knowledge artifacts for AI coding assistants. Author once, compile to every harn
 
 ## What Is This?
 
-AI coding assistants (Claude Code, Kiro, Copilot, Cursor, Windsurf, Cline, Q Developer) each use a different format for rules, context, and configuration. Context Bazaar lets you author a **knowledge artifact** in a single canonical format and compile it to any supported harness with the **Kanon** CLI.
+AI coding assistants (Claude Code, Codex, Kiro, Copilot, Cursor, Windsurf, Cline, Q Developer) each use a different format for rules, context, and configuration. Context Bazaar lets you author a **knowledge artifact** in a single canonical format and compile it to any supported harness with the **Kanon** CLI.
 
 This repository contains the kanon tool and a catalog of 41 artifacts organized into themed collections.
 
@@ -31,6 +31,7 @@ This repository contains the kanon tool and a catalog of 41 artifacts organized 
 |---|---|
 | **Kiro** | Steering files, hooks, powers, skills |
 | **Claude Code** | CLAUDE.md, settings.json, MCP config |
+| **OpenAI Codex** | AGENTS.md, native skills, MCP config |
 | **GitHub Copilot** | Instructions, path-scoped rules, AGENTS.md |
 | **Cursor** | Rules, MCP config |
 | **Windsurf** | Rules, workflows, MCP config |
@@ -72,9 +73,11 @@ context-bazaar/
 │   ├── catalog.json         ← machine-readable artifact index (generated)
 │   └── kanon.config.yaml    ← kanon configuration (backends, workspace)
 ├── .claude-plugin/          ← Claude Code plugin manifests
+├── .codex-plugin/           ← Codex plugin manifest
 ├── .kiro/                   ← Kiro workspace config (steering, specs)
 ├── .github/                 ← CI/CD workflows, issue templates, PR template
-├── .mcp.json                ← MCP server config
+├── .mcp.json                ← Codex MCP server config
+├── .claude-mcp.json         ← Claude Code MCP server config
 ├── CLAUDE.md                ← Claude Code project instructions
 ├── CONTRIBUTING.md          ← how to add artifacts and contribute
 ├── PLUGIN_USAGE.md          ← Claude Code plugin install and usage
@@ -83,7 +86,7 @@ context-bazaar/
 
 ## Quick Start
 
-### Use as a Claude Code plugin
+### Use as a Claude Code or Codex plugin
 
 See [Plugin Usage](PLUGIN_USAGE.md) for installation instructions. No build step required.
 
@@ -98,6 +101,7 @@ bun run dev build
 
 # Build for a single harness
 bun run dev build --harness kiro
+bun run dev build --harness codex
 
 # Validate artifacts (including security checks)
 bun run dev validate
@@ -117,6 +121,7 @@ bun run dev tutorial
 
 # Install into your project
 bun run dev install my-artifact --harness kiro --source .
+bun run dev install my-artifact --harness codex --source .
 
 # Publish to a release backend
 bun run dev publish
@@ -140,7 +145,7 @@ Artifact types: `skill` · `power` · `rule` · `workflow` · `agent` · `prompt
 | Document | Description |
 |---|---|
 | [Kanon README](kanon/README.md) | CLI commands, project structure, development guide |
-| [Plugin Usage](PLUGIN_USAGE.md) | Claude Code plugin installation and MCP tools |
+| [Plugin Usage](PLUGIN_USAGE.md) | Claude Code and Codex plugin installation and MCP tools |
 | [Contributing](CONTRIBUTING.md) | How to add artifacts, run tests, and submit PRs |
 | [Architecture Decision Records](kanon/docs/adr/README.md) | 30 ADRs documenting design rationale and key technical choices |
 | [Changelog](kanon/CHANGELOG.md) | Release history |

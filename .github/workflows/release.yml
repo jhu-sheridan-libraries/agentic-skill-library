@@ -164,9 +164,8 @@ jobs:
 
       - name: Build dist and catalog
         run: |
-          bun run dev build
-          bun run dev catalog generate
-          tar -czf dist-${{ steps.version.outputs.version }}.tar.gz dist/ catalog.json
+          bun run dev publish --dry-run --tag v${{ steps.version.outputs.version }}
+          tar -czf dist-${{ steps.version.outputs.version }}.tar.gz dist/ catalog.json release-manifest.json bridge/mcp-server.cjs
 
       - name: Compile changelog for this release
         run: |
@@ -210,6 +209,9 @@ jobs:
           files: |
             binaries/*.tar.gz
             kanon/dist-${{ steps.version.outputs.version }}.tar.gz
+            kanon/catalog.json
+            kanon/release-manifest.json
+            kanon/bridge/mcp-server.cjs
           generate_release_notes: false
 
       # Commit the updated CHANGELOG.md back to main so the repo stays in sync

@@ -83,10 +83,9 @@ export async function publish(options: PublishOptions = {}): Promise<void> {
 	});
 	if (bridgeProc.exitCode !== 0) {
 		console.error(
-			chalk.yellow(
-				"  ⚠ Bridge build failed — publishing without updated bridge",
-			),
+			chalk.red("  ✗ Bridge build failed — cannot publish plugin assets"),
 		);
+		process.exit(1);
 	} else {
 		console.error(chalk.green("   ✓ bridge/mcp-server.cjs rebuilt"));
 	}
@@ -175,7 +174,11 @@ export async function publish(options: PublishOptions = {}): Promise<void> {
 		),
 	);
 
-	const assets: string[] = ["catalog.json", "release-manifest.json"];
+	const assets: string[] = [
+		"catalog.json",
+		"release-manifest.json",
+		"bridge/mcp-server.cjs",
+	];
 
 	// Create per-harness tarballs
 	const distExists = await exists("dist");

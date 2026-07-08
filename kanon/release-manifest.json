@@ -1,10 +1,11 @@
 {
-  "version": "v0.1.1",
-  "date": "2026-04-13T19:24:40.857Z",
-  "artifactCount": 41,
+  "version": "v0.4.1",
+  "date": "2026-07-08T17:00:21.373Z",
+  "artifactCount": 49,
   "harnesses": [
     "kiro",
     "claude-code",
+    "codex",
     "copilot",
     "cursor",
     "windsurf",
@@ -12,25 +13,28 @@
     "qdeveloper"
   ],
   "governanceSummary": {
-    "official": 0,
-    "partner": 0,
-    "community": 40,
+    "official": 5,
+    "partner": 26,
+    "community": 16,
     "experimental": 0,
-    "unclassified": 1
+    "unclassified": 2
   },
   "collectionSummary": {
-    "neon-caravan": 6,
-    "jhu": 1,
+    "neon-caravan": 10,
+    "jh-drcc": 6,
+    "archon": 1,
     "kiro-official": 26,
-    "byron-powers": 8
+    "byron-powers": 7,
+    "jhu": 2
   },
   "perHarnessFileCounts": {
-    "kiro": 253,
-    "claude-code": 6,
-    "copilot": 5,
-    "cursor": 4,
-    "windsurf": 7,
-    "cline": 4,
-    "qdeveloper": 7
+    "kiro": 439,
+    "claude-code": 3,
+    "codex": 16,
+    "copilot": 1,
+    "cursor": 1,
+    "windsurf": 15,
+    "cline": 1,
+    "qdeveloper": 1
   }
 }

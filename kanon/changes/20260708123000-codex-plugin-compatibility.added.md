@@ -1,0 +1,1 @@
+Added Codex plugin packaging and hardened Codex harness output, including plugin manifest metadata, MCP config generation/import, native skill output, hook degradation warnings, and bundled bridge/catalog release assets.

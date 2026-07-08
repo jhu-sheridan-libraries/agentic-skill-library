@@ -6,7 +6,7 @@ import {
 	readFile,
 	writeFile,
 } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import * as p from "@clack/prompts";
 import chalk from "chalk";
 import { parseKiroSteeringFile } from "./adapters/kiro-frontmatter";
@@ -342,7 +342,7 @@ export async function install(options: InstallOptions): Promise<void> {
 			if (dryRun) {
 				console.error(`  ${src} → ${dest}${destExists ? " (overwrite)" : ""}`);
 			} else {
-				const destDir = dest.substring(0, dest.lastIndexOf("/"));
+				const destDir = dirname(dest);
 				await mkdir(destDir, { recursive: true });
 				await copyFile(src, dest);
 				console.error(`  ${chalk.green("✓")} ${dest}`);

@@ -179,6 +179,7 @@ jobs:
           path: |
             kanon/dist/
             kanon/catalog.json
+            kanon/bridge/mcp-server.cjs
           retention-days: 30
 
       - name: Verify MCP bridge compiles

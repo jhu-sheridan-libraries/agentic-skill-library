@@ -1,7 +1,7 @@
 {% extends "../_base/base.md.njk" %}
 {% block frontmatter %}
 ---
-name: {{ artifact.frontmatter.name }}
+name: {{ artifact.name }}
 description: {{ artifact.frontmatter.description | dump | safe }}
 {% if artifact.frontmatter.keywords | length %}
 keywords: {{ artifact.frontmatter.keywords | dump }}
@@ -19,4 +19,9 @@ Load these only when the workflow calls for them (progressive disclosure):
 - `references/{{ workflow.filename }}` — {{ workflow.name }}
 {% endfor %}
 {% endif %}
+{% endblock %}
+{% block footer %}
+{% for section in degradedSections %}
+{{ section }}
+{% endfor %}
 {% endblock %}

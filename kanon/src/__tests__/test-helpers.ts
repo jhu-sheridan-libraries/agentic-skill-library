@@ -21,6 +21,7 @@ export function makeFrontmatter(
 		harnesses: [
 			"kiro",
 			"claude-code",
+			"codex",
 			"copilot",
 			"cursor",
 			"windsurf",

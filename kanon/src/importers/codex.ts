@@ -57,19 +57,31 @@ async function parseConfigToml(filePath: string): Promise<ImportedFile> {
 	const mcpServers: McpServerDefinition[] = [];
 	let current: {
 		name: string;
-		command: string;
+		command?: string;
+		url?: string;
 		args: string[];
 		env: Record<string, string>;
+		timeout?: number;
 	} | null = null;
 
 	const flush = () => {
-		if (current?.command) {
+		if (!current) return;
+		if (current.command) {
 			mcpServers.push({
 				name: current.name,
 				transport: "stdio",
 				command: current.command,
 				args: current.args,
 				env: current.env,
+				timeout: current.timeout,
+			});
+		} else if (current.url) {
+			mcpServers.push({
+				name: current.name,
+				transport: "sse",
+				url: current.url,
+				env: current.env,
+				timeout: current.timeout,
 			});
 		}
 		current = null;
@@ -112,7 +124,6 @@ async function parseConfigToml(filePath: string): Promise<ImportedFile> {
 			flush();
 			current = {
 				name: tableMatch[1].replace(/^["']|["']$/g, ""),
-				command: "",
 				args: [],
 				env: {},
 			};
@@ -134,10 +145,15 @@ async function parseConfigToml(filePath: string): Promise<ImportedFile> {
 
 		if (key === "command") {
 			current.command = value.replace(/^["']|["']$/g, "");
+		} else if (key === "url") {
+			current.url = value.replace(/^["']|["']$/g, "");
 		} else if (key === "args") {
 			current.args = parseStringArray(value);
 		} else if (key === "env") {
 			current.env = parseInlineTable(value);
+		} else if (key === "startup_timeout_ms") {
+			const parsed = Number(value);
+			if (Number.isFinite(parsed)) current.timeout = parsed;
 		}
 	}
 	flush();
