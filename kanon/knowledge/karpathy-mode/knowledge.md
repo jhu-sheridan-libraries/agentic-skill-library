@@ -116,20 +116,239 @@ Good code is code that solves today's problem simply, not tomorrow's problem pre
 
 ## Examples
 
-**Good goal-driven execution:**
-```
-Task: "Fix the date parsing bug"
-Plan:
-1. Write a test that reproduces the bug → verify: test fails
-2. Fix the parser to handle the edge case → verify: test passes
-3. Run full suite → verify: no regressions
+Real-world code examples demonstrating the four principles. Each example shows what LLMs commonly do wrong and how to fix it.
+
+### 1. Think Before Coding
+
+#### Hidden Assumptions
+
+**User Request:** "Add a feature to export user data"
+
+**❌ Wrong (Hidden Assumptions)**
+
+```python
+def export_users(format='json'):
+    """Export all users to a file."""
+    users = User.query.all()
+    
+    if format == 'json':
+        with open('users.json', 'w') as f:
+            json.dump([u.to_dict() for u in users], f)
+    elif format == 'csv':
+        with open('users.csv', 'w') as f:
+            writer = csv.DictWriter(f, fieldnames=['id', 'email', 'name'])
+            writer.writeheader()
+            writer.writerows([u.to_dict() for u in users])
+    
+    return f"Exported {len(users)} users"
 ```
 
-**Bad goal-driven execution:**
+Problems: Assumed ALL users (privacy?), assumed file location, assumed which fields, assumed CSV fieldnames without checking data structure.
+
+**✅ Right (Surface Assumptions)**
+
 ```
-Task: "Fix the date parsing bug"
-Action: Rewrite the entire date module with a new API, add timezone support,
-        refactor all callers, update documentation
+Before implementing, I need to clarify:
+
+1. **Scope**: Export all users or filtered subset? (privacy implications)
+2. **Format**: Download file in browser? Background job? API endpoint?
+3. **Fields**: Which user fields? (some might be sensitive)
+4. **Volume**: How many users typically? (affects approach)
+
+Simplest approach: Add an API endpoint that returns paginated JSON.
+What's your preference?
+```
+
+#### Multiple Interpretations
+
+**User Request:** "Make the search faster"
+
+**❌ Wrong (Pick Silently)** — Adds caching, indexes, and async without asking which "faster" matters.
+
+**✅ Right** — Present the options:
+
+```
+"Make the search faster" could mean:
+
+1. **Faster response time** (< 100ms instead of 500ms)
+   → Add database indexes, cache frequent queries
+
+2. **Handle more concurrent searches** (throughput)
+   → Add async/await, connection pooling
+
+3. **Faster perceived speed** (UX)
+   → Show partial results immediately, progressive loading
+
+Current search takes ~500ms. Which aspect matters most?
+```
+
+### 2. Simplicity First
+
+#### Over-abstraction
+
+**User Request:** "Add a function to calculate discount"
+
+**❌ Wrong (Overengineered)** — Strategy pattern, ABC, dataclass config, 50+ lines:
+
+```python
+class DiscountStrategy(ABC):
+    @abstractmethod
+    def calculate(self, amount: float) -> float: ...
+
+class PercentageDiscount(DiscountStrategy): ...
+class FixedDiscount(DiscountStrategy): ...
+
+@dataclass
+class DiscountConfig:
+    strategy: DiscountStrategy
+    min_purchase: float = 0.0
+    max_discount: float = float('inf')
+
+class DiscountCalculator:
+    def __init__(self, config: DiscountConfig): ...
+    def apply_discount(self, amount: float) -> float: ...
+```
+
+**✅ Right (Simple)**
+
+```python
+def calculate_discount(amount: float, percent: float) -> float:
+    """Calculate discount amount. percent should be 0-100."""
+    return amount * (percent / 100)
+```
+
+Add complexity only when you actually need multiple discount types.
+
+#### Speculative Features
+
+**User Request:** "Save user preferences to database"
+
+**❌ Wrong** — Adds caching, validation, merging, notifications nobody asked for.
+
+**✅ Right (Just What Was Asked)**
+
+```python
+def save_preferences(db, user_id: int, preferences: dict):
+    """Save user preferences to database."""
+    db.execute(
+        "UPDATE users SET preferences = ? WHERE id = ?",
+        (json.dumps(preferences), user_id)
+    )
+```
+
+Add caching when performance matters, validation when bad data appears, merging when the requirement emerges.
+
+### 3. Surgical Changes
+
+#### Drive-by Refactoring
+
+**User Request:** "Fix the bug where empty emails crash the validator"
+
+**❌ Wrong (Too Much)** — Also "improves" email validation, adds username checks, changes comments, adds docstring.
+
+**✅ Right (Surgical)**
+
+```diff
+  def validate_user(user_data):
+      # Check email format
+-     if not user_data.get('email'):
++     email = user_data.get('email', '')
++     if not email or not email.strip():
+          raise ValueError("Email required")
+      
+      # Basic email validation
+-     if '@' not in user_data['email']:
++     if '@' not in email:
+          raise ValueError("Invalid email")
+```
+
+Only changed the specific lines that fix empty email handling.
+
+#### Style Drift
+
+**User Request:** "Add logging to the upload function"
+
+**❌ Wrong** — Also changes quote style, adds type hints, adds docstring, reformats whitespace, changes boolean logic.
+
+**✅ Right (Match Existing Style)**
+
+```diff
++ import logging
++ logger = logging.getLogger(__name__)
++ 
+  def upload_file(file_path, destination):
++     logger.info(f'Starting upload: {file_path}')
+      try:
+          with open(file_path, 'rb') as f:
+              data = f.read()
+          response = requests.post(destination, files={'file': data})
+          if response.status_code == 200:
++             logger.info(f'Upload successful: {file_path}')
+              return True
+          else:
++             logger.error(f'Upload failed: {file_path}, status={response.status_code}')
+              return False
+      except Exception as e:
+-         print(f"Error: {e}")
++         logger.exception(f'Upload error: {file_path}')
+          return False
+```
+
+Matched: Single quotes, no type hints, existing boolean pattern, spacing style.
+
+### 4. Goal-Driven Execution
+
+#### Vague vs. Verifiable
+
+**User Request:** "Fix the authentication system"
+
+**❌ Wrong** — "I'll review the code, identify issues, make improvements, and test." (No clear success criteria.)
+
+**✅ Right (Verifiable Goals)**
+
+```
+If the issue is "users stay logged in after password change":
+
+Plan:
+1. Write test: Change password → verify old session invalidated
+   Verify: Test fails (reproduces bug)
+2. Implement: Invalidate sessions on password change
+   Verify: Test passes
+3. Check edge cases: Multiple active sessions, concurrent changes
+   Verify: Additional tests pass
+4. Verify no regression: Existing auth tests still pass
+```
+
+#### Test-First Verification
+
+**User Request:** "The sorting breaks when there are duplicate scores"
+
+**❌ Wrong** — Immediately changes sort logic without confirming the bug.
+
+**✅ Right (Reproduce First)**
+
+```python
+# 1. Write a test that reproduces the issue
+def test_sort_with_duplicate_scores():
+    scores = [
+        {'name': 'Alice', 'score': 100},
+        {'name': 'Bob', 'score': 100},
+        {'name': 'Charlie', 'score': 90},
+    ]
+    result = sort_scores(scores)
+    # Bug: order is non-deterministic for duplicates
+    assert result[0]['score'] == 100
+    assert result[1]['score'] == 100
+    assert result[2]['score'] == 90
+
+# Verify: Run test 10 times → fails with inconsistent ordering
+
+# 2. Now fix with stable sort
+def sort_scores(scores):
+    """Sort by score descending, then name ascending for ties."""
+    return sorted(scores, key=lambda x: (-x['score'], x['name']))
+
+# Verify: Test passes consistently
 ```
 
 ## Troubleshooting
