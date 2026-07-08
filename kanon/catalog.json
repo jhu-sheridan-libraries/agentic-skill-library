@@ -1654,7 +1654,7 @@
     "trust": "community",
     "model-assumptions": [],
     "collections": [
-      "jhu",
+      "jh-drcc",
       "neon-caravan"
     ],
     "visibility": "public",
@@ -1703,7 +1703,7 @@
     "trust": "community",
     "model-assumptions": [],
     "collections": [
-      "jhu",
+      "jh-drcc",
       "neon-caravan"
     ],
     "visibility": "public",

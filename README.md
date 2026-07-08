@@ -1,10 +1,10 @@
 # Kanon & Context Bazaar
 
-[![CI](https://img.shields.io/github/actions/workflow/status/jhu-sheridan-libraries/agentic-skill-forge/ci.yml?label=CI)](https://github.com/jhu-sheridan-libraries/agentic-skill-forge/actions/workflows/ci.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/jhu-sheridan-libraries/agentic-skill-library/ci.yml?label=CI)](https://github.com/jhu-sheridan-libraries/agentic-skill-library/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/thinkingsage/context-bazaar/graph/badge.svg?token=D6AVIGVORS)](https://codecov.io/gh/thinkingsage/context-bazaar)
-[![CodeQL](https://img.shields.io/github/actions/workflow/status/jhu-sheridan-libraries/agentic-skill-forge/codeql.yml?label=CodeQL)](https://github.com/jhu-sheridan-libraries/agentic-skill-forge/actions/workflows/codeql.yml)
-[![Security Audit](https://github.com/jhu-sheridan-libraries/agentic-skill-forge/actions/workflows/audit.yml/badge.svg)](https://github.com/jhu-sheridan-libraries/agentic-skill-forge/actions/workflows/audit.yml)
-[![License](https://img.shields.io/github/license/jhu-sheridan-libraries/agentic-skill-forge?label=License)](LICENSE)
+[![CodeQL](https://img.shields.io/github/actions/workflow/status/jhu-sheridan-libraries/agentic-skill-library/codeql.yml?label=CodeQL)](https://github.com/jhu-sheridan-libraries/agentic-skill-library/actions/workflows/codeql.yml)
+[![Security Audit](https://github.com/jhu-sheridan-libraries/agentic-skill-library/actions/workflows/audit.yml/badge.svg)](https://github.com/jhu-sheridan-libraries/agentic-skill-library/actions/workflows/audit.yml)
+[![License](https://img.shields.io/github/license/jhu-sheridan-libraries/agentic-skill-library?label=License)](LICENSE)
 
 Knowledge artifacts for AI coding assistants. Author once, compile to every harness.
 
@@ -47,7 +47,7 @@ This repository contains the kanon tool and a catalog of 41 artifacts organized 
 | **Neon Caravan** | 6 | Craft-focused developer workflows — commits, debugging, code review, type discipline |
 | **JHU** | 1 | Johns Hopkins University Sheridan Libraries artifacts |
 
-Browse the full catalog with `bun run dev catalog browse` or see the [deployed catalog site](https://jhu-sheridan-libraries.github.io/agentic-skill-forge/).
+Browse the full catalog with `bun run dev catalog browse` or see the [deployed catalog site](https://jhu-sheridan-libraries.github.io/agentic-skill-library/).
 
 ## Repository Structure
 
