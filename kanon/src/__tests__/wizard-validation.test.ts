@@ -322,8 +322,12 @@ describe("Wizard validation properties", () => {
 					if (!result.success) return;
 
 					expect(result.data.name).toBe(server.name);
-					expect((result.data as StdioMcpServer).command).toBe((server as StdioMcpServer).command);
-					expect((result.data as StdioMcpServer).args).toEqual((server as StdioMcpServer).args);
+					expect((result.data as StdioMcpServer).command).toBe(
+						(server as StdioMcpServer).command,
+					);
+					expect((result.data as StdioMcpServer).args).toEqual(
+						(server as StdioMcpServer).args,
+					);
 					expect(result.data.env).toEqual(server.env);
 				}),
 				{ numRuns: 100 },
