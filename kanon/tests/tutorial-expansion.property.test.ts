@@ -183,7 +183,7 @@ describe("Feature: tutorial-expansion", () => {
     });
 
     test("Each description contains exactly one sentence (ends with period)", () => {
-      for (const { type, description } of descriptions) {
+      for (const { description } of descriptions) {
         const sentenceEnders = description.match(/[.!?]\s*$/);
         expect(sentenceEnders).not.toBeNull();
       }
