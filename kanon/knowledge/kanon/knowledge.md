@@ -50,7 +50,8 @@ This power helps Johns Hopkins Libraries staff get started with Kanon, whether y
 
 | File | Trigger | Content |
 |------|---------|---------|
-| **tutorial** | `/tutorial` or ask "take me through the tutorial" | Comprehensive sequential walkthrough covering every Kanon capability — setup through publishing. Each lesson is self-contained so you can skip ahead |
+| **tutorial** | `/tutorial` or ask "take me through the tutorial" | Comprehensive 20-lesson sequential walkthrough — introduces coding agents, skills, and harnesses (Lessons 1–4), then covers every Kanon CLI capability from setup through publishing (Lessons 5–20). Each lesson is self-contained so you can skip ahead |
+| **self-paced-module** | `/module` or ask "show me the self-paced module" | Structured educational module on coding agents and skill creation — covers concepts through hands-on exercises with formal learning outcomes (2–4 hours) |
 | **authoring** | ask for "authoring guide" | Step-by-step guide to creating your first knowledge artifact, from idea to compiled output |
 | **commands** | ask for "command reference" | Complete command reference with examples for every Kanon command |
 
@@ -62,13 +63,13 @@ To start the full sequential tutorial:
 
 To skip to a specific lesson, mention it by name or number:
 
-> `/tutorial lesson 5` — Scaffolding a new artifact
+> `/tutorial lesson 9` — Scaffolding a new artifact
 >
-> `/tutorial publishing` — Lesson 13
+> `/tutorial publishing` — Lesson 17
 >
-> `/tutorial take me to evals` — Lesson 12
+> `/tutorial take me to evals` — Lesson 16
 
-The tutorial covers 16 lessons in order: setup → tutorial command → catalog → import → scaffold → edit → validate → build → temper → install → collections → eval → publish → upgrade → guild → next steps.
+The tutorial covers 20 lessons in order: coding agents → skills & artifact types → harnesses → getting started → setup → tutorial command → catalog → import → scaffold → edit → validate → build → temper → install → collections → eval → publish → upgrade → guild → next steps.
 
 ## Onboarding
 
@@ -275,7 +276,7 @@ Or prefix commands with `bun run dev` which handles permissions automatically.
 
 ## Next Steps
 
-- Run **`/tutorial`** in chat for the complete sequential walkthrough — 16 lessons covering every capability
+- Run **`/tutorial`** in chat for the complete sequential walkthrough — 20 lessons covering every capability
 - Read the **authoring** steering file for a focused guide on creating artifacts
 - Read the **commands** steering file for detailed documentation of every CLI command
 - Browse existing artifacts with `bun run dev catalog browse` for inspiration
