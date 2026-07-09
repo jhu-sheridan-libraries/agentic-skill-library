@@ -1,0 +1,1 @@
+Added Windows installation instructions for Bun alongside the existing macOS/Linux instructions in tutorial.md and self-paced-module.md, covering PowerShell, package managers (npm, Scoop, WinGet), and WSL options.

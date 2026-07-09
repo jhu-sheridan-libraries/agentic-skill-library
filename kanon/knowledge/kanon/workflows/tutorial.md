@@ -345,11 +345,36 @@ For the most thorough learning experience, proceed to Lesson 9 (Scaffolding a Ne
 
 ### Install Bun
 
-Kanon runs on Bun, a fast JavaScript runtime. Install it with:
+Kanon runs on Bun, a fast JavaScript runtime.
+
+**macOS / Linux:**
 
 ```bash
 curl -fsSL https://bun.sh/install | bash
 ```
+
+**Windows (PowerShell):**
+
+```powershell
+powershell -c "irm bun.sh/install.ps1 | iex"
+```
+
+Alternatively, if you prefer using a package manager on Windows:
+
+```powershell
+# Using npm (if Node.js is already installed)
+npm install -g bun
+
+# Using Scoop
+scoop install bun
+
+# Using WinGet
+winget install Oven-sh.Bun
+```
+
+**Windows with WSL (recommended for full compatibility):**
+
+If you use Windows Subsystem for Linux (WSL), install Bun inside your WSL terminal using the macOS/Linux command above. WSL provides the most consistent experience across all Kanon commands.
 
 Close and reopen your terminal, then verify:
 

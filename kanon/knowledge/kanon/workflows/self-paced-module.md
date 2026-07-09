@@ -35,7 +35,7 @@ Use this checklist to verify you have achieved each learning outcome. Each item 
 - **Estimated time:** 2–4 hours (approximately 120 to 240 minutes), depending on prior familiarity with command-line tools.
 - **Structure:** Sequential lessons with a checkpoint after each section. Each checkpoint consists of a hands-on exercise or self-assessment question that the learner completes before proceeding to the next lesson.
 - **Format:** Delivered as a Markdown-based Knowledge Artifact within the Kanon repository.
-- **Prerequisites:** Familiarity with a command-line terminal and a working local installation of the Kanon CLI toolchain (Bun runtime and the Kanon package). Run `bun --version` and `bunx kanon --help` to confirm your environment is ready.
+- **Prerequisites:** Familiarity with a command-line terminal (Terminal on macOS, PowerShell or WSL on Windows, or any Linux shell) and a working local installation of the Kanon CLI toolchain (Bun runtime and the Kanon package). Bun is available for macOS, Linux, and Windows. Run `bun --version` and `bunx kanon --help` to confirm your environment is ready.
 
 ## Module Lessons
 
@@ -224,7 +224,23 @@ Verify your environment is ready:
 bun --version
 ```
 
-You should see a version number (e.g., `1.x.x`). If not, install Bun first by following the instructions at https://bun.sh.
+You should see a version number (e.g., `1.x.x`). If not, install Bun first:
+
+**macOS / Linux:**
+
+```bash
+curl -fsSL https://bun.sh/install | bash
+```
+
+**Windows (PowerShell):**
+
+```powershell
+powershell -c "irm bun.sh/install.ps1 | iex"
+```
+
+You can also install via `npm install -g bun`, Scoop (`scoop install bun`), or WinGet (`winget install Oven-sh.Bun`). For the most consistent experience on Windows, consider using Windows Subsystem for Linux (WSL) and installing Bun inside your WSL terminal with the macOS/Linux command above.
+
+Close and reopen your terminal after installation, then verify with `bun --version`.
 
 Next, confirm Kanon is available:
 
