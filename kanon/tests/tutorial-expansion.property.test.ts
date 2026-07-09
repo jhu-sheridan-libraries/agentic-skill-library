@@ -177,7 +177,7 @@ describe("Feature: tutorial-expansion", () => {
     });
 
     test("Each description is at most 150 characters", () => {
-      for (const { type, description } of descriptions) {
+      for (const { description } of descriptions) {
         expect(description.length).toBeLessThanOrEqual(150);
       }
     });
