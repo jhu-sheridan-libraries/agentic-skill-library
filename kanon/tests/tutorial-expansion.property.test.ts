@@ -1,5 +1,4 @@
 import { describe, test, expect } from "bun:test";
-import * as fc from "fast-check";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
