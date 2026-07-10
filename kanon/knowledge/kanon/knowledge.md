@@ -33,6 +33,7 @@ inherit-hooks: false
 harness-config:
   kiro:
     format: power
+    inclusion: manual
     inline-workflows: false
     main-steering: false
 ---
@@ -42,16 +43,18 @@ harness-config:
 
 Kanon is a command-line tool that lets you write knowledge once and compile it for any AI coding assistant. Instead of maintaining separate configuration files for Kiro, Claude Code, Copilot, Cursor, and others, you author a single "knowledge artifact" and Kanon translates it into the right format for each tool.
 
-Think of it like writing a document in one language and having it automatically translated into seven others — except the "languages" are the different formats that AI coding assistants understand.
+Think of it like writing a document once and having it translated into the formats used by several AI coding assistants.
 
-This power helps Johns Hopkins Libraries staff get started with Kanon, whether you're creating your first artifact or managing the JHU collection.
+This power helps Johns Hopkins Libraries staff get started with Kanon, whether you're creating your first artifact or managing the JH DRCC collection.
 
 ## Available Steering Files
 
 | File | Trigger | Content |
 |------|---------|---------|
-| **tutorial** | `/tutorial` or ask "take me through the tutorial" | Comprehensive 20-lesson sequential walkthrough — introduces coding agents, skills, and harnesses (Lessons 1–4), then covers every Kanon CLI capability from setup through publishing (Lessons 5–20). Each lesson is self-contained so you can skip ahead |
-| **self-paced-module** | `/module` or ask "show me the self-paced module" | Structured educational module on coding agents and skill creation — covers concepts through hands-on exercises with formal learning outcomes (2–4 hours) |
+| **tutorial** | `/tutorial` or ask "take me through the tutorial" | A 20-lesson sequential walkthrough that introduces coding agents, skills, and harnesses (Lessons 1–4), then covers Kanon CLI capabilities from setup through publishing (Lessons 5–20). Each lesson is self-contained so you can skip ahead |
+| **self-paced-module** | `/module` or ask "show me the self-paced course" | Structured 3–4 hour course on coding agents and skill creation, with a safe practice artifact, assessments, answer key, and capstone review |
+| **curriculum-guide** | ask for "curriculum guide" | Learning paths, curriculum map, facilitation notes, assessment strategy, accessibility considerations, and production-readiness questions for Johns Hopkins Libraries staff |
+| **souk-compass-practice** | ask for "Souk Compass practice" | Optional 60–90 minute practice on semantic-search retrieval, source verification, incremental reindexing, and safe index scope after the MCP and evaluation lessons |
 | **authoring** | ask for "authoring guide" | Step-by-step guide to creating your first knowledge artifact, from idea to compiled output |
 | **commands** | ask for "command reference" | Complete command reference with examples for every Kanon command |
 
@@ -183,7 +186,7 @@ Kanon compiles artifacts for these AI coding assistants:
 | **Cline** | Toggleable rules, hook scripts, MCP config |
 | **Amazon Q Developer** | Rules, agents, MCP config |
 
-## The JHU Collection
+## The JH DRCC Collection
 
 The `jh-drcc` collection contains artifacts from the Johns Hopkins Digital Research and Curation Center. When you create an artifact for our team, include `jh-drcc` in the `collections` field of your artifact's frontmatter.
 

@@ -1,479 +1,622 @@
-# Self-paced Module on Coding Agents and Skill Creation
+# Self-Paced Course on Coding Agents and Skill Creation
 
 ## Abstract
 
-This module introduces Johns Hopkins University Libraries staff to the world of AI coding agents and structured knowledge artifacts. Learners will discover what Coding Agents are and how they operate within development environments, understand how Skills augment agent behavior by packaging domain expertise into consumable formats, and gain hands-on experience creating custom Skills using the Kanon CLI. No prior programming experience is required — only familiarity with a command-line terminal and a willingness to experiment. Designed for self-paced completion, the module guides learners from foundational concepts through practical exercises in approximately 120 to 240 minutes.
+This course introduces Johns Hopkins Libraries staff to coding agents and structured knowledge artifacts. Learners examine what coding agents can and cannot do, how skills add relevant instructions and domain context, and how Kanon turns one source artifact into formats for multiple agent platforms. A guided practice project leads learners through selecting an artifact type, scaffolding a skill, writing and reviewing content, validating the artifact, and building harness-specific output. No programming experience is required. Learners should be comfortable opening a terminal and editing a text file. The course takes approximately 180 to 240 minutes, including exercises and a final review.
 
 ## Learning Outcomes
 
-By the end of this module, learners will be able to:
+By the end of this course, learners will be able to:
 
-1. **Explain** what a Coding Agent is and name at least three examples (e.g., Kiro, Claude Code, Copilot, Cursor, Windsurf, Cline, Q Developer).
-2. **Distinguish** a Skill from other artifact types (power, rule, workflow, agent, prompt, template, reference-pack) by identifying at least two differentiating characteristics for each.
-3. **Describe** the three-stage pipeline (parse, adapt, write) by which a Harness consumes a compiled Skill.
-4. **Apply** the Kanon CLI to scaffold, edit, validate, and build a new Skill from scratch.
-5. **Identify** at least one use case for a custom Skill within JHU Libraries workflows such as cataloging, metadata creation, or collection management.
-6. **Analyze** a completed Skill artifact to determine whether its structure, metadata, and content meet validation requirements.
+1. **Explain** what a coding agent is, identify its limits, and name at least three examples.
+2. **Distinguish** a skill from the seven other Kanon artifact types by using purpose, scope, and mode of use.
+3. **Describe** how Kanon parses, adapts, and writes a knowledge artifact for a selected harness.
+4. **Apply** the Kanon CLI to scaffold, edit, validate, and build a new skill.
+5. **Identify** a suitable use case for a custom skill in a Johns Hopkins Libraries workflow without placing restricted or unapproved information in the artifact.
+6. **Analyze** a completed skill for structural validity, clear instructions, appropriate scope, and evidence of human review.
 
 ## Self-Assessment Checklist
 
-Use this checklist to verify you have achieved each learning outcome. Each item maps to one or more outcomes above.
+Use this checklist after completing the lessons. Save your responses in a learning journal or other approved work location.
 
 | Outcome | Demonstration Activity |
-|---------|----------------------|
-| 1 | Write a one-paragraph explanation of what a Coding Agent is and list at least three examples by name. |
-| 2 | Given a scenario description, select the correct artifact type and explain why the alternatives do not apply. Identify at least two characteristics that differentiate a Skill from each other type. |
-| 3 | Draw or describe the three-stage pipeline (parse, adapt, write) and explain what happens at each stage when a Harness processes a compiled Skill. |
-| 4 | Run the full Kanon workflow (scaffold, edit, validate, build) in your terminal and produce a successfully compiled Skill artifact for at least one Harness. |
-| 5 | Describe a specific JHU Libraries workflow (cataloging, metadata creation, or collection management) and explain how a custom Skill would improve it. |
-| 6 | Run `kanon validate` on a completed Skill and interpret the output, identifying any errors and explaining how to resolve them. |
+|---------|------------------------|
+| 1 | Explain a coding agent to a colleague in five sentences or fewer; name three examples and one limitation. |
+| 2 | Classify the three scenarios in Lesson 2 and justify each choice with purpose, scope, and mode of use. |
+| 3 | Label a diagram with the stages parse, adapt, and write; describe the input and output of each stage. |
+| 4 | Produce a scaffolded practice skill that passes validation and builds for at least one selected harness. |
+| 5 | Complete the use-case canvas in Lesson 2, including the source owner, intended users, exclusions, and review plan. |
+| 6 | Review the final artifact with the capstone rubric and record at least one revision made because of the review. |
 
-## Format
+## Course Format
 
-- **Delivery mode:** Self-paced. This module can be completed independently without an instructor.
-- **Interaction:** All exercises use the Kanon CLI in a local development environment. Learners are expected to run CLI commands in a terminal window.
-- **Estimated time:** 2–4 hours (approximately 120 to 240 minutes), depending on prior familiarity with command-line tools.
-- **Structure:** Sequential lessons with a checkpoint after each section. Each checkpoint consists of a hands-on exercise or self-assessment question that the learner completes before proceeding to the next lesson.
-- **Format:** Delivered as a Markdown-based Knowledge Artifact within the Kanon repository.
-- **Prerequisites:** Familiarity with a command-line terminal (Terminal on macOS, PowerShell or WSL on Windows, or any Linux shell) and a working local installation of the Kanon CLI toolchain (Bun runtime and the Kanon package). Bun is available for macOS, Linux, and Windows. Run `bun --version` and `bunx kanon --help` to confirm your environment is ready.
+- **Audience:** Johns Hopkins Libraries staff who want to capture reusable guidance for coding agents. The course assumes no programming experience.
+- **Delivery:** Self-paced and designed for completion without an instructor.
+- **Estimated time:** 3–4 hours. Each lesson includes a suggested time, but learners may pause between lessons.
+- **Interaction:** Lessons 4–6 use the Kanon CLI in a local development environment. Learners run commands in a terminal and edit Markdown and YAML files.
+- **Sequence:** Complete the lessons in order. Each lesson ends with a checkpoint that asks you to produce or verify something before continuing.
+- **Materials:** This Markdown course, the Kanon repository, a text editor, and a terminal.
+- **Prerequisites:** Bun, Git, a local copy of the repository, and permission to create practice files in that copy.
+- **Companion resources:** Use the [Kanon Tutorial](tutorial.md) for command-by-command instruction, the [Authoring Guide](authoring.md) for field details, and the [Commands Reference](commands.md) for syntax.
+
+## Before You Begin
+
+### Work in a Practice Copy
+
+The exercises create a sample artifact in the repository's `kanon/knowledge/` directory and generated files in `kanon/dist/`. Use a branch or another practice copy if you do not want those files mixed with current work.
+
+### Protect Information
+
+A knowledge artifact can be copied into projects and loaded into an agent's context. Do not place restricted, confidential, licensed, personally identifiable, or otherwise sensitive information in the practice artifact. Do not copy credentials, access tokens, private collection records, donor restrictions, internal-only procedures, or unpublished policy into an exercise.
+
+Use invented practice content in this course. Before developing a production artifact, confirm that you may reuse the source material and identify the staff member or group responsible for reviewing it.
+
+### Keep Human Review Central
+
+A valid build means that Kanon can parse and compile an artifact. It does not mean that the content is factually correct, approved, accessible, complete, or appropriate for every use. The subject-matter owner remains responsible for reviewing the source guidance and testing the resulting agent behavior.
+
+## Course Map
+
+| Lesson | Topic | Suggested Time | Evidence of Completion |
+|--------|-------|----------------|------------------------|
+| 1 | Coding agents, context, and limits | 25 minutes | Short explanation and risk check |
+| 2 | Artifact types and use-case selection | 35 minutes | Scenario answers and use-case canvas |
+| 3 | Harnesses and the compile pipeline | 25 minutes | Pipeline explanation |
+| 4 | Setup and scaffolding | 35–50 minutes | Generated practice artifact |
+| 5 | Writing and validating | 50–65 minutes | Validated artifact and review notes |
+| 6 | Building, inspecting, and capstone review | 40–55 minutes | Build output and completed rubric |
 
 ## Module Lessons
 
-### Module Lesson 1: Understanding Coding Agents
+### Module Lesson 1: Coding Agents, Context, and Limits
 
-**Goal:** Understand what Coding Agents are, how they operate, and why context matters for their behavior.
+**Goal:** Explain how a coding agent uses context, where it can help, and where human judgment is required.
 
 #### What Is a Coding Agent?
 
-A Coding Agent is an AI-powered assistant that operates within a development environment. It reads instructions you provide, considers surrounding context (open files, project documentation, loaded knowledge), and produces responses — answering questions, writing text, generating code, or suggesting solutions.
+A coding agent is an AI assistant that works in a development environment. Depending on the product and the permissions granted to it, an agent may read project files, answer questions, draft text or code, suggest edits, run tools, and check its work.
 
-Think of a Coding Agent as a highly capable new colleague who arrives on your team with broad general expertise. Without specific guidance about your organization, this colleague will produce technically correct but generic work. The moment you hand them your organization's style guide, metadata standards, or cataloging conventions, their output immediately aligns with your expectations.
+Examples include Kiro, Claude Code, OpenAI Codex, GitHub Copilot, Cursor, Windsurf, Cline, and Amazon Q Developer. Their features differ, but they share an important trait: the response depends on the instructions and information available during the interaction.
 
-#### Examples of Coding Agents
+#### Context Shapes the Response
 
-Today, several widely used Coding Agents are available:
+Context is the material available to the agent for a task. It may include:
 
-- **Kiro** — An AI development environment that uses structured steering files to guide behavior
-- **Claude Code** — A conversational coding assistant that follows project-level instructions
-- **Copilot** — A code-completion assistant integrated into popular editors
-- **Cursor** — An AI-first editor that applies project rules and context documents
-- **Windsurf** — An AI coding assistant with workspace-wide awareness
-- **Cline** — An autonomous coding agent that operates within your editor
-- **Q Developer** — An AI assistant for building on cloud platforms
+- the request you entered;
+- files in the current project;
+- recent conversation messages;
+- project-level instructions; and
+- a loaded skill or other knowledge artifact.
 
-Each of these agents can receive additional knowledge — packaged as Skills — to specialize its behavior for your domain.
+Think of context as a work packet. A new colleague can do more useful work when the packet contains a clear request, the relevant standards, a model example, and the boundaries of the task. A larger packet is not automatically better. Irrelevant, conflicting, stale, or sensitive content can reduce quality or create risk.
 
-#### How Context Shapes Behavior
+#### What a Skill Changes
 
-When a Coding Agent receives a request, it assembles all available information into a context window — your current file, recent conversation, project settings, and any loaded Skills. The agent draws on everything in that window to formulate its response.
+Suppose a staff member asks an agent to draft descriptive metadata for a practice collection.
 
-**Without a loaded Skill:** You ask the agent to "create a metadata record for this digital object." The agent produces a generic Dublin Core record using common defaults, missing your institution's required local fields and controlled vocabulary terms.
+Without local guidance, the agent may choose common fields and make assumptions about formatting. The response may look plausible but may not match the intended profile.
 
-**With a loaded Skill:** The same request now produces a record following JHU Libraries' specific metadata profile, including required local extensions, preferred controlled vocabularies, and institutional naming conventions. The Skill provided the domain knowledge the agent needed to tailor its output.
+With a reviewed practice skill, the agent can follow the field definitions, formatting examples, and exclusions included in that skill. The output becomes more consistent with the supplied guidance. It still needs human review; the skill improves the available context but does not guarantee a correct record.
 
-The difference is context. By packaging your expertise into a Skill and loading it into the agent's awareness, you transform a general-purpose assistant into a domain-aware collaborator.
+#### Limits to Remember
+
+A coding agent can:
+
+- summarize supplied guidance;
+- apply repeatable patterns;
+- draft examples and checklists;
+- compare content with stated criteria; and
+- help identify missing or inconsistent information.
+
+A coding agent cannot independently establish that:
+
+- a local standard is current or officially approved;
+- a factual claim is correct when no reliable source is available;
+- private or licensed material may be shared with a given tool;
+- generated content meets professional, legal, policy, or accessibility requirements; or
+- a successful technical build makes an artifact ready for production.
+
+#### Practice: Explain It to a Colleague
+
+Write five sentences or fewer that answer these questions:
+
+1. What is a coding agent?
+2. What is context?
+3. What does a skill add?
+4. What must a person still review?
+
+Then list three coding agents by name.
 
 #### Checkpoint
 
-- [ ] I can explain what a Coding Agent is in my own words
-- [ ] I can name at least three Coding Agent platforms
-- [ ] I can describe how context influences an agent's responses
-- [ ] I can give an example of how a Skill changes agent behavior
+- [ ] My explanation distinguishes the agent from the context it receives.
+- [ ] I named at least three coding agents.
+- [ ] I identified at least one task that still requires human judgment.
+- [ ] I can explain why sensitive information does not belong in the practice artifact.
 
 ---
 
-### Module Lesson 2: Skills and Knowledge Artifacts
+### Module Lesson 2: Choosing the Right Artifact and Use Case
 
-**Goal:** Learn what Skills are, how they differ from other artifact types, and when to choose each type.
-
-#### What Is a Skill?
-
-A Skill is a Knowledge Artifact that packages domain expertise, coding standards, or process knowledge into a structured format that a Coding Agent can consume. When loaded into an agent's context window, a Skill augments the agent's behavior — providing specialized knowledge it would not otherwise have.
-
-Skills are authored once in a canonical Markdown format (with YAML frontmatter) and then compiled by Kanon into the specific file format required by each target Coding Agent platform.
+**Goal:** Select an artifact type based on what the content is for, how broadly it applies, and how a user or agent will use it.
 
 #### The Eight Artifact Types
 
-Kanon supports eight distinct artifact types. Each serves a different purpose:
+Kanon supports eight artifact types:
 
-| Type | Purpose |
-|------|---------|
-| **Skill** | Packages domain expertise that broadly applies across many tasks and files. |
-| **Power** | Bundles tools, documentation, and optional MCP servers into an installable capability. |
-| **Rule** | Defines a specific constraint or coding standard enforced during code generation. |
-| **Workflow** | Documents a step-by-step process to follow for a recurring procedure. |
-| **Agent** | Configures a specialized persona with specific capabilities and boundaries. |
-| **Prompt** | Provides a reusable instruction template for a specific task pattern. |
-| **Template** | Offers a file scaffold or boilerplate structure to generate from. |
-| **Reference-pack** | Collects related reference documents into a single browsable bundle. |
+| Type | Primary Purpose | Useful Signal |
+|------|-----------------|---------------|
+| **Skill** | Supplies reusable domain knowledge or guidance. | The same guidance should inform several related tasks. |
+| **Power** | Packages a capability with supporting guidance and optional integrations. | The user needs an installable bundle, not only written guidance. |
+| **Rule** | States a narrow constraint that should be followed consistently. | The content is a clear requirement or prohibition. |
+| **Workflow** | Guides an ordered, repeatable process. | The sequence of steps matters. |
+| **Agent** | Defines a specialized role, responsibilities, and boundaries. | The work needs a persistent role or delegation pattern. |
+| **Prompt** | Provides a reusable request for a specific interaction. | The user repeatedly asks for the same kind of output. |
+| **Template** | Supplies a reusable output structure. | The required sections or fields matter more than background guidance. |
+| **Reference-pack** | Groups source material for consultation when needed. | Users need supporting references without loading them all the time. |
 
-#### How to Choose the Right Type
+An artifact can support another artifact. For example, a workflow may depend on a skill for domain guidance and use a template for the final output.
 
-When deciding which artifact type to create, consider these characteristics of your use case:
+#### Three Questions for Classification
 
-1. **Breadth of application:** If the knowledge applies broadly across many different files, tasks, and contexts — choose **Skill**. If it describes a sequential procedure with specific steps — choose **Workflow**.
+Ask these questions before choosing a type:
 
-2. **Nature of the content:** If you are defining a constraint that must always be followed — choose **Rule**. If you are providing background knowledge that informs decisions — choose **Skill**.
+1. **Purpose:** Is this background guidance, a constraint, a sequence, a reusable request, a structure, a role, a reference set, or an integrated capability?
+2. **Scope:** Should it apply across several tasks, or only during one defined activity?
+3. **Mode of use:** Should the content be loaded as guidance, followed in order, filled in, retrieved on demand, or installed with tools?
 
-3. **Reusability pattern:** If the content is a fill-in-the-blank instruction — choose **Prompt**. If it is a file structure meant to be copied — choose **Template**.
+A skill is a good choice when reviewed domain guidance should inform several related tasks. A skill is not a substitute for an official policy system, a fixed procedure, or an authoritative database.
 
-4. **Scope of identity:** If you need to define a specialized agent persona with boundaries — choose **Agent**. If you need to package tools and documentation together — choose **Power**.
+#### Practice: Classify Three Scenarios
 
-#### JHU Libraries Scenarios
+For each scenario, select an artifact type and explain your choice.
 
-**Scenario 1: MARC Cataloging Standards**
-A cataloger wants to ensure the Coding Agent always follows JHU's local MARC field extensions and indicator conventions when generating or reviewing catalog records. The knowledge applies broadly across many records and tasks, making **Skill** the correct type. A **Workflow** would be incorrect because this is not a sequential procedure — it is background knowledge that informs many different activities.
+**Scenario A: Metadata review sequence**
 
-**Scenario 2: Metadata Quality Review Process**
-A metadata librarian needs the agent to follow a specific step-by-step review checklist each time a new digital object is ingested. Because this is a sequential procedure with defined steps, **Workflow** is the correct type. A **Skill** would be incorrect because the content is procedural (do A, then B, then C) rather than broad domain knowledge.
+A team has an approved sequence for checking required fields, reviewing names, recording rights information, and documenting exceptions. Staff should complete the steps in order.
 
-**Scenario 3: Collection Naming Conventions**
-A collection manager wants all file names and identifiers to follow specific patterns. Because this is a constraint that must always be enforced, **Rule** is the correct type. A **Skill** would be incorrect because the content defines a strict requirement rather than general domain knowledge.
+**Scenario B: Finding-aid section structure**
 
-#### Common Misclassification
+Staff repeatedly need a blank structure with the same headings and placeholder fields. The artifact should provide the structure without supplying collection-specific facts.
 
-A common mistake is choosing **Skill** when the content is actually a step-by-step procedure. For example, "How to process a new accession" describes sequential steps (receive material, assign identifier, create finding aid, notify stakeholders). This is a **Workflow**, not a Skill. The key differentiator: if the content is "do these steps in this order," it belongs in a Workflow. If the content is "here is knowledge to keep in mind broadly," it belongs in a Skill.
+**Scenario C: Descriptive-language guidance**
+
+A reviewed guide explains preferred terminology, decision principles, and examples that should inform several description and review tasks.
+
+Record your answer before opening the answer key at the end of this course.
+
+#### Develop a Use-Case Canvas
+
+Complete this canvas for a possible Libraries use case. Keep the first version small enough to test in one work session.
+
+| Prompt | Your Notes |
+|--------|------------|
+| Working title | |
+| Intended users | |
+| Task or decision the artifact should support | |
+| Why a skill is the right type | |
+| Source documents or expertise | |
+| Source owner or subject-matter reviewer | |
+| Information that must be excluded | |
+| One example request to test | |
+| What a useful response should contain | |
+| What would make the response unacceptable | |
+| Review date or review trigger | |
+
+Potential domains include metadata quality, accessible document preparation, repository documentation, digital preservation terminology, research data guidance, and collection description. These are prompts for exploration, not statements of approved Johns Hopkins Libraries standards.
 
 #### Checkpoint
 
-- [ ] I can define what a Skill is and explain its purpose
-- [ ] I can name all eight artifact types and state each one's purpose
-- [ ] I can identify at least two characteristics that distinguish a Skill from other types
-- [ ] I can select the correct artifact type for a given scenario and explain why
+- [ ] I classified all three scenarios and justified each choice.
+- [ ] I completed every row of the use-case canvas.
+- [ ] I identified an owner or reviewer for the source knowledge.
+- [ ] I wrote at least one explicit exclusion.
+- [ ] My proposed use case is small enough to test.
 
 ---
 
-### Module Lesson 3: The Harness Ecosystem
+### Module Lesson 3: Harnesses and the Compile Pipeline
 
-**Goal:** Understand how Kanon compiles a single source artifact into multiple platform-specific formats through the Harness system.
+**Goal:** Describe how one source artifact becomes output for one or more coding-agent platforms.
 
 #### What Is a Harness?
 
-A Harness is the target AI coding assistant platform for which Kanon produces compiled output. Each Coding Agent platform expects knowledge to be delivered in a specific format — Kiro uses steering files, Claude Code uses CLAUDE.md project files, Copilot uses .github/copilot-instructions.md, and so on.
+In Kanon, a harness is a target coding-agent platform. Kanon currently recognizes these harness names:
 
-Rather than requiring authors to learn each platform's format, Kanon handles all translation automatically.
+| Harness Name | Platform | Default Output Category |
+|--------------|----------|-------------------------|
+| `kiro` | Kiro | Steering file |
+| `claude-code` | Claude Code | CLAUDE.md guidance |
+| `codex` | OpenAI Codex | AGENTS.md guidance |
+| `copilot` | GitHub Copilot | Repository instructions |
+| `cursor` | Cursor | Rule file |
+| `windsurf` | Windsurf | Rule file |
+| `cline` | Cline | Rule file |
+| `qdeveloper` | Amazon Q Developer | Rule file |
 
-#### Author Once, Compile to Many
+Some harnesses support more than one output format. The scaffold wizard records selected harnesses and, when needed, asks which format to use. An artifact may target only the platforms relevant to its intended users.
 
-The core principle of Kanon is: write your knowledge once in a universal format, then compile it to any supported platform. This means:
+#### Author Once, Compile for Selected Platforms
 
-- You write a single Skill in Kanon's Markdown format
-- Kanon compiles that Skill into the correct format for each Harness you target
-- Each Coding Agent receives the same knowledge, delivered in its native format
+The source artifact contains the reviewed guidance. Kanon uses an adapter for each selected harness to represent that guidance in the format the platform expects. The source remains the place to revise the content; generated output should not become a second, separately maintained source.
 
-This eliminates the need to maintain separate copies of the same knowledge for different platforms.
+#### Parse, Adapt, Write
 
-#### Supported Harnesses
+Kanon's compile pipeline has three stages:
 
-Kanon currently supports compilation to these Coding Agent platforms:
+1. **Parse:** Read the source files, separate metadata from the body, and check whether the data matches the schema.
+2. **Adapt:** Convert the parsed artifact into the selected harness's supported format. Kanon may report compatibility warnings when a harness cannot represent a feature fully.
+3. **Write:** Save the generated files under the harness and artifact folders in `dist/`.
 
-| Harness | Output Format |
-|---------|---------------|
-| Kiro | Steering files in the `.kiro/` directory |
-| Claude Code | `CLAUDE.md` project instruction file |
-| Copilot | `.github/copilot-instructions.md` |
-| Cursor | `.cursor/rules/` rule files |
-| Windsurf | `.windsurfrules` configuration |
-| Cline | `.clinerules` configuration |
-| Amazon Q Developer | Project-level instruction files |
+The harness consumes the written output. Kanon performs the parse, adapt, and write stages.
 
-#### The Three-Stage Pipeline: Parse, Adapt, Write
+#### A Useful Distinction
 
-When you run a build command, Kanon processes your artifact through three stages:
+Validation and building answer different questions:
 
-1. **Parse** — Kanon reads your source Markdown file, separates the YAML frontmatter from the content body, and validates the structure against the artifact schema. At this stage, Kanon understands *what* you wrote.
+- **Validation:** Is the source artifact structurally acceptable, and do selected checks identify a problem?
+- **Build:** Can Kanon produce output for the selected harnesses?
+- **Content review:** Is the guidance accurate, current, appropriately scoped, and approved for the intended use?
+- **Behavior test:** Does an agent using the output respond as intended to representative requests?
 
-2. **Adapt** — Kanon transforms the parsed content into the target Harness format. Each Harness has specific rules about file structure, section organization, and metadata placement. The adapter reshapes your content to match those rules while preserving meaning. At this stage, Kanon reformats *how* the knowledge is presented.
+All four checks matter. None replaces the others.
 
-3. **Write** — Kanon outputs the adapted content to the correct file location with the correct file name for the target Harness. At this stage, Kanon delivers *where* the agent will find it.
+#### Practice: Explain the Pipeline
 
-#### Side-by-Side Comparison
+Complete this sentence for each stage:
 
-Consider a Skill about metadata standards. The same source content compiled for two different Harnesses produces different outputs:
+- Parse takes __________ as input and produces __________.
+- Adapt takes __________ as input and produces __________.
+- Write takes __________ as input and saves __________.
 
-**For Kiro (Steering File):**
-The compiled output becomes a structured steering file placed in the `.kiro/steering/` directory. The content is organized into sections that Kiro's steering system understands, with metadata as frontmatter and guidance as structured prose.
-
-**For Claude Code (CLAUDE.md):**
-The compiled output becomes a section within the project's `CLAUDE.md` file. The content is formatted as natural-language instructions that Claude Code reads when it loads the project context, with headings and bullet points that match Claude Code's instruction format.
-
-Both outputs carry the same domain knowledge — your metadata standards — but each is formatted for its target platform's native consumption pattern.
-
-#### No Harness Syntax Required
-
-As an artifact author, you never need to learn Kiro's steering file format, Claude Code's CLAUDE.md conventions, Copilot's instruction syntax, or any other platform-specific configuration. Kanon handles all format translation automatically. You focus entirely on writing clear, well-structured knowledge content.
+Then explain why generated output should be rebuilt from the canonical source rather than edited independently.
 
 #### Checkpoint
 
-- [ ] I can define what a Harness is and name at least three supported platforms
-- [ ] I can explain the "author once, compile to many" principle in my own words
-- [ ] I can describe what happens at each stage of the three-stage pipeline (parse, adapt, write)
-- [ ] I understand that I do not need to learn platform-specific syntax
+- [ ] I can name at least three supported harnesses.
+- [ ] I can describe the input and output of parse, adapt, and write.
+- [ ] I can distinguish validation, build, content review, and behavior testing.
+- [ ] I know that a compatibility warning deserves review rather than automatic dismissal.
 
 ---
 
-### Module Lesson 4: Scaffolding Your First Skill
+### Module Lesson 4: Set Up and Scaffold a Practice Skill
 
-**Goal:** Use the Kanon CLI to scaffold a new Skill artifact and understand the generated file structure.
+**Goal:** Verify the local toolchain and create a practice skill with the current Kanon scaffold wizard.
 
-#### Before You Begin
+#### Open the Kanon Project
 
-Verify your environment is ready:
+The repository's development commands run from the `kanon/` directory. Open a terminal, move to your local repository, and then move into that directory:
+
+```bash
+cd /path/to/agentic-skill-forge/kanon
+```
+
+Replace the example path with the location of your local copy.
+
+If dependencies have not been installed in this copy, run:
+
+```bash
+bun install
+```
+
+Confirm that Bun and the development CLI are available:
 
 ```bash
 bun --version
+bun run dev --help
 ```
 
-You should see a version number (e.g., `1.x.x`). If not, install Bun first:
+If either command fails, stop here and use Lesson 5 of the [Kanon Tutorial](tutorial.md) to troubleshoot setup.
 
-**macOS / Linux:**
+#### Create the Artifact
+
+This course uses the name `jhu-libraries-metadata-practice`. The word `practice` is intentional: the content is invented for learning and is not an official metadata profile.
+
+Run:
 
 ```bash
-curl -fsSL https://bun.sh/install | bash
+bun run dev new jhu-libraries-metadata-practice --type skill
 ```
 
-**Windows (PowerShell):**
+If an artifact with that name already exists, choose a different kebab-case name and use it in the remaining commands.
 
-```powershell
-powershell -c "irm bun.sh/install.ps1 | iex"
+The wizard collects information such as a description, keywords, author, inclusion behavior, categories, target harnesses, ecosystem tags, and initial content. Depending on the selections, it may also ask about a harness-specific format, hooks, or MCP servers.
+
+For this exercise:
+
+- write a description that labels the artifact as practice content;
+- choose `manual` inclusion when available so learners invoke it intentionally;
+- select one or two harnesses you can inspect, such as `kiro` and `codex`;
+- leave the initial knowledge body blank if you prefer to edit it in the next lesson;
+- do not add hooks; and
+- do not add MCP servers.
+
+#### Inspect the Scaffold
+
+The wizard writes the artifact under:
+
+```text
+knowledge/jhu-libraries-metadata-practice/
 ```
 
-You can also install via `npm install -g bun`, Scoop (`scoop install bun`), or WinGet (`winget install Oven-sh.Bun`). For the most consistent experience on Windows, consider using Windows Subsystem for Linux (WSL) and installing Bun inside your WSL terminal with the macOS/Linux command above.
+The scaffold contains:
 
-Close and reopen your terminal after installation, then verify with `bun --version`.
+| Path | Purpose |
+|------|---------|
+| `knowledge.md` | Canonical metadata and instructional content. |
+| `hooks.yaml` | Optional event-driven actions; this exercise leaves the list empty. |
+| `mcp-servers.yaml` | Optional tool-server definitions; this exercise leaves the list empty. |
+| `workflows/` | Optional supporting workflow files. |
 
-Next, confirm Kanon is available:
+The generated catalog is repository-level. The scaffold does not create an artifact-level `catalog.json`.
 
-```bash
-bunx kanon --help
-```
+#### Read the Frontmatter
 
-You should see the Kanon help output listing available commands.
+Open `knowledge.md`. The YAML frontmatter appears between the first pair of `---` markers. It records the artifact name, description, version, type, inclusion behavior, target harnesses, and other metadata. The Markdown body begins after the second marker.
 
-#### Scaffolding a New Skill
+Do not change the `name` casually after scaffolding; folder names, references, and generated output use it as an identifier. For this exercise, confirm that:
 
-The `kanon new` command launches an interactive wizard that guides you through creating a new artifact. Run it now:
-
-```bash
-bunx kanon new
-```
-
-The wizard will ask you several questions:
-
-1. **Name** — Enter a short, descriptive name for your Skill (e.g., `jhu-metadata-standards`)
-2. **Type** — Select `skill` from the list of artifact types
-3. **Category** — Choose the category that best fits your domain (e.g., `libraries`, `development`)
-4. **Description** — Write a one-sentence summary of what this Skill teaches an agent
-
-After completing the wizard, Kanon creates a new directory with the scaffolded structure:
-
-```
-your-skill-name/
-  knowledge.md      # Your Skill content goes here
-  hooks.yaml        # Lifecycle hooks (optional)
-  catalog.json      # Metadata about your artifact
-```
-
-#### Understanding the Scaffolded Files
-
-**knowledge.md** — This is the primary file where you write your domain knowledge. It contains YAML frontmatter (metadata) at the top and Markdown content below. The frontmatter includes fields like `name`, `type`, `version`, and `description`. The body contains your actual expertise.
-
-**hooks.yaml** — This optional file defines lifecycle hooks that run during build or install. For your first Skill, you can ignore this file.
-
-**catalog.json** — This file contains machine-readable metadata about your artifact. Kanon populates it from your wizard answers. You rarely need to edit it manually.
-
-#### Exercise: Scaffold Your Skill
-
-Complete this hands-on exercise:
-
-1. Open your terminal and navigate to a working directory
-2. Run `bunx kanon new`
-3. When prompted for a name, enter `jhu-cataloging-conventions`
-4. Select `skill` as the type
-5. Choose an appropriate category
-6. Enter a description like "Cataloging conventions for JHU Libraries special collections"
-7. Examine the generated files
+- `type` is `skill`;
+- the description says the content is for practice;
+- the selected harnesses match your intended build; and
+- no sensitive information appears in the file.
 
 #### Checkpoint
 
-- [ ] I successfully ran `bunx kanon new` and completed the wizard
-- [ ] I can locate and identify the three generated files (knowledge.md, hooks.yaml, catalog.json)
-- [ ] I understand which file contains my actual Skill content (knowledge.md)
-- [ ] I can describe the purpose of the YAML frontmatter in knowledge.md
+- [ ] `bun --version` and `bun run dev --help` both completed successfully.
+- [ ] The practice artifact exists under `knowledge/`.
+- [ ] The directory contains `knowledge.md`, `hooks.yaml`, and `mcp-servers.yaml`.
+- [ ] I can identify where the YAML frontmatter ends and the Markdown body begins.
+- [ ] I selected no hooks or MCP servers for this exercise.
 
 ---
 
-### Module Lesson 5: Editing and Validating
+### Module Lesson 5: Write, Review, and Validate the Skill
 
-**Goal:** Edit your scaffolded Skill with real domain content and validate it against Kanon's schema.
+**Goal:** Add clear practice guidance, review it as content, and validate the artifact structure.
 
-#### Editing knowledge.md
+#### Write for the Agent and the Human Reviewer
 
-Open the `knowledge.md` file in your scaffolded Skill directory. You will see a structure like this:
+Good skill content states:
 
-```yaml
----
-name: jhu-cataloging-conventions
-type: skill
-version: 0.1.0
-description: Cataloging conventions for JHU Libraries special collections
----
-```
+- when the guidance applies;
+- what task it supports;
+- what source or authority the guidance reflects;
+- the instructions or decision criteria;
+- examples of acceptable and unacceptable behavior;
+- exclusions and escalation points; and
+- how reviewers will know whether the guidance worked.
 
-Below the frontmatter (the section between `---` markers), add your domain knowledge as Markdown content. Write clearly and organize with headings. For example:
+Avoid vague directives such as “use best practices” when you can name the relevant criteria. Do not ask an agent to guess missing facts. Tell it when to ask a question, preserve uncertainty, cite a supplied source, or stop for human review.
+
+#### Add the Practice Content
+
+In `knowledge.md`, leave the generated frontmatter in place. Replace the placeholder body below the second `---` marker with the following practice content. You may adapt the wording, but keep the label that identifies it as an exercise.
 
 ```markdown
-## Cataloging Conventions
+# Practice Descriptive Metadata Guidance
 
-### Local Field Extensions
+## Status and Scope
 
-When cataloging special collections materials, always include the following local fields:
-- **590** — Local notes specific to the JHU copy
-- **691** — JHU subject headings from the local thesaurus
-- **856** — Links to digitized versions in JHU Digital Collections
+This artifact contains invented examples for a Kanon training exercise. It is not an official Johns Hopkins Libraries metadata profile and must not be used for production records.
 
-### Preferred Controlled Vocabularies
+Use it only to draft a practice record from information supplied in the current request. Do not infer names, dates, rights, or access conditions that the source does not state.
 
-Use these vocabularies in priority order:
-1. Library of Congress Subject Headings (LCSH)
-2. Art & Architecture Thesaurus (AAT) for visual materials
-3. JHU Local Terms List for institution-specific concepts
+## Practice Fields
+
+For each practice object, return:
+
+- Title: Copy the supplied title. If none is supplied, write “Title not provided.”
+- Creator: Copy a supplied creator name without expanding initials or changing name order.
+- Date: Copy the supplied date and retain uncertainty markers.
+- Description: Write one or two factual sentences based only on the supplied information.
+- Rights review: Write “Human review required” unless the request supplies an approved rights statement.
+
+## Review Rules
+
+1. Preserve uncertainty instead of inventing a value.
+2. Separate supplied facts from suggestions.
+3. Flag offensive or outdated source language for review; do not silently rewrite a quotation or title.
+4. Do not include personal, restricted, or confidential information.
+5. End with a short list titled “Items for human review.”
+
+## Example
+
+Input: A photograph titled “Library entrance,” creator not provided, circa 1985.
+
+Expected characteristics: The title is copied, the creator is marked as not provided, the uncertain date is retained, no rights claim is invented, and review items are listed.
 ```
 
-Write as if you are briefing a knowledgeable colleague who needs to understand your domain standards. Be specific, use examples, and organize logically.
+The example is deliberately modest. It gives the agent an observable response pattern without asserting a real local standard.
 
-#### Validating Your Skill
+#### Conduct a Content Review
 
-After editing, run the validation command to check your artifact against Kanon's schema:
+Before running the validator, read the artifact once as a subject-matter reviewer. Record answers to these questions:
+
+1. Can a reader tell that the content is a practice exercise?
+2. Does the scope say when to use and not use the guidance?
+3. Does each instruction lead to behavior you could observe in an answer?
+4. Does the artifact tell the agent what not to infer?
+5. Does it require human review where authority is missing?
+6. Did any sensitive or unapproved information enter the file?
+
+Revise the body if any answer is no.
+
+#### Validate One Artifact
+
+From the `kanon/` directory, validate the practice artifact by path:
 
 ```bash
-bunx kanon validate
+bun run dev validate knowledge/jhu-libraries-metadata-practice
 ```
 
-Run this from within your Skill's directory (the folder containing `knowledge.md`).
+If you used another name, replace the path. A passing result confirms that the source matches the expected structure. If validation fails, read the field name, message, and file path in the output. Correct the reported issue and run the command again.
 
-Kanon validates:
-- **Structure** — Is the frontmatter well-formed YAML with all required fields?
-- **Content** — Does the Markdown body follow expected patterns?
-- **Metadata** — Are the name, type, version, and description valid?
-
-If validation passes, you will see a success message. If it fails, Kanon reports specific errors with line numbers and descriptions so you can fix them.
-
-#### Security Validation
-
-For additional confidence, run validation with the security flag:
+Then run the additional security checks:
 
 ```bash
-bunx kanon validate --security
+bun run dev validate knowledge/jhu-libraries-metadata-practice --security
 ```
 
-This checks for common issues like accidentally included secrets, overly permissive patterns, or content that might cause unintended agent behavior.
+Security validation looks for patterns associated with prompt injection, dangerous hooks, risky MCP commands, and obfuscated content. A clean result is useful evidence, but it is not a privacy, policy, accessibility, or factual-accuracy certification.
 
-#### Exercise: Edit and Validate
+#### Common Validation Problems
 
-Complete this hands-on exercise:
-
-1. Open `knowledge.md` in your scaffolded Skill directory
-2. Add at least two sections of domain knowledge relevant to your JHU workflow
-3. Save the file
-4. Run `bunx kanon validate` from the Skill directory
-5. If errors appear, read the messages and fix each one
-6. Run validation again until it passes cleanly
+| Symptom | What to Check |
+|---------|---------------|
+| YAML parse error | Indentation, quotation marks, list markers, and the opening and closing `---` lines. |
+| Missing or invalid field | The field named in the error and the expected values in the Authoring Guide. |
+| Unknown harness | Spelling and lowercase harness identifiers. |
+| File not found | Your current directory and the path to the artifact folder. |
+| Security finding | The exact text or command reported; remove unsafe content rather than disguising it. |
 
 #### Checkpoint
 
-- [ ] I edited knowledge.md with real domain content organized under clear headings
-- [ ] I ran `bunx kanon validate` and resolved any reported errors
-- [ ] I understand what the validator checks (structure, content, metadata)
-- [ ] My Skill passes validation without errors
+- [ ] The body clearly identifies itself as invented practice content.
+- [ ] I completed the six-question content review and made any needed revisions.
+- [ ] Standard validation passes for the practice artifact.
+- [ ] Security validation completes, and I reviewed every warning or error.
+- [ ] I can explain why validation does not replace subject-matter review.
 
 ---
 
-### Module Lesson 6: Building and Installing
+### Module Lesson 6: Build, Inspect, and Review the Capstone
 
-**Goal:** Build your validated Skill for one or more Harnesses and install it into a local project.
+**Goal:** Build harness-specific output, compare it with the canonical source, and evaluate the completed practice skill.
 
-#### Building Your Skill
+#### Build for One Selected Harness
 
-Once your Skill passes validation, compile it for a target Harness:
-
-```bash
-bunx kanon build --harness kiro
-```
-
-This compiles your Skill into Kiro's steering file format. The output file is placed in the correct directory structure for Kiro to discover.
-
-To build for a different Harness:
+Choose a harness listed in the artifact's frontmatter. For Kiro, run:
 
 ```bash
-bunx kanon build --harness claude-code
+bun run dev build --harness kiro
 ```
 
-To build for all supported Harnesses at once:
+For OpenAI Codex, run:
 
 ```bash
-bunx kanon build
+bun run dev build --harness codex
 ```
 
-Without specifying a `--harness` flag, Kanon compiles for all available targets.
+The build command scans the repository's source directories and builds every eligible artifact for the selected harness. It does not build only the practice artifact. Generated files go under `dist/<harness>/<artifact-name>/`. The build process may clear and recreate generated output for the selected harness.
 
-#### Strict Mode
+If the result contains compatibility warnings, read them. A warning may indicate that the selected harness represents or omits a feature differently. This exercise has no hooks or MCP servers, which keeps the comparison focused on the knowledge content.
 
-For production-quality artifacts, use strict mode which treats warnings as errors:
+#### Inspect the Output
+
+List the files for the practice artifact. For a Kiro build, run:
 
 ```bash
-bunx kanon build --strict
+find dist/kiro/jhu-libraries-metadata-practice -maxdepth 3 -type f
 ```
 
-This ensures your Skill meets the highest quality standards before distribution.
+Open the generated Markdown file and compare it with `knowledge/jhu-libraries-metadata-practice/knowledge.md`.
 
-#### Installing Locally
+Look for:
 
-After building, install the compiled Skill into a local project directory:
+- the practice title and scope statement;
+- the five practice fields;
+- the five review rules;
+- the example; and
+- any harness-specific wrapper text or metadata.
+
+Do not edit the generated file to make a lasting change. Revise the canonical source and rebuild.
+
+#### Optional: Preview an Installation
+
+To see what a local Kiro installation would copy without changing files, run this from the `kanon/` directory:
 
 ```bash
-bunx kanon install
+bun run dev install jhu-libraries-metadata-practice --harness kiro --source . --dry-run
 ```
 
-Kanon places the compiled output files in the correct locations within your project (e.g., `.kiro/steering/` for Kiro, `CLAUDE.md` for Claude Code). The Coding Agent in that project will now load your Skill automatically.
+Lesson 14 of the [Kanon Tutorial](tutorial.md) covers installation destinations, overwrite behavior, and multi-harness options. Complete an actual installation only in a project where you have permission to add the generated instructions.
 
-#### Verifying the Installation
+#### Behavior Test Design
 
-After installation, verify that the compiled files exist:
+Technical compilation is not the final test. Draft three requests that would reveal whether the skill works:
 
-```bash
-ls .kiro/steering/
-```
+1. **Typical case:** Supply a title, creator, date, and short description.
+2. **Missing-information case:** Omit the creator and rights statement.
+3. **Boundary case:** Ask the agent to invent a missing creator or state that an item is free of copyright restrictions.
 
-You should see your Skill listed. To confirm the Coding Agent recognizes it, open the project in your editor and ask the agent a question related to your Skill's domain. Its response should reflect the knowledge you authored.
+For each request, write the observable behavior you expect. The boundary case should be refused or corrected according to the practice guidance. If you test in a coding agent, use only invented content and record the tool, date, loaded artifact version, prompt, output, and review notes.
 
-#### Exercise: Build and Install
+#### Capstone Rubric
 
-Complete this hands-on exercise:
+Score each criterion from 0 to 2.
 
-1. From your Skill directory, run `bunx kanon build --harness kiro`
-2. Observe the output — note the file path where the compiled Skill was written
-3. Run `bunx kanon build --harness claude-code` to compile for a second Harness
-4. Compare the two outputs — notice how the same knowledge is formatted differently
-5. Run `bunx kanon install` in a project directory where you use a Coding Agent
-6. Verify the installed files appear in the expected location
+| Criterion | 0 | 1 | 2 |
+|-----------|---|---|---|
+| Purpose and scope | Missing or unclear | Partly stated | Intended use, exclusions, and practice status are explicit |
+| Source and ownership | No owner or source plan | Owner or source named | Owner, source, and review trigger are recorded |
+| Instruction quality | Vague or conflicting | Mostly usable | Specific, ordered where needed, and observable |
+| Safety and data handling | Sensitive content or unsafe direction | General caution only | Clear exclusions, uncertainty handling, and escalation points |
+| Structural validity | Validation fails | Validation passes with unresolved warnings | Standard and security results reviewed and resolved |
+| Harness output | Build fails or content is missing | Build succeeds for one harness | Output preserves the intended guidance and warnings are reviewed |
+| Testability | No representative requests | One or two simple requests | Typical, missing-information, and boundary cases have expected results |
+| Human review | No review evidence | Informal review noted | Reviewer, date, findings, and revision are recorded |
 
-#### Checkpoint
+**Interpretation:**
 
-- [ ] I successfully built my Skill for at least one Harness
-- [ ] I can explain the difference between building and installing
-- [ ] I built for multiple Harnesses and observed the different output formats
-- [ ] I installed the compiled Skill into a local project and verified the files exist
+- **13–16:** The practice artifact demonstrates the course outcomes.
+- **9–12:** Revise the lowest-scoring criteria and review again.
+- **0–8:** Return to the relevant lesson before treating the exercise as complete.
+
+A high practice score is not approval to use the artifact in production. A production artifact needs review from the relevant subject-matter and information-governance owners.
+
+#### Final Checkpoint
+
+- [ ] I built the artifact for at least one harness selected in its frontmatter.
+- [ ] I compared the generated output with the canonical source.
+- [ ] I reviewed every build warning.
+- [ ] I designed three behavior tests, including a boundary case.
+- [ ] I scored the artifact with the capstone rubric and recorded one revision.
 
 ---
 
-## Congratulations
+## Answer Key and Model Responses
 
-You have completed the self-paced module on Coding Agents and Skill Creation. You now understand what Coding Agents are, how Skills provide them with domain expertise, how the Harness system delivers that knowledge in platform-specific formats, and how to use the Kanon CLI to scaffold, edit, validate, build, and install your own custom Skills.
+Use this section after completing the practices.
 
-### Next Steps
+### Lesson 1 Model Response
 
-- Explore the [Kanon Tutorial](tutorial.md) for a comprehensive walkthrough of all Kanon commands
-- Read the [Authoring Guide](authoring.md) for advanced artifact authoring techniques
-- Browse the [Commands Reference](commands.md) for detailed CLI documentation
-- Create a Skill for a real workflow in your JHU Libraries team and share it with colleagues
+A coding agent is an AI assistant that can work with files and tools in a development environment. Context is the set of instructions and information available for the current task. A skill adds reusable domain guidance to that context. The agent may produce incomplete or incorrect work, so a person must review facts, professional judgments, permissions, and final use. Examples include Kiro, Claude Code, and OpenAI Codex.
+
+### Lesson 2 Scenario Answers
+
+- **Scenario A:** Workflow. The defining feature is an approved sequence whose order matters. A related skill could supply background metadata knowledge, but it would not replace the procedure.
+- **Scenario B:** Template. The primary need is a repeatable structure with fixed headings and placeholders.
+- **Scenario C:** Skill. Reviewed guidance and examples should inform several related description and review tasks. If one statement must function as an absolute constraint, that statement might also belong in a rule.
+
+### Lesson 3 Pipeline Model
+
+- Parse takes canonical source files as input and produces a validated, structured representation of the artifact.
+- Adapt takes that structured artifact as input and produces content shaped for a selected harness and format.
+- Write takes the adapted result as input and saves harness-specific files under `dist/`.
+
+Generated files should be rebuilt from the source because the canonical artifact is the maintained record. Editing output independently creates copies that can conflict or disappear during the next build.
+
+## Completion Record
+
+Copy this record into your learning journal if your unit tracks professional development.
+
+| Item | Entry |
+|------|-------|
+| Learner | |
+| Completion date | |
+| Practice artifact name | |
+| Harness or harnesses built | |
+| Validation result | |
+| Capstone score | |
+| Most important revision | |
+| Follow-up question or proposed real use case | |
+
+## Next Steps
+
+- Continue through the [Kanon Tutorial](tutorial.md) for catalog, import, collections, evaluation, publishing, upgrading, and team distribution.
+- Use the [Authoring Guide](authoring.md) when refining frontmatter, inclusion behavior, hooks, MCP servers, or workflow files.
+- Complete the optional [Souk Compass Practice](souk-compass-practice.md) after Tutorial Lessons 10 and 16 if you have access to an approved semantic-search environment.
+- Before creating a production skill, identify the content owner, approved source material, intended audience, test cases, review date, and distribution boundary.
+- Pair with a colleague for the first production review. One person can check subject matter and another can test whether the instructions produce the intended behavior.

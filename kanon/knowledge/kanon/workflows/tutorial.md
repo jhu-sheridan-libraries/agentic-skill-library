@@ -75,6 +75,7 @@ Today, several Coding Agents are widely available:
 |------------|-------------|
 | Kiro | An AI development environment that uses structured steering files to guide behavior |
 | Claude Code | A conversational coding assistant that follows project-level instructions |
+| OpenAI Codex | A coding agent that follows repository instructions and discoverable skills |
 | Copilot | A code-completion assistant integrated into popular editors |
 | Cursor | An AI-first editor that applies project rules and context documents |
 | Windsurf | An AI coding assistant with workspace-wide awareness |
@@ -109,9 +110,9 @@ To illustrate the difference context makes, consider this scenario involving a l
 
 The agent provides a generic response based on broadly applicable practices. It suggests common metadata fields like title, author, and date. It uses general terminology that could apply to any digital repository. The structure follows a one-size-fits-all template with no awareness of local standards, controlled vocabularies, or institutional naming conventions.
 
-**With a "JHU Metadata Standards" Skill loaded (specialized behavior):**
+**With a reviewed practice metadata Skill loaded (specialized behavior):**
 
-The agent now draws on the loaded domain expertise. It recommends specific Dublin Core elements required by Johns Hopkins University Libraries. It applies the institutional controlled vocabulary for collection types. It follows the local naming convention for digital objects. It includes required fields unique to the JHU repository system and references the specific rights statements mandated by institutional policy.
+The agent now draws on the guidance supplied in the practice Skill. It uses the defined fields, preserves uncertainty, and marks missing information for human review. It does not invent a creator, rights statement, or local requirement. This example is hypothetical; a production Skill must use source material reviewed by the staff responsible for the relevant metadata standard.
 
 The underlying agent is the same in both cases — what changed is the context available to it. Loading a Skill gave the agent access to domain-specific knowledge that it wove into its response automatically.
 
@@ -167,13 +168,13 @@ If you are capturing best practices, preferred approaches, or domain terminology
 **Criterion 3: The knowledge does not require external tool access or integrations.**
 If your artifact is purely informational — teaching the agent about a domain without needing it to call external services or APIs — a Skill is correct. If the artifact needs to grant the agent new capabilities like accessing a database or calling a web service, a Power is the appropriate choice.
 
-### Real-World Scenarios: Skills at JHU Libraries
+### Real-World Scenarios: Skills at Johns Hopkins Libraries
 
-The following scenarios illustrate how JHU Libraries staff would identify "skill" as the correct artifact type.
+The following hypothetical scenarios illustrate how Johns Hopkins Libraries staff might identify "skill" as the correct artifact type. They do not describe current or approved local standards.
 
 **Scenario 1: Dublin Core Metadata Standards**
 
-A metadata librarian wants their Coding Agent to consistently apply the Johns Hopkins University Libraries metadata profile when describing digital objects. This profile specifies which Dublin Core elements are required, how controlled vocabularies should be applied, and what formatting conventions the institution follows.
+A metadata librarian has a reviewed profile that specifies required elements, controlled vocabularies, and formatting conventions. The librarian wants a Coding Agent to use that approved guidance across several digital-object description and review tasks.
 
 Why "skill" is correct: The metadata standards represent domain expertise that the agent should apply broadly whenever it encounters metadata-related tasks. The knowledge is not a single step-by-step procedure — it is a body of conventions and requirements that inform many different activities (creating new records, reviewing existing ones, migrating collections).
 
@@ -181,7 +182,7 @@ Why "workflow" would be incorrect: A workflow describes a specific ordered proce
 
 **Scenario 2: Cataloging Conventions for Special Collections**
 
-An archivist wants their Coding Agent to understand the local cataloging conventions used for special collections at JHU Libraries. These conventions cover how to handle undated materials, how to structure hierarchical descriptions, and which local subject headings supplement the standard vocabularies.
+An archivist has reviewed guidance for handling undated materials, structuring hierarchical descriptions, and selecting terms. The archivist wants a Coding Agent to consider that guidance across several description and review tasks.
 
 Why "skill" is correct: Cataloging conventions represent accumulated expertise that applies across every cataloging task the agent might assist with. Whether the agent is helping draft a finding aid, suggesting subject headings, or reviewing a catalog record, it needs access to these conventions. The knowledge is broad, ongoing, and not tied to a single interaction.
 
@@ -202,7 +203,7 @@ The correct artifact type is Workflow, because the content describes a structure
 - [ ] I can define what a Skill is and what it packages for an AI coding assistant
 - [ ] I can name all eight artifact types and describe how they differ
 - [ ] I can identify at least two observable characteristics that indicate a use case calls for a Skill rather than another type
-- [ ] I can explain why JHU metadata standards are best captured as a Skill rather than a Workflow or Prompt
+- [ ] I can explain why reviewed metadata guidance may be best captured as a Skill rather than a Workflow or Prompt
 - [ ] I can recognize when a step-by-step procedure should be a Workflow instead of a Skill
 
 **Next:** [Lesson 3](#lesson-3-how-harnesses-work)
@@ -225,7 +226,7 @@ Think of a Harness like a language translator at a conference. The speaker deliv
 
 In Lesson 2, you learned that a Skill packages domain expertise into a Knowledge Artifact. You write that artifact exactly once, in a single canonical format. Kanon then takes that one source and automatically produces a correctly formatted version for every Harness you choose to target.
 
-This is the "author once, compile to many" principle. You focus entirely on capturing your knowledge clearly and accurately. Kanon handles all the format translation — converting your single artifact into as many different platform-specific outputs as you need. Whether you want your knowledge available in two Coding Agents or seven, you never write it more than once.
+This is the "author once, compile to many" principle. You focus entirely on capturing your knowledge clearly and accurately. Kanon handles the format translation — converting your single artifact into the platform-specific outputs you select. Whether you target two Coding Agents or every supported Harness, you maintain one canonical source.
 
 This principle means that when a new Coding Agent emerges or an existing one changes its expected format, you do not need to rewrite your artifacts. Kanon simply adds or updates the relevant Harness, and your existing knowledge automatically compiles to the new format.
 
@@ -237,13 +238,14 @@ Kanon currently supports the following Coding Agent platforms as compilation tar
 |---------|----------------------|
 | Kiro | An AI development environment that uses structured steering files |
 | Claude Code | A conversational coding assistant that reads a project-level instruction document |
+| OpenAI Codex | A coding agent that reads repository guidance and discoverable skills |
 | Copilot | A code-completion assistant that reads instruction files from a designated folder |
 | Cursor | An AI-first editor that applies project rules from a dedicated configuration area |
 | Windsurf | An AI coding assistant that reads rule files from its own workspace folder |
 | Cline | An autonomous coding agent that reads rule documents from its local configuration |
 | Amazon Q Developer | An AI assistant that reads rule files from a platform-specific folder |
 
-Each of these harnesses expects knowledge in a different format and location. As an artifact author, you do not need to know any of these details — Kanon manages them all for you.
+Each harness expects knowledge in a particular format and location. Kanon writes those platform-specific files. Artifact authors still choose relevant targets, review compatibility warnings, and test the generated output.
 
 ### Same Artifact, Different Outputs
 
@@ -267,13 +269,13 @@ Here is another comparison showing two additional harnesses to illustrate the br
 | How the agent receives it | The agent reads the instruction file when assisting within the repository | The agent applies the rule document as project-level context |
 | Author effort for this harness | None beyond writing the original artifact | None beyond writing the original artifact |
 
-### You Do Not Need to Learn Harness-Specific Syntax
+### Focus on the Canonical Source
 
-This is perhaps the most important takeaway from this lesson: as an artifact author, you do not need to learn any Harness-specific syntax, configuration format, folder structure, or tooling. Kanon handles all format translation automatically.
+As an artifact author, you do not have to maintain a separate copy in each Harness-specific syntax or folder structure. Kanon handles the format translation and writes the generated files.
 
-You will never need to memorize where each Coding Agent looks for its files. You will never need to learn the particular Markdown conventions or YAML structures that a specific platform requires. You will never need to restructure your content differently for different targets.
+You do need to select the Harnesses and output formats relevant to your users, read compatibility warnings, and inspect or test the results. If a platform cannot represent a feature fully, Kanon may adapt or omit that feature and report the difference.
 
-Your only job is to write clear, well-organized knowledge in the single canonical format you learned about in Lesson 2. Kanon does the rest.
+Write and revise the clear, well-organized canonical source introduced in Lesson 2. Treat generated files as build output rather than independent sources.
 
 ### Checkpoint
 
@@ -281,7 +283,7 @@ Your only job is to write clear, well-organized knowledge in the single canonica
 - [ ] I can explain the "author once, compile to many" principle
 - [ ] I can name at least five supported Harnesses
 - [ ] I can describe how the same artifact produces different output formats for different platforms
-- [ ] I understand that I do not need to learn any Harness-specific syntax or configuration
+- [ ] I understand that I maintain one canonical source and review the generated output for selected Harnesses
 
 **Next:** [Lesson 4](#lesson-4-getting-started-with-skill-creation)
 
@@ -372,9 +374,9 @@ scoop install bun
 winget install Oven-sh.Bun
 ```
 
-**Windows with WSL (recommended for full compatibility):**
+**Windows Subsystem for Linux (recommended for full compatibility):**
 
-If you use Windows Subsystem for Linux (WSL), install Bun inside your WSL terminal using the macOS/Linux command above. WSL provides the most consistent experience across all Kanon commands.
+If you use Windows Subsystem for Linux, install Bun inside its terminal using the macOS/Linux command above. This environment provides the most consistent experience across all Kanon commands.
 
 Close and reopen your terminal, then verify:
 
@@ -683,39 +685,38 @@ maturity: experimental
 | `inclusion` | `always`, `fileMatch`, or `manual` |
 | `harnesses` | which AI tools to target |
 
-### JHU-Specific Conventions
+### Repository Collection Conventions
 
-- Always include `jh-drcc` in `collections` for library artifacts
-- Start `maturity` at `experimental` — upgrade to `stable` after team review
-- Use `manual` inclusion for reference material; `always` only for team-wide standards
+- Add `jh-drcc` to `collections` when the artifact is intended to join that collection
+- Start new work at `experimental` maturity and change maturity only through the team's review process
+- Prefer `manual` inclusion for reference material; use `always` only when every interaction needs the guidance
 
 ### hooks.yaml (Optional)
 
 Defines automations triggered by events:
 
 ```yaml
-hooks:
-  - name: lint-on-save
-    event: fileEdited
-    condition:
-      file_patterns:
-        - "*.py"
-    action:
-      type: run_command
-      command: "ruff check --fix"
+- name: lint-on-save
+  event: file_edited
+  condition:
+    file_patterns:
+      - "*.py"
+  action:
+    type: run_command
+    command: "ruff check --fix"
 ```
 
 ### mcp-servers.yaml (Optional)
 
-Lists MCP tool integrations the AI can use:
+Lists MCP tool integrations the AI can use. This fictional entry shows the file shape; replace it with a reviewed server definition rather than running it as written:
 
 ```yaml
-servers:
-  - name: github
-    command: npx
-    args: ["-y", "@modelcontextprotocol/server-github"]
-    env:
-      GITHUB_TOKEN: GITHUB_TOKEN_ENV_VAR
+- name: example-docs
+  transport: stdio
+  command: uvx
+  args:
+    - example-docs-mcp
+  env: {}
 ```
 
 ### Writing Good Content
@@ -1016,9 +1017,9 @@ bun run dev collection build --harness kiro
 
 Generates distributable bundles of collection members — useful for packaging a group of related artifacts for installation as a unit.
 
-### The JHU Collection
+### The JH DRCC Collection
 
-Already exists at `collections/jh-drcc.yaml`. Always add `jh-drcc` to the `collections` field of artifacts you create for the library team.
+The repository includes `collections/jh-drcc.yaml`. Add `jh-drcc` to an artifact's `collections` field when the artifact is intended to join that collection and the responsible team has reviewed the contribution.
 
 **Next:** [Lesson 16](#lesson-16-evaluating-artifacts)
 
@@ -1084,6 +1085,10 @@ bun run dev eval my-artifact --trend
 - To pick a model tier: compare haiku vs sonnet vs opus results
 - In CI: catch regressions when someone edits an artifact
 - For research: measure how prompt changes affect output quality
+
+### Optional Practice: Semantic Search with Souk Compass
+
+If your team has an approved Souk Compass practice environment, continue with the [Souk Compass Practice](souk-compass-practice.md). It applies the MCP concepts from Lesson 10 and the evaluation concepts from this lesson to semantic-search retrieval, source verification, and incremental reindexing. Do not index restricted or unapproved content for the exercise.
 
 **Next:** [Lesson 17](#lesson-17-publishing)
 
@@ -1281,16 +1286,16 @@ Pick a piece of knowledge from your daily work that would help a colleague:
 
 Follow Lessons 9–14 to create, validate, build, and install it.
 
-### Contribute to the JHU Collection
+### Propose an Artifact for the JH DRCC Collection
 
-Library-relevant artifacts should join the `jh-drcc` collection. Add it to your frontmatter:
+If the responsible team agrees that an artifact belongs in the `jh-drcc` collection, add it to the artifact's frontmatter:
 
 ```yaml
 collections:
   - jh-drcc
 ```
 
-Commit and push — CI will validate and build your artifact automatically.
+Follow the repository contribution process, include the required changelog fragment, and ask the appropriate reviewers to verify the content. Run validation and a build locally before publishing or installing the artifact.
 
 ### Explore Existing Artifacts
 
