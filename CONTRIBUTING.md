@@ -1,23 +1,52 @@
-# Contributing to Context Bazaar
+# Contributing to Kanon and Context Bazaar
+
+Thank you for contributing. This repository contains knowledge artifacts and the Kanon CLI that validates, compiles, catalogs, installs, evaluates, and publishes them for AI coding assistants.
 
 ## What to contribute
 
-The most valuable contributions are knowledge artifacts — well-written, focused guidance that an AI coding assistant can apply immediately. If you have deep knowledge in a domain that isn't covered, that's the right place to start.
+The most valuable contributions are focused, source-backed knowledge artifacts that help an assistant produce better work for a defined task. If you have expertise in a domain that is not covered, start there.
 
-Also welcome: bug fixes to the kanon tool, new harness adapters, improvements to the catalog browser, eval suites, and collection proposals.
+Also welcome: bug fixes to the Kanon tool, harness adapters, catalog improvements, evaluation suites, collection proposals, documentation, and security fixes.
+
+## Choose a contribution path
+
+| Contribution | Start here |
+|---|---|
+| New or revised knowledge artifact | [Self-paced course](kanon/knowledge/kanon/workflows/self-paced-module.md), [Kanon tutorial](kanon/knowledge/kanon/workflows/tutorial.md), and the steps below |
+| Artifact quality or retrieval issue | [Content Quality Report](.github/ISSUE_TEMPLATE/content_quality_report.md) |
+| New artifact proposal | [Artifact Submission](.github/ISSUE_TEMPLATE/artifact_submission.md) |
+| Bug in the CLI, adapters, catalog, or bridge | [Bug Report](.github/ISSUE_TEMPLATE/bug_report.md) |
+| Feature or capability proposal | [Feature Request](.github/ISSUE_TEMPLATE/feature_request.md) |
+| Structural or architectural change | Existing [ADRs](kanon/docs/adr/README.md), then an ADR proposal if needed |
+
+For Johns Hopkins Libraries staff, the [Curriculum Guide](kanon/knowledge/kanon/workflows/curriculum-guide.md) maps the tutorial, self-paced course, and optional [Souk Compass practice](kanon/knowledge/kanon/workflows/souk-compass-practice.md) into learning paths.
 
 ## Prerequisites
 
-- [Bun](https://bun.sh) ≥ 1.0
-- Node.js ≥ 20 (for the MCP bridge)
-- Clone the repo and run `cd kanon && bun install`
+- [Bun](https://bun.sh) 1.0 or later. CI currently uses Bun 1.3.12.
+- Git.
+- Node.js 20 or later when running the compiled MCP bridge.
+- A text editor and a terminal.
+
+Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/jhu-sheridan-libraries/agentic-skill-forge.git
+cd agentic-skill-forge/kanon
+bun install
+```
 
 Verify your setup:
 ```bash
-bun run dev --version
+bun --version
+bun run dev --help
 ```
 
+No programming experience is required to author an artifact. The [self-paced course](kanon/knowledge/kanon/workflows/self-paced-module.md) uses invented practice content and explains how to keep restricted information out of artifacts and evaluations.
+
 ## Adding a knowledge artifact
+
+Kanon's canonical source is the maintained record. The compile pipeline is `knowledge/` → parse → adapt → write → `dist/`. Generated files in `dist/` are build output; revise the source and rebuild instead of editing generated files.
 
 ### 1. Scaffold
 
@@ -28,7 +57,7 @@ bun run dev new my-artifact --type skill
 
 Valid types: `skill` `power` `rule` `workflow` `agent` `prompt` `template` `reference-pack`
 
-This creates `knowledge/my-artifact/` with `knowledge.md`, `hooks.yaml`, and `mcp-servers.yaml`.
+This creates `knowledge/my-artifact/` with `knowledge.md`, `hooks.yaml`, `mcp-servers.yaml`, and a `workflows/` directory for supporting files.
 
 If this is your first artifact, try the guided walkthrough first:
 ```bash
@@ -40,6 +69,7 @@ bun run dev tutorial
 Open `knowledge/my-artifact/knowledge.md`. The required fields:
 
 ```yaml
+---
 name: my-artifact          # kebab-case, matches directory name
 displayName: My Artifact   # human-readable
 description: One sentence. # shown in catalog cards
@@ -48,17 +78,25 @@ author: Your Name
 version: 0.1.0             # semver — bump on substantive changes
 type: skill                # see types above
 inclusion: always          # always | fileMatch | manual
+harnesses: [kiro, claude-code, codex, copilot, cursor, windsurf, cline, qdeveloper]
 categories: [debugging]   # testing security code-style devops documentation
                            # architecture debugging performance accessibility
+collections: []
+inherit-hooks: false
+---
 ```
+
+The frontmatter must stay between the opening and closing `---` markers. The schema also supports governance fields such as `trust`, `license`, `audience`, `risk-level`, `visibility`, and `priority`. If you add a new frontmatter field to Kanon itself, update both `FrontmatterSchema` and `KNOWN_FRONTMATTER_FIELDS`.
 
 Set `inclusion: manual` for reference material users invoke explicitly. Use `always` only for guidance that's genuinely useful in every session.
 
 ### 3. Write the body
 
-The body is Markdown. Write for the AI, not a human reader — the assistant will apply this guidance to real tasks, so be concrete and specific. Avoid padding.
+The body is Markdown. Write for the assistant and the human reviewer. State when the artifact applies, the task it supports, source ownership, concrete instructions, examples, exclusions, uncertainty handling, escalation points, and how to test the guidance.
 
-For `type: workflow`, add phase files to `workflows/`:
+Avoid generic advice, unsupported institutional claims, and instructions that ask an assistant to invent facts. Do not place passwords, tokens, personal information, restricted records, licensed content, or unpublished policy in a practice artifact or evaluation.
+
+For `type: workflow`, add ordered phase files to `workflows/`:
 ```
 knowledge/my-artifact/workflows/
   01-first-phase.md
@@ -74,15 +112,19 @@ collections: [neon-caravan]
 
 To create a new collection: `bun run dev collection new my-collection`
 
+Collection manifests contain metadata only. Membership is declared in each artifact's frontmatter. Add a collection only when the artifact belongs there and the responsible collection owner can review it.
+
 ### 5. Validate and build
 
 ```bash
 bun run dev validate
 bun run dev validate --security   # checks for prompt injection, dangerous hooks, obfuscation
 bun run dev build
+bun run dev build --harness codex
+bun run dev build --strict
 ```
 
-Fix any errors before opening a PR. Warnings are acceptable but should be understood.
+Fix errors before opening a PR. Review every warning; a build can succeed while reporting that a feature is partial, omitted, or degraded for a harness.
 
 ### 6. Add eval tests (recommended)
 
@@ -90,7 +132,18 @@ Fix any errors before opening a PR. Warnings are acceptable but should be unders
 bun run dev eval --init my-artifact
 ```
 
-This scaffolds an eval suite in `knowledge/my-artifact/evals/`. Eval tests verify that the artifact actually improves assistant output. See existing evals for examples.
+This scaffolds an eval suite in `knowledge/my-artifact/evals/`. Evaluation tests verify behavior, not only file structure. Add representative, missing-information, and boundary cases using approved data.
+
+Run an artifact evaluation:
+
+```bash
+bun run dev eval my-artifact
+bun run dev eval my-artifact --harness codex
+bun run dev eval my-artifact --record
+bun run dev eval my-artifact --trend
+```
+
+Do not treat an evaluation score as an approval, accessibility review, privacy review, or substitute for subject-matter judgment.
 
 ### 7. Browse locally
 
@@ -100,7 +153,13 @@ bun run dev catalog browse
 
 Check that your artifact appears correctly in the catalog UI.
 
-## Importing existing powers or skills
+Regenerate the catalog after any change under `knowledge/` or `packages/`:
+
+```bash
+bun run dev catalog generate
+```
+
+## Importing existing guidance
 
 If you have an existing Kiro power library:
 
@@ -109,7 +168,11 @@ bun run dev import ~/my-powers --all --dry-run   # preview
 bun run dev import ~/my-powers --all --collections my-collection
 ```
 
-Supports Kiro power format (`POWER.md` + `steering/`) and skill format (`SKILL.md` + `references/`).
+The importer supports Kiro powers and skills and harness-native files. Use `--force` only when you intend to overwrite an existing canonical artifact.
+
+## Optional Souk Compass work
+
+Souk Compass is a separate MCP server for semantic search over approved artifact, document, memory, or codebase collections. It is not required for core Kanon development. Follow the [optional practice](kanon/knowledge/kanon/workflows/souk-compass-practice.md) before changing its indexing scope. Infrastructure setup requires Docker, Solr, and an approved environment; do not add shared credentials or index restricted content.
 
 ## Configuration and credentials
 
@@ -129,7 +192,7 @@ install:
       token: "${FORGE_INTERNAL_TOKEN}"   # read from env at runtime, never stored
 ```
 
-Running `kanon validate --security` will warn if it detects credential-like values hardcoded in `mcp-servers.yaml` env blocks.
+Running `bun run dev validate --security` will warn if it detects credential-like values hardcoded in `mcp-servers.yaml` environment blocks.
 
 ## Development workflow
 
@@ -138,6 +201,9 @@ Running `kanon validate --security` will warn if it detects credential-like valu
 ```bash
 cd kanon
 bun test
+bun test --test-name-pattern="catalog"
+bun x tsc --noEmit
+bun run lint
 ```
 
 All tests must pass. Do not submit a PR with failing tests.
@@ -149,6 +215,23 @@ bun x tsc --noEmit
 ```
 
 The pre-existing `Dirent<NonSharedBuffer>` errors in test files are a Bun type definition issue — ignore those. All other type errors must be resolved.
+
+### MCP bridge and standalone servers
+
+If you modify `src/mcp-bridge.ts`, rebuild the committed bridge:
+
+```bash
+bun run build:bridge
+```
+
+If you modify Souk Compass, run its package checks from `kanon/`:
+
+```bash
+cd mcp-servers/souk-compass
+bun install
+bun test
+bun run build
+```
 
 ### Linting
 
@@ -169,35 +252,32 @@ Valid types: `added` `changed` `deprecated` `removed` `fixed` `security`
 
 Fragments are compiled into `CHANGELOG.md` at release time. One fragment per logical change — don't bundle unrelated changes into a single fragment.
 
-### MCP bridge
-
-If you modify `src/mcp-bridge.ts`, rebuild the bridge:
-
-```bash
-bun run build:bridge
-```
-
-The bridge is compiled as CJS for Node.js compatibility and lives at `bridge/mcp-server.cjs`.
-
 ## Architecture decisions
 
-Significant architectural choices are documented as ADRs in `kanon/docs/adr/` (30 and counting). Before making a structural change to the tool, check whether an existing ADR covers it. If you're making a decision with real trade-offs, add an ADR:
+Significant architectural choices are documented as ADRs in `kanon/docs/adr/`. Before making a structural change to the tool, check whether an existing ADR covers it. If you're making a decision with real trade-offs, add an ADR:
+
+From the `kanon/` directory:
 
 ```bash
-cp kanon/docs/adr/template.md kanon/docs/adr/NNNN-short-title.md
+cp docs/adr/template.md docs/adr/NNNN-short-title.md
 ```
 
-Update the index table in `kanon/docs/adr/README.md` when adding a new ADR.
+Use the next available number and update the index table in `docs/adr/README.md`.
 
 ## Harness targets
 
-By default, artifacts compile to all seven harnesses. Restrict where it makes sense:
+Kanon supports eight harnesses. An artifact should target the platforms its intended users actually use:
 
 | Harness | When to restrict |
 |---|---|
-| `kiro` only | Powers — Kiro's native format; other harnesses get degraded output |
-| `claude-code` only | CLAUDE.md-specific guidance, slash command skills |
-| All | General skills, prompts, and reference packs |
+| `kiro` | Powers and steering-specific capabilities |
+| `claude-code` | CLAUDE.md-specific guidance |
+| `codex` | AGENTS.md or native Codex skill output |
+| `copilot` | Copilot instruction or agent output |
+| `cursor` | Cursor rule output |
+| `windsurf` | Windsurf rule or workflow output |
+| `cline` | Cline rule or hook output |
+| `qdeveloper` | Amazon Q Developer rule or agent output |
 
 Each harness has a capability matrix declaring support levels for features like hooks, MCP, path scoping, and workflows. The build pipeline applies degradation strategies (inline, comment, omit) for unsupported features automatically. Use `--strict` to treat unsupported capabilities as errors.
 
@@ -217,15 +297,18 @@ See `kanon/.forge/manifest.yaml` for the manifest format.
 
 - [ ] `bun test` passes
 - [ ] `bun run dev validate` passes with no errors
+- [ ] `bun run dev validate --security` has been reviewed
 - [ ] `bun run dev build` completes without errors
 - [ ] `bun run lint` clean
 - [ ] No new TypeScript errors (`bun x tsc --noEmit`)
 - [ ] Changelog fragment added for each logical change
+- [ ] Changed artifacts have non-placeholder body content
 - [ ] Frontmatter is complete (name, displayName, description, keywords, author, version, type, categories)
 - [ ] Body is substantive — not a placeholder
 - [ ] If the artifact is a `reference-pack`, `inclusion: manual` is set
 - [ ] ADR created or updated if an architectural decision was made
 - [ ] `catalog.json` regenerated (`kanon catalog generate`) if artifacts changed
+- [ ] The compiled output was inspected for the primary harness, when applicable
 
 ## Artifact quality bar
 
@@ -240,6 +323,10 @@ Aim for:
 - Domain-specific constraints the model wouldn't assume by default
 - Checklists and workflows that impose useful structure on open-ended tasks
 - Opinionated guidance grounded in a specific context (your team's standards, a particular tool's quirks)
+
+Do not contribute content that asks an assistant to ignore safeguards, fabricates Johns Hopkins facts or approvals, exposes secrets or restricted information, presents generated text as final public-facing copy without human review, or claims legal, privacy, security, accessibility, or policy compliance without the responsible review.
+
+If you find harmful, incorrect, or outdated guidance, open a [Content Quality Report](.github/ISSUE_TEMPLATE/content_quality_report.md) with the exact text, evidence, expected behavior, and severity.
 
 ## License
 
