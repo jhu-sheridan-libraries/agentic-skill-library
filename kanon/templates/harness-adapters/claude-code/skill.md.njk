@@ -1,0 +1,19 @@
+{% extends "../_base/base.md.njk" %}
+{% block frontmatter %}
+---
+name: {{ artifact.name }}
+description: {{ artifact.frontmatter.description | dump | safe }}
+---
+{% endblock %}
+{% block workflows %}
+{% if artifact.workflows | length %}
+
+## Reference Pointers
+
+Load these only when the workflow calls for them (progressive disclosure):
+
+{% for workflow in artifact.workflows %}
+- `references/{{ workflow.filename }}` — {{ workflow.name }}
+{% endfor %}
+{% endif %}
+{% endblock %}
