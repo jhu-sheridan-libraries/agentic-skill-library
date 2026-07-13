@@ -170,6 +170,12 @@ bun run dev import ~/my-powers --all --collections my-collection
 
 The importer supports Kiro powers and skills and harness-native files. Use `--force` only when you intend to overwrite an existing canonical artifact.
 
+### Importing an upstream plugin or skill set
+
+For an external plugin such as the [Library AI Workshop](https://github.com/eudaemon-ai/academic-ai-library-workshop), treat each independently discoverable skill as its own canonical artifact. Preserve nested reference trees and non-Markdown practice fixtures in `workflows/`, record the upstream commit and license in the artifact, and keep the source plugin's role boundaries intact. Do not copy generated harness output into `knowledge/`.
+
+After importing, run security validation on every new artifact, build the intended harness, regenerate `catalog.json`, and inspect the generated reference paths. Flag privacy, accessibility, copyright, retention, and local-policy questions for human review before presenting the material as Johns Hopkins guidance.
+
 ## Optional Souk Compass work
 
 Souk Compass is a separate MCP server for semantic search over approved artifact, document, memory, or codebase collections. It is not required for core Kanon development. Follow the [optional practice](kanon/knowledge/kanon/workflows/souk-compass-practice.md) before changing its indexing scope. Infrastructure setup requires Docker, Solr, and an approved environment; do not add shared credentials or index restricted content.
@@ -262,7 +268,7 @@ From the `kanon/` directory:
 cp docs/adr/template.md docs/adr/NNNN-short-title.md
 ```
 
-Use the next available number and update the index table in `docs/adr/README.md`.
+Use the next available number and update the index table in `docs/adr/README.md`. Keep the decision, alternatives, trade-offs, and consequences explicit.
 
 ## Harness targets
 

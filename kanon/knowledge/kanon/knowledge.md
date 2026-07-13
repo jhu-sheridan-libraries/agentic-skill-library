@@ -14,7 +14,8 @@ author: Johns Hopkins DRCC
 version: 0.2.3
 harnesses:
   - kiro
-type: power
+  - claude-code
+type: skill
 inclusion: auto
 categories:
   - documentation
@@ -45,7 +46,7 @@ Kanon is a command-line tool that lets you write knowledge once and compile it f
 
 Think of it like writing a document once and having it translated into the formats used by several AI coding assistants.
 
-This power helps Johns Hopkins Libraries staff get started with Kanon, whether you're creating your first artifact or managing the JH DRCC collection.
+This guide helps Johns Hopkins Libraries staff get started with Kanon, whether you're creating your first artifact or managing the JH DRCC collection.
 
 ## Available Steering Files
 
@@ -55,6 +56,7 @@ This power helps Johns Hopkins Libraries staff get started with Kanon, whether y
 | **self-paced-module** | `/module` or ask "show me the self-paced course" | Structured 3–4 hour course on coding agents and skill creation, with a safe practice artifact, assessments, answer key, and capstone review |
 | **curriculum-guide** | ask for "curriculum guide" | Learning paths, curriculum map, facilitation notes, assessment strategy, accessibility considerations, and production-readiness questions for Johns Hopkins Libraries staff |
 | **souk-compass-practice** | ask for "Souk Compass practice" | Optional 60–90 minute practice on semantic-search retrieval, source verification, incremental reindexing, and safe index scope after the MCP and evaluation lessons |
+| **library-ai-workshop collection** | browse or install the collection | Four Codex skills for library AI learning: learner coaching, cohort facilitation, fictional reference-interview practice, and evidence-focused review of AI-assisted research output |
 | **authoring** | ask for "authoring guide" | Step-by-step guide to creating your first knowledge artifact, from idea to compiled output |
 | **commands** | ask for "command reference" | Complete command reference with examples for every Kanon command |
 
@@ -73,6 +75,17 @@ To skip to a specific lesson, mention it by name or number:
 > `/tutorial take me to evals` — Lesson 16
 
 The tutorial covers 20 lessons in order: coding agents → skills & artifact types → harnesses → getting started → setup → tutorial command → catalog → import → scaffold → edit → validate → build → temper → install → collections → eval → publish → upgrade → guild → next steps.
+
+### Library AI Workshop Collection
+
+The `library-ai-workshop` collection imports the [Library AI Workshop](https://github.com/eudaemon-ai/academic-ai-library-workshop) skills and their bundled course references. Install an individual skill for a focused task, or browse the collection first:
+
+```bash
+bun run dev catalog browse
+bun run dev install facilitate-library-ai-workshop --harness codex --source .
+```
+
+The imported material is community content under MPL-2.0. It uses simulated files by default; review local privacy, accessibility, retention, copyright, and research-support policies before using it with library staff or patron-related work.
 
 ## Onboarding
 
@@ -289,7 +302,7 @@ Or prefix commands with `bun run dev` which handles permissions automatically.
 
 ---
 **License:** MIT (SPDX: `MIT`)
-**Privacy Policy:** This power is local documentation that guides you through the Kanon CLI. The power itself collects no telemetry and transmits no data. The CLI runs locally; network access happens only when you explicitly publish artifacts or run evals. Source and statement: https://github.com/jhu-sheridan-libraries/agentic-skill-forge
+**Privacy Policy:** This is local documentation that guides you through the Kanon CLI. It collects no telemetry and transmits no data. The CLI runs locally; network access happens only when you explicitly publish artifacts or run evals. Source and statement: https://github.com/jhu-sheridan-libraries/agentic-skill-forge
 **Support:** https://github.com/jhu-sheridan-libraries/agentic-skill-forge/issues
 **Author:** Johns Hopkins DRCC
-**MCP servers:** None — this is a knowledge-only power.
+**MCP servers:** None — this is knowledge-only documentation.

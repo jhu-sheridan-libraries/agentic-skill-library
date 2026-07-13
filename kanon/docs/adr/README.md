@@ -54,6 +54,8 @@ ADRs document significant architectural decisions made during the project's deve
 | [042](0042-mutation-testing-pure-operators-thin-runner.md) | Mutation testing as pure operators + delta/history core with a thin I/O runner | Proposed | 2026-06-12 |
 | [043](0043-per-artifact-kiro-output-shaping-flags.md) | Per-artifact Kiro output-shaping flags in harness-config | Proposed | 2026-06-23 |
 | [044](0044-rename-skill-forge-to-kanon.md) | Rename Skill Forge to Kanon | Proposed | 2026-06-23 |
+| [045](0045-preserve-nested-reference-trees-in-workflows.md) | Preserve nested reference trees in workflow files | Proposed | 2026-07-13 |
+| [046](0046-committed-claude-code-plugin-skills.md) | Committed, generated Claude Code plugin skills | Proposed | 2026-07-13 |
 
 ## Creating a New ADR
 
