@@ -2,9 +2,9 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 type: software
 title: "Context Bazaar & Kanon "
-abstract: "Write knowledge once, compile to every AI coding assistant harness."
-version: 0.2.0
-date-released: "2026-04-12"
+abstract: "Kanon is a CLI tool for authoring knowledge artifacts (skills, powers, rules, workflows, prompts, agents, templates, reference packs) in a single canonical format and compiling them to any supported AI coding assistant harness, including Kiro, Claude Code, GitHub Copilot, Cursor, Windsurf, Cline, and Amazon Q Developer. Context Bazaar is the accompanying catalog of artifacts."
+version: 0.5.0
+date-released: "2026-07-08"
 license: MIT
 repository-code: "https://github.com/thinkingsage/context-bazaar"
 authors:
@@ -15,3 +15,7 @@ keywords:
   - multi-harness
   - developer-tools
   - skill-authoring
+  - harness-compilation
+  - mcp
+  - catalog
+  - cli-tool

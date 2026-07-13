@@ -234,6 +234,27 @@ export async function parseMcpServersYaml(
 	return { data: result.data, warnings };
 }
 
+async function collectWorkflowFiles(
+	workflowsDir: string,
+	prefix = "",
+): Promise<string[]> {
+	const entries = await readdir(join(workflowsDir, prefix), {
+		withFileTypes: true,
+	});
+	const files: string[] = [];
+
+	for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name))) {
+		const relativePath = prefix ? `${prefix}/${entry.name}` : entry.name;
+		if (entry.isDirectory()) {
+			files.push(...(await collectWorkflowFiles(workflowsDir, relativePath)));
+		} else {
+			files.push(relativePath);
+		}
+	}
+
+	return files;
+}
+
 export async function parseWorkflows(
 	workflowsDir: string,
 ): Promise<ParseResult<WorkflowFile[]>> {
@@ -243,15 +264,17 @@ export async function parseWorkflows(
 		return { data: [], warnings };
 	}
 
-	const entries = await readdir(workflowsDir);
-	const mdFiles = entries.filter((f) => f.endsWith(".md")).sort();
+	// Preserve nested reference trees and non-Markdown fixtures (for example
+	// CSV/TXT practice data) so adapters can reproduce an upstream skill's
+	// progressive-disclosure layout.
+	const filenames = await collectWorkflowFiles(workflowsDir);
 	const workflows: WorkflowFile[] = [];
 
-	for (const filename of mdFiles) {
+	for (const filename of filenames) {
 		const content = await readFile(join(workflowsDir, filename), "utf-8");
 		const name = filename
-			.replace(/\.md$/, "")
-			.replace(/-/g, " ")
+			.replace(/\.[^./]+$/, "")
+			.replace(/[/-]/g, " ")
 			.replace(/\b\w/g, (c) => c.toUpperCase());
 		workflows.push({ name, filename, content: content.trim() });
 	}

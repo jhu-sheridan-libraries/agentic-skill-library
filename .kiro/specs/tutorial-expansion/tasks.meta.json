@@ -1,0 +1,282 @@
+{
+  "pbtResults": {
+    "10.2 Write property test: Conceptual lessons contain no code (Property 1)": {
+      "status": "passed",
+      "lastRunTimestamp": 1783614211335
+    }
+  },
+  "executionHistory": {
+    "1.1 Author the full content of Lesson 1 in `kanon/knowledge/kanon/workflows/tutorial.md`": [
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783611626070
+      },
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783611635775
+      },
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783611748808
+      }
+    ],
+    "2.1 Author the full content of Lesson 2 in `kanon/knowledge/kanon/workflows/tutorial.md`": [
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783611626076
+      },
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783611754440
+      },
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783611909037
+      }
+    ],
+    "3.1 Author the full content of Lesson 3 in `kanon/knowledge/kanon/workflows/tutorial.md`": [
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783611626079
+      },
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783611915335
+      },
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783612084228
+      }
+    ],
+    "4.1 Author the full content of Lesson 4 in `kanon/knowledge/kanon/workflows/tutorial.md`": [
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783611626084
+      },
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783612089323
+      },
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783612208633
+      }
+    ],
+    "5.1 Renumber all existing lessons by +4 offset in `kanon/knowledge/kanon/workflows/tutorial.md`": [
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783611626087
+      },
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783612213669
+      },
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783612594688
+      }
+    ],
+    "5.2 Update Table of Contents to include all 20 lessons": [
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783611626090
+      },
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783612600668
+      },
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783612741447
+      }
+    ],
+    "5.3 Update Lesson Index (by Command) with renumbered references": [
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783611626092
+      },
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783612601421
+      },
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783612742446
+      }
+    ],
+    "5.4 Update all Next links to form contiguous chain from Lesson 1 through Lesson 20": [
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783611626094
+      },
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783612602539
+      },
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783612743404
+      }
+    ],
+    "5.5 Update the introductory text in \"How to Use This Tutorial\" section": [
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783611626097
+      },
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783612603035
+      },
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783612744240
+      }
+    ],
+    "6. Checkpoint - Verify tutorial structural integrity": [
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783611626100
+      },
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783612749923
+      }
+    ],
+    "7.1 Create `kanon/knowledge/kanon/workflows/self-paced-module.md` with complete content": [
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783611626102
+      },
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783612758929
+      },
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783612990584
+      }
+    ],
+    "8.1 Update `kanon/knowledge/kanon/knowledge.md` to reference the new module": [
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783611626105
+      },
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783612759745
+      },
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783612991630
+      }
+    ],
+    "9. Checkpoint - Verify all content is complete and cross-referenced": [
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783611626107
+      },
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783613024977
+      }
+    ],
+    "11. Final checkpoint - Ensure all tests pass and integration is complete": [
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783611626109
+      },
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783613036453
+      }
+    ],
+    "1. Write Lesson 1: What Are Coding Agents?": [
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783611748814
+      }
+    ],
+    "2. Write Lesson 2: Understanding Skills and Artifact Types": [
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783611909045
+      }
+    ],
+    "3. Write Lesson 3: How Harnesses Work": [
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783612084231
+      }
+    ],
+    "4. Write Lesson 4: Getting Started with Skill Creation": [
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783612208636
+      }
+    ],
+    "5. Renumber existing lessons and update all navigation": [
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783612744250
+      }
+    ],
+    "7. Create the Self-Paced Module document": [
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783612990592
+      }
+    ],
+    "8. Update knowledge.md": [
+      {
+        "executionId": "ba6b31b0-1a50-4dcc-a5b5-cfa5e1aaa141",
+        "chatSessionId": "17f54877-1a78-4203-870b-b68f59584ed8",
+        "timestamp": 1783612991639
+      }
+    ]
+  }
+}

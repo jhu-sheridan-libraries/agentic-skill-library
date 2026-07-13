@@ -7,6 +7,7 @@ import {
 	loadKnowledgeArtifact,
 	parseHooksYaml,
 	parseKnowledgeMd,
+	parseWorkflows,
 } from "../parser";
 
 let tempDir: string;
@@ -115,6 +116,27 @@ describe("parseHooksYaml edge cases", () => {
 
 		expect(result.errors.length).toBeGreaterThan(0);
 		expect(result.errors[0].filePath).toBe(filePath);
+	});
+});
+
+describe("parseWorkflows reference trees", () => {
+	test("preserves nested paths and non-Markdown fixtures", async () => {
+		const workflowsDir = join(tempDir, "workflows");
+		await mkdir(join(workflowsDir, "course", "sample-data"), {
+			recursive: true,
+		});
+		await writeFile(join(workflowsDir, "course", "module.md"), "# Module");
+		await writeFile(
+			join(workflowsDir, "course", "sample-data", "records.csv"),
+			"id,value\nA,1\n",
+		);
+
+		const result = await parseWorkflows(workflowsDir);
+		expect(result.data.map((workflow) => workflow.filename)).toEqual([
+			"course/module.md",
+			"course/sample-data/records.csv",
+		]);
+		expect(result.data[1]?.content).toBe("id,value\nA,1");
 	});
 });
 
