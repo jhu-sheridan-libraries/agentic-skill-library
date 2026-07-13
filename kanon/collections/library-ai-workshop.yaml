@@ -1,0 +1,7 @@
+name: library-ai-workshop
+displayName: Library AI Workshop
+description: Skills and course references for accountable AI research practice in academic libraries.
+version: "0.1.0"
+author: Library AI Workshop maintainers
+trust: community
+tags: [academic-libraries, research-support, ai-literacy, source-verification, accessibility]
