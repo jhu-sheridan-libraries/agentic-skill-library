@@ -16,29 +16,31 @@
    - `Cargo.toml` → update `version` under `[package]`
    - `pom.xml` → update `<version>` element
    - Other → ask the user which file to update
-3. **Update changelog file** — prepend the new version's entries per POWER.md Changelog Format. If using a fragment tool, run its compile command instead (e.g. `bunx changeset version`, `towncrier build`).
-4. **Commit the release:**
+3. **Update CITATION.cff** (if present) — update `version` (without `v` prefix) and `date-released` (today in `YYYY-MM-DD` format). Check both the project root and the package directory.
+4. **Update changelog file** — prepend the new version's entries per POWER.md Changelog Format. If using a fragment tool, run its compile command instead (e.g. `bunx changeset version`, `towncrier build`).
+5. **Commit the release:**
    ```bash
    git add -A
    git commit -m "chore(release): vX.Y.Z"
    ```
-5. **Tag the release:**
+6. **Tag the release:**
    ```bash
    git tag vX.Y.Z
    ```
    Match the project's existing tag format per POWER.md Tag Format.
-6. **Create GitHub release** (if `gh` CLI is available):
+7. **Create GitHub release** (if `gh` CLI is available):
    ```bash
    gh release create vX.Y.Z --title "vX.Y.Z" --notes-file <release-notes-file>
    ```
    If `gh` is unavailable, instruct the user to push the tag and create the release manually.
-7. **Push:**
+8. **Push:**
    ```bash
    git push && git push --tags
    ```
 
 ## Exit Criteria
 - Version is bumped in the package manifest
+- CITATION.cff is updated (if present) with matching version and release date
 - Changelog is updated
 - Release commit exists with message `chore(release): vX.Y.Z`
 - Tag `vX.Y.Z` exists locally and is pushed

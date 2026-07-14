@@ -10,7 +10,7 @@ keywords:
   - release-notes
   - git-tag
 author: Steven J. Miklovic
-version: 0.1.1
+version: 0.1.2
 harnesses:
   - kiro
   - claude-code
@@ -160,6 +160,7 @@ git tag --sort=-v:refname | head -5
 4. **Draft → confirm → publish** — never tag or publish without user approval of the release notes.
 5. **Detect, don't impose** — use whatever release tooling the project already has. Do not install new tools without asking.
 6. **Atomic release commits** — version bump, changelog update, and tag should be a single logical unit.
+7. **Keep CITATION.cff in sync** — if a `CITATION.cff` file exists at the project root (or in the package directory), update its `version` and `date-released` fields as part of the release commit. The version must match the new tag (without the `v` prefix) and the date must be the release date in `YYYY-MM-DD` format.
 
 ## Troubleshooting
 

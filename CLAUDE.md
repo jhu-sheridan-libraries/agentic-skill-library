@@ -38,6 +38,7 @@ bun run lint:fix               # biome check --write
 bun run format                 # biome format --write
 bun run build                  # compile kanon binary
 bun run build:bridge           # rebuild MCP bridge (bridge/mcp-server.cjs)
+bun run build:skills           # regenerate committed plugin skills (skills/)
 bun run changelog:new --type added --message "..."  # add a changelog fragment
 bun run changelog:draft        # preview next CHANGELOG.md entry
 bun run release                # interactive version bump + tag
@@ -86,6 +87,10 @@ Collection manifests in `collections/*.yaml` are **metadata only** — no member
 ### The MCP bridge
 
 `src/mcp-bridge.ts` is compiled to `bridge/mcp-server.cjs` (bundled, self-contained, ~0.5 MB). It exposes three MCP tools: `catalog_list`, `artifact_content`, `collection_list`. Rebuild with `bun run build:bridge` after any change to the bridge source. The compiled file is committed so plugin users don't need a build step.
+
+### Plugin skills
+
+`.claude-plugin/plugin.json`'s `skills` field points at `kanon/skills/`, a committed directory of real `SKILL.md` files — distinct from `dist/claude-code/`, which is gitignored build output cleared on every `kanon build` and therefore never present in a plugin install. `scripts/generate-plugin-skills.ts` (`bun run build:skills`) selects artifacts with `type: skill` and `claude-code` in `harnesses`, and renders them via `templates/harness-adapters/claude-code/skill.md.njk`. Regenerate and commit `kanon/skills/` after adding or editing a qualifying artifact. See ADR-0046.
 
 ### Test helpers
 

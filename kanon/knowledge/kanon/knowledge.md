@@ -14,7 +14,8 @@ author: Johns Hopkins DRCC
 version: 0.2.3
 harnesses:
   - kiro
-type: power
+  - claude-code
+type: skill
 inclusion: auto
 categories:
   - documentation
@@ -33,6 +34,7 @@ inherit-hooks: false
 harness-config:
   kiro:
     format: power
+    inclusion: manual
     inline-workflows: false
     main-steering: false
 ---
@@ -42,15 +44,19 @@ harness-config:
 
 Kanon is a command-line tool that lets you write knowledge once and compile it for any AI coding assistant. Instead of maintaining separate configuration files for Kiro, Claude Code, Copilot, Cursor, and others, you author a single "knowledge artifact" and Kanon translates it into the right format for each tool.
 
-Think of it like writing a document in one language and having it automatically translated into seven others — except the "languages" are the different formats that AI coding assistants understand.
+Think of it like writing a document once and having it translated into the formats used by several AI coding assistants.
 
-This power helps Johns Hopkins Libraries staff get started with Kanon, whether you're creating your first artifact or managing the JHU collection.
+This guide helps Johns Hopkins Libraries staff get started with Kanon, whether you're creating your first artifact or managing the JH DRCC collection.
 
 ## Available Steering Files
 
 | File | Trigger | Content |
 |------|---------|---------|
-| **tutorial** | `/tutorial` or ask "take me through the tutorial" | Comprehensive sequential walkthrough covering every Kanon capability — setup through publishing. Each lesson is self-contained so you can skip ahead |
+| **tutorial** | `/tutorial` or ask "take me through the tutorial" | A 20-lesson sequential walkthrough that introduces coding agents, skills, and harnesses (Lessons 1–4), then covers Kanon CLI capabilities from setup through publishing (Lessons 5–20). Each lesson is self-contained so you can skip ahead |
+| **self-paced-module** | `/module` or ask "show me the self-paced course" | Structured 3–4 hour course on coding agents and skill creation, with a safe practice artifact, assessments, answer key, and capstone review |
+| **curriculum-guide** | ask for "curriculum guide" | Learning paths, curriculum map, facilitation notes, assessment strategy, accessibility considerations, and production-readiness questions for Johns Hopkins Libraries staff |
+| **souk-compass-practice** | ask for "Souk Compass practice" | Optional 60–90 minute practice on semantic-search retrieval, source verification, incremental reindexing, and safe index scope after the MCP and evaluation lessons |
+| **library-ai-workshop collection** | browse or install the collection | Four Codex skills for library AI learning: learner coaching, cohort facilitation, fictional reference-interview practice, and evidence-focused review of AI-assisted research output |
 | **authoring** | ask for "authoring guide" | Step-by-step guide to creating your first knowledge artifact, from idea to compiled output |
 | **commands** | ask for "command reference" | Complete command reference with examples for every Kanon command |
 
@@ -62,13 +68,24 @@ To start the full sequential tutorial:
 
 To skip to a specific lesson, mention it by name or number:
 
-> `/tutorial lesson 5` — Scaffolding a new artifact
+> `/tutorial lesson 9` — Scaffolding a new artifact
 >
-> `/tutorial publishing` — Lesson 13
+> `/tutorial publishing` — Lesson 17
 >
-> `/tutorial take me to evals` — Lesson 12
+> `/tutorial take me to evals` — Lesson 16
 
-The tutorial covers 16 lessons in order: setup → tutorial command → catalog → import → scaffold → edit → validate → build → temper → install → collections → eval → publish → upgrade → guild → next steps.
+The tutorial covers 20 lessons in order: coding agents → skills & artifact types → harnesses → getting started → setup → tutorial command → catalog → import → scaffold → edit → validate → build → temper → install → collections → eval → publish → upgrade → guild → next steps.
+
+### Library AI Workshop Collection
+
+The `library-ai-workshop` collection imports the [Library AI Workshop](https://github.com/eudaemon-ai/academic-ai-library-workshop) skills and their bundled course references. Install an individual skill for a focused task, or browse the collection first:
+
+```bash
+bun run dev catalog browse
+bun run dev install facilitate-library-ai-workshop --harness codex --source .
+```
+
+The imported material is community content under MPL-2.0. It uses simulated files by default; review local privacy, accessibility, retention, copyright, and research-support policies before using it with library staff or patron-related work.
 
 ## Onboarding
 
@@ -182,7 +199,7 @@ Kanon compiles artifacts for these AI coding assistants:
 | **Cline** | Toggleable rules, hook scripts, MCP config |
 | **Amazon Q Developer** | Rules, agents, MCP config |
 
-## The JHU Collection
+## The JH DRCC Collection
 
 The `jh-drcc` collection contains artifacts from the Johns Hopkins Digital Research and Curation Center. When you create an artifact for our team, include `jh-drcc` in the `collections` field of your artifact's frontmatter.
 
@@ -275,7 +292,7 @@ Or prefix commands with `bun run dev` which handles permissions automatically.
 
 ## Next Steps
 
-- Run **`/tutorial`** in chat for the complete sequential walkthrough — 16 lessons covering every capability
+- Run **`/tutorial`** in chat for the complete sequential walkthrough — 20 lessons covering every capability
 - Read the **authoring** steering file for a focused guide on creating artifacts
 - Read the **commands** steering file for detailed documentation of every CLI command
 - Browse existing artifacts with `bun run dev catalog browse` for inspiration
@@ -285,7 +302,7 @@ Or prefix commands with `bun run dev` which handles permissions automatically.
 
 ---
 **License:** MIT (SPDX: `MIT`)
-**Privacy Policy:** This power is local documentation that guides you through the Kanon CLI. The power itself collects no telemetry and transmits no data. The CLI runs locally; network access happens only when you explicitly publish artifacts or run evals. Source and statement: https://github.com/jhu-sheridan-libraries/agentic-skill-forge
+**Privacy Policy:** This is local documentation that guides you through the Kanon CLI. It collects no telemetry and transmits no data. The CLI runs locally; network access happens only when you explicitly publish artifacts or run evals. Source and statement: https://github.com/jhu-sheridan-libraries/agentic-skill-forge
 **Support:** https://github.com/jhu-sheridan-libraries/agentic-skill-forge/issues
 **Author:** Johns Hopkins DRCC
-**MCP servers:** None — this is a knowledge-only power.
+**MCP servers:** None — this is knowledge-only documentation.

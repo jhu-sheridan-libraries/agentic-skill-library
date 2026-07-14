@@ -51,6 +51,20 @@ bun run dev build --harness codex
 bun run dev install commit-craft --harness codex --source .
 ```
 
+## Skills
+
+The plugin ships a small set of discoverable skills — self-contained behavioral guides that Claude Code can auto-invoke based on their description, without any MCP round-trip:
+
+| Skill | What it does |
+|---|---|
+| `kanon` | Onboarding and assistant guide for the Kanon CLI & Context Bazaar itself — tutorials, authoring, commands |
+| `karpathy-mode` | Reduce common LLM coding mistakes: avoid overcomplication, make surgical changes |
+| `laconic-output` | Spartan, no-filler communication mode |
+| `review-ritual` | Code review as a craft — read with intent, comment with purpose |
+| `type-guardian` | TypeScript type discipline |
+
+These come from artifacts in `knowledge/` tagged `type: skill` with `claude-code` in their `harnesses` list. Not every catalog artifact is a plugin skill — rules, workflows, and powers are still only reachable through the MCP tools below or `kanon install`.
+
 ## MCP Tools
 
 Once installed, the plugin loads an MCP server with three tools:
@@ -62,6 +76,8 @@ Once installed, the plugin loads an MCP server with three tools:
 | `collection_list` | List collections with member counts |
 
 Ask the assistant: *"what's in the neon-caravan collection?"* or *"show me the commit-craft artifact"*.
+
+The imported Library AI Workshop skills are grouped in the `library-ai-workshop` collection. Ask the assistant to list that collection, then install a focused artifact such as `facilitate-library-ai-workshop` or `review-ai-research-output` for a Codex project.
 
 ## How It Works
 

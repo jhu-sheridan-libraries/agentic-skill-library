@@ -1223,6 +1223,60 @@
     "outcomes": []
   },
   {
+    "name": "facilitate-library-ai-workshop",
+    "displayName": "Library AI Workshop Coach",
+    "description": "Coach one learner through the Research with AI workshop for research librarians, using fictional or simulated material and keeping source checks and professional judgment with the learner.",
+    "keywords": [
+      "academic-libraries",
+      "research-support",
+      "ai-literacy",
+      "reference-interview",
+      "source-verification",
+      "evidence-synthesis",
+      "reproducibility"
+    ],
+    "author": "Library AI Workshop maintainers",
+    "version": "0.1.0",
+    "harnesses": [
+      "codex"
+    ],
+    "type": "skill",
+    "path": "knowledge/facilitate-library-ai-workshop",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation",
+      "accessibility"
+    ],
+    "ecosystem": [
+      "academic-libraries",
+      "research"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "codex": "skill"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "license": "MPL-2.0",
+    "maturity": "experimental",
+    "trust": "community",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "library-ai-workshop"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
     "name": "factory-harness",
     "displayName": "Factory Harness",
     "description": "The team-architecture factory. Turns a domain or project description into a reusable agent team and the skills they use, using six team patterns (Pipeline, Fan-out/Fan-in, Expert Pool, Producer-Reviewer, Supervisor, Hierarchical Delegation). Use this whenever someone asks to build, compose, set up, design, engineer, audit, sync, or evolve a harness; scaffold specialist agents and the skills they use; or stand up domain automation. It realizes the same team natively on each harness — Claude Code agent teams plus skills, Codex AGENTS.md plus repo-local skills, Kiro powers plus steering plus agent hooks.",
@@ -1565,9 +1619,10 @@
     "author": "Johns Hopkins DRCC",
     "version": "0.2.3",
     "harnesses": [
-      "kiro"
+      "kiro",
+      "claude-code"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kanon",
     "evals": true,
     "changelog": false,
@@ -1580,7 +1635,8 @@
     "depends": [],
     "enhances": [],
     "formatByHarness": {
-      "kiro": "power"
+      "kiro": "power",
+      "claude-code": "claude-md"
     },
     "features": {
       "hooks": false,
@@ -1970,6 +2026,59 @@
     "outcomes": []
   },
   {
+    "name": "practice-library-reference-interview",
+    "displayName": "Practice a Library Reference Interview",
+    "description": "Role-play and debrief a fictional research-library reference interview so a librarian or workshop participant can practice question negotiation, privacy boundaries, and a research brief without using real patron data.",
+    "keywords": [
+      "academic-libraries",
+      "reference-interview",
+      "question-negotiation",
+      "privacy",
+      "research-support",
+      "role-play"
+    ],
+    "author": "Library AI Workshop maintainers",
+    "version": "0.1.0",
+    "harnesses": [
+      "codex"
+    ],
+    "type": "skill",
+    "path": "knowledge/practice-library-reference-interview",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation",
+      "accessibility"
+    ],
+    "ecosystem": [
+      "academic-libraries",
+      "research"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "codex": "skill"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "license": "MPL-2.0",
+    "maturity": "experimental",
+    "trust": "community",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "library-ai-workshop"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
     "name": "proofreader-review-checklist",
     "displayName": "Proofreader Review Checklist",
     "description": "Structured checklists for proofreading and reviewing writing documents — manuscript chapters, outlines, proposals, query letters, character sheets, and world-building docs.",
@@ -2031,7 +2140,7 @@
       "git-tag"
     ],
     "author": "Steven J. Miklovic",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "harnesses": [
       "kiro",
       "claude-code",
@@ -2075,6 +2184,60 @@
     "collections": [
       "jh-drcc",
       "neon-caravan"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "review-ai-research-output",
+    "displayName": "Review AI Research Output",
+    "description": "Audit an AI-assisted research output for evidence, citation fit, source coverage, calculations, reproducibility, disclosure, privacy, and human review before it is shared or used.",
+    "keywords": [
+      "academic-libraries",
+      "research-review",
+      "evidence",
+      "citations",
+      "reproducibility",
+      "privacy",
+      "human-review"
+    ],
+    "author": "Library AI Workshop maintainers",
+    "version": "0.1.0",
+    "harnesses": [
+      "codex"
+    ],
+    "type": "skill",
+    "path": "knowledge/review-ai-research-output",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation",
+      "accessibility"
+    ],
+    "ecosystem": [
+      "academic-libraries",
+      "research"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "codex": "skill"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "license": "MPL-2.0",
+    "maturity": "experimental",
+    "trust": "community",
+    "audience": "advanced",
+    "model-assumptions": [],
+    "collections": [
+      "library-ai-workshop"
     ],
     "visibility": "public",
     "priority": 50,
@@ -2134,6 +2297,59 @@
     "model-assumptions": [],
     "collections": [
       "neon-caravan"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "run-library-ai-workshop-cohort",
+    "displayName": "Run a Library AI Workshop",
+    "description": "Plan, facilitate, and debrief a live Research with AI workshop for a cohort of research librarians, keeping the facilitator in charge of teaching decisions and participant welfare.",
+    "keywords": [
+      "academic-libraries",
+      "workshop-facilitation",
+      "cohort-learning",
+      "ai-literacy",
+      "accessibility",
+      "research-support"
+    ],
+    "author": "Library AI Workshop maintainers",
+    "version": "0.1.0",
+    "harnesses": [
+      "codex"
+    ],
+    "type": "skill",
+    "path": "knowledge/run-library-ai-workshop-cohort",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation",
+      "accessibility"
+    ],
+    "ecosystem": [
+      "academic-libraries",
+      "research"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "codex": "skill"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "license": "MPL-2.0",
+    "maturity": "experimental",
+    "trust": "community",
+    "audience": "advanced",
+    "model-assumptions": [],
+    "collections": [
+      "library-ai-workshop"
     ],
     "visibility": "public",
     "priority": 50,
