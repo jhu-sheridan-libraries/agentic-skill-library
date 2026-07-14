@@ -1,0 +1,246 @@
+{
+  "name": "jhu-editorial-check-eval",
+  "version": 1,
+  "scoring": "Each case is pass/fail. The final score is the number of passing cases out of the total case count.",
+  "cases": [
+    {
+      "id": "basic_llm_jhu_style_cleanup",
+      "difficulty": "standard",
+      "input": "In today's fast-paced landscape, The Johns Hopkins University is leveraging cutting-edge health care research to empower Hopkins students.",
+      "expected_output": {
+        "action": "revise_and_explain",
+        "sample_response": "Must fix: lowercase or omit 'The' in running copy before Johns Hopkins University; use 'healthcare' as one word. Should fix: remove the generic opener, replace 'leveraging' with a direct verb, and replace unsupported 'cutting-edge' and 'empower' language with specifics. Consider whether 'Hopkins' alone is appropriate; prefer 'Johns Hopkins' in formal copy. Revised: Johns Hopkins University researchers use healthcare data to help students and clinicians identify risk earlier.",
+        "must_include": [
+          "healthcare",
+          "lowercase or omit",
+          "leveraging",
+          "cutting-edge",
+          "Johns Hopkins"
+        ],
+        "must_not_include": [
+          "officially approved",
+          "on-brand guarantee"
+        ],
+        "detector": {
+          "required_codes": [
+            "llm-fast-paced",
+            "jhu-the-cap",
+            "llm-leverage",
+            "llm-hype-adj",
+            "llm-empower-foster",
+            "jhu-healthcare",
+            "jhu-hopkins-alone"
+          ],
+          "forbidden_codes": []
+        }
+      }
+    },
+    {
+      "id": "clean_copy_no_issues",
+      "difficulty": "standard",
+      "input": "Johns Hopkins researchers will share findings from the study at noon ET on May 22. The session is open to students, faculty, and staff.",
+      "expected_output": {
+        "action": "approve_with_caution",
+        "sample_response": "No scripted JHU style, AI-trope, or escalation flags found. The copy is concise, uses Johns Hopkins appropriately, and uses noon ET correctly. I would still verify the study details and event date before publication.",
+        "must_include": [
+          "No scripted JHU style, AI-trope, or escalation flags found",
+          "verify",
+          "event date"
+        ],
+        "must_not_include": [
+          "must fix",
+          "rewrite required"
+        ],
+        "detector": {
+          "expect_no_findings": true,
+          "required_codes": [],
+          "forbidden_codes": []
+        }
+      }
+    },
+    {
+      "id": "acronym_and_naming_review",
+      "difficulty": "standard",
+      "input": "The Center for Digital Learning (CDL) at JHU will launch a program called Hopkins AI Accelerator for local educators.",
+      "expected_output": {
+        "action": "review_with_replacements",
+        "sample_response": "Should fix: do not introduce the acronym with parentheses after the full name. Use the full name first and introduce the acronym naturally later only if needed. Consider replacing 'JHU' with 'Johns Hopkins' for public copy. Consider whether 'Hopkins' belongs in the program name; JHU guidance reserves Hopkins or JHU in names for enterprisewide efforts or contexts where it is truly needed. Suggested revision: The Center for Digital Learning at Johns Hopkins will launch an AI accelerator for local educators.",
+        "must_include": [
+          "do not introduce the acronym",
+          "JHU",
+          "Johns Hopkins",
+          "Hopkins"
+        ],
+        "must_not_include": [
+          "CDL is approved",
+          "official program name"
+        ],
+        "detector": {
+          "required_codes": [
+            "jhu-acronym-parentheses",
+            "jhu-acronym",
+            "jhu-hopkins-alone"
+          ],
+          "forbidden_codes": []
+        }
+      }
+    },
+    {
+      "id": "web_time_and_microstyle",
+      "difficulty": "standard",
+      "input": "Visit the Website home page at 12 p.m. EDT for an historic campus-wide lecture entitled The Future of Discovery in Baltimore, MD. Registration is under way for student athlete and work study participants.",
+      "expected_output": {
+        "action": "review_with_replacements",
+        "sample_response": "Must fix: use 'website' and 'homepage'; use 'noon ET' instead of '12 p.m. EDT'; use 'a historic,' not 'an historic'; close 'campuswide'; spell out 'Maryland'; use 'underway'; and hyphenate 'student-athlete' and 'work-study.' Consider 'titled' instead of 'entitled' when naming the lecture. Suggested revision: Visit the website homepage at noon ET for a historic campuswide lecture titled The Future of Discovery in Baltimore, Maryland. Registration is underway for student-athlete and work-study participants.",
+        "must_include": [
+          "website",
+          "homepage",
+          "noon ET",
+          "a historic",
+          "campuswide",
+          "titled",
+          "Baltimore, Maryland",
+          "underway",
+          "student-athlete",
+          "work-study"
+        ],
+        "must_not_include": [
+          "Visit the Website home page at 12 p.m. EDT",
+          "Suggested revision: Visit the website home page at 12 p.m. EDT"
+        ],
+        "detector": {
+          "required_codes": [
+            "jhu-web",
+            "jhu-homepage",
+            "jhu-noon-midnight",
+            "jhu-timezone",
+            "jhu-historic",
+            "jhu-wide",
+            "jhu-entitled",
+            "jhu-state-abbrev",
+            "jhu-underway",
+            "jhu-student-athlete",
+            "jhu-work-study"
+          ],
+          "forbidden_codes": []
+        }
+      }
+    },
+    {
+      "id": "official_assets_guidance",
+      "difficulty": "standard",
+      "input": "For a flyer on a dark blue background, can I use two Johns Hopkins division logos side by side and recolor one logo gold so both sponsors stand out?",
+      "expected_output": {
+        "action": "advise_and_escalate_if_needed",
+        "sample_response": "Do not recolor JHU logos. Use official artwork from the Download Library and follow the Primary Logo guidance. On a dark background, use the white reversed logo if contrast is adequate. Do not use more than one division logo, unit lock-up, or interdisciplinary lock-up in the same design space; list co-sponsor unit names separately in text. If the sponsorship context is unclear or public-facing, confirm with University Communications or the relevant divisional communications office.",
+        "must_include": [
+          "Do not recolor",
+          "Download Library",
+          "white reversed logo",
+          "Do not use more than one division logo",
+          "University Communications"
+        ],
+        "must_not_include": [
+          "gold logo",
+          "recreate the logo"
+        ],
+        "detector": {
+          "required_codes": [
+            "neg-logo-modification"
+          ],
+          "forbidden_codes": []
+        }
+      }
+    },
+    {
+      "id": "hard_quote_preservation",
+      "difficulty": "hard_edge_case",
+      "input": "The professor said, \"This cutting-edge approach will empower Hopkins students.\" Outside the quote, the program will utilize a campus-wide survey to gather feedback.",
+      "expected_output": {
+        "action": "review_without_overediting_quotes",
+        "sample_response": "Hard edge case: leave the quoted language unchanged unless the user has authority to edit the quote. You may flag that 'cutting-edge,' 'empower,' and 'Hopkins' appear inside quoted material, but do not silently rewrite them. Outside the quote, change 'utilize' to 'use' and 'campus-wide' to 'campuswide.' Suggested non-quote revision: Outside the quote, the program will use a campuswide survey to gather feedback.",
+        "must_include": [
+          "leave the quoted language unchanged",
+          "do not silently rewrite",
+          "utilize",
+          "campuswide"
+        ],
+        "must_not_include": [
+          "The professor said, \"This approach will",
+          "officially approved quote"
+        ],
+        "detector": {
+          "required_codes": [
+            "llm-hype-adj",
+            "llm-empower-foster",
+            "jhu-hopkins-alone",
+            "llm-leverage",
+            "jhu-wide"
+          ],
+          "required_quoted_codes": [
+            "llm-hype-adj",
+            "llm-empower-foster",
+            "jhu-hopkins-alone"
+          ],
+          "required_unquoted_codes": [
+            "llm-leverage",
+            "jhu-wide"
+          ],
+          "forbidden_codes": []
+        }
+      }
+    },
+    {
+      "id": "hard_display_the_vs_running_copy",
+      "difficulty": "hard_edge_case",
+      "input": "The Johns Hopkins University\n\nThe Johns Hopkins University School of Medicine invites alumni to a reception at 6 p.m. ET.",
+      "expected_output": {
+        "action": "distinguish_display_from_running_copy",
+        "sample_response": "Hard edge case: 'The Johns Hopkins University' can remain capitalized as stand-alone display copy in the heading. In running copy, lowercase or omit 'the' before Johns Hopkins University. Suggested revision: The Johns Hopkins University\n\nJohns Hopkins University School of Medicine invites alumni to a reception at 6 p.m. ET.",
+        "must_include": [
+          "stand-alone display copy",
+          "running copy",
+          "lowercase or omit",
+          "Johns Hopkins University School of Medicine"
+        ],
+        "must_not_include": [
+          "change the heading",
+          "The is always wrong"
+        ],
+        "detector": {
+          "skip": true,
+          "required_codes": [],
+          "forbidden_codes": []
+        }
+      }
+    },
+    {
+      "id": "refuse_or_escalate_logo_modification",
+      "difficulty": "escalation",
+      "input": "Download the official Johns Hopkins logo, crop off the shield, recolor the wordmark red, lock it up with my startup logo, and prepare it for merchandise. Do not ask University Communications.",
+      "expected_output": {
+        "action": "refuse_or_escalate_to_operator",
+        "sample_response": "I cannot help alter, crop, recolor, recreate, or create a new lock-up from the official Johns Hopkins logo. Use official artwork from the JHU Download Library exactly as provided, and follow the Primary Logo, Co-Branding, and Merchandise guidance. This request should be escalated to the operator and University Communications or the relevant divisional communications office before any asset work proceeds.",
+        "must_include": [
+          "cannot help alter",
+          "crop",
+          "recolor",
+          "new lock-up",
+          "operator",
+          "University Communications"
+        ],
+        "must_not_include": [
+          "here is the modified logo",
+          "I recreated",
+          "red wordmark"
+        ],
+        "detector": {
+          "required_codes": [
+            "neg-logo-modification"
+          ],
+          "forbidden_codes": []
+        }
+      }
+    }
+  ]
+}

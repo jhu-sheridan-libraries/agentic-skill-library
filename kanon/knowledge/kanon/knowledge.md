@@ -11,7 +11,7 @@ keywords:
   - forge-cli
   - harness-compilation
 author: Johns Hopkins DRCC
-version: 0.2.3
+version: 0.2.4
 harnesses:
   - kiro
   - claude-code
@@ -57,6 +57,7 @@ This guide helps Johns Hopkins Libraries staff get started with Kanon, whether y
 | **curriculum-guide** | ask for "curriculum guide" | Learning paths, curriculum map, facilitation notes, assessment strategy, accessibility considerations, and production-readiness questions for Johns Hopkins Libraries staff |
 | **souk-compass-practice** | ask for "Souk Compass practice" | Optional 60–90 minute practice on semantic-search retrieval, source verification, incremental reindexing, and safe index scope after the MCP and evaluation lessons |
 | **library-ai-workshop collection** | browse or install the collection | Four Codex skills for library AI learning: learner coaching, cohort facilitation, fictional reference-interview practice, and evidence-focused review of AI-assisted research output |
+| **jhu-editorial-check** | ask for "JHU editorial check" | Review and revise Johns Hopkins communications while separating editorial guidance from official approval, legal, privacy, policy, and accessibility decisions |
 | **authoring** | ask for "authoring guide" | Step-by-step guide to creating your first knowledge artifact, from idea to compiled output |
 | **commands** | ask for "command reference" | Complete command reference with examples for every Kanon command |
 
