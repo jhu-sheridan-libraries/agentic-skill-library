@@ -385,6 +385,55 @@ Valid body.`,
 	});
 
 	/**
+	 * Validates: Task 4 — resolveBody wired into compile loops.
+	 * A body.<harness>.md override is applied only to that harness's output;
+	 * other harnesses continue to receive the canonical body.
+	 */
+	test("body.<harness>.md override reaches only that harness output", async () => {
+		const opts = makeBuildOptions();
+		await mkdir(opts.knowledgeDir, { recursive: true });
+		await mkdir(opts.mcpServersDir, { recursive: true });
+
+		const artifactDir = join(opts.knowledgeDir, "ov-artifact");
+		await mkdir(artifactDir, { recursive: true });
+		await writeFile(
+			join(artifactDir, "knowledge.md"),
+			[
+				"---",
+				"name: ov-artifact",
+				"type: skill",
+				"harnesses: [kiro, claude-code]",
+				"maturity: stable",
+				"---",
+				"",
+				"CANONICAL_BODY_MARKER",
+			].join("\n"),
+		);
+		await writeFile(
+			join(artifactDir, "body.claude-code.md"),
+			"CLAUDE_OVERRIDE_MARKER",
+		);
+
+		const result = await build(opts);
+		expect(result.errors).toEqual([]);
+
+		const claudeOut = await readFile(
+			join(opts.distDir, "claude-code", "ov-artifact", "CLAUDE.md"),
+			"utf-8",
+		);
+		// Kiro output filename for a non-power artifact is "<name>.md", not
+		// "steering.md" (that filename is reserved for power-format artifacts).
+		const kiroOut = await readFile(
+			join(opts.distDir, "kiro", "ov-artifact", "ov-artifact.md"),
+			"utf-8",
+		);
+		expect(claudeOut).toContain("CLAUDE_OVERRIDE_MARKER");
+		expect(claudeOut).not.toContain("CANONICAL_BODY_MARKER");
+		expect(kiroOut).toContain("CANONICAL_BODY_MARKER");
+		expect(kiroOut).not.toContain("CLAUDE_OVERRIDE_MARKER");
+	});
+
+	/**
 	 * Validates: Requirement 1.5
 	 * Build skips directories without knowledge.md and emits a warning.
 	 */
