@@ -452,6 +452,9 @@ export const KnowledgeArtifactSchema = z.object({
 	workflows: z.array(WorkflowFileSchema).default([]),
 	sourcePath: z.string(),
 	extraFields: z.record(z.string(), z.unknown()).default({}),
+	// Per-harness body overrides, keyed by harness name. Loaded from optional
+	// `body.<harness>.md` sibling files. Empty when no override files exist.
+	bodyOverrides: z.record(z.string(), z.string()).default({}),
 });
 export type KnowledgeArtifact = z.infer<typeof KnowledgeArtifactSchema>;
 
