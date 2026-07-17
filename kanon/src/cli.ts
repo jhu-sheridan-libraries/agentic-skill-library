@@ -41,6 +41,7 @@ import {
 	specDoneCommand,
 	specHandoffCommand,
 	specListCommand,
+	specNextCommand,
 	specReconcileCommand,
 	specReleaseCommand,
 	specStatusCommand,
@@ -448,18 +449,35 @@ if (import.meta.main !== false) {
 	specCmd
 		.command("list")
 		.description("List specs with type, workflow, and task progress")
-		.action(specListCommand);
+		.option("--json", "Output as JSON")
+		.action((options) => specListCommand(options));
 
 	specCmd
 		.command("status [spec]")
-		.description("Show task ownership, progress, and handoffs for a spec")
-		.action(specStatusCommand);
+		.description("Show task ownership, progress, deps, leases, and handoffs")
+		.option("--json", "Output as JSON")
+		.action((spec, options) => specStatusCommand(spec, options));
+
+	specCmd
+		.command("next [spec]")
+		.description(
+			"Select and claim the next actionable task (deps satisfied, unclaimed) for an agent",
+		)
+		.option("--agent <name>", "Agent requesting work")
+		.option("--lease <minutes>", "Lease duration in minutes")
+		.option("--dry-run", "Report the next task without claiming it")
+		.option("--json", "Output as JSON")
+		.action((spec, options) => specNextCommand(spec, options));
 
 	specCmd
 		.command("claim [spec] [taskId]")
-		.description("Claim a task for an agent (fails if already owned)")
+		.description(
+			"Claim a task for an agent (fails if already owned or blocked)",
+		)
 		.option("--agent <name>", "Agent claiming the task")
 		.option("--force", "Take over a task already owned by another agent")
+		.option("--lease <minutes>", "Lease duration in minutes")
+		.option("--ignore-deps", "Claim even if dependencies are unmet")
 		.action((spec, taskId, options) => specClaimCommand(spec, taskId, options));
 
 	specCmd

@@ -251,42 +251,60 @@ The convention this skill uses: keep completion state in `tasks.md` (the shared 
 
 ## Task ownership
 
-| Task | Owner  | Status      | Updated              | Note |
-|------|--------|-------------|----------------------|------|
-| 2.1  | cowork | done        | 2026-07-17T14:02:00Z | —    |
-| 2.2  | code   | in-progress | 2026-07-17T14:20:00Z | —    |
-| 3.1  | —      | open        | —                    | —    |
+| Task | Owner  | Status      | Deps | Lease until          | Updated              | Note |
+|------|--------|-------------|------|----------------------|----------------------|------|
+| 2.1  | cowork | done        | —    | —                    | 2026-07-17T14:02:00Z | —    |
+| 2.2  | code   | in-progress | 2.1  | 2026-07-17T14:50:00Z | 2026-07-17T14:20:00Z | —    |
+| 3.1  | —      | open        | —    | —                    | —                    | —    |
 
 ## Handoffs
 
 - 2026-07-17T14:20:00Z cowork → code: schema landed, wire up the API layer next
 ```
 
-Statuses are `open`, `claimed`, `in-progress`, `done`, `blocked`. The completion signal in `tasks.md` and the `done` rows in `COORDINATION.md` should agree — when they drift, `tasks.md` wins (it's what Kiro and humans read).
+Statuses are `open`, `claimed`, `in-progress`, `done`, `blocked`. The completion signal in `tasks.md` and the `done` rows in `COORDINATION.md` should agree — when they drift, `tasks.md` wins (it's what Kiro and humans read). Two columns support parallel work: **Deps** lists task ids that must be `done` before this task can be claimed, and **Lease until** is a timestamp past which an owner's claim is considered stale and may be taken over automatically (so a crashed or wandered-off agent doesn't block a task forever).
 
-The protocol each agent follows before touching a task:
+The protocol each agent follows:
 
-1. **Read** `COORDINATION.md`. If the task is owned by another active agent (`claimed`/`in-progress`), pick a different task or negotiate — don't double-work it.
-2. **Claim** it: set yourself as owner with status `claimed`, then `in-progress` when you start.
-3. **Work** exactly that task, following the guided-execution loop above.
-4. **Complete**: check the box in `tasks.md` *and* set the row to `done`.
-5. **Hand off**: append a handoff line describing what you finished and what's next, so the next agent has context.
+1. **Pull work.** Ask for the next actionable task rather than picking by hand — `kanon spec next --agent <name>` selects the lowest-id task whose dependencies are all done and that nobody actively holds, and claims it for you atomically. This is the call an agent makes most often.
+2. **Work** exactly that task, following the guided-execution loop above.
+3. **Complete**: check the box in `tasks.md` *and* set the row to `done` (one step via `kanon spec done`).
+4. **Hand off**: record what you finished and what's next, so the next agent has context.
+
+If you'd rather target a specific task instead of taking the next one, `kanon spec claim` a known id — it enforces the same dependency and ownership guards.
+
+### Declaring dependencies
+
+Give the selector something to reason about by declaring order in `tasks.md`, right next to the task, using a `_Depends:_` marker that mirrors the `_Requirements:_` convention:
+
+```markdown
+- [ ] 2. Core logic _Depends: 1_
+  - [ ] 2.1 Write failing tests
+  - [ ] 2.2 Implement _Depends: 2.1_
+- [ ] 3. Independent docs
+```
+
+`kanon spec reconcile`, `status`, and `next` all read these markers. A task with unmet dependencies is reported as blocked and is skipped by `next` until its prerequisites are `done`. Tasks with no dependencies (like `3` above) stay available in parallel, which is what lets multiple agents fan out.
 
 ### Use the `kanon spec` helper
 
 Rather than hand-editing these files (and risking races or malformed tables), use the CLI helper, which reads and writes both files consistently:
 
 ```bash
-kanon spec list                                   # specs with type/workflow + progress
-kanon spec status <spec>                          # ownership table, progress, handoffs
-kanon spec claim <spec> <taskId> --agent <name>   # claim a task (fails if already owned)
-kanon spec release <spec> <taskId>                # release a claim back to open
-kanon spec done <spec> <taskId> --agent <name>    # check the box in tasks.md AND mark done
-kanon spec reconcile <spec>                        # sync COORDINATION.md rows to tasks.md
+kanon spec list [--json]                                 # specs with type/workflow + progress
+kanon spec status <spec> [--json]                        # ownership, progress, deps, leases, handoffs
+kanon spec next <spec> --agent <name> [--lease <min>] [--dry-run] [--json]
+                                                         # select + claim the next ready task
+kanon spec claim <spec> <taskId> --agent <name> [--force] [--lease <min>] [--ignore-deps]
+kanon spec release <spec> <taskId>                       # release a claim back to open
+kanon spec done <spec> <taskId> --agent <name>           # check the box in tasks.md AND mark done
+kanon spec reconcile <spec>                              # sync rows + deps to tasks.md
 kanon spec handoff <spec> "<message>" --from <a> --to <b>
 ```
 
-`claim` refuses a task already owned by a different active agent (use `--force` to take over deliberately) — this is the guard against two agents grabbing the same work. `done` is the safe way to complete a task: it toggles the real `tasks.md` checkbox and updates coordination in one step. `reconcile` repairs drift by adding rows for new tasks and marking rows done wherever the checkbox is already checked (it never un-checks or deletes). If `COORDINATION.md` doesn't exist yet, the helper seeds it from the current `tasks.md`.
+Key behaviors: `next` is the primary work-pulling call — it never hands back a blocked or actively-held task, and it reclaims tasks whose lease expired. `claim` refuses a task actively owned by a different agent (use `--force` to take over) and refuses a task with unmet dependencies (use `--ignore-deps` to override); a claim whose lease has expired is *not* a conflict and can be reclaimed without `--force`. `done` toggles the real `tasks.md` checkbox and marks coordination done in one step. `reconcile` repairs drift — adding rows for new tasks, adopting `_Depends:_` markers, and marking rows done where the checkbox is checked (never un-checking or deleting). `--json` on `list`/`status`/`next` gives an orchestrating agent machine-readable state. If `COORDINATION.md` doesn't exist yet, any command seeds it from the current `tasks.md`.
+
+Leases default to 30 minutes. A long-running task should be re-claimed (or use `--lease` with a larger value) so its lease doesn't lapse while legitimately in progress; conversely, if an agent stops, the lease lets the next agent recover the task automatically once it expires.
 
 Recommended agent naming: use short, stable identifiers like `code` and `cowork` (or per-session names when several sessions of the same tool run at once) so ownership is unambiguous in the table and handoff log.
 
@@ -305,7 +323,9 @@ Writing design detail into requirements, or requirements into tasks — keep eac
 | Implement the plan | Guided execution loop: one task, verify, check the box, report, pause (or an autonomous run if the user asks) |
 | Check progress | Count `- [x]` vs `- [ ]` in `tasks.md`; first unchecked is next |
 | Need a specId by hand | Generate a real UUID v4 (`uuidgen` / `crypto.randomUUID()` / `uuid.uuid4()`) — never fabricate one |
-| Split work across agents | `kanon spec claim` before working, `kanon spec done` to complete, `kanon spec handoff` to pass context; ownership lives in `COORDINATION.md`, completion in `tasks.md` |
+| Split work across agents | `kanon spec next --agent <name>` to pull the next ready task, `kanon spec done` to complete, `kanon spec handoff` to pass context; ownership lives in `COORDINATION.md`, completion in `tasks.md` |
+| Order tasks / express blockers | Add `_Depends: <ids>_` markers in `tasks.md`; `next` skips blocked tasks and runs independent ones in parallel |
+| Recover a task from a stalled agent | Nothing manual — the claim's lease expires (default 30 min) and `next`/`claim` reclaim it automatically |
 | Identify a spec | Use the folder name, never `specId` (it can be duplicated across specs) |
 
 ## License, Privacy & Support

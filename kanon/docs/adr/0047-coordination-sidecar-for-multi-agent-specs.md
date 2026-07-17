@@ -55,6 +55,31 @@ read/write it safely.
 The `kiro-specs` knowledge artifact documents the file format, the
 claim→work→complete→handoff protocol, and these commands.
 
+### Extension: dependencies, leases, and `next` (2026-07-17)
+
+To make the parallel-agent story workable, the model was extended:
+
+- **Task dependencies.** `ClaimEntry` gains `deps: string[]`. Dependencies are
+  declared in `tasks.md` with a `_Depends: 1, 2.3_` marker (mirroring the
+  existing `_Requirements:_` convention) and surfaced in a Deps column of
+  `COORDINATION.md`. A task is not claimable until every dependency is `done`.
+- **Claim leases.** `ClaimEntry` gains `leaseUntil: string | null`. A claim sets
+  a lease (default 30 min); once it expires, the task is reclaimable by another
+  agent without `--force`, so a crashed or abandoned claim can't block a task
+  forever. Reaching `done`/`blocked` clears the lease.
+- **`kanon spec next --agent <name>`.** Atomically selects the lowest-id task
+  that is not done, has satisfied dependencies, and is unclaimed (or whose lease
+  expired), then claims it — the single call an agent uses to pull work. This
+  replaces read-then-claim with one operation, shrinking the claim race window.
+- **`--json`** output on `list`/`status`/`next` for orchestrating agents.
+- `COORDINATION.md` grew from a 5-column to a 7-column ownership table
+  (adds Deps, Lease until); `parseCoordination` still reads the old 5-column
+  layout for backward compatibility.
+
+Selection, dependency, and lease logic are pure functions (`selectNextTask`,
+`depsSatisfied`, `isLeaseExpired`, `isClaimable`), unit-tested independently of
+the CLI and filesystem.
+
 ## Consequences
 
 ### Positive
@@ -65,6 +90,10 @@ claim→work→complete→handoff protocol, and these commands.
 - `done` keeps `tasks.md` and coordination consistent through a single entry
   point, avoiding hand-edit races and malformed tables.
 - Pure-core design keeps the logic unit-testable without filesystem or CLI.
+- Dependencies let independent tasks run in parallel while ordered ones wait,
+  and `next` gives agents a single, low-friction way to pull the right work.
+- Leases make the system self-healing: an abandoned claim is recovered
+  automatically rather than requiring a human to notice and `release` it.
 
 ### Negative
 
@@ -73,7 +102,12 @@ claim→work→complete→handoff protocol, and these commands.
 - Two files can still drift if agents bypass the helper and hand-edit; mitigated
   by `reconcile` and the "tasks.md wins" rule, but not prevented.
 - File-based claims are cooperative, not atomic locks — a true simultaneous
-  claim race is possible, though small in practice for human-paced agent work.
+  claim race is still possible (leases shrink but do not eliminate the window).
+  Adequate for human-paced agent work; not a substitute for a real lock service.
+- Lease expiry is wall-clock based: a legitimately long task can lose its lease
+  if not re-claimed, and a very short `--lease` risks premature takeover.
+- Dependencies are advisory (`--ignore-deps` exists) and only as good as the
+  `_Depends:_` markers authors add; the system does not infer them.
 
 ### Neutral
 
