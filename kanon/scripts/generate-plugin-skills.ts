@@ -68,7 +68,10 @@ export async function generatePluginSkills(
 			const referencesDir = join(skillDir, "references");
 			await mkdir(referencesDir, { recursive: true });
 			for (const wf of artifact.workflows) {
-				await writeFile(join(referencesDir, wf.filename), wf.content, "utf-8");
+				const outPath = join(referencesDir, wf.filename);
+				const outDir = outPath.substring(0, outPath.lastIndexOf("/"));
+				await mkdir(outDir, { recursive: true });
+				await writeFile(outPath, wf.content, "utf-8");
 			}
 		}
 

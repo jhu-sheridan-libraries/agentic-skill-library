@@ -80,4 +80,61 @@ describe("generatePluginSkills", () => {
 			),
 		).rejects.toThrow();
 	});
+
+	test("copies nested workflow reference paths without crashing", async () => {
+		const dir = join(tempDir, "knowledge", "nested-power");
+		await mkdir(join(dir, "workflows", "agents"), { recursive: true });
+		await writeFile(
+			join(dir, "knowledge.md"),
+			[
+				"---",
+				"name: nested-power",
+				"type: power",
+				"harnesses: [kiro, claude-code]",
+				"maturity: stable",
+				"---",
+				"",
+				"Nested power body.",
+			].join("\n"),
+		);
+		await writeFile(
+			join(dir, "workflows", "top.md"),
+			"Top-level workflow content.",
+		);
+		await writeFile(
+			join(dir, "workflows", "agents", "openai.yaml"),
+			"nested: workflow content",
+		);
+
+		process.chdir(tempDir);
+		const { written } = await generatePluginSkills({
+			skillsDir: join(tempDir, "out-skills-nested"),
+			sourceDirs: ["knowledge"],
+		});
+
+		expect(written).toBe(1);
+		const topContent = await readFile(
+			join(
+				tempDir,
+				"out-skills-nested",
+				"nested-power",
+				"references",
+				"top.md",
+			),
+			"utf-8",
+		);
+		expect(topContent).toBe("Top-level workflow content.");
+		const nestedContent = await readFile(
+			join(
+				tempDir,
+				"out-skills-nested",
+				"nested-power",
+				"references",
+				"agents",
+				"openai.yaml",
+			),
+			"utf-8",
+		);
+		expect(nestedContent).toBe("nested: workflow content");
+	});
 });
