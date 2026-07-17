@@ -954,9 +954,10 @@
       "vertical-slices"
     ],
     "author": "Steven J. Miklovic",
-    "version": "0.3.5",
+    "version": "0.4.0",
     "harnesses": [
-      "kiro"
+      "kiro",
+      "claude-code"
     ],
     "type": "power",
     "path": "knowledge/codeshop",
@@ -972,7 +973,8 @@
     "depends": [],
     "enhances": [],
     "formatByHarness": {
-      "kiro": "power"
+      "kiro": "power",
+      "claude-code": "claude-md"
     },
     "features": {
       "hooks": true,
@@ -1674,7 +1676,7 @@
       "harness-compilation"
     ],
     "author": "Johns Hopkins DRCC",
-    "version": "0.2.3",
+    "version": "0.2.5",
     "harnesses": [
       "kiro",
       "claude-code"
@@ -1727,7 +1729,7 @@
       "best-practices"
     ],
     "author": "Andrej Karpathy (packaged by Forrest Chang)",
-    "version": "0.2.1",
+    "version": "0.2.2",
     "harnesses": [
       "kiro",
       "claude-code",
@@ -1735,7 +1737,8 @@
       "cursor",
       "windsurf",
       "cline",
-      "qdeveloper"
+      "qdeveloper",
+      "codex"
     ],
     "type": "skill",
     "path": "knowledge/karpathy-mode",
@@ -1755,7 +1758,8 @@
       "cursor": "rule",
       "windsurf": "rule",
       "cline": "rule",
-      "qdeveloper": "rule"
+      "qdeveloper": "rule",
+      "codex": "agents-md"
     },
     "features": {
       "hooks": true,
@@ -1775,6 +1779,60 @@
     "outcomes": []
   },
   {
+    "name": "kiro-specs",
+    "displayName": "Kiro Specs",
+    "description": "Read, write, modify, and execute Kiro Specs — the three-phase spec-driven workflow (requirements → design → tasks) that lives in .kiro/specs/. Use when creating a new feature spec, updating requirements or design, or working through a tasks.md implementation plan.",
+    "keywords": [
+      "kiro",
+      "specs",
+      "spec-driven-development",
+      "requirements",
+      "ears",
+      "design-doc",
+      "tasks",
+      "acceptance-criteria",
+      "implementation-plan"
+    ],
+    "author": "Steven J. Miklovic",
+    "version": "0.2.0",
+    "harnesses": [
+      "kiro",
+      "claude-code"
+    ],
+    "type": "skill",
+    "path": "knowledge/kiro-specs",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation",
+      "architecture"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "steering",
+      "claude-code": "claude-md"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": false,
+      "conditionalInclusion": true
+    },
+    "license": "MIT",
+    "maturity": "experimental",
+    "trust": "community",
+    "model-assumptions": [],
+    "collections": [
+      "jh-drcc"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
     "name": "laconic-output",
     "displayName": "Laconic Output",
     "description": "Spartan communication mode — every word earns its place or gets cut. Grammar stays intact, sentences stripped to their load-bearing minimum. No warmth, no hedging, no filler.",
@@ -1786,10 +1844,11 @@
       "concise-responses"
     ],
     "author": "kanon",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "harnesses": [
       "kiro",
-      "claude-code"
+      "claude-code",
+      "codex"
     ],
     "type": "skill",
     "path": "knowledge/laconic-output",
@@ -1804,7 +1863,8 @@
     "enhances": [],
     "formatByHarness": {
       "kiro": "steering",
-      "claude-code": "claude-md"
+      "claude-code": "claude-md",
+      "codex": "agents-md"
     },
     "features": {
       "hooks": false,
