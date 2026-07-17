@@ -78,6 +78,16 @@ export async function generatePluginSkills(
 		written++;
 	}
 
+	const indexContent = renderTemplate(
+		templateEnv,
+		"claude-code/skill-library-index.md.njk",
+		{ qualifying },
+	);
+	const indexDir = join(skillsDir, "skill-library");
+	await mkdir(indexDir, { recursive: true });
+	await writeFile(join(indexDir, "SKILL.md"), indexContent, "utf-8");
+	written++;
+
 	return { written };
 }
 
