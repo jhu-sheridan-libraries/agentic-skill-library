@@ -1,4 +1,4 @@
-# Kanon & Context Bazaar
+Context Bazaar & Kanon
 
 [![CI](https://img.shields.io/github/actions/workflow/status/jhu-sheridan-libraries/agentic-skill-library/ci.yml?label=CI)](https://github.com/jhu-sheridan-libraries/agentic-skill-library/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/thinkingsage/context-bazaar/graph/badge.svg?token=D6AVIGVORS)](https://codecov.io/gh/thinkingsage/context-bazaar)

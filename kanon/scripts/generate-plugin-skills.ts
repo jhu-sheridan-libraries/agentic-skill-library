@@ -7,7 +7,8 @@
  * Unlike `kanon build`, this does not write to `dist/` (gitignored, cleared
  * on every build) — its output is committed, the same way `bridge/mcp-server.cjs`
  * is committed for the MCP integration. Re-run and commit after adding or
- * editing a knowledge artifact with `type: skill` and `harnesses: [claude-code, ...]`.
+ * editing a knowledge artifact with `type: skill` or `type: power` and
+ * `harnesses: [claude-code, ...]`.
  *
  * Usage:
  *   bun run scripts/generate-plugin-skills.ts
@@ -17,9 +18,10 @@ import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { generateCatalog, SOURCE_DIRS } from "../src/catalog";
 import { isParseError, loadKnowledgeArtifact } from "../src/parser";
+import { resolveBody } from "../src/resolve-body";
 import { createTemplateEnv, renderTemplate } from "../src/template-engine";
 
-const SKILLS_DIR = "skills";
+const DEFAULT_SKILLS_DIR = "skills";
 const TEMPLATES_DIR = join(
 	import.meta.dir,
 	"..",
@@ -27,14 +29,20 @@ const TEMPLATES_DIR = join(
 	"harness-adapters",
 );
 
-async function main() {
-	const entries = await generateCatalog([...SOURCE_DIRS]);
+export async function generatePluginSkills(
+	opts: { skillsDir?: string; sourceDirs?: string[] } = {},
+): Promise<{ written: number }> {
+	const skillsDir = opts.skillsDir ?? DEFAULT_SKILLS_DIR;
+	const sources = opts.sourceDirs ?? [...SOURCE_DIRS];
+	const entries = await generateCatalog(sources);
 	const qualifying = entries.filter(
-		(e) => e.type === "skill" && e.harnesses.includes("claude-code"),
+		(e) =>
+			(e.type === "skill" || e.type === "power") &&
+			e.harnesses.includes("claude-code"),
 	);
 
-	await rm(SKILLS_DIR, { recursive: true, force: true });
-	await mkdir(SKILLS_DIR, { recursive: true });
+	await rm(skillsDir, { recursive: true, force: true });
+	await mkdir(skillsDir, { recursive: true });
 
 	const templateEnv = createTemplateEnv(TEMPLATES_DIR);
 	let written = 0;
@@ -48,11 +56,11 @@ async function main() {
 			continue;
 		}
 		const artifact = result.data;
-		const skillDir = join(SKILLS_DIR, artifact.name);
+		const skillDir = join(skillsDir, artifact.name);
 		await mkdir(skillDir, { recursive: true });
 
 		const content = renderTemplate(templateEnv, "claude-code/skill.md.njk", {
-			artifact,
+			artifact: { ...artifact, body: resolveBody(artifact, "claude-code") },
 		});
 		await writeFile(join(skillDir, "SKILL.md"), content, "utf-8");
 
@@ -67,7 +75,16 @@ async function main() {
 		written++;
 	}
 
-	console.log(`✓ Generated ${written} plugin skill(s) in ${SKILLS_DIR}/`);
+	return { written };
 }
 
-main();
+async function main() {
+	const { written } = await generatePluginSkills();
+	console.log(
+		`✓ Generated ${written} plugin skill(s) in ${DEFAULT_SKILLS_DIR}/`,
+	);
+}
+
+if (import.meta.main) {
+	main();
+}

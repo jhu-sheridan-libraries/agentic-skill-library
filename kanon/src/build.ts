@@ -16,6 +16,7 @@ import {
 	loadKnowledgeArtifact,
 	parseMcpServersYaml,
 } from "./parser";
+import { resolveBody } from "./resolve-body";
 import type {
 	CanonicalHook,
 	HarnessName,
@@ -473,6 +474,13 @@ async function buildWithWorkspace(
 				// Apply project overrides before compilation
 				applyProjectOverrides(projectArtifact, project, h);
 
+				// projectArtifact is shared across harness iterations; build a
+				// per-harness clone so the resolved body doesn't leak across h.
+				const harnessArtifact: KnowledgeArtifact = {
+					...projectArtifact,
+					body: resolveBody(projectArtifact, h),
+				};
+
 				// Compatibility check
 				const compat = getCompatibility(projectArtifact.frontmatter.type, h);
 				if (compat === "none") {
@@ -505,7 +513,7 @@ async function buildWithWorkspace(
 						capabilities: getCapabilities(h),
 						strict: strict ?? false,
 					};
-					const result = adapter(projectArtifact, templateEnv, adapterContext);
+					const result = adapter(harnessArtifact, templateEnv, adapterContext);
 					warnings.push(...result.warnings);
 
 					// Aggregate adapter errors into build errors
@@ -794,7 +802,13 @@ export async function build(options: BuildOptions): Promise<BuildResult> {
 					capabilities: getCapabilities(h),
 					strict: strict ?? false,
 				};
-				const result = adapter(artifact, templateEnv, adapterContext);
+				// artifact is shared across harness iterations; build a
+				// per-harness clone so the resolved body doesn't leak across h.
+				const harnessArtifact: KnowledgeArtifact = {
+					...artifact,
+					body: resolveBody(artifact, h),
+				};
+				const result = adapter(harnessArtifact, templateEnv, adapterContext);
 				warnings.push(...result.warnings);
 
 				// Aggregate adapter errors into build errors

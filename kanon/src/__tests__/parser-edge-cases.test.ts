@@ -190,3 +190,58 @@ Body content.`,
 		expect(result.data.extraFields.another_extra).toBe(42);
 	});
 });
+
+describe("loadKnowledgeArtifact body overrides", () => {
+	test("loads body.<harness>.md into bodyOverrides", async () => {
+		const artifactDir = join(tempDir, "with-override");
+		await mkdir(artifactDir, { recursive: true });
+		await writeFile(
+			join(artifactDir, "knowledge.md"),
+			"---\nname: with-override\ntype: skill\n---\n\nCanonical body.",
+		);
+		await writeFile(
+			join(artifactDir, "body.claude-code.md"),
+			"# Claude Code router\n\nLoad references/foo.md.",
+		);
+
+		const result = await loadKnowledgeArtifact(artifactDir);
+		expect(isParseError(result)).toBe(false);
+		if (isParseError(result)) return;
+
+		expect(result.data.body).toBe("Canonical body.");
+		expect(result.data.bodyOverrides["claude-code"]).toBe(
+			"# Claude Code router\n\nLoad references/foo.md.",
+		);
+	});
+
+	test("ignores unknown body.<foo>.md and warns", async () => {
+		const artifactDir = join(tempDir, "bad-override");
+		await mkdir(artifactDir, { recursive: true });
+		await writeFile(
+			join(artifactDir, "knowledge.md"),
+			"---\nname: bad-override\ntype: skill\n---\n\nCanonical body.",
+		);
+		await writeFile(join(artifactDir, "body.notaharness.md"), "ignored");
+
+		const result = await loadKnowledgeArtifact(artifactDir);
+		expect(isParseError(result)).toBe(false);
+		if (isParseError(result)) return;
+
+		expect(result.data.bodyOverrides).toEqual({});
+		expect(result.warnings.some((w) => w.includes("notaharness"))).toBe(true);
+	});
+
+	test("no override files yields empty bodyOverrides", async () => {
+		const artifactDir = join(tempDir, "no-override");
+		await mkdir(artifactDir, { recursive: true });
+		await writeFile(
+			join(artifactDir, "knowledge.md"),
+			"---\nname: no-override\ntype: skill\n---\n\nCanonical body.",
+		);
+
+		const result = await loadKnowledgeArtifact(artifactDir);
+		expect(isParseError(result)).toBe(false);
+		if (isParseError(result)) return;
+		expect(result.data.bodyOverrides).toEqual({});
+	});
+});
