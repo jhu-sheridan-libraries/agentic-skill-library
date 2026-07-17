@@ -12,7 +12,7 @@ Knowledge artifacts for AI coding assistants. Author once, compile to every harn
 
 AI coding assistants (Claude Code, Codex, Kiro, Copilot, Cursor, Windsurf, Cline, Q Developer) each use a different format for rules, context, and configuration. Context Bazaar lets you author a **knowledge artifact** in a single canonical format and compile it to any supported harness with the **Kanon** CLI.
 
-This repository contains the Kanon tool and a catalog of 53 artifacts organized into themed collections.
+This repository contains the Kanon tool and a catalog of 54 artifacts organized into themed collections.
 
 ## Key Concepts
 
@@ -45,7 +45,7 @@ This repository contains the Kanon tool and a catalog of 53 artifacts organized 
 | **Kiro Official** | 26 | Upstream powers from Kiro — AWS, observability, infrastructure, partner integrations |
 | **Byron Powers** | 8 | Literary and publishing workflows — novelists, technical authors, agents, proofreading |
 | **Neon Caravan** | 6 | Craft-focused developer workflows — commits, debugging, code review, type discipline |
-| **JHU** | 1 | Johns Hopkins University Sheridan Libraries artifacts |
+| **JHU** | 2 | Johns Hopkins University Sheridan Libraries artifacts |
 | **Library AI Workshop** | 4 | Accountable AI research practice for academic-library staff — coaching, facilitation, reference interviews, and output review |
 
 Browse the full catalog with `bun run dev catalog browse` or see the [deployed catalog site](https://jhu-sheridan-libraries.github.io/agentic-skill-library/).

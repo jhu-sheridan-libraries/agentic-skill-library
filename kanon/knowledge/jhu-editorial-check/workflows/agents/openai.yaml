@@ -1,0 +1,4 @@
+interface:
+  display_name: "JHU Editorial Check"
+  short_description: "JHU brand copyediting and AI-trope cleanup"
+  default_prompt: "Use $jhu-editorial-check to review this Johns Hopkins copy for JHU style, voice, and AI-trope issues."

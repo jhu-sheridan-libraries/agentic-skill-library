@@ -1,5 +1,5 @@
 name: jh-drcc
 displayName: "JH DRCC"
-description: "Knowledge artifacts from the Johns Hopkins Digital Research and Curation Center agentic-skill-forge."
+description: "Knowledge artifacts from the Johns Hopkins Digital Research and Curation Center agentic-skill-library. Craft-focused developer workflow artifacts — commit messages, type discipline, debugging methodology, and code review."
 trust: community
 tags: [jh-drcc, academic, libraries]

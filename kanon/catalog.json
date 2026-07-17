@@ -1604,6 +1604,63 @@
     "outcomes": []
   },
   {
+    "name": "jhu-editorial-check",
+    "displayName": "JHU Editorial Check",
+    "description": "Review and revise Johns Hopkins communications for editorial style, voice, ethical AI use, official asset risks, and escalation needs without claiming institutional approval.",
+    "keywords": [
+      "johns-hopkins",
+      "editorial-style",
+      "copyediting",
+      "voice-and-tone",
+      "ethical-ai",
+      "brand-review",
+      "accessibility",
+      "escalation"
+    ],
+    "author": "Johns Hopkins editorial guidance maintainers",
+    "version": "0.1.1",
+    "harnesses": [
+      "codex",
+      "claude-code"
+    ],
+    "type": "skill",
+    "path": "knowledge/jhu-editorial-check",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation",
+      "writing",
+      "accessibility"
+    ],
+    "ecosystem": [
+      "johns-hopkins",
+      "editorial"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "codex": "skill",
+      "claude-code": "claude-md"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "beta",
+    "trust": "community",
+    "audience": "advanced",
+    "model-assumptions": [],
+    "collections": [
+      "jh-drcc"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
     "name": "kanon",
     "displayName": "Kanon & Context Bazaar",
     "description": "Onboarding and assistant guide for using the Kanon CLI & Context Bazaar to author, build, and manage knowledge artifacts for AI coding assistants.",
@@ -1710,7 +1767,7 @@
     "trust": "community",
     "model-assumptions": [],
     "collections": [
-      "jhu",
+      "jh-drcc",
       "neon-caravan"
     ],
     "visibility": "public",
@@ -1759,7 +1816,7 @@
     "trust": "community",
     "model-assumptions": [],
     "collections": [
-      "jhu",
+      "jh-drcc",
       "neon-caravan"
     ],
     "visibility": "public",
