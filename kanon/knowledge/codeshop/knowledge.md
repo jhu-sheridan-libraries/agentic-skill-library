@@ -30,9 +30,10 @@ keywords:
   - test-optimization
   - vertical-slices
 author: Steven J. Miklovic
-version: 0.3.5
+version: 0.4.0
 harnesses:
   - kiro
+  - claude-code
 type: power
 inclusion: auto
 categories:
