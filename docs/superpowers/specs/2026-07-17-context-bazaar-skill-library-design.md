@@ -49,15 +49,22 @@ framing** for what already compiles, not **coverage** of what compiles.
 
 ## Design
 
-### 1. New generated skill: `context-bazaar`
+### 1. New generated skill: `skill-library`
 
-A new file `kanon/skills/context-bazaar/SKILL.md` is added to the set of files
+A new file `kanon/skills/skill-library/SKILL.md` is added to the set of files
 `generate-plugin-skills.ts` writes on every run. It is **pure generator output** —
-there is no corresponding `knowledge/context-bazaar/` artifact and no hand-authored
+there is no corresponding `knowledge/skill-library/` artifact and no hand-authored
 body. It is rendered directly from the same `qualifying` array the generator
 already computes (the list of `type: skill`/`type: power` entries with
 `claude-code` in `harnesses`), via a new Nunjucks template
-`templates/harness-adapters/claude-code/context-bazaar-index.md.njk`.
+`templates/harness-adapters/claude-code/skill-library-index.md.njk`.
+
+**Naming note:** the plugin itself is already named `context-bazaar`
+(`.claude-plugin/plugin.json`'s top-level `name`), and an MCP server named
+`context-bazaar` is already registered in `.mcp.json`. Naming the index skill
+`context-bazaar` as well would create a three-way stutter (plugin / MCP server /
+skill all sharing one identifier) and genuine ambiguity in how Claude routes a
+request among them. `skill-library` is deliberately distinct from both.
 
 Because the index is generated from the exact list the generator just used to
 produce every other skill, it cannot disagree with what's actually installed:
@@ -70,7 +77,7 @@ to be generated the same way, adding ceremony with no benefit.
 
 ```yaml
 ---
-name: context-bazaar
+name: skill-library
 description: "Lists every skill installed by the Context Bazaar plugin, with a one-line description and how to invoke each. Use when asked what skills are installed, to list skills, or to show the library."
 ---
 ```
@@ -79,7 +86,7 @@ The `description` is deliberately narrow-triggering per the Non-goals section:
 phrases like "what skills are installed," "list skills," "show the library" — not
 generic onboarding phrases like "what can you help with."
 
-**Body** (rendered from `qualifying`, excluding `context-bazaar` itself since it
+**Body** (rendered from `qualifying`, excluding `skill-library` itself since it
 is not in `qualifying` — it's synthesized after that list is computed):
 
 ```
@@ -106,12 +113,12 @@ qualifying artifact's `SKILL.md` + `references/`, add one more render step:
 ```ts
 const indexContent = renderTemplate(
   templateEnv,
-  "claude-code/context-bazaar-index.md.njk",
+  "claude-code/skill-library-index.md.njk",
   { qualifying },
 );
-await mkdir(join(skillsDir, "context-bazaar"), { recursive: true });
+await mkdir(join(skillsDir, "skill-library"), { recursive: true });
 await writeFile(
-  join(skillsDir, "context-bazaar", "SKILL.md"),
+  join(skillsDir, "skill-library", "SKILL.md"),
   indexContent,
   "utf-8",
 );
@@ -161,15 +168,15 @@ identity.
 
 - `README.md`: add a short section after "What Is This?" stating that installing
   the plugin provides a library of skills, and pointing at the generated
-  `context-bazaar` skill for the live list rather than hand-duplicating the list in
+  `skill-library` skill for the live list rather than hand-duplicating the list in
   the README (avoids a second place that can drift).
 
 ### 5. Testing
 
 - `generate-plugin-skills.test.ts`: given a fixture with N qualifying artifacts,
-  assert `skills/context-bazaar/SKILL.md` exists, lists all N with correct
+  assert `skills/skill-library/SKILL.md` exists, lists all N with correct
   name/type/description, and does not list itself.
-- Run `bun run build:skills`; inspect the real `skills/context-bazaar/SKILL.md`
+- Run `bun run build:skills`; inspect the real `skills/skill-library/SKILL.md`
   for correctness and confirm the narrow-trigger phrasing reads naturally.
 - `bun test`, `bun run lint`.
 - Manual check: in a Claude Code session with the plugin installed, ask "what
@@ -194,7 +201,7 @@ identity.
 - No ADR required — this is a straightforward addition to an existing, already
   ADR-documented generator (ADR-0046), not a new architectural decision.
 - Changelog fragment: `bun run changelog:new --type added --message "Add a
-  generated context-bazaar index skill listing all installed plugin skills."`
+  generated skill-library index skill listing all installed plugin skills."`
 - Commit the new template, generator change, test, `kanon` knowledge.md reframe,
   `plugin.json`/`marketplace.json` wording, README section, and the regenerated
-  `skills/context-bazaar/` output together.
+  `skills/skill-library/` output together.
