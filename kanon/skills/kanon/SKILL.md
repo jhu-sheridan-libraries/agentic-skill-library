@@ -11,7 +11,7 @@ Kanon is a command-line tool that lets you write knowledge once and compile it f
 
 Think of it like writing a document once and having it translated into the formats used by several AI coding assistants.
 
-This guide helps Johns Hopkins Libraries staff get started with Kanon, whether you're creating your first artifact or managing the JH DRCC collection.
+This is one of several skills installed by this plugin — ask "what skills are installed" to see the full library. This guide gets Johns Hopkins Libraries staff started with Kanon, whether you're creating your first artifact or managing the JH DRCC collection.
 
 ## Available Steering Files
 
