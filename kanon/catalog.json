@@ -1791,10 +1791,11 @@
       "design-doc",
       "tasks",
       "acceptance-criteria",
-      "implementation-plan"
+      "implementation-plan",
+      "multi-agent-coordination"
     ],
     "author": "Steven J. Miklovic",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "harnesses": [
       "kiro",
       "claude-code"

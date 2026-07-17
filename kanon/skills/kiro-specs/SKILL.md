@@ -18,9 +18,9 @@ The three markdown files carry **no in-file metadata** — no YAML frontmatter, 
 - **`.config.kiro`** — a small JSON file Kiro writes for each spec, e.g. `{"specId": "9f8b6ecc-1b68-4f32-ba4d-fa0c03a44af0", "workflowType": "requirements-first", "specType": "feature"}`. `specId` is a UUID (v4), `workflowType` is `requirements-first` or `design-first`, and `specType` is `feature` or `bugfix`. Read this to learn a spec's type and workflow. If you are scaffolding a spec by hand outside the Kiro IDE (e.g. from Claude Code or Cowork), you may write it too — but generate a **real** UUID v4 for `specId` (`uuidgen`, `node -e "console.log(crypto.randomUUID())"`, or `python3 -c "import uuid;print(uuid.uuid4())"`); never fabricate a plausible-looking string. Note that `specId` is **not** unique across specs — copied or branched specs reuse the same id — so it is not a reliable coordination key.
 - **`tasks.meta.json`** (optional) — Kiro's execution-history and property-based-test bookkeeping for `tasks.md`. Treat as read-only: Kiro maintains it during task execution; don't hand-edit.
 
-**The folder name under `.kiro/specs/` is the spec's true identity.** Because `specId` can be duplicated, always key on the folder name (e.g. `user-authentication`) when identifying a spec.
+**The folder name under `.kiro/specs/` is the spec's true identity.** Because `specId` can be duplicated, always key on the folder name (e.g. `user-authentication`) when identifying or coordinating on a spec.
 
-`.kiro/specs/` is shared across all Kiro surfaces (IDE, CLI, Web) and the format is identical everywhere, so a spec started in one can be continued in another.
+`.kiro/specs/` is shared across all Kiro surfaces (IDE, CLI, Web) and the format is identical everywhere, so a spec started in one can be continued in another — which is exactly what makes specs a good medium for coordinating work across several agents (see "Coordinating work across agents" below).
 
 ## Spec types and workflows
 
@@ -240,9 +240,59 @@ Kiro itself also offers autonomous execution — "Run all Tasks" in the IDE (whi
 
 In Kiro, `#spec` (or `#spec:<name>`) pulls a spec's full context — all its files — into the conversation, which keeps generated code aligned with the documented plan. It's the idiomatic way to say things like `#spec:user-authentication implement task 2.3`, request a design change, check whether an implementation meets a task's acceptance criteria, or ask why a design decision was made. When operating outside Kiro, achieve the same by reading the spec's files into context before acting.
 
+## Coordinating work across agents
+
+Because `.kiro/specs/` is shared and file-based, a spec is a natural place to divide and coordinate work between multiple agents — for example Claude Code and Cowork working the same feature, or several sessions running in parallel. The challenge is that `tasks.md` only carries `- [ ]` / `- [x]` — it records *whether* a task is done, but not *who owns it* or *what's in flight*. And Kiro rewrites `tasks.md` on Sync/Refine and only understands those two markers, so ownership annotations can't safely live inline.
+
+The convention this skill uses: keep completion state in `tasks.md` (the shared source of truth Kiro understands), and keep ownership/coordination state in a separate **`COORDINATION.md`** sidecar in the spec folder. Kiro ignores `COORDINATION.md`, so it survives Sync/Refine and stays readable in diffs. It holds a task-ownership table and a running handoff log:
+
+```markdown
+# Coordination — user-authentication
+
+## Task ownership
+
+| Task | Owner  | Status      | Updated              | Note |
+|------|--------|-------------|----------------------|------|
+| 2.1  | cowork | done        | 2026-07-17T14:02:00Z | —    |
+| 2.2  | code   | in-progress | 2026-07-17T14:20:00Z | —    |
+| 3.1  | —      | open        | —                    | —    |
+
+## Handoffs
+
+- 2026-07-17T14:20:00Z cowork → code: schema landed, wire up the API layer next
+```
+
+Statuses are `open`, `claimed`, `in-progress`, `done`, `blocked`. The completion signal in `tasks.md` and the `done` rows in `COORDINATION.md` should agree — when they drift, `tasks.md` wins (it's what Kiro and humans read).
+
+The protocol each agent follows before touching a task:
+
+1. **Read** `COORDINATION.md`. If the task is owned by another active agent (`claimed`/`in-progress`), pick a different task or negotiate — don't double-work it.
+2. **Claim** it: set yourself as owner with status `claimed`, then `in-progress` when you start.
+3. **Work** exactly that task, following the guided-execution loop above.
+4. **Complete**: check the box in `tasks.md` *and* set the row to `done`.
+5. **Hand off**: append a handoff line describing what you finished and what's next, so the next agent has context.
+
+### Use the `kanon spec` helper
+
+Rather than hand-editing these files (and risking races or malformed tables), use the CLI helper, which reads and writes both files consistently:
+
+```bash
+kanon spec list                                   # specs with type/workflow + progress
+kanon spec status <spec>                          # ownership table, progress, handoffs
+kanon spec claim <spec> <taskId> --agent <name>   # claim a task (fails if already owned)
+kanon spec release <spec> <taskId>                # release a claim back to open
+kanon spec done <spec> <taskId> --agent <name>    # check the box in tasks.md AND mark done
+kanon spec reconcile <spec>                        # sync COORDINATION.md rows to tasks.md
+kanon spec handoff <spec> "<message>" --from <a> --to <b>
+```
+
+`claim` refuses a task already owned by a different active agent (use `--force` to take over deliberately) — this is the guard against two agents grabbing the same work. `done` is the safe way to complete a task: it toggles the real `tasks.md` checkbox and updates coordination in one step. `reconcile` repairs drift by adding rows for new tasks and marking rows done wherever the checkbox is already checked (it never un-checks or deletes). If `COORDINATION.md` doesn't exist yet, the helper seeds it from the current `tasks.md`.
+
+Recommended agent naming: use short, stable identifiers like `code` and `cowork` (or per-session names when several sessions of the same tool run at once) so ownership is unambiguous in the table and handoff log.
+
 ## Common mistakes
 
-Writing design detail into requirements, or requirements into tasks — keep each phase in its lane. Skipping approval gates and racing to code (unless the user chose Quick Plan or an autonomous run). Marking tasks complete prematurely. Editing `tasks.md` to match drifted code instead of surfacing the drift. Adding YAML frontmatter or an `id` field to the markdown files — identity lives in `.config.kiro`, not the markdown. Fabricating a `specId` instead of generating a real UUID, or hand-editing `tasks.meta.json`. Keying identification on `specId` (it can be duplicated) instead of the folder name.
+Writing design detail into requirements, or requirements into tasks — keep each phase in its lane. Skipping approval gates and racing to code (unless the user chose Quick Plan or an autonomous run). Marking tasks complete prematurely. Editing `tasks.md` to match drifted code instead of surfacing the drift. Adding YAML frontmatter or an `id` field to the markdown files — identity lives in `.config.kiro`, not the markdown. Fabricating a `specId` instead of generating a real UUID, or hand-editing `tasks.meta.json`. Keying coordination on `specId` (it can be duplicated) instead of the folder name. Recording ownership inline in `tasks.md` where Kiro will strip it on Sync/Refine, instead of in `COORDINATION.md`. Starting a task without checking `COORDINATION.md`, so two agents do the same work.
 
 ## Quick reference
 
@@ -255,6 +305,7 @@ Writing design detail into requirements, or requirements into tasks — keep eac
 | Implement the plan | Guided execution loop: one task, verify, check the box, report, pause (or an autonomous run if the user asks) |
 | Check progress | Count `- [x]` vs `- [ ]` in `tasks.md`; first unchecked is next |
 | Need a specId by hand | Generate a real UUID v4 (`uuidgen` / `crypto.randomUUID()` / `uuid.uuid4()`) — never fabricate one |
+| Split work across agents | `kanon spec claim` before working, `kanon spec done` to complete, `kanon spec handoff` to pass context; ownership lives in `COORDINATION.md`, completion in `tasks.md` |
 | Identify a spec | Use the folder name, never `specId` (it can be duplicated across specs) |
 
 ## License, Privacy & Support
