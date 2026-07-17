@@ -14,6 +14,10 @@ AI coding assistants (Claude Code, Codex, Kiro, Copilot, Cursor, Windsurf, Cline
 
 This repository contains the Kanon tool and a catalog of 54 artifacts organized into themed collections.
 
+## Skill Library
+
+Installing the Context Bazaar plugin gives you a ready-to-use library of skills for Claude Code — no build step required. Ask "what skills are installed" (handled by the `skill-library` skill) for the current, always-accurate list, generated directly from what's compiled into `kanon/skills/`.
+
 ## Key Concepts
 
 | Concept | Description |
