@@ -276,7 +276,7 @@ if (import.meta.main !== false) {
 		.option("--all", "Import all artifact subdirectories within <path>")
 		.option(
 			"--format <format>",
-			"Source format: kiro-power, kiro-skill (default: auto-detect)",
+			"Source format: kiro-power, kiro-skill, superpowers (default: auto-detect)",
 		)
 		.option("--harness <name>", "Scan for and import harness-native files")
 		.option("--force", "Overwrite existing artifacts without confirmation")
