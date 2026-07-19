@@ -57,6 +57,7 @@ ADRs document significant architectural decisions made during the project's deve
 | [045](0045-preserve-nested-reference-trees-in-workflows.md) | Preserve nested reference trees in workflow files | Proposed | 2026-07-13 |
 | [046](0046-committed-claude-code-plugin-skills.md) | Committed, generated Claude Code plugin skills | Proposed | 2026-07-13 |
 | [047](0047-coordination-sidecar-for-multi-agent-specs.md) | COORDINATION.md sidecar for multi-agent work on Kiro Specs | Accepted | 2026-07-17 |
+| [048](0048-config-driven-upstream-marketplace-sync.md) | Config-driven upstream marketplace sync | Proposed | 2026-07-18 |
 
 ## Creating a New ADR
 
