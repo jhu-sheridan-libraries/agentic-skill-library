@@ -23,6 +23,7 @@
     "semantic-search"
   ],
   "mcpServers": "./.mcp.json",
+  "skills": "./kanon/skills/",
   "interface": {
     "displayName": "Context Bazaar",
     "shortDescription": "Browse Kanon knowledge artifacts from Codex",
