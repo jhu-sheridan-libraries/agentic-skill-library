@@ -266,7 +266,7 @@ Statuses are `open`, `claimed`, `in-progress`, `done`, `blocked`. The completion
 
 The protocol each agent follows:
 
-1. **Pull work.** Ask for the next actionable task rather than picking by hand — `kanon spec next --agent <name>` selects the lowest-id task whose dependencies are all done and that nobody actively holds, and claims it for you atomically. This is the call an agent makes most often.
+1. **Pull work.** Ask for the next actionable task rather than picking by hand — `kanon spec next --agent <name>` selects the lowest-id task whose dependencies are all done and that nobody actively holds, and claims it for you atomically. This is the call an agent makes most often. `kanon spec channel` is an alias for the same command, for teams who've adopted the "Kirouija" framing below — the planchette (the task) moves to whichever agent's hands are on the board.
 2. **Work** exactly that task, following the guided-execution loop above.
 3. **Complete**: check the box in `tasks.md` *and* set the row to `done` (one step via `kanon spec done`).
 4. **Hand off**: record what you finished and what's next, so the next agent has context.
@@ -307,6 +307,20 @@ Key behaviors: `next` is the primary work-pulling call — it never hands back a
 Leases default to 30 minutes. A long-running task should be re-claimed (or use `--lease` with a larger value) so its lease doesn't lapse while legitimately in progress; conversely, if an agent stops, the lease lets the next agent recover the task automatically once it expires.
 
 Recommended agent naming: use short, stable identifiers like `code` and `cowork` (or per-session names when several sessions of the same tool run at once) so ownership is unambiguous in the table and handoff log.
+
+### The "Kirouija" glossary
+
+Some teams call this coordination protocol **Kirouija** — Kiro specs, passed between hands like a planchette on a Ouija board. It's an optional lens, not new mechanics: every term below already maps to something described above. Use it if it helps a team talk about handoffs; ignore it if plain protocol language is clearer for yours.
+
+| Kirouija term | Real mechanism |
+|---|---|
+| The board | `COORDINATION.md` — the shared object every agent's hands rest on |
+| The planchette | The task currently being claimed/worked — it moves to whoever `next`/`channel` selects it for |
+| Channeling | `kanon spec next` (alias `kanon spec channel`) — pulling and atomically claiming the next ready task |
+| Sitting at the board | Being an active agent with a live, unexpired lease on a task |
+| The spirit moved on | A lease expired — the claim is stale and the task is reclaimable without `--force` |
+| A séance | A coordinated multi-agent session working the same spec concurrently |
+| The message | A `kanon spec handoff` entry in the Handoffs log |
 
 ## Common mistakes
 
