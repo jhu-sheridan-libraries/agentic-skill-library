@@ -460,6 +460,7 @@ if (import.meta.main !== false) {
 
 	specCmd
 		.command("next [spec]")
+		.alias("channel")
 		.description(
 			"Select and claim the next actionable task (deps satisfied, unclaimed) for an agent",
 		)
