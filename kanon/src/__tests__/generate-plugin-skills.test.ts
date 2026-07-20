@@ -63,7 +63,8 @@ describe("generatePluginSkills", () => {
 			sourceDirs: ["knowledge"],
 		});
 
-		expect(written).toBe(1);
+		// 1 qualifying power skill + 1 synthesized skill-library entry
+		expect(written).toBe(2);
 		const skill = await readFile(
 			join(tempDir, "out-skills", "my-power", "SKILL.md"),
 			"utf-8",
@@ -79,5 +80,88 @@ describe("generatePluginSkills", () => {
 				"utf-8",
 			),
 		).rejects.toThrow();
+	});
+
+	test("copies nested workflow reference paths without crashing", async () => {
+		const dir = join(tempDir, "knowledge", "nested-power");
+		await mkdir(join(dir, "workflows", "agents"), { recursive: true });
+		await writeFile(
+			join(dir, "knowledge.md"),
+			[
+				"---",
+				"name: nested-power",
+				"type: power",
+				"harnesses: [kiro, claude-code]",
+				"maturity: stable",
+				"---",
+				"",
+				"Nested power body.",
+			].join("\n"),
+		);
+		await writeFile(
+			join(dir, "workflows", "top.md"),
+			"Top-level workflow content.",
+		);
+		await writeFile(
+			join(dir, "workflows", "agents", "openai.yaml"),
+			"nested: workflow content",
+		);
+
+		process.chdir(tempDir);
+		const { written } = await generatePluginSkills({
+			skillsDir: join(tempDir, "out-skills-nested"),
+			sourceDirs: ["knowledge"],
+		});
+
+		// 1 qualifying power skill + 1 synthesized skill-library entry
+		expect(written).toBe(2);
+		const topContent = await readFile(
+			join(
+				tempDir,
+				"out-skills-nested",
+				"nested-power",
+				"references",
+				"top.md",
+			),
+			"utf-8",
+		);
+		expect(topContent).toBe("Top-level workflow content.");
+		const nestedContent = await readFile(
+			join(
+				tempDir,
+				"out-skills-nested",
+				"nested-power",
+				"references",
+				"agents",
+				"openai.yaml",
+			),
+			"utf-8",
+		);
+		expect(nestedContent).toBe("nested: workflow content");
+	});
+
+	test("generates a skill-library index listing all qualifying skills", async () => {
+		await writePowerArtifact("indexed-power-a", ["kiro", "claude-code"]);
+		await writePowerArtifact("indexed-power-b", ["kiro", "claude-code"]);
+		await writePowerArtifact("kiro-only-excluded", ["kiro"]);
+
+		process.chdir(tempDir);
+		const { written } = await generatePluginSkills({
+			skillsDir: join(tempDir, "out-skills-index"),
+			sourceDirs: ["knowledge"],
+		});
+
+		// 2 qualifying power skills + 1 synthesized skill-library entry
+		expect(written).toBe(3);
+
+		const indexContent = await readFile(
+			join(tempDir, "out-skills-index", "skill-library", "SKILL.md"),
+			"utf-8",
+		);
+		expect(indexContent).toContain("name: skill-library");
+		expect(indexContent).toContain("indexed-power-a");
+		expect(indexContent).toContain("indexed-power-b");
+		expect(indexContent).not.toContain("kiro-only-excluded");
+		expect(indexContent).not.toContain("skill-library | power");
 	});
 });

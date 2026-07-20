@@ -37,6 +37,16 @@ import { publishCommand } from "./publish";
 import type { HarnessName } from "./schemas";
 import { SUPPORTED_HARNESSES } from "./schemas";
 import {
+	specClaimCommand,
+	specDoneCommand,
+	specHandoffCommand,
+	specListCommand,
+	specNextCommand,
+	specReconcileCommand,
+	specReleaseCommand,
+	specStatusCommand,
+} from "./spec-coordination";
+import {
 	formatComparisonOutput,
 	formatJsonOutput,
 	formatTerminalOutput,
@@ -266,7 +276,7 @@ if (import.meta.main !== false) {
 		.option("--all", "Import all artifact subdirectories within <path>")
 		.option(
 			"--format <format>",
-			"Source format: kiro-power, kiro-skill (default: auto-detect)",
+			"Source format: kiro-power, kiro-skill, superpowers (default: auto-detect)",
 		)
 		.option("--harness <name>", "Scan for and import harness-native files")
 		.option("--force", "Overwrite existing artifacts without confirmation")
@@ -427,6 +437,78 @@ if (import.meta.main !== false) {
 				process.exit(1);
 			}
 		});
+
+	// Kiro Spec coordination — read/write COORDINATION.md + tasks.md across agents
+	const specCmd = program
+		.command("spec")
+		.description(
+			"Coordinate multi-agent work on Kiro Specs (.kiro/specs/) via COORDINATION.md",
+		)
+		.action(() => specListCommand());
+
+	specCmd
+		.command("list")
+		.description("List specs with type, workflow, and task progress")
+		.option("--json", "Output as JSON")
+		.action((options) => specListCommand(options));
+
+	specCmd
+		.command("status [spec]")
+		.description("Show task ownership, progress, deps, leases, and handoffs")
+		.option("--json", "Output as JSON")
+		.action((spec, options) => specStatusCommand(spec, options));
+
+	specCmd
+		.command("next [spec]")
+		.alias("channel")
+		.description(
+			"Select and claim the next actionable task (deps satisfied, unclaimed) for an agent",
+		)
+		.option("--agent <name>", "Agent requesting work")
+		.option("--lease <minutes>", "Lease duration in minutes")
+		.option("--dry-run", "Report the next task without claiming it")
+		.option("--json", "Output as JSON")
+		.action((spec, options) => specNextCommand(spec, options));
+
+	specCmd
+		.command("claim [spec] [taskId]")
+		.description(
+			"Claim a task for an agent (fails if already owned or blocked)",
+		)
+		.option("--agent <name>", "Agent claiming the task")
+		.option("--force", "Take over a task already owned by another agent")
+		.option("--lease <minutes>", "Lease duration in minutes")
+		.option("--ignore-deps", "Claim even if dependencies are unmet")
+		.action((spec, taskId, options) => specClaimCommand(spec, taskId, options));
+
+	specCmd
+		.command("release [spec] [taskId]")
+		.description("Release a claimed task back to open")
+		.action((spec, taskId) => specReleaseCommand(spec, taskId));
+
+	specCmd
+		.command("done [spec] [taskId]")
+		.description(
+			"Mark a task complete: check the box in tasks.md and update coordination",
+		)
+		.option("--agent <name>", "Agent completing the task")
+		.action((spec, taskId, options) => specDoneCommand(spec, taskId, options));
+
+	specCmd
+		.command("reconcile [spec]")
+		.description(
+			"Sync coordination rows to tasks.md checkboxes (adds new, marks done)",
+		)
+		.action(specReconcileCommand);
+
+	specCmd
+		.command("handoff [spec] [message]")
+		.description("Record a handoff note from one agent to another")
+		.option("--from <agent>", "Agent handing off")
+		.option("--to <agent>", "Agent receiving")
+		.action((spec, message, options) =>
+			specHandoffCommand(spec, message, options),
+		);
 
 	// Register guild commands
 	registerGuildCommands(program);

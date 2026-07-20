@@ -1,0 +1,13 @@
+---
+name: skill-library
+description: "Lists every skill installed by this plugin, with a one-line description and how to invoke each. Use when asked what skills are installed, to list skills, or to show the library."
+---
+
+## Installed Skills
+
+| Skill | Type | Description |
+|---|---|---|
+{% for entry in qualifying %}| `{{ entry.name }}` | {{ entry.type }} | {{ entry.description }} |
+{% endfor %}
+
+Ask about any skill by name, or describe what you're trying to do — Claude Code matches your request to the skill whose own trigger phrases fit best.
