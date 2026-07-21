@@ -15,3 +15,4 @@ skill-forge/.forge-publish/
 
 # forge install manifest — written to project roots on install, not part of source
 .forge-manifest.json
+.DS_Store

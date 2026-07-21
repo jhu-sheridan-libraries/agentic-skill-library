@@ -9,6 +9,30 @@ install:
       repo: jhu-sheridan-libraries/agentic-skill-forge
       releasePrefix: v
 
+# --- Upstream Marketplaces ---
+# Each entry defines an external repo to sync via git subtree and import into
+# kanon knowledge. Run `scripts/sync-upstream.sh` to pull and import all, or
+# pass a name to sync one: `scripts/sync-upstream.sh kiro-powers`
+upstreams:
+  kiro-powers:
+    repo: https://github.com/kirodotdev/powers.git
+    branch: main
+    prefix: kanon/upstream/kiro-powers   # subtree prefix relative to repo root
+    format: kiro-power                   # import format (kiro-power | kiro-skill | superpowers | auto)
+    collection: kiro-official            # collection to assign imported artifacts
+    knowledgeDir: knowledge/kiro-official # target knowledge subdirectory
+
+  superpowers:
+    repo: https://github.com/obra/superpowers.git
+    branch: main
+    prefix: kanon/upstream/superpowers
+    format: superpowers
+    collection: superpowers
+    knowledgeDir: knowledge/superpowers
+    # skillsPath is the subdirectory within the upstream repo containing skills.
+    # Defaults to "skills" for superpowers format.
+    skillsPath: skills
+
 # --- Kiro Progressive Steering ---
 kiro:
   progressiveSteering:
