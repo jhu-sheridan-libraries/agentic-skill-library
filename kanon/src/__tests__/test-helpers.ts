@@ -56,6 +56,7 @@ export function makeArtifact(
 		workflows: [],
 		sourcePath: "/tmp/knowledge/test-artifact",
 		extraFields: {},
+		bodyOverrides: {},
 		...overrides,
 	};
 }

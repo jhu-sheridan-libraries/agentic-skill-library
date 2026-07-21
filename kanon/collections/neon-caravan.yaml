@@ -1,5 +1,5 @@
 name: neon-caravan
 displayName: "Neon Caravan"
-description: "Craft-focused developer workflow artifacts — commit messages, type discipline, debugging methodology, and code review."
+description: "Knowledge artifacts pertaining to the Context Bazaar, Kanon, and Souk Compass themselves."
 trust: community
-tags: [workflow, craft, developer-experience]
+tags: [workflow, craft, development, architecture, self-improvement]

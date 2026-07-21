@@ -6,6 +6,7 @@ import {
 	type CanonicalHook,
 	type Frontmatter,
 	FrontmatterSchema,
+	HarnessNameSchema,
 	HooksFileSchema,
 	type KnowledgeArtifact,
 	KnowledgeArtifactSchema,
@@ -282,6 +283,45 @@ export async function parseWorkflows(
 	return { data: workflows, warnings };
 }
 
+const BODY_OVERRIDE_RE = /^body\.(.+)\.md$/;
+
+/**
+ * Scans an artifact directory for optional `body.<harness>.md` sibling files.
+ * Returns a map keyed by harness name → markdown body (frontmatter, if any, is
+ * discarded — the artifact's canonical frontmatter always wins). Files whose
+ * `<harness>` token is not a supported harness are ignored with a warning.
+ */
+async function parseBodyOverrides(
+	artifactDir: string,
+): Promise<ParseResult<Record<string, string>>> {
+	const warnings: string[] = [];
+	const overrides: Record<string, string> = {};
+
+	let entries: string[];
+	try {
+		const dirents = await readdir(artifactDir, { withFileTypes: true });
+		entries = dirents.filter((d) => d.isFile()).map((d) => d.name);
+	} catch {
+		return { data: overrides, warnings };
+	}
+
+	for (const filename of entries) {
+		const match = filename.match(BODY_OVERRIDE_RE);
+		if (!match) continue;
+		const harness = match[1];
+		if (!HarnessNameSchema.safeParse(harness).success) {
+			warnings.push(
+				`Ignoring "${filename}": "${harness}" is not a supported harness`,
+			);
+			continue;
+		}
+		const raw = await readFile(join(artifactDir, filename), "utf-8");
+		overrides[harness] = matter(raw).content.trim();
+	}
+
+	return { data: overrides, warnings };
+}
+
 export async function loadKnowledgeArtifact(
 	artifactDir: string,
 ): Promise<ParseResult<KnowledgeArtifact> | ParseError> {
@@ -316,6 +356,10 @@ export async function loadKnowledgeArtifact(
 	const workflowsResult = await parseWorkflows(workflowsDir);
 	allWarnings.push(...workflowsResult.warnings);
 
+	// Parse per-harness body overrides (optional)
+	const bodyOverridesResult = await parseBodyOverrides(artifactDir);
+	allWarnings.push(...bodyOverridesResult.warnings);
+
 	if (allErrors.length > 0) {
 		return { errors: allErrors };
 	}
@@ -330,6 +374,7 @@ export async function loadKnowledgeArtifact(
 		workflows: workflowsResult.data,
 		sourcePath: artifactDir,
 		extraFields: mdResult.data.extraFields,
+		bodyOverrides: bodyOverridesResult.data,
 	};
 
 	// Validate the full artifact
