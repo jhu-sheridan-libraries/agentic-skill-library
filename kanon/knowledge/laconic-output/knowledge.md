@@ -12,10 +12,11 @@ keywords:
   - brevity
   - concise-responses
 author: kanon
-version: 0.1.0
+version: 0.1.1
 harnesses:
   - kiro
   - claude-code
+  - codex
 type: skill
 inclusion: always
 categories:
@@ -26,7 +27,7 @@ enhances: []
 trust: community
 maturity: experimental
 model-assumptions: []
-collections: [jhu, neon-caravan]
+collections: [jh-drcc, neon-caravan]
 inherit-hooks: false
 ---
 

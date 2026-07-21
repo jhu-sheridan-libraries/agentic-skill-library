@@ -288,6 +288,7 @@ describe("Feature: team-mode-distribution, Property 9: Individual entry takes pr
 					cache: mockCache,
 					configBackends: new Map(),
 					dryRun: true, // avoid file writes
+					knowledgeSourceDirs: [], // skip outcome loading for perf
 				});
 
 				// Find the resolved entry for the overlapping artifact
@@ -439,6 +440,7 @@ describe("Feature: team-mode-distribution, Property 10: Sync-lock records collec
 					cache: mockCache,
 					configBackends: new Map(),
 					dryRun: true, // avoid file writes and CWD issues
+					knowledgeSourceDirs: [], // skip outcome loading for perf
 				});
 
 				// Assert: each member should be resolved

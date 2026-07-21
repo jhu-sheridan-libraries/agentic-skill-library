@@ -12,7 +12,7 @@ import matter from "gray-matter";
 import yaml from "js-yaml";
 import type { Frontmatter } from "./schemas";
 
-export type ImportFormat = "kiro-power" | "kiro-skill" | "auto";
+export type ImportFormat = "kiro-power" | "kiro-skill" | "superpowers" | "auto";
 
 export interface ImportOptions {
 	/** Import all subdirectories within the given path. */
@@ -40,6 +40,10 @@ export interface ImportResult {
 
 function detectFormat(_sourceDir: string, entries: string[]): ImportFormat {
 	if (entries.includes("POWER.md")) return "kiro-power";
+	// Superpowers skills use SKILL.md with a specific frontmatter pattern (name + description).
+	// Kiro skills also use SKILL.md but live under .kiro/skills/ and have different frontmatter.
+	// If there's a SKILL.md and the parent looks like a superpowers layout (no .kiro dir),
+	// we fall through to auto and let the explicit --format flag decide.
 	if (entries.includes("SKILL.md")) return "kiro-skill";
 	return "auto";
 }
@@ -243,6 +247,120 @@ async function importKiroSkill(
 	};
 }
 
+// ── Superpowers skill importer ─────────────────────────────────────────────────
+
+/**
+ * Import a skill from the obra/superpowers format.
+ * Superpowers skills are directories containing a SKILL.md with YAML frontmatter
+ * (name, description) and a markdown body. The body becomes the knowledge artifact
+ * content directly.
+ */
+async function importSuperpowers(
+	sourceDir: string,
+	opts: ImportOptions & { dryRun: boolean; knowledgeDir: string },
+): Promise<ImportResult> {
+	const skillMdPath = join(sourceDir, "SKILL.md");
+	const raw = await readFile(skillMdPath, "utf-8");
+	const parsed = matter(raw);
+	const sourceFm = parsed.data as Record<string, unknown>;
+
+	// Superpowers uses the directory name as the canonical skill name
+	const name = String(sourceFm.name || basename(sourceDir));
+	const targetPath = join(opts.knowledgeDir, name);
+
+	if (await exists(targetPath)) {
+		return {
+			name,
+			sourcePath: sourceDir,
+			targetPath,
+			filesWritten: [],
+			workflowsCopied: 0,
+			skipped: `${targetPath} already exists — use --force to overwrite`,
+		};
+	}
+
+	// Extract keywords from description or other metadata
+	const keywords: string[] = [];
+	if (Array.isArray(sourceFm.keywords)) {
+		keywords.push(...sourceFm.keywords.map(String));
+	}
+	// Superpowers skills sometimes reference other skills — capture those as enhances/depends
+	const depends: string[] = [];
+	if (Array.isArray(sourceFm.requires)) {
+		depends.push(...sourceFm.requires.map(String));
+	}
+
+	const fm: Frontmatter = {
+		name,
+		displayName: String(
+			sourceFm.displayName ||
+				name.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+		),
+		description: String(sourceFm.description || ""),
+		keywords,
+		author: String(sourceFm.author || "obra"),
+		version: "0.1.0",
+		harnesses: ["claude-code", "codex", "cursor"],
+		type: "skill",
+		inclusion: "manual",
+		categories: ["documentation"],
+		ecosystem: [],
+		depends,
+		enhances: [],
+		maturity: "stable",
+		trust: "community",
+		audience: "intermediate",
+		"model-assumptions": [],
+		collections: opts.collections ?? [],
+		"inherit-hooks": false,
+		outcomes: [],
+	};
+
+	const frontmatterYaml = yaml.dump(fm, { lineWidth: -1 });
+	const body = parsed.content.trim();
+	const knowledgeMd = `---\n${frontmatterYaml}---\n${body}\n`;
+
+	const filesWritten: string[] = [];
+
+	if (!opts.dryRun) {
+		await mkdir(join(targetPath, "workflows"), { recursive: true });
+		await writeFile(join(targetPath, "knowledge.md"), knowledgeMd, "utf-8");
+		await writeFile(join(targetPath, "hooks.yaml"), "[]\n", "utf-8");
+		await writeFile(join(targetPath, "mcp-servers.yaml"), "[]\n", "utf-8");
+	}
+
+	filesWritten.push(
+		join(targetPath, "knowledge.md"),
+		join(targetPath, "hooks.yaml"),
+		join(targetPath, "mcp-servers.yaml"),
+	);
+
+	// Copy any additional .md files in the skill dir as workflow references
+	let workflowsCopied = 0;
+	const entries = await readdir(sourceDir);
+	const additionalMd = entries
+		.filter((f) => extname(f) === ".md" && f !== "SKILL.md")
+		.sort();
+
+	for (const file of additionalMd) {
+		const src = join(sourceDir, file);
+		const dest = join(targetPath, "workflows", file);
+		if (!opts.dryRun) {
+			await copyFile(src, dest);
+		}
+		filesWritten.push(dest);
+		workflowsCopied++;
+	}
+
+	return {
+		name,
+		sourcePath: sourceDir,
+		targetPath,
+		filesWritten,
+		workflowsCopied,
+	};
+}
+
 // ── Single directory import ───────────────────────────────────────────────────
 
 async function importOne(
@@ -283,6 +401,19 @@ async function importOne(
 			};
 		}
 		return importKiroSkill(sourceDir, opts);
+	}
+	if (detectedFormat === "superpowers") {
+		if (!entries.includes("SKILL.md")) {
+			return {
+				name: basename(sourceDir),
+				sourcePath: sourceDir,
+				targetPath: "",
+				filesWritten: [],
+				workflowsCopied: 0,
+				skipped: `No SKILL.md found in ${sourceDir}`,
+			};
+		}
+		return importSuperpowers(sourceDir, opts);
 	}
 
 	return {

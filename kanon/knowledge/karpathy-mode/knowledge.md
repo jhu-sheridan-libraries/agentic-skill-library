@@ -11,7 +11,7 @@ keywords:
   - llm-behavior
   - best-practices
 author: Andrej Karpathy (packaged by Forrest Chang)
-version: 0.2.1
+version: 0.2.2
 harnesses:
   - kiro
   - claude-code
@@ -20,6 +20,7 @@ harnesses:
   - windsurf
   - cline
   - qdeveloper
+  - codex
 type: skill
 inclusion: always
 categories:
@@ -30,7 +31,7 @@ enhances: []
 trust: community
 maturity: experimental
 model-assumptions: []
-collections: [jhu, neon-caravan]
+collections: [jh-drcc, neon-caravan]
 inherit-hooks: false
 ---
 # Karpathy Mode

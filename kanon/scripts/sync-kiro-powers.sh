@@ -4,10 +4,10 @@
 # Prerequisites:
 #   1. Add the subtree once (from repo root, clean working tree):
 #        git remote add kiro-powers https://github.com/kirodotdev/powers.git
-#        git subtree add --prefix=skill-forge/upstream/kiro-powers kiro-powers main --squash
+#        git subtree add --prefix=kanon/upstream/kiro-powers kiro-powers main --squash
 #
 #   2. To update later:
-#        git subtree pull --prefix=skill-forge/upstream/kiro-powers kiro-powers main --squash
+#        git subtree pull --prefix=kanon/upstream/kiro-powers kiro-powers main --squash
 #
 # This script handles step 2 + the forge import.
 
@@ -16,7 +16,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FORGE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 REPO_ROOT="$(cd "$FORGE_ROOT/.." && pwd)"
-UPSTREAM_PREFIX="skill-forge/upstream/kiro-powers"
+UPSTREAM_PREFIX="kanon/upstream/kiro-powers"
 UPSTREAM_DIR="$FORGE_ROOT/upstream/kiro-powers"
 
 # ── Colors ─────────────────────────────────────────────────────────────────────
@@ -33,7 +33,7 @@ IMPORT_ONLY=""
 
 usage() {
   cat <<EOF
-${bold}sync-kiro-powers.sh${reset} — Sync upstream Kiro powers into skill-forge knowledge
+${bold}sync-kiro-powers.sh${reset} — Sync upstream Kiro powers into kanon knowledge
 
 ${bold}Usage:${reset}
   ./scripts/sync-kiro-powers.sh [options]
@@ -85,7 +85,7 @@ if [[ -n "$PULL_ONLY" ]]; then
 fi
 
 # ── Step 2: Import into knowledge/ ────────────────────────────────────────────
-echo "${cyan}⚡ Importing powers into skill-forge knowledge...${reset}"
+echo "${cyan}⚡ Importing powers into kanon knowledge...${reset}"
 cd "$FORGE_ROOT"
 
 IMPORT_ARGS=(
