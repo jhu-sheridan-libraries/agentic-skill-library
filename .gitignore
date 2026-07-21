@@ -1,6 +1,6 @@
 # Kiro MCP Manager - Sensitive configuration files
 .kiro/settings/
-skill-forge/.kiro/
+kanon/.kiro/
 
 # forge user-global config — contains credentials, backend tokens, personal overrides.
 # This file lives at ~/.forge/config.yaml and must never be committed.
@@ -16,3 +16,7 @@ skill-forge/.forge-publish/
 # forge install manifest — written to project roots on install, not part of source
 .forge-manifest.json
 .DS_Store
+kanon/kiro-specs-workspace/iteration-1/benchmark.json
+
+# eval workspaces
+kanon/*workspace*
