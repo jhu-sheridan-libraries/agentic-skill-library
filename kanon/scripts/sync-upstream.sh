@@ -215,13 +215,17 @@ sync_one() {
 
   # Determine the source path for import.
   # For formats that have a nested skills directory (superpowers), point there.
+  # Resolve the actual upstream directory name from the prefix
+  # The prefix is relative to repo root, e.g., "kanon/upstream/superpowers"
+  # We need the path relative to FORGE_ROOT, so strip the leading "kanon/"
+  local relative_prefix="${prefix#kanon/}"
   local import_source
   if [[ "$format" == "superpowers" && -n "$skills_path" ]]; then
-    import_source="upstream/${name##*/}/$skills_path"
+    import_source="$relative_prefix/$skills_path"
   elif [[ "$format" == "superpowers" ]]; then
-    import_source="upstream/${name##*/}/skills"
+    import_source="$relative_prefix/skills"
   else
-    import_source="upstream/${name##*/}"
+    import_source="$relative_prefix"
   fi
 
   # Resolve the actual upstream directory name from the prefix
