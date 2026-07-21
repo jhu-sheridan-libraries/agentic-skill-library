@@ -14,7 +14,7 @@ keywords:
   - implementation-plan
   - multi-agent-coordination
 author: Steven J. Miklovic
-version: 0.4.0
+version: 0.4.1
 type: skill
 inclusion: manual
 categories:
@@ -23,6 +23,8 @@ categories:
 harnesses:
   - kiro
   - claude-code
+  - codex
+  - cursor
 ecosystem: []
 depends: []
 enhances: []
@@ -211,7 +213,7 @@ Template:
   - _Requirements: 2, 4_
 ```
 
-Use `- [ ]` for open tasks and `- [x]` for completed ones. Sub-tasks use decimal numbering (`2.1`, `2.2`), and each references the requirement criteria it satisfies via `_Requirements: 2.3, 5.1_` (i.e. `requirement.criterion`). Tasks may carry ordering dependencies and may be marked optional vs required. When tasks are drafted, stop and request approval before executing.
+Use `- [ ]` for open tasks and `- [x]` for completed ones. Kiro also recognizes `- [~]` for a task that's checked out / in progress — set it when you start a task and leave `- [ ]` alone until then, so a task's marker always reflects its real lifecycle state (open → in-progress → done) rather than just done-or-not. Sub-tasks use decimal numbering (`2.1`, `2.2`), and each references the requirement criteria it satisfies via `_Requirements: 2.3, 5.1_` (i.e. `requirement.criterion`). Tasks may carry ordering dependencies and may be marked optional vs required. When tasks are drafted, stop and request approval before executing.
 
 ## Bugfix specs
 
@@ -241,7 +243,7 @@ When asked to work with a spec that already exists:
 
 1. List `.kiro/specs/` to find spec folders; read the files in a folder to load full context. Check `.config.kiro` for `specType` (`feature` vs `bugfix`) and `workflowType` (`requirements-first` vs `design-first`) so you know which document leads.
 2. Determine the current phase from what exists and how complete it is: requirements/bugfix only → still in phase 1; that plus design → phase 2 done, ready for tasks; all present with a task list → ready to execute.
-3. In `tasks.md`, checked boxes (`- [x]`) show completed work and unchecked (`- [ ]`) show what remains. The first unchecked task is normally the next to do. If the codebase may already implement some tasks (e.g. done in another session), offer to scan and reconcile the checkboxes before proceeding.
+3. In `tasks.md`, `- [x]` shows completed work, `- [~]` shows a task currently checked out by an agent, and `- [ ]` shows what's untouched. The first `- [ ]` (or a stale `- [~]` — see below) is normally the next to do. If the codebase may already implement some tasks (e.g. done in another session), offer to scan and reconcile the markers before proceeding.
 4. Summarize the spec's intent and current state back to the user before acting, so you are aligned on where things stand.
 
 ## Modifying a spec
@@ -255,11 +257,12 @@ Execution means implementing the plan in `tasks.md` one task at a time, with the
 The loop for each task:
 
 1. **Confirm the target.** Identify the next unchecked task (or the specific task the user names). State which task you are about to start.
-2. **Load context.** Re-read `requirements.md` and `design.md` as needed so the implementation matches the agreed plan and the task's referenced requirements.
-3. **Implement only that task.** Write or modify exactly the code the task describes. Follow test-first ordering when the task calls for it. Do not skip ahead to later tasks.
-4. **Verify.** Run the relevant tests, linter, or build for the change. Confirm the referenced acceptance criteria are actually met.
-5. **Mark complete.** Update the checkbox from `- [ ]` to `- [x]` in `tasks.md` once the task is done and verified.
-6. **Report and stop.** Summarize what changed and what the next task is, then pause for the user before continuing to the next task.
+2. **Mark started.** Set the task's marker from `- [ ]` to `- [~]` in `tasks.md` before touching code, so anyone else looking at the plan (human or agent) sees it's checked out rather than assuming it's still open.
+3. **Load context.** Re-read `requirements.md` and `design.md` as needed so the implementation matches the agreed plan and the task's referenced requirements.
+4. **Implement only that task.** Write or modify exactly the code the task describes. Follow test-first ordering when the task calls for it. Do not skip ahead to later tasks.
+5. **Verify.** Run the relevant tests, linter, or build for the change. Confirm the referenced acceptance criteria are actually met.
+6. **Mark complete.** Update the marker from `- [~]` to `- [x]` in `tasks.md` once the task is done and verified.
+7. **Report and stop.** Summarize what changed and what the next task is, then pause for the user before continuing to the next task.
 
 Rules of thumb during execution: implement one task per turn unless the user explicitly says to continue through several; never mark a task complete while its tests fail or the work is partial; if a task turns out to be underspecified or wrong given what you find in the code, stop and raise it rather than guessing; and if new work surfaces that the plan doesn't cover, propose adding a task rather than doing undocumented work.
 
@@ -271,9 +274,9 @@ In Kiro, `#spec` (or `#spec:<name>`) pulls a spec's full context — all its fil
 
 ## Coordinating work across agents
 
-Because `.kiro/specs/` is shared and file-based, a spec is a natural place to divide and coordinate work between multiple agents — for example Claude Code and Cowork working the same feature, or several sessions running in parallel. The challenge is that `tasks.md` only carries `- [ ]` / `- [x]` — it records *whether* a task is done, but not *who owns it* or *what's in flight*. And Kiro rewrites `tasks.md` on Sync/Refine and only understands those two markers, so ownership annotations can't safely live inline.
+Because `.kiro/specs/` is shared and file-based, a spec is a natural place to divide and coordinate work between multiple agents — for example Claude Code and Cowork working the same feature, or several sessions running in parallel. The challenge is that `tasks.md`'s three markers (`- [ ]` / `- [~]` / `- [x]`) record a task's *lifecycle* — open, checked out, or done — but not *who* checked it out, its dependencies, or a lease that lets a stalled claim be recovered. And Kiro rewrites `tasks.md` on Sync/Refine and only understands those three markers, so richer ownership annotations can't safely live inline.
 
-The convention this skill uses: keep completion state in `tasks.md` (the shared source of truth Kiro understands), and keep ownership/coordination state in a separate **`COORDINATION.md`** sidecar in the spec folder. Kiro ignores `COORDINATION.md`, so it survives Sync/Refine and stays readable in diffs. It holds a task-ownership table and a running handoff log:
+The convention this skill uses: keep the lifecycle marker in `tasks.md` (the shared source of truth Kiro understands — `[ ]`/`[~]`/`[x]`), and keep richer ownership/coordination state in a separate **`COORDINATION.md`** sidecar in the spec folder. Kiro ignores `COORDINATION.md`, so it survives Sync/Refine and stays readable in diffs. It holds a task-ownership table and a running handoff log:
 
 ```markdown
 # Coordination — user-authentication
@@ -291,16 +294,16 @@ The convention this skill uses: keep completion state in `tasks.md` (the shared 
 - 2026-07-17T14:20:00Z cowork → code: schema landed, wire up the API layer next
 ```
 
-Statuses are `open`, `claimed`, `in-progress`, `done`, `blocked`. The completion signal in `tasks.md` and the `done` rows in `COORDINATION.md` should agree — when they drift, `tasks.md` wins (it's what Kiro and humans read). Two columns support parallel work: **Deps** lists task ids that must be `done` before this task can be claimed, and **Lease until** is a timestamp past which an owner's claim is considered stale and may be taken over automatically (so a crashed or wandered-off agent doesn't block a task forever).
+Statuses are `open`, `claimed`, `in-progress`, `done`, `blocked` — a finer breakdown than `tasks.md`'s three markers (`claimed` and `in-progress` both correspond to `[~]`; `open` and `blocked` both correspond to `[ ]`). The completion/in-progress signal in `tasks.md` and the corresponding rows in `COORDINATION.md` should agree — `kanon spec claim`/`next`/`release`/`done` keep them in sync automatically, and when they drift anyway, `tasks.md` wins (it's what Kiro and humans read). Two columns support parallel work: **Deps** lists task ids that must be `done` before this task can be claimed, and **Lease until** is a timestamp past which an owner's claim is considered stale and may be taken over automatically (so a crashed or wandered-off agent doesn't block a task forever).
 
 The protocol each agent follows:
 
-1. **Pull work.** Ask for the next actionable task rather than picking by hand — `kanon spec next --agent <name>` selects the lowest-id task whose dependencies are all done and that nobody actively holds, and claims it for you atomically. This is the call an agent makes most often. `kanon spec channel` is an alias for the same command, for teams who've adopted the "Kirouija" framing below — the planchette (the task) moves to whichever agent's hands are on the board.
+1. **Pull work.** Ask for the next actionable task rather than picking by hand — `kanon spec next --agent <name>` selects the lowest-id task whose dependencies are all done and that nobody actively holds, claims it in `COORDINATION.md`, and flips its `tasks.md` marker to `[~]` — all atomically. This is the call an agent makes most often. `kanon spec channel` is an alias for the same command, for teams who've adopted the "Kirouija" framing below — the planchette (the task) moves to whichever agent's hands are on the board.
 2. **Work** exactly that task, following the guided-execution loop above.
-3. **Complete**: check the box in `tasks.md` *and* set the row to `done` (one step via `kanon spec done`).
+3. **Complete**: `kanon spec done` flips the `tasks.md` marker to `[x]` *and* sets the `COORDINATION.md` row to `done` in one step.
 4. **Hand off**: record what you finished and what's next, so the next agent has context.
 
-If you'd rather target a specific task instead of taking the next one, `kanon spec claim` a known id — it enforces the same dependency and ownership guards.
+If you'd rather target a specific task instead of taking the next one, `kanon spec claim` a known id — it enforces the same dependency and ownership guards and also sets the task's `tasks.md` marker to `[~]`.
 
 ### Declaring dependencies
 
@@ -331,7 +334,7 @@ kanon spec reconcile <spec>                              # sync rows + deps to t
 kanon spec handoff <spec> "<message>" --from <a> --to <b>
 ```
 
-Key behaviors: `next` is the primary work-pulling call — it never hands back a blocked or actively-held task, and it reclaims tasks whose lease expired. `claim` refuses a task actively owned by a different agent (use `--force` to take over) and refuses a task with unmet dependencies (use `--ignore-deps` to override); a claim whose lease has expired is *not* a conflict and can be reclaimed without `--force`. `done` toggles the real `tasks.md` checkbox and marks coordination done in one step. `reconcile` repairs drift — adding rows for new tasks, adopting `_Depends:_` markers, and marking rows done where the checkbox is checked (never un-checking or deleting). `--json` on `list`/`status`/`next` gives an orchestrating agent machine-readable state. If `COORDINATION.md` doesn't exist yet, any command seeds it from the current `tasks.md`.
+Key behaviors: `next` is the primary work-pulling call — it never hands back a blocked or actively-held task, and it reclaims tasks whose lease expired; on success it flips the task's `tasks.md` marker to `[~]`. `claim` refuses a task actively owned by a different agent (use `--force` to take over) and refuses a task with unmet dependencies (use `--ignore-deps` to override); a claim whose lease has expired is *not* a conflict and can be reclaimed without `--force`. Both `claim` and `next` write `[~]`; `--dry-run` on `next` reports the pick without claiming it or touching `tasks.md`. `release` reopens a claim and resets the marker back to `[ ]`. `done` sets the `tasks.md` marker to `[x]` and marks coordination done in one step — this always wins over `[~]`, even if the task was mid-claim. `reconcile` repairs drift — adding rows for new tasks, adopting `_Depends:_` markers, promoting a row to `in-progress` where `tasks.md` shows `[~]`, and marking rows done where the checkbox is `[x]` (never downgrading an existing claim or done status). `--json` on `list`/`status`/`next` gives an orchestrating agent machine-readable state. If `COORDINATION.md` doesn't exist yet, any command seeds it from the current `tasks.md`.
 
 Leases default to 30 minutes. A long-running task should be re-claimed (or use `--lease` with a larger value) so its lease doesn't lapse while legitimately in progress; conversely, if an agent stops, the lease lets the next agent recover the task automatically once it expires.
 
@@ -364,7 +367,8 @@ Writing design detail into requirements, or requirements into tasks — keep eac
 | Continue an existing spec | Read the spec's files, check `.config.kiro` for type/workflow, identify the phase, summarize state, then proceed |
 | Change what the spec covers | Edit the lead document first (requirements or design), propagate down to tasks, re-approve each touched level |
 | Implement the plan | Guided execution loop: one task, verify, check the box, report, pause (or an autonomous run if the user asks) |
-| Check progress | Count `- [x]` vs `- [ ]` in `tasks.md`; first unchecked is next |
+| Check progress | Count `- [x]` (done) / `- [~]` (in progress) / `- [ ]` (open) in `tasks.md`; first `- [ ]` is next |
+| Mark a task in progress | Set its marker to `- [~]` before starting work (`kanon spec claim`/`next` do this automatically) |
 | Need a specId by hand | Generate a real UUID v4 (`uuidgen` / `crypto.randomUUID()` / `uuid.uuid4()`) — never fabricate one |
 | Split work across agents | `kanon spec next --agent <name>` to pull the next ready task, `kanon spec done` to complete, `kanon spec handoff` to pass context; ownership lives in `COORDINATION.md`, completion in `tasks.md` |
 | Order tasks / express blockers | Add `_Depends: <ids>_` markers in `tasks.md`; `next` skips blocked tasks and runs independent ones in parallel |
