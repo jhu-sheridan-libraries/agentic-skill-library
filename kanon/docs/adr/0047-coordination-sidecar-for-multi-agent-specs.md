@@ -80,6 +80,42 @@ Selection, dependency, and lease logic are pure functions (`selectNextTask`,
 `depsSatisfied`, `isLeaseExpired`, `isClaimable`), unit-tested independently of
 the CLI and filesystem.
 
+### Extension: a third `tasks.md` marker for in-progress (2026-07-21)
+
+Kiro itself recognizes three checkbox markers in `tasks.md`, not two: `- [ ]`
+(open), `- [~]` (checked out / in progress), and `- [x]` (done). The original
+model only parsed `[ ]`/`[x]` — a `[~]` line silently failed `TASK_LINE_RE` and
+vanished from `parseTaskLines`, invisible to `status`, `reconcile`, and the
+done/total counts. This was a correctness gap, not just a doc omission: the
+`TaskCoordStatus` enum already had `in-progress` as a value, but nothing wrote
+`[~]` into `tasks.md` to represent it.
+
+- `TaskLine.checked: boolean` became `TaskLine.status: "open" | "in-progress" |
+  "done"`, matching the three real markers. `TASK_LINE_RE`'s marker group
+  extended to `( |x|X|~)`.
+- `setTaskChecked` (open/done only) is now a thin wrapper over a new
+  `setTaskMarker(tasksMd, taskId, status)`, which can also write `[~]`.
+- `reconcile` promotes an `open` row to `in-progress` when `tasks.md` shows
+  `[~]` (e.g. a human or Kiro itself hand-edited the file), but never
+  downgrades an existing `claimed`/`done` row — the same "never un-mark" rule
+  as before, extended to the new marker.
+- `kanon spec claim` and `kanon spec next` now write `[~]` into `tasks.md`
+  when they claim a task (in addition to updating `COORDINATION.md`), so the
+  in-progress state is visible directly in the file Kiro and humans read, not
+  only in the sidecar. `kanon spec release` resets the marker back to `[ ]`.
+  `kanon spec done` still finishes with `[x]`, which always wins over `[~]`.
+  `next --dry-run` reports the pick without writing anything.
+- Added a `kanon spec channel` alias for `kanon spec next` (no behavior
+  change) for teams using the "Kirouija" framing documented in the
+  `kiro-specs` knowledge artifact.
+
+This closes the gap between what Kiro can render/write in `tasks.md` and what
+`kanon spec` understands, without adding new files or growing
+`COORDINATION.md`'s schema — `COORDINATION.md`'s five-state model (`open`,
+`claimed`, `in-progress`, `done`, `blocked`) is unchanged; it's simply now
+reflected accurately in `tasks.md`'s three-state marker instead of a
+two-state approximation.
+
 ## Consequences
 
 ### Positive
