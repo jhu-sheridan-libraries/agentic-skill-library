@@ -1,11 +1,11 @@
 ---
-name: codeshop
+name: whetstone
 description: "A collection of 25 developer workflow skills covering planning, design, development, testing, writing, and knowledge management. Actionable, phase-driven workflows with shared vocabulary and natural chaining."
 ---
 
 ## Onboarding
 
-Codeshop is a collection of 25 developer workflow skills covering planning, design, development, testing, writing, and knowledge management. Each skill is either a multi-phase Workflow Skill (with step-by-step phases you progress through) or a flat Knowledge Skill (a behavioral mode or reference you load once). Together they give you structured, opinionated workflows for tasks like TDD, architecture review, domain modeling, issue triage, PRD drafting, and documentation.
+Whetstone is a collection of 25 developer workflow skills covering planning, design, development, testing, writing, and knowledge management. Each skill is either a multi-phase Workflow Skill (with step-by-step phases you progress through) or a flat Knowledge Skill (a behavioral mode or reference you load once). Together they give you structured, opinionated workflows for tasks like TDD, architecture review, domain modeling, issue triage, PRD drafting, and documentation.
 
 ### How it works
 
@@ -70,7 +70,7 @@ Match the user's request to the right reference file. Each skill is either a **W
 | edit-article (edit-article) | Knowledge | `edit-article.md` | "edit article", "proofread", "improve writing" | Edit and improve articles by restructuring sections, improving clarity, and tightening prose. |
 | define-glossary (ubiquitous-language) | Knowledge | `define-glossary.md` | "define glossary", "ubiquitous language", "domain terms" | Extract a DDD-style ubiquitous language glossary from the current conversation, flagging ambiguities and proposing canonical terms. |
 | write-living-docs (new, original to codeshop) | Workflow | `write-living-docs.md` | "living docs", "documentation audit", "harvest docs" | Derive reliable, low-effort documentation from authoritative sources in the codebase using Living Documentation principles. |
-| craft-commits (commit-craft catalog) | Knowledge | `craft-commits.md` | "commit message", "craft commit", "conventional commit" | Write commit messages that tell the story of why, not just what — conventional commit format with motivation over mechanics. |
+| craft-commits (commit-craft catalog) | Knowledge | `craft-commits.md` | "commit message", "craft commit", "conventional commit", "create PR", "open pull request", "merge strategy", "branch naming", "push changes", "squash merge", "tag release", "PR description", "ship it" | Full commit-to-merge delivery lifecycle — commit messages, branching, PR creation, merge strategy, push safety, tagging, and issue linking. |
 | map-context (zoom-out) | Knowledge | `map-context.md` | "zoom out", "map context", "show dependencies" | Zoom out to a higher level of abstraction and map all relevant modules and callers for an unfamiliar area of code. |
 | laconic-output (caveman) | Knowledge | `laconic-output.md` | "be brief", "laconic mode", "terse output", "spartan mode" | Spartan communication mode — every word earns its place or gets cut. Grammar stays intact, sentences stripped to their load-bearing minimum. No warmth, no hedging, no filler. |
 | list-skills (new) | Knowledge | `list-skills.md` | "list skills", "what can codeshop do", "show available workflows", "show the menu" | Present the complete codeshop skill index formatted by category with trigger phrases — a quick-reference card for all 24 workflows. |
@@ -500,7 +500,7 @@ If the agent still selects the wrong workflow, explicitly name the skill: "Load 
 ---
 **License:** MIT (SPDX: `MIT`)
 **Privacy Policy:** This power is local workflow guidance. It collects no telemetry and transmits no data. Some workflows invoke local tools only when you direct them — `git`, your test runner, and the `gh` CLI (which talks to GitHub to file issues you ask it to create). Source and statement: https://github.com/thinkingsage/context-bazaar
-**Support:** https://github.com/thinkingsage/context-bazaar/issues
+**Support:** https://github.com/jhu-sheridan-libraries/agentic-skill-library/issues
 **Author:** Steven J. Miklovic
 **MCP servers:** None — this is a knowledge-only power.
 

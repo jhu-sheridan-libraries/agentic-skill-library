@@ -2,12 +2,18 @@
  * Multi-agent coordination for Kiro Specs.
  *
  * Kiro Specs (`.kiro/specs/<name>/`) hold three markdown files plus a
- * Kiro-managed `.config.kiro` sidecar. Kiro understands three checkbox
- * markers in `tasks.md` — `- [ ]` (open), `- [~]` (checked out / in progress),
- * and `- [x]` (done) — so `tasks.md` is the shared source of truth for a
- * task's *lifecycle marker*. Ownership (which agent holds a claim, lease
- * expiry, handoff notes) still has nowhere to live inline, so that state
- * lives in a separate `COORDINATION.md` sidecar that Kiro leaves untouched.
+ * Kiro-managed `.config.kiro` sidecar. Kiro's documented `tasks.md` format
+ * only defines two checkbox markers — `- [ ]` (open) and `- [x]` (done). This
+ * module additionally recognizes `- [~]` as a de facto "checked out / in
+ * progress" marker: it isn't part of Kiro's documented format, but it shows
+ * up widely in real tasks.md files under .kiro/specs/ written by AI coding
+ * agents as a convention of their own. Kiro's own IDE behavior toward an
+ * unrecognized marker (e.g. on Sync/Refine) is unconfirmed — treat `[~]` as
+ * this skill's convention for coordinating in-progress state, not a
+ * guaranteed-safe native Kiro feature. Ownership (which agent holds a claim,
+ * lease expiry, handoff notes) still has nowhere to live inline, so that
+ * state lives in a separate `COORDINATION.md` sidecar that Kiro leaves
+ * untouched.
  *
  * The spec's folder NAME is the identity key — `.config.kiro` `specId` values
  * are not unique (copied/branched specs reuse them), so never key coordination
