@@ -495,6 +495,6 @@ If the agent still selects the wrong workflow, explicitly name the skill: "Load 
 ---
 **License:** MIT (SPDX: `MIT`)
 **Privacy Policy:** This power is local workflow guidance. It collects no telemetry and transmits no data. Some workflows invoke local tools only when you direct them — `git`, your test runner, and the `gh` CLI (which talks to GitHub to file issues you ask it to create). Source and statement: https://github.com/thinkingsage/context-bazaar
-**Support:** https://github.com/thinkingsage/context-bazaar/issues
+**Support:** https://github.com/jhu-sheridan-libraries/agentic-skill-library/issues
 **Author:** Steven J. Miklovic
 **MCP servers:** None — this is a knowledge-only power.

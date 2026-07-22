@@ -23,7 +23,7 @@ When in doubt, report privately. We'll tell you if it belongs in the public trac
 
 **Do not open a public GitHub issue for security vulnerabilities.**
 
-Report via [GitHub private vulnerability reporting](https://github.com/thinkingsage/context-bazaar/security/advisories/new) — this creates an encrypted, private advisory visible only to maintainers.
+Report via [GitHub private vulnerability reporting](https://github.com/jhu-sheridan-libraries/agentic-skill-library/security/advisories/new) — this creates an encrypted, private advisory visible only to maintainers.
 
 Include:
 - A description of the vulnerability and its impact
