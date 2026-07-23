@@ -36,7 +36,7 @@ harnesses:
   - claude-code
   - codex
   - cursor
-type: power
+type: skill
 inclusion: auto
 categories:
   - architecture

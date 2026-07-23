@@ -15,7 +15,8 @@ author: Kiro Power Builder
 version: 0.2.0
 harnesses:
   - kiro
-type: power
+  - claude-code
+type: skill
 inclusion: manual
 categories:
   - documentation

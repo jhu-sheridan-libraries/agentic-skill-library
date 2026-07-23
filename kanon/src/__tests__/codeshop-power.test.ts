@@ -84,7 +84,9 @@ describe("codeshop power — structural validation", () => {
 		if (result.success) {
 			expect(result.data.name).toBe("codeshop");
 			expect(result.data.displayName).toBe("Codeshop");
-			expect(result.data.type).toBe("power");
+			// "power" is a deprecated alias for "skill" (ADR-0051) — the artifact's
+			// Kiro power rendering comes from harness-config.kiro.format, not type.
+			expect(result.data.type).toBe("skill");
 		}
 	});
 

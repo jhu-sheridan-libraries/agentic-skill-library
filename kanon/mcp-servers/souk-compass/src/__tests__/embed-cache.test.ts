@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, unlinkSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { CachedEmbeddingProvider, contentHash } from "../embed-cache.js";
 import type { EmbeddingProvider } from "../embedding-provider.js";
@@ -32,7 +33,7 @@ function makeMockSolrClient(
 	} as unknown as SoukVectorClient;
 }
 
-const TEST_DB_PREFIX = "/tmp/souk-compass-test-";
+const TEST_DB_PREFIX = join(tmpdir(), "souk-compass-test-");
 
 function tmpDbPath(): string {
 	return `${TEST_DB_PREFIX}${Date.now()}-${Math.random().toString(36).slice(2)}.db`;
@@ -165,12 +166,8 @@ describe("CachedEmbeddingProvider", () => {
 		});
 
 		test("auto-creates DB file and directory", async () => {
-			const nestedPath = join(
-				"/tmp",
-				`souk-test-nested-${Date.now()}`,
-				"sub",
-				"cache.db",
-			);
+			const nestedDir = join(tmpdir(), `souk-test-nested-${Date.now()}`);
+			const nestedPath = join(nestedDir, "sub", "cache.db");
 			const provider = makeMockProvider();
 
 			const cache = new CachedEmbeddingProvider({
@@ -187,8 +184,8 @@ describe("CachedEmbeddingProvider", () => {
 			cleanupDb(nestedPath);
 			try {
 				const { rmdirSync } = require("node:fs");
-				rmdirSync(join("/tmp", `souk-test-nested-${Date.now()}`, "sub"));
-				rmdirSync(join("/tmp", `souk-test-nested-${Date.now()}`));
+				rmdirSync(join(nestedDir, "sub"));
+				rmdirSync(nestedDir);
 			} catch {
 				/* best effort */
 			}
@@ -196,7 +193,7 @@ describe("CachedEmbeddingProvider", () => {
 
 		test("corrupted SQLite logs warning and skips tier", async () => {
 			// Write garbage to the DB path to simulate corruption
-			mkdirSync("/tmp", { recursive: true });
+			mkdirSync(tmpdir(), { recursive: true });
 			writeFileSync(dbPath, "this is not a valid sqlite database!!!");
 
 			const provider = makeMockProvider({

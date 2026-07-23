@@ -49,6 +49,10 @@ export const KiroHarnessConfigSchema = z
 
 export const AssetTypeSchema = z.enum([
 	"skill",
+	// Deprecated alias for "skill" — "power" is Kiro's own output-format
+	// concept (harness-config.kiro.format: "power"), not a taxonomy value.
+	// Kept valid for backward compat only; canonical going forward is
+	// type: "skill" + an explicit harness-config.kiro.format. See ADR-0051.
 	"power",
 	"rule",
 	"workflow",

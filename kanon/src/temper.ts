@@ -9,6 +9,7 @@ import {
 } from "./adapters/capabilities";
 import { adapterRegistry } from "./adapters/index";
 import type { AdapterContext } from "./adapters/types";
+import { documentsAgentLoop } from "./asset-conventions";
 import { generateCatalog, SOURCE_DIRS } from "./catalog";
 import { isParseError, loadKnowledgeArtifact } from "./parser";
 import type {
@@ -332,7 +333,14 @@ function isCapabilityUsed(
 		case "toggleable_rules":
 			return artifact.frontmatter.inclusion === "manual";
 		case "agents":
-			return artifact.frontmatter.type === "agent";
+			// Type-aware, not type-literal: an artifact whose body documents
+			// agent-loop behavior (goal/inputs/outputs/loop headings) gets
+			// degradation reporting even when its declared `type` is something
+			// else (e.g. "power") — see ADR-0050.
+			return (
+				artifact.frontmatter.type === "agent" ||
+				documentsAgentLoop(artifact.body)
+			);
 		case "file_match_inclusion":
 			return (artifact.frontmatter.file_patterns?.length ?? 0) > 0;
 		case "system_prompt_merging":
