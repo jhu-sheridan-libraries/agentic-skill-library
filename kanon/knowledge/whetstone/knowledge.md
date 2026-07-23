@@ -41,7 +41,7 @@ inclusion: auto
 categories:
   - architecture
   - testing
-  - development
+  - devops
 ecosystem: []
 depends: []
 enhances: []
