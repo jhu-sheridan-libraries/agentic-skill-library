@@ -1,5 +1,5 @@
 ---
-name: whetsone
+name: whetstone
 displayName: Whetstone
 description: A collection of 25 developer workflow skills covering planning, design, development, testing, writing, and knowledge management. Actionable, phase-driven workflows with shared vocabulary and natural chaining.
 keywords:
@@ -30,7 +30,7 @@ keywords:
   - test-optimization
   - vertical-slices
 author: Steven J. Miklovic
-version: 0.4.1
+version: 0.4.2
 harnesses:
   - kiro
   - claude-code
@@ -41,7 +41,7 @@ inclusion: auto
 categories:
   - architecture
   - testing
-  - devops
+  - code-style
 ecosystem: []
 depends: []
 enhances: []
