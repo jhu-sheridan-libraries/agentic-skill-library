@@ -20,7 +20,7 @@ harnesses:
   - windsurf
   - cline
   - qdeveloper
-type: power
+type: skill
 inclusion: auto
 categories:
   - security
