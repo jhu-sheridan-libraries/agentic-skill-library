@@ -34,7 +34,7 @@ version: 0.4.0
 harnesses:
   - kiro
   - claude-code
-type: power
+type: skill
 inclusion: auto
 categories:
   - architecture

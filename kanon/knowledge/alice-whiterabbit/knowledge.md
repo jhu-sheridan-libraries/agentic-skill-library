@@ -38,7 +38,7 @@ harnesses:
   - kiro
   - claude-code
   - cursor
-type: power
+type: skill
 inclusion: auto
 categories:
   - architecture

@@ -285,9 +285,11 @@ Body content.`,
 describe("Asset type field validation (expanded taxonomy)", () => {
 	/**
 	 * Validates: Phase 1 bazaar schema — type is now the asset taxonomy, not output format.
-	 * Setting type: power is valid without per-harness format (no deprecation warning).
+	 * Setting type: power is valid without per-harness format (still builds), but is
+	 * flagged by the ADR-0051 deprecation warning regardless of harness-config, since
+	 * "power" is deprecated as a *type* value, independent of Kiro's format field.
 	 */
-	test("type: power is valid without per-harness format and produces no warning", async () => {
+	test("type: power is valid without per-harness format but produces a deprecation warning", async () => {
 		const artifactDir = join(tempDir, "type-no-format");
 		await mkdir(artifactDir, { recursive: true });
 		await writeFile(
@@ -303,10 +305,12 @@ Body content.`,
 
 		const result = await validateArtifact(artifactDir);
 		expect(result.valid).toBe(true);
-		// No type-field deprecation warning; output format is controlled by harness-config
 		const typeWarnings =
 			result.warnings?.filter((w) => w.field === "type") ?? [];
-		expect(typeWarnings.length).toBe(0);
+		expect(typeWarnings.length).toBe(1);
+		expect(typeWarnings[0].message).toBe(
+			ASSET_CONVENTION_RULES["type-power-deprecated"],
+		);
 	});
 
 	/**
@@ -333,9 +337,11 @@ Body content.`,
 	});
 
 	/**
-	 * Validates: No warning when format is present in harness-config alongside type.
+	 * Validates: ADR-0051 — type: power is deprecated regardless of whether
+	 * harness-config.kiro.format is also set to "power"; the warning is about
+	 * the deprecated *type* value, not a missing/mismatched format.
 	 */
-	test("no warning when format is present in harness-config", async () => {
+	test("still warns on type: power even when harness-config.kiro.format: power is also present", async () => {
 		const artifactDir = join(tempDir, "type-with-format");
 		await mkdir(artifactDir, { recursive: true });
 		await writeFile(
@@ -343,6 +349,34 @@ Body content.`,
 			`---
 name: type-with-format
 type: power
+harnesses:
+  - kiro
+harness-config:
+  kiro:
+    format: power
+---
+Body content.`,
+		);
+
+		const result = await validateArtifact(artifactDir);
+		expect(result.valid).toBe(true);
+		const typeWarnings =
+			result.warnings?.filter((w) => w.field === "type") ?? [];
+		expect(typeWarnings.length).toBe(1);
+	});
+
+	/**
+	 * Validates: ADR-0051 — the canonical replacement shape (type: skill +
+	 * harness-config.kiro.format: power) produces no deprecation warning.
+	 */
+	test("no warning for type: skill with harness-config.kiro.format: power (canonical replacement)", async () => {
+		const artifactDir = join(tempDir, "type-skill-with-power-format");
+		await mkdir(artifactDir, { recursive: true });
+		await writeFile(
+			join(artifactDir, "knowledge.md"),
+			`---
+name: type-skill-with-power-format
+type: skill
 harnesses:
   - kiro
 harness-config:
@@ -731,6 +765,68 @@ Body content.`,
 				w.message === ASSET_CONVENTION_RULES["reference-pack-must-be-manual"],
 		);
 		expect(refPackWarning).toBeDefined();
+	});
+
+	/**
+	 * agent artifact whose body has no goal/inputs/outputs/loop headings
+	 * produces an agent-should-document-loop warning.
+	 */
+	test("agent without documented loop produces warning", async () => {
+		const artifactDir = join(tempDir, "agent-undocumented");
+		await mkdir(artifactDir, { recursive: true });
+		await writeFile(
+			join(artifactDir, "knowledge.md"),
+			`---
+name: agent-undocumented
+type: agent
+harnesses:
+  - kiro
+---
+Just some prose with no structure.`,
+		);
+
+		const result = await validateArtifact(artifactDir);
+		expect(result.valid).toBe(true);
+		const agentWarning = result.warnings?.find(
+			(w) => w.message === ASSET_CONVENTION_RULES["agent-should-document-loop"],
+		);
+		expect(agentWarning).toBeDefined();
+	});
+
+	/**
+	 * agent artifact whose body documents at least two of
+	 * goal/inputs/outputs/loop produces no warning.
+	 */
+	test("agent with documented loop produces no warning", async () => {
+		const artifactDir = join(tempDir, "agent-documented");
+		await mkdir(artifactDir, { recursive: true });
+		await writeFile(
+			join(artifactDir, "knowledge.md"),
+			`---
+name: agent-documented
+type: agent
+harnesses:
+  - kiro
+---
+## Goal
+
+Investigate incidents.
+
+## Inputs
+
+A CloudWatch alarm ID.
+
+## Outputs
+
+A remediation summary.`,
+		);
+
+		const result = await validateArtifact(artifactDir);
+		expect(result.valid).toBe(true);
+		const agentWarning = result.warnings?.find(
+			(w) => w.message === ASSET_CONVENTION_RULES["agent-should-document-loop"],
+		);
+		expect(agentWarning).toBeUndefined();
 	});
 
 	/**
