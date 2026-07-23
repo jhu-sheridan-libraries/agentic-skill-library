@@ -27,6 +27,8 @@ depends: []
 enhances: []
 maturity: stable
 inherit-hooks: false
+collections:
+  - byron-powers
 ---
 # Proofreader Review Checklist
 

@@ -80,6 +80,56 @@ Selection, dependency, and lease logic are pure functions (`selectNextTask`,
 `depsSatisfied`, `isLeaseExpired`, `isClaimable`), unit-tested independently of
 the CLI and filesystem.
 
+### Extension: a third `tasks.md` marker for in-progress (2026-07-21)
+
+Kiro's own documented `tasks.md` format defines two checkbox markers: `- [ ]`
+(open) and `- [x]` (done) — confirmed against Kiro's docs site and the real
+`tasks.md` in Kiro's own example repo (`kirodotdev/Kiro`), neither of which
+show a third marker. However, `- [~]` ("checked out / in progress") shows up
+widely in real `.kiro/specs/*/tasks.md` files across public repos — traced to
+AI coding agents adopting it as their own convention (e.g. one project's
+`AGENTS.md` instructs its agent to "mark it `[~]`" when a task is partial),
+not to Kiro's IDE reading or writing it natively. This module treats `[~]` as
+**this skill's own convention**, not a documented Kiro feature — Kiro's
+Sync/Refine behavior toward an unrecognized marker is unconfirmed.
+
+Before this extension, the model only parsed `[ ]`/`[x]` — a `[~]` line
+silently failed `TASK_LINE_RE` and vanished from `parseTaskLines`, invisible
+to `status`, `reconcile`, and the done/total counts. That was a correctness
+gap regardless of `[~]`'s provenance: the `TaskCoordStatus` enum already had
+`in-progress` as a value, but nothing wrote a corresponding marker into
+`tasks.md` to represent it, so a spec hand-edited with `[~]` (by a human or
+another agent) would silently regress to "open" from this tool's point of
+view.
+
+- `TaskLine.checked: boolean` became `TaskLine.status: "open" | "in-progress" |
+  "done"`, matching the three markers this skill recognizes. `TASK_LINE_RE`'s
+  marker group extended to `( |x|X|~)`.
+- `setTaskChecked` (open/done only) is now a thin wrapper over a new
+  `setTaskMarker(tasksMd, taskId, status)`, which can also write `[~]`.
+- `reconcile` promotes an `open` row to `in-progress` when `tasks.md` shows
+  `[~]` (e.g. a human or another agent hand-edited the file), but never
+  downgrades an existing `claimed`/`done` row — the same "never un-mark" rule
+  as before, extended to the new marker.
+- `kanon spec claim` and `kanon spec next` now write `[~]` into `tasks.md`
+  when they claim a task (in addition to updating `COORDINATION.md`), so the
+  in-progress state is visible directly in the file, not only in the sidecar.
+  `kanon spec release` resets the marker back to `[ ]`. `kanon spec done`
+  still finishes with `[x]`, which always wins over `[~]`. `next --dry-run`
+  reports the pick without writing anything.
+- Added a `kanon spec channel` alias for `kanon spec next` (no behavior
+  change) for teams using the "Kirouija" framing documented in the
+  `kiro-specs` knowledge artifact.
+
+This closes the internal gap between what this skill's users may write into
+`tasks.md` and what `kanon spec` understands, without adding new files or
+growing `COORDINATION.md`'s schema — `COORDINATION.md`'s five-state model
+(`open`, `claimed`, `in-progress`, `done`, `blocked`) is unchanged; it's
+simply now reflected accurately in `tasks.md`'s three-marker convention
+instead of a two-marker approximation. Because `[~]` isn't Kiro-documented,
+a user relying on the native Kiro IDE (not `kanon spec`) to author or sync a
+spec should be told this is a convention, not an assumed-safe native feature.
+
 ## Consequences
 
 ### Positive
@@ -106,6 +156,10 @@ the CLI and filesystem.
   Adequate for human-paced agent work; not a substitute for a real lock service.
 - Lease expiry is wall-clock based: a legitimately long task can lose its lease
   if not re-claimed, and a very short `--lease` risks premature takeover.
+- `[~]` in `tasks.md` is this skill's own convention, not a Kiro-documented
+  marker — Kiro's IDE behavior toward it (e.g. whether Sync/Refine preserves,
+  strips, or otherwise mishandles it) is unconfirmed. Users mixing the native
+  Kiro IDE with `kanon spec` on the same spec should be told this explicitly.
 - Dependencies are advisory (`--ignore-deps` exists) and only as good as the
   `_Depends:_` markers authors add; the system does not infer them.
 

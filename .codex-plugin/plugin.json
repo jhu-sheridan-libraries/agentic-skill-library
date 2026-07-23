@@ -1,6 +1,6 @@
 {
   "name": "context-bazaar",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Browse curated knowledge artifacts for AI coding assistants from Codex.",
   "author": {
     "name": "Steven J. Miklovic",
@@ -10,7 +10,7 @@
   "repository": "https://github.com/thinkingsage/context-bazaar",
   "license": "BSL-1.0",
   "keywords": [
-    "codex",
+    "library",
     "knowledge",
     "skills",
     "powers",
@@ -23,6 +23,7 @@
     "semantic-search"
   ],
   "mcpServers": "./.mcp.json",
+  "skills": "./kanon/skills/",
   "interface": {
     "displayName": "Context Bazaar",
     "shortDescription": "Browse Kanon knowledge artifacts from Codex",

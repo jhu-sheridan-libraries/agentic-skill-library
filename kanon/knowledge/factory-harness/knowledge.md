@@ -18,7 +18,7 @@ keywords:
   - hierarchical-delegation
   - agent-scaffolding
 author: robin (revfactory), adapted for Kanon by Steven J. Miklovic
-version: 0.1.0
+version: 0.1.1
 harnesses:
   - kiro
   - claude-code
@@ -41,6 +41,8 @@ inherit-hooks: false
 harness-config:
   kiro:
     format: power
+  claude-code:
+    format: skill
   codex:
     format: skill
 ---

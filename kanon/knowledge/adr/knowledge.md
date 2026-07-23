@@ -147,6 +147,6 @@ ADR-012 chose global type fields; ADR-014 repurposes type as taxonomy.
 ---
 **License:** MIT (SPDX: `MIT`)
 **Privacy Policy:** This power runs entirely on the local machine. It reads git history and repository files and writes ADR, index, and changelog files into the repo. It collects no telemetry and transmits no data to any external service. Statement and source: https://github.com/thinkingsage/context-bazaar
-**Support:** https://github.com/thinkingsage/context-bazaar/issues
+**Support:** https://github.com/jhu-sheridan-libraries/agentic-skill-library/issues
 **Author:** Steven J. Miklovic
 **MCP servers:** None — this is a knowledge-only power.

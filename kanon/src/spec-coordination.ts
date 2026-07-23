@@ -2,12 +2,18 @@
  * Multi-agent coordination for Kiro Specs.
  *
  * Kiro Specs (`.kiro/specs/<name>/`) hold three markdown files plus a
- * Kiro-managed `.config.kiro` sidecar. Kiro only understands the standard
- * `- [ ]` / `- [x]` checkbox markers in `tasks.md`, so coordination state for
- * multiple agents working the same spec (who owns a task, whether it is
- * claimed, handoff notes) lives in a separate `COORDINATION.md` sidecar that
- * Kiro leaves untouched. `tasks.md` checkboxes remain the shared source of
- * truth for *completion*; `COORDINATION.md` layers *ownership* on top.
+ * Kiro-managed `.config.kiro` sidecar. Kiro's documented `tasks.md` format
+ * only defines two checkbox markers — `- [ ]` (open) and `- [x]` (done). This
+ * module additionally recognizes `- [~]` as a de facto "checked out / in
+ * progress" marker: it isn't part of Kiro's documented format, but it shows
+ * up widely in real tasks.md files under .kiro/specs/ written by AI coding
+ * agents as a convention of their own. Kiro's own IDE behavior toward an
+ * unrecognized marker (e.g. on Sync/Refine) is unconfirmed — treat `[~]` as
+ * this skill's convention for coordinating in-progress state, not a
+ * guaranteed-safe native Kiro feature. Ownership (which agent holds a claim,
+ * lease expiry, handoff notes) still has nowhere to live inline, so that
+ * state lives in a separate `COORDINATION.md` sidecar that Kiro leaves
+ * untouched.
  *
  * The spec's folder NAME is the identity key — `.config.kiro` `specId` values
  * are not unique (copied/branched specs reuse them), so never key coordination
@@ -85,10 +91,14 @@ export interface CoordinationDoc {
 	handoffs: HandoffEntry[];
 }
 
+/** A task's lifecycle marker as written in tasks.md: `[ ]`, `[~]`, `[x]`. */
+export type TaskMarkerStatus = "open" | "in-progress" | "done";
+
 /** A checkbox task parsed from tasks.md. */
 export interface TaskLine {
 	id: string;
-	checked: boolean;
+	/** Derived from the checkbox marker: ` `→open, `~`→in-progress, `x`/`X`→done. */
+	status: TaskMarkerStatus;
 	text: string;
 	/**
 	 * Dependency task ids declared in tasks.md via a `_Depends: 1, 2.3_` marker
@@ -130,9 +140,10 @@ export function makeSpecConfig(opts: {
 
 // --- tasks.md checkboxes ----------------------------------------------------
 
-// Matches lines like "- [ ] 2.1 Do the thing" or "  - [x] 3 Wire it up".
-// Capture groups: 1=indent, 2=marker, 3=id, 4=trailing text.
-const TASK_LINE_RE = /^(\s*)-\s\[( |x|X)\]\s+([0-9]+(?:\.[0-9]+)*)\.?\s+(.*)$/;
+// Matches lines like "- [ ] 2.1 Do the thing", "  - [~] 3 In progress",
+// or "  - [x] 3 Wire it up". Capture groups: 1=indent, 2=marker, 3=id, 4=text.
+const TASK_LINE_RE =
+	/^(\s*)-\s\[( |x|X|~)\]\s+([0-9]+(?:\.[0-9]+)*)\.?\s+(.*)$/;
 
 // Matches a `_Depends: 1, 2.3_` marker anywhere on a line (task or sub-line).
 const DEPENDS_RE = /_Depends:\s*([0-9., ]+?)_/i;
@@ -142,6 +153,20 @@ function parseDepIds(s: string): string[] {
 		.split(",")
 		.map((x) => x.trim())
 		.filter((x) => /^[0-9]+(?:\.[0-9]+)*$/.test(x));
+}
+
+/** Map a raw tasks.md checkbox marker to its lifecycle status. */
+function markerToStatus(marker: string): TaskMarkerStatus {
+	if (marker.toLowerCase() === "x") return "done";
+	if (marker === "~") return "in-progress";
+	return "open";
+}
+
+/** Map a lifecycle status back to the tasks.md checkbox marker character. */
+function statusToMarker(status: TaskMarkerStatus): string {
+	if (status === "done") return "x";
+	if (status === "in-progress") return "~";
+	return " ";
 }
 
 /**
@@ -158,7 +183,7 @@ export function parseTaskLines(tasksMd: string): TaskLine[] {
 			const depsOnLine = line.match(DEPENDS_RE);
 			current = {
 				id: m[3],
-				checked: m[2].toLowerCase() === "x",
+				status: markerToStatus(m[2]),
 				text: m[4].trim(),
 				deps: depsOnLine ? parseDepIds(depsOnLine[1]) : [],
 			};
@@ -179,28 +204,41 @@ export function parseTaskLines(tasksMd: string): TaskLine[] {
 }
 
 /**
- * Toggle a single task's checkbox in tasks.md by id, returning the new body.
- * Only the `[ ]`/`[x]` marker changes; all other text is preserved verbatim.
- * Throws if the task id is not found.
+ * Set a single task's checkbox marker in tasks.md by id, returning the new
+ * body. Only the `[ ]`/`[~]`/`[x]` marker changes; all other text is
+ * preserved verbatim. Throws if the task id is not found.
  */
-export function setTaskChecked(
+export function setTaskMarker(
 	tasksMd: string,
 	taskId: string,
-	checked: boolean,
+	status: TaskMarkerStatus,
 ): string {
 	let found = false;
 	const lines = tasksMd.split("\n").map((line) => {
 		const m = line.match(TASK_LINE_RE);
 		if (!m || m[3] !== taskId) return line;
 		found = true;
-		const marker = checked ? "x" : " ";
+		const marker = statusToMarker(status);
 		// Rebuild only the marker; keep original indentation and trailing text.
-		return line.replace(/^(\s*-\s\[)( |x|X)(\])/, `$1${marker}$3`);
+		return line.replace(/^(\s*-\s\[)( |x|X|~)(\])/, `$1${marker}$3`);
 	});
 	if (!found) {
 		throw new Error(`Task "${taskId}" not found in ${TASKS_FILENAME}`);
 	}
 	return lines.join("\n");
+}
+
+/**
+ * Toggle a single task's checkbox between `[ ]` and `[x]` in tasks.md.
+ * Thin wrapper over {@link setTaskMarker} kept for the simple done/not-done
+ * case; use `setTaskMarker` directly to set `[~]` (in-progress).
+ */
+export function setTaskChecked(
+	tasksMd: string,
+	taskId: string,
+	checked: boolean,
+): string {
+	return setTaskMarker(tasksMd, taskId, checked ? "done" : "open");
 }
 
 // --- COORDINATION.md parse / serialize --------------------------------------
@@ -361,7 +399,7 @@ export function initCoordination(
 		claims: tasks.map((t) => ({
 			taskId: t.id,
 			owner: null,
-			status: t.checked ? "done" : "open",
+			status: t.status,
 			deps: [...t.deps],
 			leaseUntil: null,
 			updated: null,
@@ -525,8 +563,11 @@ export function addHandoff(
 
 /**
  * Reconcile coordination against tasks.md: add rows for new task ids, mark
- * rows done where the checkbox is checked, and refresh dependency lists from
- * tasks.md `_Depends:_` markers. Never un-marks or deletes.
+ * rows done where the checkbox is `[x]`, promote a bare `open` row to
+ * `in-progress` where the checkbox is `[~]` (e.g. a human hand-editing
+ * tasks.md outside `kanon spec claim`), and refresh dependency lists from
+ * tasks.md `_Depends:_` markers. Never un-marks (downgrades) or deletes —
+ * `[x]` always wins, and `[~]` never overrides an existing claim or `done`.
  */
 export function reconcile(
 	doc: CoordinationDoc,
@@ -540,7 +581,7 @@ export function reconcile(
 			next = upsertClaim(
 				next,
 				t.id,
-				{ status: t.checked ? "done" : "open", deps: [...t.deps] },
+				{ status: t.status, deps: [...t.deps] },
 				now,
 			);
 		} else {
@@ -550,7 +591,11 @@ export function reconcile(
 			// Adopt any deps declared in tasks.md that aren't already tracked.
 			const mergedDeps = Array.from(new Set([...cur.deps, ...t.deps]));
 			if (mergedDeps.length !== cur.deps.length) patch.deps = mergedDeps;
-			if (t.checked && cur.status !== "done") patch.status = "done";
+			if (t.status === "done" && cur.status !== "done") {
+				patch.status = "done";
+			} else if (t.status === "in-progress" && cur.status === "open") {
+				patch.status = "in-progress";
+			}
 			if (Object.keys(patch).length > 0) {
 				next = upsertClaim(next, t.id, patch, now);
 			}
@@ -680,6 +725,19 @@ export async function saveCoordination(
 	);
 }
 
+/** Set a task's tasks.md checkbox marker (`[ ]`/`[~]`/`[x]`) on disk. */
+async function writeTaskMarker(
+	spec: string,
+	taskId: string,
+	status: TaskMarkerStatus,
+	cwd = process.cwd(),
+): Promise<void> {
+	const tasksPath = join(specDir(spec, cwd), TASKS_FILENAME);
+	const tasksRaw = await readIfExists(tasksPath);
+	if (tasksRaw === null) return;
+	await writeFile(tasksPath, setTaskMarker(tasksRaw, taskId, status), "utf-8");
+}
+
 async function loadTasks(
 	spec: string,
 	cwd = process.cwd(),
@@ -739,7 +797,7 @@ export async function specListCommand(
 			spec,
 			specType: (cfg.specType as string) ?? null,
 			workflowType: (cfg.workflowType as string) ?? null,
-			done: tasks.filter((t) => t.checked).length,
+			done: tasks.filter((t) => t.status === "done").length,
 			total: tasks.length,
 		});
 	}
@@ -770,7 +828,7 @@ export async function specStatusCommand(
 	const now = nowIso();
 	const tasks = await loadTasks(name);
 	const doc = reconcile(await loadCoordination(name), tasks, now);
-	const done = tasks.filter((t) => t.checked).length;
+	const done = tasks.filter((t) => t.status === "done").length;
 	const sorted = [...doc.claims].sort((a, b) =>
 		compareTaskIds(a.taskId, b.taskId),
 	);
@@ -891,6 +949,7 @@ export async function specClaimCommand(
 		);
 	}
 	await saveCoordination(next, process.cwd());
+	await writeTaskMarker(name, taskId, "in-progress");
 	console.log(
 		chalk.green(`✓ ${options.agent} claimed task ${taskId} in ${name}`),
 	);
@@ -965,6 +1024,7 @@ export async function specNextCommand(
 		leaseMinutes: parseLeaseMinutes(options.lease),
 	});
 	await saveCoordination(next, process.cwd());
+	await writeTaskMarker(name, pick.taskId, "in-progress");
 
 	if (options.json) {
 		console.log(
@@ -992,6 +1052,7 @@ export async function specReleaseCommand(
 	if (!taskId) fail("Provide a task id to release");
 	const doc = await loadCoordination(name);
 	await saveCoordination(releaseTask(doc, taskId, nowIso()), process.cwd());
+	await writeTaskMarker(name, taskId, "open");
 	console.log(chalk.green(`✓ released task ${taskId} in ${name}`));
 }
 
