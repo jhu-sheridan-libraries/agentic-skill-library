@@ -20,7 +20,7 @@ author: AWS
 version: 0.1.0
 harnesses:
   - kiro
-type: power
+type: skill
 inclusion: manual
 categories:
   - architecture
