@@ -9,7 +9,7 @@
     {
       "name": "context-bazaar",
       "description": "A library of ready-to-use skills for Claude Code and other AI coding assistants, built and compiled by the Kanon CLI with Souk Compass semantic search. Browse and install skills, powers, workflows, prompts, and agents for Kiro, Claude Code, Copilot, Cursor, Windsurf, Cline, and Q Developer.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "author": {
         "name": "Steven J. Miklovic"
       },
