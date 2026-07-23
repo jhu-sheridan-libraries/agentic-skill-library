@@ -244,7 +244,11 @@ export function setTaskChecked(
 // --- COORDINATION.md parse / serialize --------------------------------------
 
 function escapeCell(s: string): string {
-	return s.replace(/\|/g, "\\|").replace(/\n/g, " ").trim();
+	return s
+		.replace(/\\/g, "\\\\")
+		.replace(/\|/g, "\\|")
+		.replace(/\r?\n/g, " ")
+		.trim();
 }
 
 function unescapeCell(s: string): string {

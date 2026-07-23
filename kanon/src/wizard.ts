@@ -82,7 +82,11 @@ export function handleCancel(value: unknown): void {
 
 const ASSET_TYPE_DESCRIPTIONS: Record<AssetType, string> = {
 	skill: "General-purpose knowledge injected into AI context",
-	power: "Kiro capability bundle (POWER.md + steering dir)",
+	// Deprecated alias for "skill" — omitted from the interactive type prompt
+	// (see PROMPTABLE_ASSET_TYPES below) but described here since the Record
+	// type must cover every AssetType. See ADR-0051.
+	power:
+		'Deprecated alias for "skill" — use skill + harness-config.kiro.format: "power" instead',
 	rule: "Lint-style rules for harnesses that support them",
 	workflow: "Step-by-step process guide with workflow files",
 	agent: "Agent definition with hooks and MCP tools",
@@ -90,6 +94,14 @@ const ASSET_TYPE_DESCRIPTIONS: Record<AssetType, string> = {
 	template: "Reference scaffold or boilerplate",
 	"reference-pack": "Background reference (included on demand only)",
 };
+
+// Types offered in the interactive wizard prompt. Excludes "power", a
+// deprecated alias for "skill" — Kiro's power format is chosen via the
+// per-harness format prompt, not the type field. Still valid if passed
+// explicitly via --type for backward compat (see promptFrontmatter below).
+const PROMPTABLE_ASSET_TYPES: AssetType[] = (
+	Object.keys(ASSET_TYPE_DESCRIPTIONS) as AssetType[]
+).filter((t) => t !== "power");
 
 /**
  * Collect all frontmatter fields via interactive prompts.
@@ -132,9 +144,7 @@ export async function promptFrontmatter(
 	if (preSelectedType) {
 		selectedType = preSelectedType;
 	} else {
-		const typeOptions = (
-			Object.keys(ASSET_TYPE_DESCRIPTIONS) as AssetType[]
-		).map((t) => ({
+		const typeOptions = PROMPTABLE_ASSET_TYPES.map((t) => ({
 			value: t,
 			label: t,
 			hint: ASSET_TYPE_DESCRIPTIONS[t],
