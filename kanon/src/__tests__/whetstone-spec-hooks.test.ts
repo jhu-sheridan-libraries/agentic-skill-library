@@ -5,14 +5,14 @@ import matter from "gray-matter";
 import yaml from "js-yaml";
 
 /**
- * Example-based unit tests for the 6 codeshop spec-hooks and knowledge.md content.
+ * Example-based unit tests for the 6 whetstone spec-hooks and knowledge.md content.
  *
  * Validates: Requirements 1.1–1.4, 2.1–2.4, 3.1–3.4, 4.1–4.4, 5.1–5.4,
  *            6.1–6.4, 7.1–7.5, 8.1–8.4, 11.1–11.3
  */
 
 const SKILL_FORGE_ROOT = path.resolve(import.meta.dir, "../..");
-const KNOWLEDGE_DIR = path.join(SKILL_FORGE_ROOT, "knowledge", "codeshop");
+const KNOWLEDGE_DIR = path.join(SKILL_FORGE_ROOT, "knowledge", "whetstone");
 const KNOWLEDGE_MD = path.join(KNOWLEDGE_DIR, "knowledge.md");
 const HOOKS_YAML = path.join(KNOWLEDGE_DIR, "hooks.yaml");
 
@@ -83,7 +83,7 @@ function findHook(name: string) {
 	return specHooks.find((h) => h.name === name);
 }
 
-describe("codeshop spec-hooks — example-based tests", () => {
+describe("whetstone spec-hooks — example-based tests", () => {
 	// ── Cardinality ────────────────────────────────────────────────────
 	test("spec-hooks array has exactly 6 entries", () => {
 		expect(specHooks.length).toBe(6);
@@ -203,8 +203,13 @@ function toHookFilename(name: string): string {
 	return `${name.toLowerCase().replace(/\s+/g, "-")}.kiro.hook`;
 }
 
-describe("codeshop spec-hooks — build pipeline integration", () => {
-	const DIST_CODESHOP = path.join(SKILL_FORGE_ROOT, "dist", "kiro", "codeshop");
+describe("whetstone spec-hooks — build pipeline integration", () => {
+	const DIST_WHETSTONE = path.join(
+		SKILL_FORGE_ROOT,
+		"dist",
+		"kiro",
+		"whetstone",
+	);
 
 	// Derive expected canonical hook filenames from hooks.yaml
 	const expectedCanonicalFiles = canonicalHooks.map((h) =>
@@ -241,10 +246,10 @@ describe("codeshop spec-hooks — build pipeline integration", () => {
 		expect(buildError).toBeNull();
 	});
 
-	test(`dist/kiro/codeshop/ contains all ${expectedAllFiles.length} hook files (${expectedCanonicalFiles.length} canonical + ${expectedSpecFiles.length} spec)`, () => {
+	test(`dist/kiro/whetstone/ contains all ${expectedAllFiles.length} hook files (${expectedCanonicalFiles.length} canonical + ${expectedSpecFiles.length} spec)`, () => {
 		ensureBuild();
 		const files = fs
-			.readdirSync(DIST_CODESHOP)
+			.readdirSync(DIST_WHETSTONE)
 			.filter((f) => f.endsWith(".kiro.hook"));
 		const fileSet = new Set(files);
 
@@ -260,11 +265,11 @@ describe("codeshop spec-hooks — build pipeline integration", () => {
 	test("each .kiro.hook file contains valid JSON", () => {
 		ensureBuild();
 		const hookFiles = fs
-			.readdirSync(DIST_CODESHOP)
+			.readdirSync(DIST_WHETSTONE)
 			.filter((f) => f.endsWith(".kiro.hook"));
 
 		for (const file of hookFiles) {
-			const content = fs.readFileSync(path.join(DIST_CODESHOP, file), "utf-8");
+			const content = fs.readFileSync(path.join(DIST_WHETSTONE, file), "utf-8");
 			expect(() => JSON.parse(content)).not.toThrow();
 		}
 	});
