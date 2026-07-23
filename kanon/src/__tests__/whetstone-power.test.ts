@@ -5,8 +5,8 @@ import matter from "gray-matter";
 import { FrontmatterSchema } from "../schemas";
 
 const SKILL_FORGE_ROOT = path.resolve(import.meta.dir, "../..");
-const KNOWLEDGE_DIR = path.join(SKILL_FORGE_ROOT, "knowledge", "codeshop");
-const DIST_DIR = path.join(SKILL_FORGE_ROOT, "dist", "kiro", "codeshop");
+const KNOWLEDGE_DIR = path.join(SKILL_FORGE_ROOT, "knowledge", "whetstone");
+const DIST_DIR = path.join(SKILL_FORGE_ROOT, "dist", "kiro", "whetstone");
 const KNOWLEDGE_MD = path.join(KNOWLEDGE_DIR, "knowledge.md");
 const HOOKS_YAML = path.join(KNOWLEDGE_DIR, "hooks.yaml");
 const WORKFLOWS_DIR = path.join(KNOWLEDGE_DIR, "workflows");
@@ -74,7 +74,7 @@ const KNOWLEDGE_SKILLS = [
 	"tune-rigor",
 ];
 
-describe("codeshop power — structural validation", () => {
+describe("whetstone power — structural validation", () => {
 	// ── 1. Frontmatter validation ──────────────────────────────────────
 	test("knowledge.md has valid frontmatter", () => {
 		const raw = fs.readFileSync(KNOWLEDGE_MD, "utf-8");
@@ -82,8 +82,8 @@ describe("codeshop power — structural validation", () => {
 		const result = FrontmatterSchema.safeParse(data);
 		expect(result.success).toBe(true);
 		if (result.success) {
-			expect(result.data.name).toBe("codeshop");
-			expect(result.data.displayName).toBe("Codeshop");
+			expect(result.data.name).toBe("whetstone");
+			expect(result.data.displayName).toBe("Whetstone");
 			// "power" is a deprecated alias for "skill" (ADR-0051) — the artifact's
 			// Kiro power rendering comes from harness-config.kiro.format, not type.
 			expect(result.data.type).toBe("skill");
@@ -108,9 +108,9 @@ describe("codeshop power — structural validation", () => {
 		);
 		expect(matchedOverviews.length).toBe(STEERING_FILES.length);
 
-		// Phase files (all .md files minus the overviews minus codeshop.md)
+		// Phase files (all .md files minus the overviews minus whetstone-invoke.md)
 		const phaseFiles = steeringFiles.filter(
-			(f) => !STEERING_FILES.includes(f) && f !== "codeshop.md",
+			(f) => !STEERING_FILES.includes(f) && f !== "whetstone-invoke.md",
 		);
 		expect(phaseFiles.length).toBeGreaterThanOrEqual(50);
 
