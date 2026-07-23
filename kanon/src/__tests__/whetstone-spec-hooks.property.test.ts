@@ -135,9 +135,9 @@ function buildArtifactWithHooks(
 
 // --- Property Tests ---
 
-describe("Codeshop spec-hook compilation properties", () => {
+describe("Whetstone spec-hook compilation properties", () => {
 	/**
-	 * Feature: codeshop-spec-integration, Property 1: Spec-hook compilation cardinality
+	 * Feature: whetstone-spec-integration, Property 1: Spec-hook compilation cardinality
 	 *
 	 * **Validates: Requirements 8.3, 12.1**
 	 *
@@ -167,7 +167,7 @@ describe("Codeshop spec-hook compilation properties", () => {
 	});
 
 	/**
-	 * Feature: codeshop-spec-integration, Property 2: Spec-hook output schema validity
+	 * Feature: whetstone-spec-integration, Property 2: Spec-hook output schema validity
 	 *
 	 * **Validates: Requirements 8.2, 12.2**
 	 *
@@ -201,7 +201,7 @@ describe("Codeshop spec-hook compilation properties", () => {
 	});
 
 	/**
-	 * Feature: codeshop-spec-integration, Property 3: Hook name to filename kebab-case transformation
+	 * Feature: whetstone-spec-integration, Property 3: Hook name to filename kebab-case transformation
 	 *
 	 * **Validates: Requirements 8.4, 12.3**
 	 *
@@ -227,7 +227,7 @@ describe("Codeshop spec-hook compilation properties", () => {
 	});
 
 	/**
-	 * Feature: codeshop-spec-integration, Property 4: Canonical hooks preserved alongside spec-hooks
+	 * Feature: whetstone-spec-integration, Property 4: Canonical hooks preserved alongside spec-hooks
 	 *
 	 * **Validates: Requirements 7.1, 7.2, 7.3, 7.4, 7.5, 12.4**
 	 *

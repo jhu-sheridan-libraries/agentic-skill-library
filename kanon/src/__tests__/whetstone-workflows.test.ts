@@ -4,7 +4,7 @@ import path from "node:path";
 import matter from "gray-matter";
 
 const SKILL_FORGE_ROOT = path.resolve(import.meta.dir, "../..");
-const KNOWLEDGE_DIR = path.join(SKILL_FORGE_ROOT, "knowledge", "codeshop");
+const KNOWLEDGE_DIR = path.join(SKILL_FORGE_ROOT, "knowledge", "whetstone");
 const KNOWLEDGE_MD = path.join(KNOWLEDGE_DIR, "knowledge.md");
 const WORKFLOWS_DIR = path.join(KNOWLEDGE_DIR, "workflows");
 
@@ -24,7 +24,7 @@ const routerSteeringFiles = [
 // Extract skill names from the router (the backticked names in chain definitions)
 const routerSkillNames = routerSteeringFiles.map((f) => f.replace(".md", ""));
 
-describe("codeshop workflows — phase sequencing", () => {
+describe("whetstone workflows — phase sequencing", () => {
 	test("every → Load reference points to a file that exists in workflows/", () => {
 		const failures: string[] = [];
 		for (const file of allWorkflowFiles) {
@@ -163,7 +163,7 @@ describe("codeshop workflows — phase sequencing", () => {
 	});
 });
 
-describe("codeshop workflows — chain validity", () => {
+describe("whetstone workflows — chain validity", () => {
 	// Extract chains: lines matching `skill` → `skill` → ...
 	const chainLines = [
 		...powerBody.matchAll(/^`([a-z-]+)`(?: → `([a-z-]+)`)+/gm),
@@ -223,7 +223,7 @@ describe("codeshop workflows — chain validity", () => {
 	});
 });
 
-describe("codeshop workflows — entry/exit criteria alignment", () => {
+describe("whetstone workflows — entry/exit criteria alignment", () => {
 	test("every phase file's Exit Criteria section exists when Entry Criteria exists", () => {
 		const failures: string[] = [];
 		for (const file of allWorkflowFiles) {
