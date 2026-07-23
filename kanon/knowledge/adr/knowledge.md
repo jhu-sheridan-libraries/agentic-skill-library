@@ -12,7 +12,8 @@ author: Steven J. Miklovic
 version: 0.5.0
 harnesses:
   - kiro
-type: power
+  - claude-code
+type: skill
 inclusion: auto
 categories:
   - architecture

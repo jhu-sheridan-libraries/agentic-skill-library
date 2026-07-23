@@ -13,9 +13,10 @@
     "author": "Steven J. Miklovic",
     "version": "0.5.0",
     "harnesses": [
-      "kiro"
+      "kiro",
+      "claude-code"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/adr",
     "evals": true,
     "changelog": false,
@@ -28,7 +29,8 @@
     "depends": [],
     "enhances": [],
     "formatByHarness": {
-      "kiro": "power"
+      "kiro": "power",
+      "claude-code": "claude-md"
     },
     "features": {
       "hooks": false,
@@ -91,7 +93,7 @@
       "claude-code",
       "cursor"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/alice-whiterabbit",
     "evals": false,
     "changelog": false,
@@ -220,7 +222,7 @@
     "harnesses": [
       "kiro"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kiro-official/arm-soc-migration",
     "evals": false,
     "changelog": false,
@@ -273,7 +275,7 @@
     "harnesses": [
       "kiro"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kiro-official/aws-agentcore",
     "evals": false,
     "changelog": false,
@@ -332,7 +334,7 @@
     "harnesses": [
       "kiro"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kiro-official/aws-amplify",
     "evals": false,
     "changelog": false,
@@ -387,7 +389,7 @@
     "harnesses": [
       "kiro"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kiro-official/aws-devops-agent",
     "evals": false,
     "changelog": false,
@@ -440,7 +442,7 @@
     "harnesses": [
       "kiro"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kiro-official/aws-healthomics",
     "evals": false,
     "changelog": false,
@@ -495,7 +497,7 @@
     "harnesses": [
       "kiro"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kiro-official/aws-infrastructure-as-code",
     "evals": false,
     "changelog": false,
@@ -532,6 +534,62 @@
     "outcomes": []
   },
   {
+    "name": "aws-lambda-managed-instances",
+    "displayName": "AWS Lambda Managed Instances",
+    "description": "Evaluate, configure, and migrate workloads to AWS Lambda Managed Instances (LMI). Run Lambda functions on EC2 instances in your account while AWS manages provisioning, patching, scaling, routing, and load balancing.",
+    "keywords": [
+      "lambda",
+      "lmi",
+      "managed-instances",
+      "ec2",
+      "capacity-provider",
+      "multi-concurrency",
+      "cold-start",
+      "graviton",
+      "cost-optimization",
+      "serverless",
+      "lambda-pricing",
+      "reserved-instances",
+      "savings-plans",
+      "scheduled-scaling"
+    ],
+    "author": "AWS",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "skill",
+    "path": "knowledge/kiro-official/aws-lambda-managed-instances",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "community",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
     "name": "aws-mcp",
     "displayName": "Work with AWS",
     "description": "Perform complex, multi-step AWS tasks by combining real-time access to AWS documentation, syntactically correct API calls and executions, and pre-built workflows called Agent SOPs that follow AWS best practices",
@@ -552,7 +610,7 @@
     "harnesses": [
       "kiro"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kiro-official/aws-mcp",
     "evals": false,
     "changelog": false,
@@ -619,7 +677,7 @@
     "harnesses": [
       "kiro"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kiro-official/aws-observability",
     "evals": false,
     "changelog": false,
@@ -672,7 +730,7 @@
     "harnesses": [
       "kiro"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kiro-official/aws-sam",
     "evals": false,
     "changelog": false,
@@ -709,6 +767,169 @@
     "outcomes": []
   },
   {
+    "name": "aws-step-functions",
+    "displayName": "AWS Step Functions",
+    "description": "Build workflows with AWS Step Functions state machines using the JSONata query language. Covers Amazon States Language (ASL) structure, state types, variables, data transformation, error handling, AWS service integration, and migrating from the JSONPath to the JSONata query language.",
+    "keywords": [
+      "step functions",
+      "state machine",
+      "serverless",
+      "jsonata",
+      "asl",
+      "amazon states language",
+      "workflow",
+      "orchestration"
+    ],
+    "author": "AWS",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "skill",
+    "path": "knowledge/kiro-official/aws-step-functions",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "community",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "aws-transform",
+    "displayName": "AWS Transform",
+    "description": "Migrate, modernize, and upgrade codebases: .NET Framework to .NET 8/10, mainframe COBOL to Java, VMware VMs to EC2, SQL Server/Oracle/MySQL to Aurora, and Java/Python/Node.js version upgrades or AWS SDK migrations. Assess, plan, and execute code transformations from your IDE.",
+    "keywords": [
+      "migrate",
+      "modernize",
+      "mainframe",
+      "cobol",
+      "vmware",
+      "dotnet",
+      ".net framework",
+      "windows",
+      "sql server",
+      "oracle",
+      "mysql",
+      "aurora",
+      "ec2 migration",
+      "rehost",
+      "lift-and-shift",
+      "replatform",
+      "legacy",
+      "code upgrade",
+      "sdk migration",
+      "boto3",
+      "java upgrade",
+      "atx",
+      "continuous modernization",
+      "AWS Transform - continuous modernization"
+    ],
+    "author": "AWS",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "skill",
+    "path": "knowledge/kiro-official/aws-transform",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "community",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "aws-transform-agent-toolkit",
+    "displayName": "AWS Transform Agent Toolkit",
+    "description": "Build agents to run in AWS Transform. This power provides a self-service agent lifecycle from inception to development to production. Build modernization and migration agents with citation-backed AWS Transform documentation search, package agents as containers, deploy to Bedrock AgentCore across platforms (Windows/macOS/Linux), and register with AWS Transform.",
+    "keywords": [
+      "aws transform",
+      "agent development",
+      "composability",
+      "modernization",
+      "migration"
+    ],
+    "author": "AWS",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "skill",
+    "path": "knowledge/kiro-official/aws-transform-agent-toolkit",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "community",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
     "name": "book-agent-publicist",
     "displayName": "Book Agent & Publicist",
     "description": "A comprehensive guide for the business of books — from finding and working with literary agents to publicity campaigns, media outreach, author branding, and long-term career strategy. Covers both traditional and independent publishing paths.",
@@ -725,9 +946,10 @@
     "author": "Kiro Power Builder",
     "version": "0.2.0",
     "harnesses": [
-      "kiro"
+      "kiro",
+      "claude-code"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/byron-powers/book-agent-publicist",
     "evals": true,
     "changelog": false,
@@ -740,7 +962,8 @@
     "depends": [],
     "enhances": [],
     "formatByHarness": {
-      "kiro": "steering"
+      "kiro": "steering",
+      "claude-code": "claude-md"
     },
     "features": {
       "hooks": true,
@@ -778,7 +1001,7 @@
     "harnesses": [
       "kiro"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kiro-official/checkout-api-reference",
     "evals": false,
     "changelog": false,
@@ -830,7 +1053,7 @@
     "harnesses": [
       "kiro"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kiro-official/cloud-architect",
     "evals": false,
     "changelog": false,
@@ -886,7 +1109,7 @@
     "harnesses": [
       "kiro"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kiro-official/cloudwatch-application-signals",
     "evals": false,
     "changelog": false,
@@ -959,7 +1182,7 @@
       "kiro",
       "claude-code"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/codeshop",
     "evals": true,
     "changelog": false,
@@ -1057,6 +1280,58 @@
     "outcomes": []
   },
   {
+    "name": "databricks",
+    "displayName": "Databricks AI Dev Kit",
+    "description": "Comprehensive Databricks development toolkit with 44 MCP tools (180+ operations) and expert guidance for building data pipelines, ML workflows, dashboards, jobs, and applications on Databricks platform.",
+    "keywords": [
+      "databricks",
+      "spark",
+      "delta",
+      "mlflow",
+      "unity catalog",
+      "pipelines",
+      "jobs",
+      "sql",
+      "data engineering",
+      "machine learning"
+    ],
+    "author": "Databricks",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "skill",
+    "path": "knowledge/kiro-official/databricks",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "community",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
     "name": "datadog",
     "displayName": "Datadog Observability",
     "description": "Query logs, metrics, traces, RUM events, incidents, and monitors from Datadog for production debugging and performance analysis",
@@ -1076,7 +1351,7 @@
     "harnesses": [
       "kiro"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kiro-official/datadog",
     "evals": false,
     "changelog": false,
@@ -1189,7 +1464,7 @@
     "harnesses": [
       "kiro"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kiro-official/dynatrace",
     "evals": false,
     "changelog": false,
@@ -1359,9 +1634,10 @@
     "author": "Steven J. Miklovic",
     "version": "0.2.0",
     "harnesses": [
-      "kiro"
+      "kiro",
+      "claude-code"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/byron-powers/fantasy-novelist",
     "evals": true,
     "changelog": false,
@@ -1379,7 +1655,8 @@
       "novelist"
     ],
     "formatByHarness": {
-      "kiro": "steering"
+      "kiro": "steering",
+      "claude-code": "claude-md"
     },
     "features": {
       "hooks": true,
@@ -1417,7 +1694,7 @@
     "harnesses": [
       "kiro"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kiro-official/figma",
     "evals": false,
     "changelog": false,
@@ -1468,7 +1745,7 @@
     "harnesses": [
       "kiro"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kiro-official/gcp-aws-migrate",
     "evals": false,
     "changelog": false,
@@ -1524,7 +1801,7 @@
     "harnesses": [
       "kiro"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kiro-official/graviton-migration-power",
     "evals": false,
     "changelog": false,
@@ -1885,6 +2162,120 @@
     "outcomes": []
   },
   {
+    "name": "localstack",
+    "displayName": "Develop AWS apps with LocalStack",
+    "description": "Build, test, and debug AWS applications locally and in CI/CD using LocalStack. Manage the local cloud environment, deploy infrastructure with CDK/Terraform/SAM, analyze logs, enforce IAM policies, inject chaos faults, and manage state snapshots.",
+    "keywords": [
+      "localstack",
+      "aws",
+      "local",
+      "cloud",
+      "emulation",
+      "testing",
+      "lambda",
+      "s3",
+      "dynamodb",
+      "terraform",
+      "cdk",
+      "cloudformation",
+      "iam",
+      "chaos",
+      "cloud-pods",
+      "ephemeral",
+      "mocking",
+      "local-dev"
+    ],
+    "author": "LocalStack",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "skill",
+    "path": "knowledge/kiro-official/localstack",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "community",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "migration-to-aws",
+    "displayName": "GCP to AWS Migration Advisor",
+    "description": "Migrate workloads from Google Cloud Platform to AWS — including AI and agentic workloads regardless of cloud provider. Triggers on: migrate from GCP, GCP to AWS, move off Google Cloud, migrate Terraform to AWS, migrate Cloud SQL to RDS, migrate GKE to EKS, migrate Cloud Run to Fargate, Google Cloud migration, migrate from OpenAI to Bedrock, move off OpenAI, switch from ChatGPT API to AWS, migrate from Gemini to Bedrock, migrate LangChain to Bedrock, migrate LangGraph to AWS, migrate agentic workloads to AWS, move AI workloads to AWS, migrate my AI app to AWS. Runs a 6-phase process: discover GCP resources from Terraform files, app code, or billing exports, clarify migration requirements, design AWS architecture, estimate costs, generate migration artifacts, and collect optional feedback. Clarify must finish before Design, Estimate, or Generate. Includes AI provider migration guidance (for example, OpenAI to Amazon Bedrock) by selecting closest-fit Bedrock model families for required modality, latency/quality targets, context windows, and cost constraints. Model mapping is compatibility-guided, not 1:1 parity; validate prompts, tool-calling behavior, and eval metrics before cutover. Do not use for: Azure or on-premises migrations to AWS, AWS-to-GCP reverse migration, general AWS architecture advice without migration intent, GCP-to-GCP refactoring, or multi-cloud deployments that do not involve migrating off GCP.",
+    "keywords": [
+      "gcp",
+      "aws",
+      "migration",
+      "cloud migration",
+      "terraform",
+      "re-platform",
+      "cost estimation",
+      "architecture",
+      "bedrock",
+      "openai",
+      "gemini",
+      "anthropic"
+    ],
+    "author": "AWS",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "skill",
+    "path": "knowledge/kiro-official/migration-to-aws",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "community",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
     "name": "mystery-series-novelist",
     "displayName": "Mystery Series Novelist",
     "description": "Genre-specific companion to the Novelist power for writing mystery and detective fiction series. Provides clue architecture, suspect management, fair-play validation, series continuity tracking, and subgenre-aware plotting. Designed for agent consumption.",
@@ -1904,9 +2295,10 @@
     "author": "Steven J. Miklovic",
     "version": "0.2.0",
     "harnesses": [
-      "kiro"
+      "kiro",
+      "claude-code"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/byron-powers/mystery-series-novelist",
     "evals": true,
     "changelog": false,
@@ -1924,7 +2316,8 @@
       "novelist"
     ],
     "formatByHarness": {
-      "kiro": "steering"
+      "kiro": "steering",
+      "claude-code": "claude-md"
     },
     "features": {
       "hooks": true,
@@ -1961,7 +2354,7 @@
     "harnesses": [
       "kiro"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kiro-official/neon",
     "evals": false,
     "changelog": false,
@@ -2010,9 +2403,10 @@
     "author": "Steven J. Miklovic",
     "version": "0.2.0",
     "harnesses": [
-      "kiro"
+      "kiro",
+      "claude-code"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/byron-powers/novelist",
     "evals": true,
     "changelog": false,
@@ -2024,7 +2418,8 @@
     "depends": [],
     "enhances": [],
     "formatByHarness": {
-      "kiro": "steering"
+      "kiro": "steering",
+      "claude-code": "claude-md"
     },
     "features": {
       "hooks": true,
@@ -2060,7 +2455,7 @@
     "harnesses": [
       "kiro"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kiro-official/postman",
     "evals": false,
     "changelog": false,
@@ -2111,7 +2506,7 @@
     "harnesses": [
       "kiro"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kiro-official/power-builder",
     "evals": false,
     "changelog": false,
@@ -2215,9 +2610,10 @@
     "author": "Demo",
     "version": "0.2.0",
     "harnesses": [
-      "kiro"
+      "kiro",
+      "claude-code"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/byron-powers/proofreader-review-checklist",
     "evals": true,
     "changelog": false,
@@ -2230,7 +2626,8 @@
     "depends": [],
     "enhances": [],
     "formatByHarness": {
-      "kiro": "steering"
+      "kiro": "steering",
+      "claude-code": "claude-md"
     },
     "features": {
       "hooks": true,
@@ -2268,7 +2665,7 @@
       "cline",
       "qdeveloper"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/release-manager",
     "evals": true,
     "changelog": false,
@@ -2494,7 +2891,7 @@
     "harnesses": [
       "kiro"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kiro-official/saas-builder",
     "evals": false,
     "changelog": false,
@@ -2552,9 +2949,10 @@
     "author": "Steven J. Miklovic",
     "version": "0.2.0",
     "harnesses": [
-      "kiro"
+      "kiro",
+      "claude-code"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/byron-powers/scifi-novelist",
     "evals": true,
     "changelog": false,
@@ -2571,7 +2969,8 @@
       "novelist"
     ],
     "formatByHarness": {
-      "kiro": "steering"
+      "kiro": "steering",
+      "claude-code": "claude-md"
     },
     "features": {
       "hooks": true,
@@ -2614,7 +3013,7 @@
       "cline",
       "qdeveloper"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/secure-by-default",
     "evals": true,
     "changelog": false,
@@ -2672,9 +3071,10 @@
     "author": "Steven J. Miklovic",
     "version": "0.2.0",
     "harnesses": [
-      "kiro"
+      "kiro",
+      "claude-code"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/byron-powers/series-continuity",
     "evals": true,
     "changelog": false,
@@ -2690,7 +3090,8 @@
       "mystery-series-novelist"
     ],
     "formatByHarness": {
-      "kiro": "steering"
+      "kiro": "steering",
+      "claude-code": "claude-md"
     },
     "features": {
       "hooks": true,
@@ -2728,7 +3129,7 @@
     "harnesses": [
       "kiro"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kiro-official/spark-troubleshooting-agent",
     "evals": false,
     "changelog": false,
@@ -2784,7 +3185,7 @@
     "harnesses": [
       "kiro"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kiro-official/stackgen",
     "evals": false,
     "changelog": false,
@@ -2839,7 +3240,7 @@
     "harnesses": [
       "kiro"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kiro-official/strands",
     "evals": false,
     "changelog": false,
@@ -2894,7 +3295,7 @@
     "harnesses": [
       "kiro"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kiro-official/stripe",
     "evals": false,
     "changelog": false,
@@ -2943,9 +3344,10 @@
     "author": "Kiro Power Builder",
     "version": "0.2.0",
     "harnesses": [
-      "kiro"
+      "kiro",
+      "claude-code"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/byron-powers/technical-author",
     "evals": true,
     "changelog": false,
@@ -2958,7 +3360,8 @@
     "depends": [],
     "enhances": [],
     "formatByHarness": {
-      "kiro": "steering"
+      "kiro": "steering",
+      "claude-code": "claude-md"
     },
     "features": {
       "hooks": true,
@@ -2996,7 +3399,7 @@
     "harnesses": [
       "kiro"
     ],
-    "type": "power",
+    "type": "skill",
     "path": "knowledge/kiro-official/terraform",
     "evals": false,
     "changelog": false,
@@ -3087,6 +3490,61 @@
     "model-assumptions": [],
     "collections": [
       "neon-caravan"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "zapier",
+    "displayName": "Zapier",
+    "description": "Connect 9,000+ apps to your AI workflow — discover, enable, and execute Zapier actions directly from your AI assistant.",
+    "keywords": [
+      "zapier",
+      "automation",
+      "integrations",
+      "workflow",
+      "ai-actions",
+      "mcp",
+      "no-code",
+      "productivity",
+      "slack",
+      "gmail",
+      "jira",
+      "notion",
+      "hubspot"
+    ],
+    "author": "Zapier",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro"
+    ],
+    "type": "skill",
+    "path": "knowledge/kiro-official/zapier",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "community",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "kiro-official"
     ],
     "visibility": "public",
     "priority": 50,

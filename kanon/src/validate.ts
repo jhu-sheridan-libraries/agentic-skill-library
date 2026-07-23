@@ -4,7 +4,11 @@ import chalk from "chalk";
 import { CAPABILITY_MATRIX, validateMatrixSync } from "./adapters/capabilities";
 import { adapterRegistry } from "./adapters/index";
 import { resolveKiroInclusion } from "./adapters/kiro-inclusion";
-import { ASSET_CONVENTION_RULES, ASSET_CONVENTIONS } from "./asset-conventions";
+import {
+	ASSET_CONVENTION_RULES,
+	ASSET_CONVENTIONS,
+	documentsAgentLoop,
+} from "./asset-conventions";
 import { generateCatalog } from "./catalog";
 import { loadCollections, validateArtifactCollectionRefs } from "./collections";
 import { HARNESS_FORMAT_REGISTRY, resolveFormat } from "./format-registry";
@@ -444,7 +448,16 @@ export async function validateArtifact(
 						break;
 					}
 
+					case "type-power-deprecated":
+						warnings.push({
+							field: "type",
+							message: ASSET_CONVENTION_RULES[ruleKey],
+							filePath: knowledgeMdPath,
+						});
+						break;
+
 					case "prompt-body-too-short":
+					case "agent-should-document-loop":
 						// body is checked separately after parsing knowledge.md
 						break;
 				}
@@ -459,6 +472,18 @@ export async function validateArtifact(
 			warnings.push({
 				field: "body",
 				message: ASSET_CONVENTION_RULES["prompt-body-too-short"],
+				filePath: knowledgeMdPath,
+			});
+		}
+	}
+
+	// Agent loop documentation check (needs body from parse result, outside the if block)
+	if (!isParseError(mdResult)) {
+		const fm = mdResult.data.frontmatter;
+		if (fm.type === "agent" && !documentsAgentLoop(mdResult.data.body)) {
+			warnings.push({
+				field: "body",
+				message: ASSET_CONVENTION_RULES["agent-should-document-loop"],
 				filePath: knowledgeMdPath,
 			});
 		}
