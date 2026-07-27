@@ -228,10 +228,11 @@ describe("compass_search extended", () => {
 		expect(capturedOpts?.mode).toBe("keyword");
 	});
 
-	test("mode=hybrid calls embed and passes combined query params", async () => {
+	test("mode=hybrid issues a vector and a keyword search", async () => {
 		const handleCompassSearch = await importHandler();
 		let embedCalled = false;
 		let capturedOpts: Record<string, unknown> | undefined;
+		const capturedModes: string[] = [];
 		const ctx = makeCtx({
 			embeddingProvider: makeMockEmbeddingProvider({
 				embed: async () => {
@@ -242,6 +243,7 @@ describe("compass_search extended", () => {
 			solrClient: makeMockSolrClient({
 				search: async (_emb, _topK, opts) => {
 					capturedOpts = opts as Record<string, unknown>;
+					capturedModes.push(String((opts as { mode?: string })?.mode));
 					return makeSolrResponse([sampleDoc]);
 				},
 			}),
@@ -260,25 +262,37 @@ describe("compass_search extended", () => {
 			ctx,
 		);
 
+		// Hybrid is fused client-side (ADR-0052). Solr cannot combine a kNN and a
+		// BM25 clause in one query, so the handler runs both and merges — it does
+		// not pass mode="hybrid" or hybridWeight down to Solr.
 		expect(embedCalled).toBe(true);
-		expect(capturedOpts?.mode).toBe("hybrid");
-		expect(capturedOpts?.hybridWeight).toBe(0.7);
+		expect(capturedModes.sort()).toEqual(["keyword", "vector"]);
 		expect(capturedOpts?.queryText).toBe("git workflow");
 	});
 
-	test("hybridWeight=0.0 passes pure keyword weight", async () => {
-		const handleCompassSearch = await importHandler();
-		let capturedOpts: Record<string, unknown> | undefined;
-		const ctx = makeCtx({
+	/**
+	 * The weight no longer reaches Solr — it decides the client-side fusion. So
+	 * these assert the observable consequence: which half wins the ranking. Each
+	 * half is given a different top hit.
+	 */
+	function splitHalvesCtx() {
+		return makeCtx({
 			solrClient: makeMockSolrClient({
 				search: async (_emb, _topK, opts) => {
-					capturedOpts = opts as Record<string, unknown>;
-					return makeSolrResponse([]);
+					const mode = (opts as { mode?: string })?.mode;
+					const name = mode === "keyword" ? "keyword-only" : "vector-only";
+					return makeSolrResponse([
+						{ ...sampleDoc, id: name, artifact_name: name, score: 1 },
+					]);
 				},
 			}),
 		});
+	}
 
-		await handleCompassSearch(
+	test("hybridWeight=0.0 ranks by keyword alone", async () => {
+		const handleCompassSearch = await importHandler();
+
+		const res = await handleCompassSearch(
 			{
 				query: "test",
 				topK: 5,
@@ -288,25 +302,17 @@ describe("compass_search extended", () => {
 				snippetLength: 200,
 				includeContent: false,
 			},
-			ctx,
+			splitHalvesCtx(),
 		);
 
-		expect(capturedOpts?.hybridWeight).toBe(0.0);
+		const payload = JSON.parse(res.content[0].text as string);
+		expect(payload.results[0].artifactName).toBe("keyword-only");
 	});
 
-	test("hybridWeight=1.0 passes pure vector weight", async () => {
+	test("hybridWeight=1.0 ranks by vector alone", async () => {
 		const handleCompassSearch = await importHandler();
-		let capturedOpts: Record<string, unknown> | undefined;
-		const ctx = makeCtx({
-			solrClient: makeMockSolrClient({
-				search: async (_emb, _topK, opts) => {
-					capturedOpts = opts as Record<string, unknown>;
-					return makeSolrResponse([]);
-				},
-			}),
-		});
 
-		await handleCompassSearch(
+		const res = await handleCompassSearch(
 			{
 				query: "test",
 				topK: 5,
@@ -316,10 +322,11 @@ describe("compass_search extended", () => {
 				snippetLength: 200,
 				includeContent: false,
 			},
-			ctx,
+			splitHalvesCtx(),
 		);
 
-		expect(capturedOpts?.hybridWeight).toBe(1.0);
+		const payload = JSON.parse(res.content[0].text as string);
+		expect(payload.results[0].artifactName).toBe("vector-only");
 	});
 
 	test("snippets from highlighting in keyword mode", async () => {

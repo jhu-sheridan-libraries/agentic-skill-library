@@ -1,5 +1,6 @@
 import { resolve } from "node:path";
 import { requireCollection } from "../collections.js";
+import { hybridSearch } from "../hybrid-search.js";
 import type { CompassSearchCodebaseInput } from "../schemas.js";
 import type { SolrSearchResponse } from "../solr-client.js";
 import { SoukVectorClient } from "../solr-client.js";
@@ -44,15 +45,14 @@ export async function handleCompassSearchCodebase(
 
 		if (mode === "hybrid" && embedding) {
 			// Hybrid mode: perform two searches and merge results
-			response = await performHybridSearch(
-				codebaseClient,
+			response = await hybridSearch(codebaseClient, {
 				embedding,
-				input.query,
+				queryText: input.query,
 				topK,
-				input.hybridWeight ?? 0.5,
+				hybridWeight: input.hybridWeight ?? 0.5,
 				filterQuery,
 				snippetLength,
-			);
+			});
 		} else if (effectiveMinScore != null && mode === "vector" && embedding) {
 			response = await codebaseClient.searchByThreshold(
 				embedding,
@@ -63,7 +63,9 @@ export async function handleCompassSearchCodebase(
 		} else {
 			response = await codebaseClient.search(embedding, topK, {
 				filterQuery,
-				mode,
+				// Hybrid is fused above; the client itself only does these two. A
+				// hybrid request without an embedding degrades to keyword.
+				mode: mode === "hybrid" ? "keyword" : mode,
 				queryText: input.query,
 				snippetLength,
 			});
@@ -189,95 +191,6 @@ function extractString(value: unknown): string | undefined {
  * Perform hybrid search by running vector and keyword searches separately,
  * then merging results with weighted scores.
  */
-async function performHybridSearch(
-	codebaseClient: SoukVectorClient,
-	embedding: number[],
-	queryText: string,
-	topK: number,
-	hybridWeight: number,
-	filterQuery: string | undefined,
-	snippetLength: number,
-): Promise<SolrSearchResponse> {
-	// Run both searches in parallel
-	const [vectorResponse, keywordResponse] = await Promise.all([
-		codebaseClient.search(embedding, topK, {
-			filterQuery,
-			mode: "vector",
-		}),
-		codebaseClient.search(null, topK, {
-			filterQuery,
-			mode: "keyword",
-			queryText,
-			snippetLength,
-		}),
-	]);
-
-	// Normalize scores to 0-1 range for each result set
-	const normalizeScores = (docs: Record<string, unknown>[]) => {
-		if (docs.length === 0) return [];
-		const maxScore = Math.max(...docs.map((d) => (d.score as number) || 0));
-		if (maxScore === 0) return docs;
-		return docs.map((d) => ({
-			...d,
-			normalizedScore: ((d.score as number) || 0) / maxScore,
-		}));
-	};
-
-	const vectorDocs = normalizeScores(vectorResponse.response.docs);
-	const keywordDocs = normalizeScores(keywordResponse.response.docs);
-
-	// Build a map of all unique documents with their combined scores
-	const docMap = new Map<
-		string,
-		{
-			doc: Record<string, unknown>;
-			vectorScore: number;
-			keywordScore: number;
-		}
-	>();
-
-	for (const doc of vectorDocs) {
-		const id = doc.id as string;
-		docMap.set(id, {
-			doc,
-			vectorScore: (doc.normalizedScore as number) || 0,
-			keywordScore: 0,
-		});
-	}
-
-	for (const doc of keywordDocs) {
-		const id = doc.id as string;
-		const existing = docMap.get(id);
-		if (existing) {
-			existing.keywordScore = (doc.normalizedScore as number) || 0;
-		} else {
-			docMap.set(id, {
-				doc,
-				vectorScore: 0,
-				keywordScore: (doc.normalizedScore as number) || 0,
-			});
-		}
-	}
-
-	// Compute hybrid scores and sort
-	const mergedDocs = Array.from(docMap.values())
-		.map(({ doc, vectorScore, keywordScore }) => ({
-			...doc,
-			score: hybridWeight * vectorScore + (1 - hybridWeight) * keywordScore,
-		}))
-		.sort((a, b) => (b.score as number) - (a.score as number))
-		.slice(0, topK);
-
-	// Return in SolrSearchResponse format
-	return {
-		response: {
-			docs: mergedDocs,
-			numFound: mergedDocs.length,
-		},
-		// Use keyword highlighting if available
-		highlighting: keywordResponse.highlighting,
-	};
-}
 
 function escapeForSolr(value: string): string {
 	// Escape special Solr query characters

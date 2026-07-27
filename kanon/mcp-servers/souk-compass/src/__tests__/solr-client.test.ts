@@ -26,6 +26,19 @@ function errorResponse(status: number, body?: unknown): Response {
 	);
 }
 
+/**
+ * search() and searchByThreshold() send their parameters as a POST form body
+ * rather than in the URI — a 1024-dimension vector inlined in the query string
+ * exceeds Jetty's header limit. Read them from the body.
+ */
+function sentParams(callIndex = 0): URLSearchParams {
+	const call = fetchSpyRef.mock.calls[callIndex] as [string, { body: string }];
+	return new URLSearchParams(call[1].body);
+}
+
+// biome-ignore lint/style/useConst: assigned in beforeEach for sentParams()
+let fetchSpyRef: ReturnType<typeof spyOn>;
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -37,6 +50,7 @@ describe("SoukVectorClient", () => {
 	beforeEach(() => {
 		client = new SoukVectorClient(BASE_URL, COLLECTION);
 		fetchSpy = spyOn(globalThis, "fetch");
+		fetchSpyRef = fetchSpy;
 	});
 
 	afterEach(() => {
@@ -135,10 +149,9 @@ describe("SoukVectorClient", () => {
 			expect(result.response.numFound).toBe(1);
 
 			const [url] = fetchSpy.mock.calls[0] as [string];
-			const parsed = new URL(url);
-			expect(parsed.pathname).toBe(`/solr/${COLLECTION}/select`);
+			expect(new URL(url).pathname).toBe(`/solr/${COLLECTION}/select`);
 
-			const q = parsed.searchParams.get("q");
+			const q = sentParams(0).get("q");
 			// Default earlyTermination=true is applied
 			expect(q).toBe(
 				`{!knn f=vector topK=5 earlyTermination=true}${JSON.stringify(embedding)}`,
@@ -150,8 +163,7 @@ describe("SoukVectorClient", () => {
 
 			await client.search([0.1], 3, { filterQuery: "artifact_type:skill" });
 
-			const [url] = fetchSpy.mock.calls[0] as [string];
-			const parsed = new URL(url);
+			const parsed = { searchParams: sentParams(0) };
 			expect(parsed.searchParams.get("fq")).toBe("artifact_type:skill");
 		});
 
@@ -163,32 +175,9 @@ describe("SoukVectorClient", () => {
 				queryText: "git workflow",
 			});
 
-			const [url] = fetchSpy.mock.calls[0] as [string];
-			const parsed = new URL(url);
+			const parsed = { searchParams: sentParams(0) };
 			expect(parsed.searchParams.get("q")).toBe("text:git workflow");
 			expect(parsed.searchParams.get("rows")).toBe("10");
-		});
-
-		test("hybrid mode constructs combined BM25+kNN query", async () => {
-			fetchSpy.mockResolvedValueOnce(okJson(solrResponse));
-
-			const embedding = [0.5, 0.6];
-			await client.search(embedding, 5, {
-				mode: "hybrid",
-				hybridWeight: 0.7,
-				queryText: "git workflow",
-			});
-
-			const [url] = fetchSpy.mock.calls[0] as [string];
-			const parsed = new URL(url);
-			const q = parsed.searchParams.get("q") ?? "";
-
-			// Should contain knn clause with earlyTermination and BM25 text clause
-			expect(q).toContain("{!knn f=vector topK=5 earlyTermination=true}");
-			expect(q).toContain("text:git workflow");
-			// Weight 0.7 for vector, 0.3 for keyword
-			expect(q).toContain("0.7");
-			expect(q).toContain("0.3");
 		});
 
 		test("adds highlighting params for keyword mode with snippetLength", async () => {
@@ -200,8 +189,7 @@ describe("SoukVectorClient", () => {
 				snippetLength: 200,
 			});
 
-			const [url] = fetchSpy.mock.calls[0] as [string];
-			const parsed = new URL(url);
+			const parsed = { searchParams: sentParams(0) };
 			expect(parsed.searchParams.get("hl")).toBe("true");
 			expect(parsed.searchParams.get("hl.fl")).toBe("text");
 			expect(parsed.searchParams.get("hl.snippets")).toBe("1");
@@ -213,8 +201,7 @@ describe("SoukVectorClient", () => {
 
 			await client.search([0.1], 5, { mode: "vector", snippetLength: 200 });
 
-			const [url] = fetchSpy.mock.calls[0] as [string];
-			const parsed = new URL(url);
+			const parsed = { searchParams: sentParams(0) };
 			expect(parsed.searchParams.get("hl")).toBeNull();
 		});
 	});
@@ -255,6 +242,11 @@ describe("SoukVectorClient", () => {
 			expect(init.method).toBe("POST");
 		});
 	});
+
+	// Hybrid search is not tested here: the client no longer implements it.
+	// Solr rejects a {!knn} clause nested inside {!func}, so the two scores are
+	// fused on the client (ADR-0052). `mode` is narrowed to vector|keyword, and
+	// the fusion is covered by hybrid-search.test.ts.
 
 	// -----------------------------------------------------------------------
 	// vector wire encoding
@@ -407,8 +399,7 @@ describe("SoukVectorClient", () => {
 			const embedding = [0.1, 0.2];
 			await client.searchByThreshold(embedding, 10, 0.8);
 
-			const [url] = fetchSpy.mock.calls[0] as [string];
-			const parsed = new URL(url);
+			const parsed = { searchParams: sentParams(0) };
 			const q = parsed.searchParams.get("q") ?? "";
 			expect(q).toContain("{!vectorSimilarity f=vector minReturn=0.8}");
 			expect(q).toContain(JSON.stringify(embedding));
@@ -464,8 +455,7 @@ describe("SoukVectorClient", () => {
 
 			await client.search([0.1, 0.2], 5);
 
-			const [url] = fetchSpy.mock.calls[0] as [string];
-			const parsed = new URL(url);
+			const parsed = { searchParams: sentParams(0) };
 			const q = parsed.searchParams.get("q") ?? "";
 			expect(q).toContain("earlyTermination=true");
 		});
@@ -478,8 +468,7 @@ describe("SoukVectorClient", () => {
 
 			await client.search([0.1, 0.2], 5);
 
-			const [url] = fetchSpy.mock.calls[0] as [string];
-			const parsed = new URL(url);
+			const parsed = { searchParams: sentParams(0) };
 			const q = parsed.searchParams.get("q") ?? "";
 			expect(q).not.toContain("efSearchScaleFactor");
 		});
@@ -495,8 +484,7 @@ describe("SoukVectorClient", () => {
 
 			await customClient.search([0.1, 0.2], 5);
 
-			const [url] = fetchSpy.mock.calls[0] as [string];
-			const parsed = new URL(url);
+			const parsed = { searchParams: sentParams(0) };
 			const q = parsed.searchParams.get("q") ?? "";
 			expect(q).toContain("efSearchScaleFactor=2.5");
 			expect(q).toContain("earlyTermination=true");
@@ -513,32 +501,9 @@ describe("SoukVectorClient", () => {
 
 			await customClient.search([0.1, 0.2], 5);
 
-			const [url] = fetchSpy.mock.calls[0] as [string];
-			const parsed = new URL(url);
+			const parsed = { searchParams: sentParams(0) };
 			const q = parsed.searchParams.get("q") ?? "";
 			expect(q).not.toContain("earlyTermination");
-		});
-
-		test("earlyTermination and efSearchScaleFactor applied in hybrid mode kNN clause", async () => {
-			const customClient = new SoukVectorClient(BASE_URL, COLLECTION, {
-				efSearchScaleFactor: 1.5,
-			});
-			const solrResponse = {
-				response: { docs: [], numFound: 0 },
-			};
-			fetchSpy.mockResolvedValueOnce(okJson(solrResponse));
-
-			await customClient.search([0.1], 5, {
-				mode: "hybrid",
-				hybridWeight: 0.5,
-				queryText: "test",
-			});
-
-			const [url] = fetchSpy.mock.calls[0] as [string];
-			const parsed = new URL(url);
-			const q = parsed.searchParams.get("q") ?? "";
-			expect(q).toContain("earlyTermination=true");
-			expect(q).toContain("efSearchScaleFactor=1.5");
 		});
 	});
 
@@ -555,8 +520,7 @@ describe("SoukVectorClient", () => {
 			const embedding = [0.1, 0.2];
 			await client.searchByThreshold(embedding, 10, 0.8, { minTraverse: 500 });
 
-			const [url] = fetchSpy.mock.calls[0] as [string];
-			const parsed = new URL(url);
+			const parsed = { searchParams: sentParams(0) };
 			const q = parsed.searchParams.get("q") ?? "";
 			expect(q).toContain("minTraverse=500");
 			expect(q).toContain("minReturn=0.8");
@@ -570,8 +534,7 @@ describe("SoukVectorClient", () => {
 				filterQuery: "artifact_type:skill",
 			});
 
-			const [url] = fetchSpy.mock.calls[0] as [string];
-			const parsed = new URL(url);
+			const parsed = { searchParams: sentParams(0) };
 			expect(parsed.searchParams.get("fq")).toBe("artifact_type:skill");
 		});
 
@@ -584,8 +547,7 @@ describe("SoukVectorClient", () => {
 				minTraverse: 200,
 			});
 
-			const [url] = fetchSpy.mock.calls[0] as [string];
-			const parsed = new URL(url);
+			const parsed = { searchParams: sentParams(0) };
 			const q = parsed.searchParams.get("q") ?? "";
 			expect(q).toContain("minReturn=0.75");
 			expect(q).toContain("minTraverse=200");
@@ -597,87 +559,9 @@ describe("SoukVectorClient", () => {
 	// Hybrid mode boundary weights
 	// -----------------------------------------------------------------------
 
-	describe("hybrid mode boundary weights", () => {
-		const solrResponse = {
-			response: { docs: [{ id: "doc-1", text: "hello" }], numFound: 1 },
-		};
-
-		test("hybridWeight=0.0 produces pure keyword weighting", async () => {
-			fetchSpy.mockResolvedValueOnce(okJson(solrResponse));
-
-			await client.search([0.1], 5, {
-				mode: "hybrid",
-				hybridWeight: 0.0,
-				queryText: "test query",
-			});
-
-			const [url] = fetchSpy.mock.calls[0] as [string];
-			const parsed = new URL(url);
-			const q = parsed.searchParams.get("q") ?? "";
-			// hybridWeight=0.0 → vector weight is 0, keyword weight is 1
-			expect(q).toContain("mul(scale(query({v='text:test query'}),0,1),1)");
-			expect(q).toContain(",0)");
-		});
-
-		test("hybridWeight=1.0 produces pure vector weighting", async () => {
-			fetchSpy.mockResolvedValueOnce(okJson(solrResponse));
-
-			await client.search([0.1], 5, {
-				mode: "hybrid",
-				hybridWeight: 1.0,
-				queryText: "test query",
-			});
-
-			const [url] = fetchSpy.mock.calls[0] as [string];
-			const parsed = new URL(url);
-			const q = parsed.searchParams.get("q") ?? "";
-			// hybridWeight=1.0 → vector weight is 1, keyword weight is 0
-			expect(q).toContain(",1)");
-			expect(q).toContain("mul(scale(query({v='text:test query'}),0,1),0)");
-		});
-	});
-
 	// -----------------------------------------------------------------------
 	// Highlighting for hybrid mode
 	// -----------------------------------------------------------------------
-
-	describe("highlighting for hybrid mode", () => {
-		const solrResponse = {
-			response: { docs: [{ id: "doc-1", text: "hello" }], numFound: 1 },
-		};
-
-		test("adds highlighting params for hybrid mode with snippetLength", async () => {
-			fetchSpy.mockResolvedValueOnce(okJson(solrResponse));
-
-			await client.search([0.1], 5, {
-				mode: "hybrid",
-				hybridWeight: 0.5,
-				queryText: "test",
-				snippetLength: 150,
-			});
-
-			const [url] = fetchSpy.mock.calls[0] as [string];
-			const parsed = new URL(url);
-			expect(parsed.searchParams.get("hl")).toBe("true");
-			expect(parsed.searchParams.get("hl.fl")).toBe("text");
-			expect(parsed.searchParams.get("hl.snippets")).toBe("1");
-			expect(parsed.searchParams.get("hl.fragsize")).toBe("150");
-		});
-
-		test("does NOT add highlighting for hybrid mode without snippetLength", async () => {
-			fetchSpy.mockResolvedValueOnce(okJson(solrResponse));
-
-			await client.search([0.1], 5, {
-				mode: "hybrid",
-				hybridWeight: 0.5,
-				queryText: "test",
-			});
-
-			const [url] = fetchSpy.mock.calls[0] as [string];
-			const parsed = new URL(url);
-			expect(parsed.searchParams.get("hl")).toBeNull();
-		});
-	});
 
 	// -----------------------------------------------------------------------
 	// URL trailing slash handling
