@@ -26544,7 +26544,6 @@ class SoukVectorClient {
   }
   async search(queryEmbedding, topK, options2) {
     const mode = options2?.mode ?? "vector";
-    const hybridWeight = options2?.hybridWeight ?? 0.5;
     const filterQuery = options2?.filterQuery;
     const queryText = options2?.queryText ?? "";
     const snippetLength = options2?.snippetLength;
@@ -26553,8 +26552,6 @@ class SoukVectorClient {
     if (mode === "keyword") {
       params.set("q", `text:${queryText}`);
       params.set("rows", String(topK));
-    } else if (mode === "hybrid") {
-      throw new Error("Hybrid mode must be handled by caller with separate vector and keyword searches");
     } else {
       if (!queryEmbedding) {
         throw new SoukCompassError("Vector search requires a query embedding.", ErrorCodes.EMBED_FAILURE);
@@ -26564,7 +26561,7 @@ class SoukVectorClient {
     if (filterQuery) {
       params.set("fq", filterQuery);
     }
-    if (snippetLength != null && (mode === "keyword" || mode === "hybrid")) {
+    if (snippetLength != null && mode === "keyword") {
       params.set("hl", "true");
       params.set("hl.fl", "text");
       params.set("hl.snippets", "1");
@@ -42340,6 +42337,68 @@ function jsonResult9(data) {
 
 // src/tools/compass-search.ts
 init_errors();
+
+// src/hybrid-search.ts
+function normalizeScores(docs) {
+  if (docs.length === 0)
+    return [];
+  const maxScore = Math.max(...docs.map((d) => d.score || 0));
+  return docs.map((d) => ({
+    ...d,
+    normalizedScore: maxScore === 0 ? 0 : (d.score || 0) / maxScore
+  }));
+}
+async function hybridSearch(client, options2) {
+  const {
+    embedding,
+    queryText,
+    topK,
+    hybridWeight,
+    filterQuery,
+    snippetLength
+  } = options2;
+  const [vectorResponse, keywordResponse] = await Promise.all([
+    client.search(embedding, topK, { filterQuery, mode: "vector" }),
+    client.search(null, topK, {
+      filterQuery,
+      mode: "keyword",
+      queryText,
+      snippetLength
+    })
+  ]);
+  const merged = new Map;
+  for (const doc3 of normalizeScores(vectorResponse.response.docs)) {
+    merged.set(doc3.id, {
+      doc: doc3,
+      vectorScore: doc3.normalizedScore,
+      keywordScore: 0
+    });
+  }
+  for (const doc3 of normalizeScores(keywordResponse.response.docs)) {
+    const id = doc3.id;
+    const existing = merged.get(id);
+    if (existing) {
+      existing.keywordScore = doc3.normalizedScore;
+      existing.doc = { ...existing.doc, ...doc3 };
+    } else {
+      merged.set(id, {
+        doc: doc3,
+        vectorScore: 0,
+        keywordScore: doc3.normalizedScore
+      });
+    }
+  }
+  const docs = Array.from(merged.values()).map(({ doc: doc3, vectorScore, keywordScore }) => ({
+    ...doc3,
+    score: hybridWeight * vectorScore + (1 - hybridWeight) * keywordScore
+  })).sort((a, b) => b.score - a.score).slice(0, topK);
+  return {
+    response: { docs, numFound: docs.length },
+    highlighting: keywordResponse.highlighting
+  };
+}
+
+// src/tools/compass-search.ts
 async function handleCompassSearch(input, ctx) {
   try {
     const mode = input.mode ?? "hybrid";
@@ -42432,11 +42491,20 @@ async function searchByScope(scope, embedding, topK, filterQuery, ctx, options2)
         filterQuery
       });
       responses.push(res);
+    } else if (mode === "hybrid" && embedding != null) {
+      const res = await hybridSearch(client, {
+        embedding,
+        queryText,
+        topK,
+        hybridWeight: hybridWeight ?? 0.5,
+        filterQuery,
+        snippetLength
+      });
+      responses.push(res);
     } else {
       const res = await client.search(embedding, topK, {
         filterQuery,
-        mode,
-        hybridWeight,
+        mode: mode === "hybrid" ? "keyword" : mode,
         queryText,
         snippetLength
       });
@@ -42512,13 +42580,20 @@ async function handleCompassSearchCodebase(input, ctx) {
     const filterQuery = filters.length > 0 ? filters.join(" AND ") : undefined;
     let response;
     if (mode === "hybrid" && embedding) {
-      response = await performHybridSearch(codebaseClient, embedding, input.query, topK, input.hybridWeight ?? 0.5, filterQuery, snippetLength);
+      response = await hybridSearch(codebaseClient, {
+        embedding,
+        queryText: input.query,
+        topK,
+        hybridWeight: input.hybridWeight ?? 0.5,
+        filterQuery,
+        snippetLength
+      });
     } else if (effectiveMinScore != null && mode === "vector" && embedding) {
       response = await codebaseClient.searchByThreshold(embedding, topK, effectiveMinScore, { filterQuery });
     } else {
       response = await codebaseClient.search(embedding, topK, {
         filterQuery,
-        mode,
+        mode: mode === "hybrid" ? "keyword" : mode,
         queryText: input.query,
         snippetLength
       });
@@ -42604,66 +42679,6 @@ function extractString2(value) {
   if (Array.isArray(value) && value.length > 0)
     return String(value[0]);
   return;
-}
-async function performHybridSearch(codebaseClient, embedding, queryText, topK, hybridWeight, filterQuery, snippetLength) {
-  const [vectorResponse, keywordResponse] = await Promise.all([
-    codebaseClient.search(embedding, topK, {
-      filterQuery,
-      mode: "vector"
-    }),
-    codebaseClient.search(null, topK, {
-      filterQuery,
-      mode: "keyword",
-      queryText,
-      snippetLength
-    })
-  ]);
-  const normalizeScores = (docs) => {
-    if (docs.length === 0)
-      return [];
-    const maxScore = Math.max(...docs.map((d) => d.score || 0));
-    if (maxScore === 0)
-      return docs;
-    return docs.map((d) => ({
-      ...d,
-      normalizedScore: (d.score || 0) / maxScore
-    }));
-  };
-  const vectorDocs = normalizeScores(vectorResponse.response.docs);
-  const keywordDocs = normalizeScores(keywordResponse.response.docs);
-  const docMap = new Map;
-  for (const doc3 of vectorDocs) {
-    const id = doc3.id;
-    docMap.set(id, {
-      doc: doc3,
-      vectorScore: doc3.normalizedScore || 0,
-      keywordScore: 0
-    });
-  }
-  for (const doc3 of keywordDocs) {
-    const id = doc3.id;
-    const existing = docMap.get(id);
-    if (existing) {
-      existing.keywordScore = doc3.normalizedScore || 0;
-    } else {
-      docMap.set(id, {
-        doc: doc3,
-        vectorScore: 0,
-        keywordScore: doc3.normalizedScore || 0
-      });
-    }
-  }
-  const mergedDocs = Array.from(docMap.values()).map(({ doc: doc3, vectorScore, keywordScore }) => ({
-    ...doc3,
-    score: hybridWeight * vectorScore + (1 - hybridWeight) * keywordScore
-  })).sort((a, b) => b.score - a.score).slice(0, topK);
-  return {
-    response: {
-      docs: mergedDocs,
-      numFound: mergedDocs.length
-    },
-    highlighting: keywordResponse.highlighting
-  };
 }
 function escapeForSolr(value) {
   return value.replace(/([+\-&|!(){}[\]^"~*?:\\/])/g, "\\$1");

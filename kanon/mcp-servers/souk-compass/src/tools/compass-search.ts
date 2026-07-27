@@ -1,5 +1,6 @@
 import { loadCatalog, readArtifactContent } from "../catalog-reader.js";
 import { ErrorCodes, SoukCompassError } from "../errors.js";
+import { hybridSearch } from "../hybrid-search.js";
 import type { CompassSearchInput } from "../schemas.js";
 import { fromSolrDocument } from "../serialization.js";
 import type { SolrSearchResponse } from "../solr-client.js";
@@ -149,11 +150,23 @@ async function searchByScope(
 				filterQuery,
 			});
 			responses.push(res);
+		} else if (mode === "hybrid" && embedding != null) {
+			// Fused client-side (ADR-0052): Solr cannot combine a kNN clause with a
+			// BM25 clause in one query.
+			const res = await hybridSearch(client, {
+				embedding,
+				queryText,
+				topK,
+				hybridWeight: hybridWeight ?? 0.5,
+				filterQuery,
+				snippetLength,
+			});
+			responses.push(res);
 		} else {
 			const res = await client.search(embedding, topK, {
 				filterQuery,
-				mode,
-				hybridWeight,
+				// Hybrid is handled above; the client itself only does these two.
+				mode: mode === "hybrid" ? "keyword" : mode,
 				queryText,
 				snippetLength,
 			});

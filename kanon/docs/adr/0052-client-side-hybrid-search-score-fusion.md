@@ -1,7 +1,7 @@
 # ADR-0052: Client-Side Hybrid Search Score Fusion for Souk Compass
 
 **Date:** 2026-07-23  
-**Status:** Proposed  
+**Status:** Accepted  
 **Deciders:** Context Bazaar development team  
 **Supersedes:** N/A
 
@@ -47,7 +47,15 @@ When `mode: "hybrid"` is requested:
 3. Compute hybrid score per document: `hybridWeight * vectorScore + (1-hybridWeight) * keywordScore`
 4. Merge, sort by hybrid score, return top K
 
-**Location:** `kanon/mcp-servers/souk-compass/src/tools/compass-search-codebase.ts::performHybridSearch()`
+**Location:** `kanon/mcp-servers/souk-compass/src/hybrid-search.ts::hybridSearch()`
+
+Shared by both search tools. `compass_search` (artifacts) and
+`compass_search_codebase` need identical scoring, and `SoukVectorClient.search()`
+narrows `mode` to `"vector" | "keyword"` so hybrid cannot reach Solr at all —
+a compile-time guarantee rather than a runtime throw.
+
+Note the consequence for callers: in hybrid mode `score` is a fused value
+normalized per request, not a raw Solr score.
 
 ### Positive Consequences
 
@@ -97,6 +105,7 @@ When `mode: "hybrid"` is requested:
 
 - Relates to: [ADR-0031](./0031-souk-compass-standalone-mcp-server-for-semantic-search.md) (introduces souk-compass)
 - Relates to: [ADR-0034](./0034-solr-10-upgrade-with-scalar-quantization.md) (Solr 10 vector search)
-- Implementation: `kanon/mcp-servers/souk-compass/src/tools/compass-search-codebase.ts`
+- Implementation: `kanon/mcp-servers/souk-compass/src/hybrid-search.ts` (fusion)
+- Implementation: `kanon/mcp-servers/souk-compass/src/tools/compass-search.ts`, `compass-search-codebase.ts` (callers)
 - Implementation: `kanon/mcp-servers/souk-compass/src/solr-client.ts` (POST request change)
 - Branch: `rosetta-stone`
