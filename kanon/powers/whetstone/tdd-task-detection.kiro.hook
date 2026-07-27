@@ -1,0 +1,12 @@
+{
+  "name": "TDD Task Detection",
+  "version": "1.0.0",
+  "description": "Detects test-related spec tasks and loads the TDD workflow",
+  "when": {
+    "type": "preTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Before starting this task, assess whether it involves writing or modifying tests:\n\n1. Check the task description for test-related keywords: test, spec, TDD, red-green, assertion, coverage, unit test, integration test, property test.\n2. If the task matches:\n   a. Read the drive-tests steering file from the codeshop power.\n   b. Apply the TDD red-green-refactor methodology to the task.\n3. If the task does not match, proceed with the task normally.\n\nEither load the drive-tests workflow and confirm it is applied, or confirm the task does not involve tests and proceed with implementation.\n"
+  }
+}

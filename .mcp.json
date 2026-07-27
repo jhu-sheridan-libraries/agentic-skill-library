@@ -2,7 +2,21 @@
   "mcpServers": {
     "context-bazaar": {
       "command": "node",
-      "args": ["./kanon/bridge/mcp-server.cjs"]
+      "args": [
+        "./kanon/bridge/mcp-server.cjs"
+      ]
+    },
+    "souk-compass": {
+      "command": "bun",
+      "args": [
+        "run",
+        "./kanon/mcp-servers/souk-compass/src/index.ts"
+      ],
+      "env": {
+        "CLAUDE_PLUGIN_ROOT": "/Users/stevenm/jhu.edu/context-bazaar",
+        "SOUK_COMPASS_EMBED_PROVIDER": "bedrock-titan",
+        "SOUK_COMPASS_EMBED_DIMENSIONS": "1024"
+      }
     }
   }
 }

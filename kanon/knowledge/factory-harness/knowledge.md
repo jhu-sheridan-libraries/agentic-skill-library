@@ -42,7 +42,7 @@ harness-config:
   kiro:
     format: power
   claude-code:
-    format: skill
+    format: claude-md
   codex:
     format: skill
 ---
