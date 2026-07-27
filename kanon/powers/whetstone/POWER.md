@@ -442,7 +442,7 @@ These external powers complement codeshop but are NOT bundled — they are activ
 
 ## Troubleshooting
 
-Common failure modes across codeshop workflows and how to resolve them.
+Common failure modes across whetstone workflows and how to resolve them.
 
 ### `gh` CLI not installed or not authenticated
 
