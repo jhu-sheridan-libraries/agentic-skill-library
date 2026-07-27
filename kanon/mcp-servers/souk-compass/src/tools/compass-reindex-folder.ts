@@ -1,8 +1,12 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import { basename, extname, join, relative, resolve } from "node:path";
+import { buildCodebaseDocs } from "../codebase-docs.js";
+import { requireCollection } from "../collections.js";
 import { contentHash } from "../embed-cache.js";
+import { modelIdentity } from "../embedding-provider.js";
 import { ErrorCodes, SoukCompassError } from "../errors.js";
 import type { CompassReindexFolderInput } from "../schemas.js";
+import { SoukVectorClient } from "../solr-client.js";
 import type { ToolContext, ToolResult } from "./types.js";
 
 // ---------------------------------------------------------------------------
@@ -159,56 +163,6 @@ function matchesAny(patterns: string[], filePath: string): boolean {
 // Code chunker
 // ---------------------------------------------------------------------------
 
-interface CodeChunk {
-	index: number;
-	text: string;
-	startLine: number;
-	endLine: number;
-}
-
-function chunkCode(content: string, maxLength: number): CodeChunk[] {
-	if (content.length <= maxLength) {
-		return [
-			{
-				index: 0,
-				text: content,
-				startLine: 1,
-				endLine: content.split("\n").length,
-			},
-		];
-	}
-	const lines = content.split("\n");
-	const chunks: CodeChunk[] = [];
-	let currentChunk = "";
-	let chunkStartLine = 1;
-	let lineIndex = 0;
-	for (const line of lines) {
-		lineIndex++;
-		const wouldExceed = `${currentChunk}\n${line}`.length > maxLength;
-		if (wouldExceed && currentChunk.length > 0) {
-			chunks.push({
-				index: chunks.length,
-				text: currentChunk,
-				startLine: chunkStartLine,
-				endLine: lineIndex - 1,
-			});
-			currentChunk = line;
-			chunkStartLine = lineIndex;
-		} else {
-			currentChunk += (currentChunk ? "\n" : "") + line;
-		}
-	}
-	if (currentChunk) {
-		chunks.push({
-			index: chunks.length,
-			text: currentChunk,
-			startLine: chunkStartLine,
-			endLine: lineIndex,
-		});
-	}
-	return chunks;
-}
-
 // ---------------------------------------------------------------------------
 // Directory walker
 // ---------------------------------------------------------------------------
@@ -269,6 +223,24 @@ export async function handleCompassReindexFolder(
 	ctx: ToolContext,
 ): Promise<ToolResult> {
 	const folderPath = resolve(input.path);
+
+	const collectionName = input.collection ?? ctx.config.codebaseCollection;
+	if (input.collection) {
+		try {
+			await requireCollection(ctx.config.solrUrl, input.collection);
+		} catch (err) {
+			// Reported like other bad input rather than thrown, matching how this
+			// tool already handles an unusable path.
+			return jsonResult({
+				indexed: 0,
+				errors: 1,
+				message: err instanceof Error ? err.message : String(err),
+			});
+		}
+	}
+	const codebaseClient = input.collection
+		? new SoukVectorClient(ctx.config.solrUrl, input.collection)
+		: ctx.codebaseSolrClient;
 	const include = input.include ?? ["**/*"];
 	const exclude = input.exclude ?? [
 		"**/node_modules/**",
@@ -303,9 +275,9 @@ export async function handleCompassReindexFolder(
 	);
 
 	// 2. Query Solr for all existing codebase documents (id + content_hash)
-	let existingDocs: Map<string, string>; // id → content_hash
+	let existingDocs: Map<string, ExistingDoc>; // id → hash + indexed root
 	try {
-		existingDocs = await fetchExistingHashes(ctx);
+		existingDocs = await fetchExistingHashes(ctx, collectionName);
 	} catch (err) {
 		if (
 			err instanceof SoukCompassError &&
@@ -327,21 +299,29 @@ export async function handleCompassReindexFolder(
 	for (const file of files) {
 		try {
 			const content = await readFile(file.absolutePath, "utf-8");
-			const chunks = chunkCode(content, chunkMaxLength);
+			const docs = buildCodebaseDocs({
+				root: folderPath,
+				relativePath: file.relativePath,
+				content,
+				chunkMaxLength,
+				chunked: true,
+			});
 
-			for (const chunk of chunks) {
-				const docId =
-					chunks.length > 1
-						? `codebase::${file.relativePath}::chunk_${chunk.index}`
-						: `codebase::${file.relativePath}`;
-				const docText =
-					chunks.length > 1
-						? `File: ${file.relativePath} (lines ${chunk.startLine}-${chunk.endLine})\n\n${chunk.text}`
-						: `File: ${file.relativePath}\n\n${chunk.text}`;
+			for (const doc of docs) {
+				const docId = doc.id;
 
 				currentIds.add(docId);
-				const hash = contentHash(docText);
-				const existingHash = existingDocs.get(docId);
+				const hash = contentHash(doc.text);
+				const existing = existingDocs.get(docId);
+				// Document ids are root-relative, so a different root can hold the
+				// same id for a different file. Only trust a hash that belongs to
+				// this root, or to no recorded root at all.
+				const existingHash =
+					existing &&
+					(existing.indexRoot === undefined ||
+						existing.indexRoot === folderPath)
+						? existing.hash
+						: undefined;
 
 				if (!existingHash) {
 					added.push({
@@ -362,11 +342,20 @@ export async function handleCompassReindexFolder(
 		}
 	}
 
-	// 4. Detect removed documents
+	// 4. Detect removed documents — only ones this root is responsible for.
+	//
+	// Deleting on "absent from the walk" alone destroys other roots' indexes:
+	// their documents are absent by definition. Documents with no recorded root
+	// cannot be attributed to anyone, so they are left in place rather than
+	// risked; they get rewritten (and stamped) whenever their file next changes.
 	const removedIds: string[] = [];
-	for (const existingId of existingDocs.keys()) {
-		if (!currentIds.has(existingId)) {
+	let skippedRemovals = 0;
+	for (const [existingId, existing] of existingDocs) {
+		if (currentIds.has(existingId)) continue;
+		if (existing.indexRoot === folderPath) {
 			removedIds.push(existingId);
+		} else {
+			skippedRemovals++;
 		}
 	}
 
@@ -389,24 +378,15 @@ export async function handleCompassReindexFolder(
 
 			try {
 				const content = await readFile(file.absolutePath, "utf-8");
-				const chunks = chunkCode(content, chunkMaxLength);
-
-				for (const chunk of chunks) {
-					const docId =
-						chunks.length > 1
-							? `codebase::${file.relativePath}::chunk_${chunk.index}`
-							: `codebase::${file.relativePath}`;
-					const docText =
-						chunks.length > 1
-							? `File: ${file.relativePath} (lines ${chunk.startLine}-${chunk.endLine})\n\n${chunk.text}`
-							: `File: ${file.relativePath}\n\n${chunk.text}`;
-
-					batchDocs.push({
-						id: docId,
-						text: docText,
+				batchDocs.push(
+					...buildCodebaseDocs({
+						root: folderPath,
 						relativePath: file.relativePath,
-					});
-				}
+						content,
+						chunkMaxLength,
+						chunked: true,
+					}),
+				);
 			} catch {
 				errors++;
 			}
@@ -421,7 +401,7 @@ export async function handleCompassReindexFolder(
 			for (let j = 0; j < batchDocs.length; j++) {
 				const doc = batchDocs[j];
 				try {
-					await ctx.codebaseSolrClient.upsert(
+					await codebaseClient.upsert(
 						doc.id,
 						doc.text,
 						embeddings[j],
@@ -430,6 +410,8 @@ export async function handleCompassReindexFolder(
 							metadata_path: doc.relativePath,
 							metadata_extension: extname(doc.relativePath).toLowerCase(),
 							content_hash: contentHash(doc.text),
+							embed_provider: modelIdentity(ctx.embeddingProvider),
+							index_root: folderPath,
 						},
 						{ commit: false },
 					);
@@ -447,7 +429,7 @@ export async function handleCompassReindexFolder(
 	let deleted = 0;
 	for (const docId of removedIds) {
 		try {
-			await ctx.codebaseSolrClient.delete(docId);
+			await codebaseClient.delete(docId);
 			deleted++;
 		} catch {
 			errors++;
@@ -456,7 +438,7 @@ export async function handleCompassReindexFolder(
 
 	// 7. Commit
 	try {
-		await ctx.codebaseSolrClient.commit();
+		await codebaseClient.commit();
 	} catch (err) {
 		return jsonResult({
 			error: `Changes applied but commit failed: ${err instanceof Error ? err.message : String(err)}`,
@@ -464,6 +446,7 @@ export async function handleCompassReindexFolder(
 			updated: updated.length,
 			unchanged,
 			removed: deleted,
+			skippedRemovals,
 			indexed,
 			errors,
 		});
@@ -474,11 +457,12 @@ export async function handleCompassReindexFolder(
 		updated: new Set(updated.map((u) => u.relativePath)).size,
 		unchanged,
 		removed: deleted,
+		skippedRemovals,
 		indexed,
 		errors,
-		collection: ctx.config.codebaseCollection,
+		collection: collectionName,
 		path: folderPath,
-		message: `Reindex complete. Added: ${new Set(added.map((a) => a.relativePath)).size}, Updated: ${new Set(updated.map((u) => u.relativePath)).size}, Unchanged: ${unchanged}, Removed: ${deleted}.`,
+		message: `Reindex complete. Added: ${new Set(added.map((a) => a.relativePath)).size}, Updated: ${new Set(updated.map((u) => u.relativePath)).size}, Unchanged: ${unchanged}, Removed: ${deleted}.${skippedRemovals > 0 ? ` Left alone (other or unrecorded index root): ${skippedRemovals}.` : ""}`,
 	});
 }
 
@@ -490,24 +474,31 @@ export async function handleCompassReindexFolder(
  * Fetch all existing codebase document IDs and their content hashes from Solr.
  * Uses cursor-based pagination to handle large collections.
  */
+interface ExistingDoc {
+	hash: string;
+	/** Folder this document was indexed from; absent for pre-`index_root` docs. */
+	indexRoot?: string;
+}
+
 async function fetchExistingHashes(
 	ctx: ToolContext,
-): Promise<Map<string, string>> {
-	const docs = new Map<string, string>();
+	collectionName: string,
+): Promise<Map<string, ExistingDoc>> {
+	const docs = new Map<string, ExistingDoc>();
 	let cursorMark = "*";
 	const batchSize = 500;
 
 	while (true) {
 		const params = new URLSearchParams({
 			q: 'doc_source:"codebase"',
-			fl: "id,content_hash",
+			fl: "id,content_hash,index_root",
 			rows: String(batchSize),
 			sort: "id asc",
 			cursorMark,
 			wt: "json",
 		});
 
-		const url = `${ctx.config.solrUrl}/solr/${encodeURIComponent(ctx.config.codebaseCollection)}/select?${params.toString()}`;
+		const url = `${ctx.config.solrUrl}/solr/${encodeURIComponent(collectionName)}/select?${params.toString()}`;
 		const response = await fetch(url);
 
 		if (!response.ok) {
@@ -521,12 +512,24 @@ async function fetchExistingHashes(
 		}
 
 		const body = (await response.json()) as {
-			response: { docs: Array<{ id: string; content_hash?: string }> };
+			response: {
+				docs: Array<{
+					id: string;
+					content_hash?: string | string[];
+					index_root?: string | string[];
+				}>;
+			};
 			nextCursorMark?: string;
 		};
 
 		for (const doc of body.response.docs) {
-			docs.set(doc.id, doc.content_hash ?? "");
+			// SolrCloud may return stored string fields as single-element arrays.
+			const first = (v: string | string[] | undefined) =>
+				Array.isArray(v) ? v[0] : v;
+			docs.set(doc.id, {
+				hash: first(doc.content_hash) ?? "",
+				indexRoot: first(doc.index_root),
+			});
 		}
 
 		// If nextCursorMark equals current, we've exhausted all results

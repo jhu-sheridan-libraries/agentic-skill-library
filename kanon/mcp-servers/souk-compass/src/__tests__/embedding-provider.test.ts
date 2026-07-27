@@ -81,15 +81,14 @@ describe("createEmbeddingProvider", () => {
 		expect(provider.dimensions).toBe(512);
 	});
 
-	test("falls back to local provider on bedrock-titan init failure with stderr warning", async () => {
-		// We mock the bedrock-provider module to throw on import
+	test("throws instead of silently falling back when bedrock-titan init fails", async () => {
+		// Falling back to a different model against a Titan-built index yields
+		// vectors from the wrong embedding space: cosine still returns numbers,
+		// the numbers are meaningless, and nothing surfaces the substitution.
+		// Failing loudly is the only safe behaviour.
 		const origImport = await import("../embedding-provider.js");
-
-		// Create a custom factory that simulates bedrock init failure
-		// by temporarily mocking the dynamic import
 		const config = makeConfig({ embedProvider: "bedrock-titan" });
 
-		// Mock the bedrock provider module to throw during construction
 		mock.module("../providers/bedrock-provider.js", () => ({
 			BedrockTitanProvider: class {
 				constructor() {
@@ -98,19 +97,26 @@ describe("createEmbeddingProvider", () => {
 			},
 		}));
 
-		// Re-import to pick up the mock
-		// Since Bun caches modules, we need to use the factory directly
-		// The factory uses dynamic import, so we test the actual fallback behavior
-		const provider = await origImport.createEmbeddingProvider(config);
+		const promise = origImport.createEmbeddingProvider(config);
+		await expect(promise).rejects.toThrow(/bedrock-titan/i);
+		await expect(promise).rejects.toThrow(/Missing AWS credentials/);
+	});
 
-		// Should fall back to local
-		expect(provider.name).toBe("transformers-local");
-		expect(provider.dimensions).toBe(1024);
+	test("bedrock-titan init failure message names the escape hatch", async () => {
+		const origImport = await import("../embedding-provider.js");
+		const config = makeConfig({ embedProvider: "bedrock-titan" });
 
-		// Should have logged a warning to stderr
-		expect(consoleErrorSpy).toHaveBeenCalled();
-		const errorMsg = consoleErrorSpy.mock.calls[0]?.[0] as string;
-		expect(errorMsg).toContain("[souk-compass]");
-		expect(errorMsg).toContain("falling back to local");
+		mock.module("../providers/bedrock-provider.js", () => ({
+			BedrockTitanProvider: class {
+				constructor() {
+					throw new Error("boom");
+				}
+			},
+		}));
+
+		// The operator needs to know how to get back to a working server.
+		await expect(origImport.createEmbeddingProvider(config)).rejects.toThrow(
+			/SOUK_COMPASS_EMBED_PROVIDER/,
+		);
 	});
 });

@@ -78,51 +78,59 @@ const PLUGIN_ROOT =
 	process.env.CLAUDE_PLUGIN_ROOT ?? resolve(__dirname, "..", "..", "..");
 
 // ---------------------------------------------------------------------------
-// Bootstrap
+// Bootstrap (async)
 // ---------------------------------------------------------------------------
 
-const config = loadConfig();
+async function bootstrap() {
+	const config = loadConfig();
 
-const rawProvider = await createEmbeddingProvider(config);
+	const rawProvider = await createEmbeddingProvider(config);
 
-const solrClient = new SoukVectorClient(config.solrUrl, config.solrCollection, {
-	efSearchScaleFactor: config.efSearchScaleFactor,
-	filteredSearchThreshold: config.filteredSearchThreshold,
-});
-const userSolrClient = new SoukVectorClient(
-	config.solrUrl,
-	config.userCollection,
-	{
-		efSearchScaleFactor: config.efSearchScaleFactor,
-		filteredSearchThreshold: config.filteredSearchThreshold,
-	},
-);
+	const solrClient = new SoukVectorClient(
+		config.solrUrl,
+		config.solrCollection,
+		{
+			efSearchScaleFactor: config.efSearchScaleFactor,
+			filteredSearchThreshold: config.filteredSearchThreshold,
+		},
+	);
+	const userSolrClient = new SoukVectorClient(
+		config.solrUrl,
+		config.userCollection,
+		{
+			efSearchScaleFactor: config.efSearchScaleFactor,
+			filteredSearchThreshold: config.filteredSearchThreshold,
+		},
+	);
 
-const codebaseSolrClient = new SoukVectorClient(
-	config.solrUrl,
-	config.codebaseCollection,
-	{
-		efSearchScaleFactor: config.efSearchScaleFactor,
-		filteredSearchThreshold: config.filteredSearchThreshold,
-	},
-);
+	const codebaseSolrClient = new SoukVectorClient(
+		config.solrUrl,
+		config.codebaseCollection,
+		{
+			efSearchScaleFactor: config.efSearchScaleFactor,
+			filteredSearchThreshold: config.filteredSearchThreshold,
+		},
+	);
 
-const embeddingProvider = new CachedEmbeddingProvider({
-	inner: rawProvider,
-	tiers: config.cacheTiers,
-	memoryCacheSize: config.embedCacheSize,
-	sqliteDbPath: config.cacheDbPath,
-	solrClient: solrClient,
-});
+	const embeddingProvider = new CachedEmbeddingProvider({
+		inner: rawProvider,
+		tiers: config.cacheTiers,
+		memoryCacheSize: config.embedCacheSize,
+		sqliteDbPath: config.cacheDbPath,
+		solrClient: solrClient,
+	});
 
-const toolContext: ToolContext = {
-	solrClient,
-	userSolrClient,
-	codebaseSolrClient,
-	embeddingProvider,
-	config,
-	pluginRoot: PLUGIN_ROOT,
-};
+	const toolContext: ToolContext = {
+		solrClient,
+		userSolrClient,
+		codebaseSolrClient,
+		embeddingProvider,
+		config,
+		pluginRoot: PLUGIN_ROOT,
+	};
+
+	return { toolContext, server };
+}
 
 // ---------------------------------------------------------------------------
 // MCP Server
@@ -146,9 +154,20 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 			inputSchema: {
 				type: "object" as const,
 				properties: {
+					name: {
+						type: "string",
+						description:
+							'Collection name to create. Required for action "create_collection".',
+					},
 					action: {
 						type: "string",
-						enum: ["check", "start", "create_collections", "stop"],
+						enum: [
+							"check",
+							"start",
+							"create_collections",
+							"create_collection",
+							"stop",
+						],
 						description: "Action to perform. Default is 'check'.",
 					},
 				},
@@ -435,6 +454,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 				type: "object" as const,
 				required: ["path"],
 				properties: {
+					collection: {
+						type: "string",
+						description:
+							'Target a specific Solr collection instead of the configured default. It must already exist — create one with compass_setup action "create_collection".',
+					},
 					path: {
 						type: "string",
 						description: "Absolute or relative path to the folder to index.",
@@ -481,6 +505,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 				type: "object" as const,
 				required: ["query"],
 				properties: {
+					collection: {
+						type: "string",
+						description:
+							'Target a specific Solr collection instead of the configured default. It must already exist — create one with compass_setup action "create_collection".',
+					},
 					query: {
 						type: "string",
 						description:
@@ -492,7 +521,13 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 					},
 					path: {
 						type: "string",
-						description: "Filter results to files under this path prefix.",
+						description:
+							"Filter results to files under this path prefix, relative to the indexed root.",
+					},
+					root: {
+						type: "string",
+						description:
+							"Restrict the search to one indexed repository, given as the folder path passed to compass_index_folder. Omit to search every indexed repository.",
 					},
 					mode: {
 						type: "string",
@@ -526,6 +561,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 				type: "object" as const,
 				required: ["path"],
 				properties: {
+					collection: {
+						type: "string",
+						description:
+							'Target a specific Solr collection instead of the configured default. It must already exist — create one with compass_setup action "create_collection".',
+					},
 					path: {
 						type: "string",
 						description: "Absolute or relative path to the folder to re-index.",
@@ -558,115 +598,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 }));
 
 // ---------------------------------------------------------------------------
-// Tool dispatch
-// ---------------------------------------------------------------------------
-
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
-	const args = (request.params.arguments ?? {}) as Record<string, unknown>;
-
-	try {
-		let result: ToolResult;
-
-		switch (request.params.name) {
-			case "compass_setup":
-				result = await handleCompassSetup(
-					args as CompassSetupInput,
-					toolContext,
-				);
-				break;
-			case "compass_index_artifacts":
-				result = await handleCompassIndexArtifacts(
-					args as CompassIndexArtifactsInput,
-					toolContext,
-				);
-				break;
-			case "compass_search":
-				result = await handleCompassSearch(
-					args as CompassSearchInput,
-					toolContext,
-				);
-				break;
-			case "compass_index_document":
-				result = await handleCompassIndexDocument(
-					args as CompassIndexDocumentInput,
-					toolContext,
-				);
-				break;
-			case "compass_status":
-				result = await handleCompassStatus(
-					args as CompassStatusInput,
-					toolContext,
-				);
-				break;
-			case "compass_health":
-				result = await handleCompassHealth(
-					args as CompassHealthInput,
-					toolContext,
-				);
-				break;
-			case "compass_reindex":
-				result = await handleCompassReindex(
-					args as CompassReindexInput,
-					toolContext,
-				);
-				break;
-			case "compass_recall":
-				result = await handleCompassRecall(
-					args as CompassRecallInput,
-					toolContext,
-				);
-				break;
-			case "compass_remember":
-				result = await handleCompassRemember(
-					args as CompassRememberInput,
-					toolContext,
-				);
-				break;
-			case "compass_recall_memory":
-				result = await handleCompassRecallMemory(
-					args as CompassRecallMemoryInput,
-					toolContext,
-				);
-				break;
-			case "compass_profile_workspace":
-				result = await handleCompassProfileWorkspace(
-					args as CompassProfileWorkspaceInput,
-					toolContext,
-				);
-				break;
-			case "compass_index_folder":
-				result = await handleCompassIndexFolder(
-					args as CompassIndexFolderInput,
-					toolContext,
-				);
-				break;
-			case "compass_search_codebase":
-				result = await handleCompassSearchCodebase(
-					args as CompassSearchCodebaseInput,
-					toolContext,
-				);
-				break;
-			case "compass_reindex_folder":
-				result = await handleCompassReindexFolder(
-					args as CompassReindexFolderInput,
-					toolContext,
-				);
-				break;
-			default:
-				result = errorResult(`Unknown tool: ${request.params.name}`);
-		}
-
-		return { ...result };
-	} catch (err) {
-		if (err instanceof SoukCompassError) {
-			return { ...errorResult(err.message) };
-		}
-		console.error("[souk-compass] Unexpected error:", err);
-		return { ...errorResult("An unexpected error occurred") };
-	}
-});
-
-// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -682,6 +613,114 @@ function errorResult(message: string): ToolResult {
 // ---------------------------------------------------------------------------
 
 async function main() {
+	const { toolContext } = await bootstrap();
+
+	// Tool context is now available for handlers via closure
+	server.setRequestHandler(CallToolRequestSchema, async (request) => {
+		const args = (request.params.arguments ?? {}) as Record<string, unknown>;
+
+		try {
+			let result: ToolResult;
+
+			switch (request.params.name) {
+				case "compass_setup":
+					result = await handleCompassSetup(
+						args as CompassSetupInput,
+						toolContext,
+					);
+					break;
+				case "compass_index_artifacts":
+					result = await handleCompassIndexArtifacts(
+						args as CompassIndexArtifactsInput,
+						toolContext,
+					);
+					break;
+				case "compass_search":
+					result = await handleCompassSearch(
+						args as CompassSearchInput,
+						toolContext,
+					);
+					break;
+				case "compass_index_document":
+					result = await handleCompassIndexDocument(
+						args as CompassIndexDocumentInput,
+						toolContext,
+					);
+					break;
+				case "compass_status":
+					result = await handleCompassStatus(
+						args as CompassStatusInput,
+						toolContext,
+					);
+					break;
+				case "compass_health":
+					result = await handleCompassHealth(
+						args as CompassHealthInput,
+						toolContext,
+					);
+					break;
+				case "compass_reindex":
+					result = await handleCompassReindex(
+						args as CompassReindexInput,
+						toolContext,
+					);
+					break;
+				case "compass_recall":
+					result = await handleCompassRecall(
+						args as CompassRecallInput,
+						toolContext,
+					);
+					break;
+				case "compass_remember":
+					result = await handleCompassRemember(
+						args as CompassRememberInput,
+						toolContext,
+					);
+					break;
+				case "compass_recall_memory":
+					result = await handleCompassRecallMemory(
+						args as CompassRecallMemoryInput,
+						toolContext,
+					);
+					break;
+				case "compass_profile_workspace":
+					result = await handleCompassProfileWorkspace(
+						args as CompassProfileWorkspaceInput,
+						toolContext,
+					);
+					break;
+				case "compass_index_folder":
+					result = await handleCompassIndexFolder(
+						args as CompassIndexFolderInput,
+						toolContext,
+					);
+					break;
+				case "compass_search_codebase":
+					result = await handleCompassSearchCodebase(
+						args as CompassSearchCodebaseInput,
+						toolContext,
+					);
+					break;
+				case "compass_reindex_folder":
+					result = await handleCompassReindexFolder(
+						args as CompassReindexFolderInput,
+						toolContext,
+					);
+					break;
+				default:
+					result = errorResult(`Unknown tool: ${request.params.name}`);
+			}
+
+			return { ...result };
+		} catch (err) {
+			if (err instanceof SoukCompassError) {
+				return { ...errorResult(err.message) };
+			}
+			console.error("[souk-compass] Unexpected error:", err);
+			return { ...errorResult("An unexpected error occurred") };
+		}
+	});
+
 	const transport = new StdioServerTransport();
 	await server.connect(transport);
 }

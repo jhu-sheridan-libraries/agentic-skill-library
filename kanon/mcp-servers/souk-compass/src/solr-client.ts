@@ -30,6 +30,28 @@ export interface SoukVectorClientOptions {
 	filteredSearchThreshold?: number;
 }
 
+/**
+ * Decimal places kept when a vector goes onto the wire.
+ *
+ * Solr's JSON parser mishandles very long numeric tokens that straddle one of
+ * its internal buffer boundaries, rejecting the whole document with a
+ * ClassCastException on the vector field. Tiny components are the trigger: a
+ * float64 such as 0.0000046869131438143086 needs 24 characters, and whether it
+ * lands on a boundary depends on the rest of the payload — so the same model
+ * silently indexes some documents and fails others. Eight decimals caps every
+ * component of a normalised vector at 11 characters.
+ *
+ * No meaningful precision is lost. `knn_vector_1024` is 7-bit scalar-quantised
+ * (~128 levels across the value range), so Solr discards orders of magnitude
+ * more precision than this rounding does. It also roughly halves the query URI
+ * that kNN searches inline.
+ */
+const VECTOR_WIRE_DECIMALS = 8;
+
+function toWireVector(embedding: number[]): number[] {
+	return embedding.map((v) => Number(v.toFixed(VECTOR_WIRE_DECIMALS)));
+}
+
 export class SoukVectorClient {
 	private readonly baseUrl: string;
 	private readonly collection: string;
@@ -71,7 +93,12 @@ export class SoukVectorClient {
 		await this.solrFetch(url, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ id: docId, text, vector: embedding, ...metadata }),
+			body: JSON.stringify({
+				id: docId,
+				text,
+				vector: toWireVector(embedding),
+				...metadata,
+			}),
 		});
 	}
 
@@ -112,19 +139,24 @@ export class SoukVectorClient {
 			params.set("q", `text:${queryText}`);
 			params.set("rows", String(topK));
 		} else if (mode === "hybrid") {
-			// Inline the kNN and text clauses directly in q so tests can inspect them.
-			const knnClause = `{!knn ${knnParams}}${JSON.stringify(queryEmbedding)}`;
-			// Escape backslashes first, then single quotes in queryText to preserve the
-			// Solr local-params {v='...'} syntax. Order matters: escaping '\' before "'"
-			// prevents double-escaping when the text already contains backslashes.
-			const escapedText = queryText.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
-			const textClause = `text:${escapedText}`;
-			const q = `{!func}sum(mul(scale(query(${knnClause}),0,1),${hybridWeight}),mul(scale(query({v='${textClause}'}),0,1),${1 - hybridWeight}))`;
-			params.set("q", q);
-			params.set("rows", String(topK));
+			// Hybrid mode should be handled by the caller (e.g., compass-search-codebase.ts)
+			// which performs separate vector and keyword searches and merges results.
+			// This code path is kept for backward compatibility but should not be reached.
+			throw new Error(
+				"Hybrid mode must be handled by caller with separate vector and keyword searches",
+			);
 		} else {
 			// vector mode (default)
-			params.set("q", `{!knn ${knnParams}}${JSON.stringify(queryEmbedding)}`);
+			if (!queryEmbedding) {
+				throw new SoukCompassError(
+					"Vector search requires a query embedding.",
+					ErrorCodes.EMBED_FAILURE,
+				);
+			}
+			params.set(
+				"q",
+				`{!knn ${knnParams}}${JSON.stringify(toWireVector(queryEmbedding))}`,
+			);
 		}
 
 		if (filterQuery) {
@@ -139,8 +171,13 @@ export class SoukVectorClient {
 			params.set("hl.fragsize", String(snippetLength));
 		}
 
-		const url = `${this.baseUrl}/solr/${this.collection}/select?${params.toString()}`;
-		const response = await this.solrFetch(url);
+		// Use POST to avoid URL length limits with large embedding vectors
+		const url = `${this.baseUrl}/solr/${this.collection}/select`;
+		const response = await this.solrFetch(url, {
+			method: "POST",
+			headers: { "Content-Type": "application/x-www-form-urlencoded" },
+			body: params.toString(),
+		});
 		return (await response.json()) as SolrSearchResponse;
 	}
 
@@ -162,7 +199,7 @@ export class SoukVectorClient {
 		if (options?.minTraverse != null) {
 			qParser += ` minTraverse=${options.minTraverse}`;
 		}
-		qParser += `}${JSON.stringify(queryEmbedding)}`;
+		qParser += `}${JSON.stringify(toWireVector(queryEmbedding))}`;
 
 		const params = new URLSearchParams({
 			q: qParser,
@@ -175,8 +212,13 @@ export class SoukVectorClient {
 			params.set("fq", options.filterQuery);
 		}
 
-		const url = `${this.baseUrl}/solr/${this.collection}/select?${params.toString()}`;
-		const response = await this.solrFetch(url);
+		// Use POST to avoid URL length limits with large embedding vectors
+		const url = `${this.baseUrl}/solr/${this.collection}/select`;
+		const response = await this.solrFetch(url, {
+			method: "POST",
+			headers: { "Content-Type": "application/x-www-form-urlencoded" },
+			body: params.toString(),
+		});
 		return (await response.json()) as SolrSearchResponse;
 	}
 
@@ -187,6 +229,7 @@ export class SoukVectorClient {
 	 */
 	async findByContentHash(
 		contentHash: string,
+		embedProvider?: string,
 	): Promise<Record<string, unknown> | null> {
 		try {
 			const params = new URLSearchParams({
@@ -194,6 +237,13 @@ export class SoukVectorClient {
 				rows: "1",
 				wt: "json",
 			});
+
+			// Only reuse a stored vector when the same model produced it.
+			// Documents indexed before embed_provider existed are untagged and
+			// deliberately excluded — their provider is unknowable.
+			if (embedProvider) {
+				params.set("fq", `embed_provider:"${embedProvider}"`);
+			}
 
 			const url = `${this.baseUrl}/solr/${this.collection}/select?${params.toString()}`;
 			const response = await this.solrFetch(url);
@@ -247,10 +297,30 @@ export class SoukVectorClient {
 			const body = (await response.json()) as {
 				status: Record<string, unknown>;
 			};
-			return Boolean(body.status?.[this.collection]);
+			const cores = Object.keys(body.status ?? {});
+			return cores.some((core) => this.isCoreForCollection(core));
 		} catch {
 			return false;
 		}
+	}
+
+	/**
+	 * Match a Solr core name against this client's collection.
+	 *
+	 * Standalone Solr names the core after the collection verbatim. SolrCloud
+	 * appends a shard/replica suffix, e.g. `my-collection_shard1_replica_n1`,
+	 * so an exact comparison alone reports a healthy cloud collection as
+	 * missing. The suffix is matched precisely rather than by prefix, because
+	 * `context-bazaar` is a prefix of `context-bazaar-codebase` and treating
+	 * that as a match would report one collection healthy on the strength of
+	 * a different one existing.
+	 */
+	private isCoreForCollection(coreName: string): boolean {
+		if (coreName === this.collection) return true;
+		const escaped = this.collection.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+		return new RegExp(`^${escaped}_shard\\d+_replica_[a-z]\\d+$`).test(
+			coreName,
+		);
 	}
 
 	// -------------------------------------------------------------------------

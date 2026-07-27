@@ -2,6 +2,11 @@ import { exec } from "node:child_process";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
+import {
+	type CollectionInfo,
+	createCollection,
+	getCollectionInfo as sharedCollectionInfo,
+} from "../collections.js";
 import type { CompassSetupInput } from "../schemas.js";
 import type { ToolContext, ToolResult } from "./types.js";
 
@@ -24,6 +29,8 @@ export async function handleCompassSetup(
 			return startSolr(ctx);
 		case "create_collections":
 			return createCollections(ctx);
+		case "create_collection":
+			return createNamedCollection(ctx, input.name);
 		case "stop":
 			return stopSolr(ctx);
 	}
@@ -129,44 +136,36 @@ async function startSolr(ctx: ToolContext): Promise<ToolResult> {
 }
 
 async function createCollections(ctx: ToolContext): Promise<ToolResult> {
-	const results: Array<{ name: string; created: boolean; error?: string }> = [];
-
+	const results = [];
 	for (const name of [
 		ctx.config.solrCollection,
 		ctx.config.userCollection,
 		ctx.config.codebaseCollection,
 	]) {
-		try {
-			const url = `${ctx.config.solrUrl}/solr/admin/collections?action=CREATE&name=${encodeURIComponent(name)}&numShards=1&replicationFactor=1&collection.configName=souk-compass&wt=json`;
-			const response = await fetch(url);
-			if (!response.ok) {
-				const body = await response.text();
-				if (body.includes("already exists")) {
-					results.push({
-						name,
-						created: false,
-						error: "Collection already exists",
-					});
-				} else {
-					results.push({
-						name,
-						created: false,
-						error: `HTTP ${response.status}: ${body}`,
-					});
-				}
-			} else {
-				results.push({ name, created: true });
-			}
-		} catch (err) {
-			results.push({
-				name,
-				created: false,
-				error: err instanceof Error ? err.message : String(err),
-			});
-		}
+		results.push(await createCollection(ctx.config.solrUrl, name));
 	}
-
 	return jsonResult({ action: "create_collections", collections: results });
+}
+
+/**
+ * Create one arbitrary collection. Needed because a repository may be indexed
+ * into its own collection via the `collection` argument on the folder tools,
+ * which the fixed three-collection provisioning above does not cover.
+ */
+async function createNamedCollection(
+	ctx: ToolContext,
+	name: string | undefined,
+): Promise<ToolResult> {
+	if (!name || !name.trim()) {
+		return jsonResult({
+			action: "create_collection",
+			success: false,
+			error: "missing_name",
+			message: 'create_collection requires a "name".',
+		});
+	}
+	const result = await createCollection(ctx.config.solrUrl, name.trim());
+	return jsonResult({ action: "create_collection", ...result });
 }
 
 async function stopSolr(_ctx: ToolContext): Promise<ToolResult> {
@@ -224,24 +223,8 @@ async function waitForSolr(
 async function getCollectionInfo(
 	ctx: ToolContext,
 	collectionName: string,
-): Promise<{ name: string; exists: boolean; docCount: number | null }> {
-	try {
-		const url = `${ctx.config.solrUrl}/solr/${encodeURIComponent(collectionName)}/select?q=*:*&rows=0&wt=json`;
-		const response = await fetch(url);
-		if (!response.ok) {
-			return { name: collectionName, exists: false, docCount: null };
-		}
-		const body = (await response.json()) as {
-			response?: { numFound?: number };
-		};
-		return {
-			name: collectionName,
-			exists: true,
-			docCount: body.response?.numFound ?? 0,
-		};
-	} catch {
-		return { name: collectionName, exists: false, docCount: null };
-	}
+): Promise<CollectionInfo> {
+	return sharedCollectionInfo(ctx.config.solrUrl, collectionName);
 }
 
 function dockerNotInstalledResult(): ToolResult {

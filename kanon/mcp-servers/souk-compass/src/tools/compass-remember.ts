@@ -1,3 +1,4 @@
+import { modelIdentity } from "../embedding-provider.js";
 import { ErrorCodes, SoukCompassError } from "../errors.js";
 import type { CompassRememberInput } from "../schemas.js";
 import { toMemoryDocument } from "../serialization.js";
@@ -16,6 +17,7 @@ export async function handleCompassRemember(
 			input.category,
 			input.tags,
 			sessionId,
+			modelIdentity(ctx.embeddingProvider),
 		);
 
 		const meta = extractMetadata(doc);
