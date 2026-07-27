@@ -1,3 +1,4 @@
+import { modelIdentity } from "../embedding-provider.js";
 import { ErrorCodes, SoukCompassError } from "../errors.js";
 import type { CompassIndexDocumentInput } from "../schemas.js";
 import { toUserSolrDocument } from "../serialization.js";
@@ -15,6 +16,7 @@ export async function handleCompassIndexDocument(
 			input.text,
 			embedding,
 			input.metadata,
+			modelIdentity(ctx.embeddingProvider),
 		);
 
 		const client = input.collection

@@ -257,6 +257,66 @@ describe("SoukVectorClient", () => {
 	});
 
 	// -----------------------------------------------------------------------
+	// vector wire encoding
+	// -----------------------------------------------------------------------
+
+	describe("vector wire encoding", () => {
+		// Solr rejects a whole document with a ClassCastException when a very
+		// long numeric token in the vector lands on one of its JSON parser's
+		// buffer boundaries. Tiny components are the trigger: the float64
+		// 0.0000046869131438143086 needs 24 characters. Whether it breaks
+		// depends on the rest of the payload, so this surfaces as a model
+		// indexing some documents and silently failing others.
+		const TINY = 0.0000046869131438143086;
+
+		function vectorFromBody(call: unknown[]): number[] {
+			const init = call[1] as { body: string };
+			return (JSON.parse(init.body) as { vector: number[] }).vector;
+		}
+
+		test("upsert shortens long numeric tokens", async () => {
+			fetchSpy.mockResolvedValueOnce(okJson({}));
+
+			await client.upsert("d1", "text", [TINY, -0.03651198744773865], {});
+
+			const sent = vectorFromBody(fetchSpy.mock.calls[0] as unknown[]);
+			for (const v of sent) {
+				expect(JSON.stringify(v).length).toBeLessThanOrEqual(11);
+			}
+		});
+
+		test("upsert preserves value to 8 decimal places", async () => {
+			fetchSpy.mockResolvedValueOnce(okJson({}));
+
+			await client.upsert("d1", "text", [TINY, -0.03651198744773865], {});
+
+			const sent = vectorFromBody(fetchSpy.mock.calls[0] as unknown[]);
+			expect(sent[0]).toBeCloseTo(TINY, 8);
+			expect(sent[1]).toBeCloseTo(-0.03651198744773865, 8);
+		});
+
+		test("kNN query embedding is shortened too", async () => {
+			fetchSpy.mockResolvedValueOnce(
+				okJson({ response: { docs: [], numFound: 0 } }),
+			);
+
+			await client.search([TINY, 0.5], 5);
+
+			const init = fetchSpy.mock.calls[0]?.[1] as { body: string };
+			const q = new URLSearchParams(init.body).get("q") ?? "";
+			// The full-precision form must not reach Solr.
+			expect(q).not.toContain("0.0000046869131438143086");
+			expect(q).toContain("0.00000469");
+		});
+
+		test("rejects vector search without an embedding", async () => {
+			await expect(client.search(null, 5)).rejects.toThrow(
+				/requires a query embedding/i,
+			);
+		});
+	});
+
+	// -----------------------------------------------------------------------
 	// health
 	// -----------------------------------------------------------------------
 
@@ -276,6 +336,42 @@ describe("SoukVectorClient", () => {
 		test("returns false when collection does not exist in status", async () => {
 			fetchSpy.mockResolvedValueOnce(
 				okJson({ status: { "other-collection": {} } }),
+			);
+
+			const result = await client.health();
+			expect(result).toBe(false);
+		});
+
+		test("returns true for SolrCloud shard replica core names", async () => {
+			const core = `${COLLECTION}_shard1_replica_n1`;
+			fetchSpy.mockResolvedValueOnce(
+				okJson({ status: { [core]: { name: core } } }),
+			);
+
+			const result = await client.health();
+			expect(result).toBe(true);
+		});
+
+		test("returns true when the collection is one of several cloud cores", async () => {
+			fetchSpy.mockResolvedValueOnce(
+				okJson({
+					status: {
+						[`${COLLECTION}-codebase_shard1_replica_n1`]: {},
+						[`${COLLECTION}_shard1_replica_n1`]: {},
+						[`${COLLECTION}-user-docs_shard1_replica_n1`]: {},
+					},
+				}),
+			);
+
+			const result = await client.health();
+			expect(result).toBe(true);
+		});
+
+		test("does not match a different collection sharing a name prefix", async () => {
+			fetchSpy.mockResolvedValueOnce(
+				okJson({
+					status: { [`${COLLECTION}-codebase_shard1_replica_n1`]: {} },
+				}),
 			);
 
 			const result = await client.health();
