@@ -105,27 +105,30 @@ export class SoukVectorClient {
 	/**
 	 * Perform a search against the collection.
 	 *
-	 * Supports three modes:
+	 * Two modes:
 	 * - `"vector"` (default): kNN vector search using the query embedding
 	 * - `"keyword"`: standard Solr BM25 text search (no embedding needed)
-	 * - `"hybrid"`: combined BM25 + kNN weighted by `hybridWeight`
 	 *
-	 * When `snippetLength` is set and mode is `"keyword"` or `"hybrid"`,
-	 * Solr highlighting is enabled for the `text` field.
+	 * Hybrid search is deliberately absent. Solr rejects a `{!knn}` clause
+	 * nested inside `{!func}`, so the two scores are fused on the client — see
+	 * `hybridSearch()` in `hybrid-search.ts` and ADR-0052. Keeping the mode
+	 * narrowed here makes that a compile-time guarantee rather than a runtime
+	 * throw.
+	 *
+	 * When `snippetLength` is set in `"keyword"` mode, Solr highlighting is
+	 * enabled for the `text` field. Vector hits have no highlighted snippets.
 	 */
 	async search(
 		queryEmbedding: number[] | null,
 		topK: number,
 		options?: {
 			filterQuery?: string;
-			mode?: "vector" | "keyword" | "hybrid";
-			hybridWeight?: number;
+			mode?: "vector" | "keyword";
 			queryText?: string;
 			snippetLength?: number;
 		},
 	): Promise<SolrSearchResponse> {
 		const mode = options?.mode ?? "vector";
-		const hybridWeight = options?.hybridWeight ?? 0.5;
 		const filterQuery = options?.filterQuery;
 		const queryText = options?.queryText ?? "";
 		const snippetLength = options?.snippetLength;
@@ -138,13 +141,6 @@ export class SoukVectorClient {
 		if (mode === "keyword") {
 			params.set("q", `text:${queryText}`);
 			params.set("rows", String(topK));
-		} else if (mode === "hybrid") {
-			// Hybrid mode should be handled by the caller (e.g., compass-search-codebase.ts)
-			// which performs separate vector and keyword searches and merges results.
-			// This code path is kept for backward compatibility but should not be reached.
-			throw new Error(
-				"Hybrid mode must be handled by caller with separate vector and keyword searches",
-			);
 		} else {
 			// vector mode (default)
 			if (!queryEmbedding) {
@@ -164,7 +160,7 @@ export class SoukVectorClient {
 		}
 
 		// Add highlighting for keyword and hybrid modes when snippetLength is set
-		if (snippetLength != null && (mode === "keyword" || mode === "hybrid")) {
+		if (snippetLength != null && mode === "keyword") {
 			params.set("hl", "true");
 			params.set("hl.fl", "text");
 			params.set("hl.snippets", "1");
