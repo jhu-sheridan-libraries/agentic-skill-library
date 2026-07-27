@@ -100,11 +100,12 @@ describe("LocalBackend", () => {
 });
 
 describe("HttpBackend", () => {
+	const httpBackendHome = join(tmpdir(), "http-backend-home");
 	let originalHome: string | undefined;
 
 	beforeEach(() => {
 		originalHome = process.env.HOME;
-		process.env.HOME = "/tmp/http-backend-home";
+		process.env.HOME = httpBackendHome;
 	});
 
 	afterEach(() => {
@@ -151,7 +152,7 @@ describe("HttpBackend", () => {
 
 	test("fetchArtifact returns cached path without download", async () => {
 		const expected = join(
-			"/tmp/http-backend-home",
+			httpBackendHome,
 			".forge",
 			"cache",
 			"http-https---artifacts-example-test-forge",
@@ -414,9 +415,10 @@ describe("S3Backend", () => {
 	});
 
 	test("fetchArtifact returns cached artifact path when already present", async () => {
-		process.env.HOME = "/tmp/s3-backend-home";
+		const s3BackendHome = join(tmpdir(), "s3-backend-home");
+		process.env.HOME = s3BackendHome;
 		const expected = join(
-			"/tmp/s3-backend-home",
+			s3BackendHome,
 			".forge",
 			"cache",
 			"s3-my-bucket",

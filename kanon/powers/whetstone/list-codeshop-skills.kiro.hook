@@ -1,0 +1,12 @@
+{
+  "name": "List Codeshop Skills",
+  "version": "1.0.0",
+  "description": "User-invoked index of all available codeshop workflows, formatted by category with trigger phrases and descriptions.",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Read the list-skills steering file from the codeshop power. Present the complete codeshop skill index to the user, formatted by category. Show each skill's name, type, and example trigger phrase. Do not load any other steering files — just present the index."
+  }
+}

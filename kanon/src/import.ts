@@ -87,7 +87,10 @@ async function importKiroPower(
 		author: String(sourceFm.author || ""),
 		version: "0.1.0",
 		harnesses: ["kiro"],
-		type: "power",
+		// "power" is a deprecated alias for "skill" (ADR-0051) — the
+		// harness-config.kiro.format below is what actually makes this a
+		// Kiro power, not the type field.
+		type: "skill",
 		inclusion: "manual",
 		categories: ["documentation"],
 		ecosystem: [],

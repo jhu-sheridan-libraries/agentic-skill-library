@@ -51,7 +51,6 @@ Installing the Context Bazaar plugin gives you a ready-to-use library of skills 
 | **JH DRCC** | 10 | Johns Hopkins Digital Research and Curation Center — craft-focused developer workflows (commits, type discipline, debugging, code review) |
 | **Byron Powers** | 8 | Literary and publishing workflows — novelists, technical authors, agents, proofreading |
 | **Library AI Workshop** | 4 | Accountable AI research practice for academic-library staff — coaching, facilitation, reference interviews, and output review |
-| **Archon** | 1 | Reference artifacts for the Archon remote agentic coding platform |
 
 Browse the full catalog with `bun run dev catalog browse` or see the [deployed catalog site](https://jhu-sheridan-libraries.github.io/agentic-skill-library/).
 

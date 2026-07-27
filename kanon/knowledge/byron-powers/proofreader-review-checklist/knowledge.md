@@ -17,7 +17,8 @@ author: Demo
 version: 0.2.0
 harnesses:
   - kiro
-type: power
+  - claude-code
+type: skill
 inclusion: manual
 categories:
   - documentation
@@ -27,6 +28,8 @@ depends: []
 enhances: []
 maturity: stable
 inherit-hooks: false
+collections:
+  - byron-powers
 ---
 # Proofreader Review Checklist
 

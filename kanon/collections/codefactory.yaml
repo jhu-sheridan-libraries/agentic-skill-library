@@ -1,0 +1,5 @@
+name: codefactory
+displayName: "Codefactory"
+description: "Remote agentic coding."
+trust: community
+tags: [archon, workflows, ai-coding, code factory, agents]

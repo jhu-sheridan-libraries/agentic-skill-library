@@ -23,7 +23,12 @@ import {
 	selectNextTask,
 	serializeCoordination,
 	setTaskChecked,
+	setTaskMarker,
 	setTaskStatus,
+	specClaimCommand,
+	specDoneCommand,
+	specNextCommand,
+	specReleaseCommand,
 	unmetDeps,
 } from "../spec-coordination";
 
@@ -31,7 +36,7 @@ const NOW = "2026-07-17T14:00:00.000Z";
 const LATER = "2026-07-17T18:00:00.000Z"; // 4h after NOW
 
 describe("parseTaskLines", () => {
-	test("extracts ids, checked state, and text at any indentation", () => {
+	test("extracts ids, checkbox status, and text at any indentation", () => {
 		const md = [
 			"# Implementation Plan",
 			"",
@@ -40,13 +45,20 @@ describe("parseTaskLines", () => {
 			"    - _Requirements: 1.2_",
 			"  - [ ] 1.2 Wire it up",
 			"- [X] 2. Uppercase X counts as done",
+			"- [~] 3. Checked out by an agent",
 		].join("\n");
 		const tasks = parseTaskLines(md);
 		expect(tasks).toEqual([
-			{ id: "1", checked: false, text: "Set up scaffolding", deps: [] },
-			{ id: "1.1", checked: true, text: "Create module", deps: [] },
-			{ id: "1.2", checked: false, text: "Wire it up", deps: [] },
-			{ id: "2", checked: true, text: "Uppercase X counts as done", deps: [] },
+			{ id: "1", status: "open", text: "Set up scaffolding", deps: [] },
+			{ id: "1.1", status: "done", text: "Create module", deps: [] },
+			{ id: "1.2", status: "open", text: "Wire it up", deps: [] },
+			{ id: "2", status: "done", text: "Uppercase X counts as done", deps: [] },
+			{
+				id: "3",
+				status: "in-progress",
+				text: "Checked out by an agent",
+				deps: [],
+			},
 		]);
 	});
 
@@ -86,11 +98,35 @@ describe("setTaskChecked", () => {
 	});
 });
 
+describe("setTaskMarker", () => {
+	const md = ["- [ ] 1. A", "  - [ ] 1.1 B", "  - [ ] 1.2 C"].join("\n");
+
+	test("sets the in-progress marker [~] for the targeted task only", () => {
+		const out = setTaskMarker(md, "1.1", "in-progress");
+		expect(out).toContain("  - [~] 1.1 B");
+		expect(out).toContain("- [ ] 1. A");
+		expect(out).toContain("  - [ ] 1.2 C");
+	});
+
+	test("moves a task from [~] to [x] and back to [ ]", () => {
+		const inProgress = setTaskMarker(md, "1", "in-progress");
+		expect(inProgress).toContain("- [~] 1. A");
+		const done = setTaskMarker(inProgress, "1", "done");
+		expect(done).toContain("- [x] 1. A");
+		const reopened = setTaskMarker(done, "1", "open");
+		expect(reopened).toContain("- [ ] 1. A");
+	});
+
+	test("throws on unknown task id", () => {
+		expect(() => setTaskMarker(md, "9.9", "in-progress")).toThrow(/not found/);
+	});
+});
+
 describe("COORDINATION.md round-trip", () => {
 	test("serialize → parse preserves claims and handoffs", () => {
 		let doc = initCoordination("user-auth", [
-			{ id: "1", checked: true, text: "a", deps: [] },
-			{ id: "2", checked: false, text: "b", deps: [] },
+			{ id: "1", status: "done", text: "a", deps: [] },
+			{ id: "2", status: "open", text: "b", deps: [] },
 		]);
 		doc = claimTask(doc, "2", "cowork", NOW).doc;
 		doc = setTaskStatus(doc, "2", "in-progress", NOW);
@@ -112,7 +148,7 @@ describe("COORDINATION.md round-trip", () => {
 
 	test("note cells with pipes survive escaping", () => {
 		let doc = initCoordination("s", [
-			{ id: "1", checked: false, text: "a", deps: [] },
+			{ id: "1", status: "open", text: "a", deps: [] },
 		]);
 		doc = { ...doc, claims: [{ ...doc.claims[0], note: "use a|b split" }] };
 		const reparsed = parseCoordination(serializeCoordination(doc));
@@ -122,7 +158,7 @@ describe("COORDINATION.md round-trip", () => {
 
 describe("claimTask", () => {
 	const base = initCoordination("s", [
-		{ id: "1", checked: false, text: "a", deps: [] },
+		{ id: "1", status: "open", text: "a", deps: [] },
 	]);
 
 	test("claims an unowned task", () => {
@@ -161,7 +197,7 @@ describe("claimTask", () => {
 describe("releaseTask", () => {
 	test("returns a task to open/unowned", () => {
 		const owned = claimTask(
-			initCoordination("s", [{ id: "1", checked: false, text: "a", deps: [] }]),
+			initCoordination("s", [{ id: "1", status: "open", text: "a", deps: [] }]),
 			"1",
 			"code",
 			NOW,
@@ -175,18 +211,47 @@ describe("releaseTask", () => {
 describe("reconcile", () => {
 	test("adds rows for new tasks and marks checked ones done, never un-marks", () => {
 		let doc = initCoordination("s", [
-			{ id: "1", checked: false, text: "a", deps: [] },
+			{ id: "1", status: "open", text: "a", deps: [] },
 		]);
 		doc = claimTask(doc, "1", "code", NOW).doc; // status claimed
 		const tasks = [
-			{ id: "1", checked: true, text: "a", deps: [] }, // now checked
-			{ id: "2", checked: false, text: "b", deps: [] }, // new
+			{ id: "1", status: "done" as const, text: "a", deps: [] }, // now checked
+			{ id: "2", status: "open" as const, text: "b", deps: [] }, // new
 		];
 		const next = reconcile(doc, tasks, NOW);
 		expect(next.claims.find((c) => c.taskId === "1")?.status).toBe("done");
 		expect(next.claims.find((c) => c.taskId === "2")).toBeDefined();
 		// owner retained
 		expect(next.claims.find((c) => c.taskId === "1")?.owner).toBe("code");
+	});
+
+	test("promotes an open row to in-progress when tasks.md shows [~]", () => {
+		const doc = initCoordination("s", [
+			{ id: "1", status: "open", text: "a", deps: [] },
+		]);
+		const tasks = [
+			{ id: "1", status: "in-progress" as const, text: "a", deps: [] },
+		];
+		const next = reconcile(doc, tasks, NOW);
+		expect(next.claims.find((c) => c.taskId === "1")?.status).toBe(
+			"in-progress",
+		);
+	});
+
+	test("never downgrades: [~] in tasks.md does not undo an existing claim or done status", () => {
+		let doc = initCoordination("s", [
+			{ id: "1", status: "open", text: "a", deps: [] },
+			{ id: "2", status: "open", text: "b", deps: [] },
+		]);
+		doc = claimTask(doc, "1", "code", NOW).doc; // status "claimed"
+		doc = setTaskStatus(doc, "2", "done", NOW);
+		const tasks = [
+			{ id: "1", status: "in-progress" as const, text: "a", deps: [] },
+			{ id: "2", status: "in-progress" as const, text: "b", deps: [] },
+		];
+		const next = reconcile(doc, tasks, NOW);
+		expect(next.claims.find((c) => c.taskId === "1")?.status).toBe("claimed");
+		expect(next.claims.find((c) => c.taskId === "2")?.status).toBe("done");
 	});
 });
 
@@ -253,6 +318,51 @@ describe("filesystem round-trip", () => {
 		const reloaded = await loadCoordination("demo", dir);
 		expect(reloaded.claims.find((c) => c.taskId === "1")?.owner).toBe("code");
 	});
+
+	describe("command-level tasks.md marker writes", () => {
+		let prevCwd: string;
+		beforeEach(() => {
+			prevCwd = process.cwd();
+			process.chdir(dir);
+		});
+		afterEach(() => {
+			process.chdir(prevCwd);
+		});
+
+		async function readTasksMd(): Promise<string> {
+			return readFile(join(dir, ".kiro", "specs", "demo", "tasks.md"), "utf-8");
+		}
+
+		test("specClaimCommand writes [~] to tasks.md", async () => {
+			await specClaimCommand("demo", "1", { agent: "code" });
+			expect(await readTasksMd()).toContain("- [~] 1. A");
+		});
+
+		test("specNextCommand writes [~] to tasks.md for the claimed task", async () => {
+			await specNextCommand("demo", { agent: "code" });
+			const raw = await readTasksMd();
+			expect(raw).toContain("- [~] 1. A");
+			expect(raw).toContain("- [ ] 2. B");
+		});
+
+		test("specNextCommand --dry-run does not touch tasks.md", async () => {
+			await specNextCommand("demo", { agent: "code", dryRun: true });
+			expect(await readTasksMd()).toContain("- [ ] 1. A");
+		});
+
+		test("specReleaseCommand reopens the tasks.md marker", async () => {
+			await specClaimCommand("demo", "1", { agent: "code" });
+			expect(await readTasksMd()).toContain("- [~] 1. A");
+			await specReleaseCommand("demo", "1");
+			expect(await readTasksMd()).toContain("- [ ] 1. A");
+		});
+
+		test("specDoneCommand finishes with [x], overriding [~]", async () => {
+			await specClaimCommand("demo", "1", { agent: "code" });
+			await specDoneCommand("demo", "1", { agent: "code" });
+			expect(await readTasksMd()).toContain("- [x] 1. A");
+		});
+	});
 });
 
 // --- dependencies -----------------------------------------------------------
@@ -260,9 +370,9 @@ describe("filesystem round-trip", () => {
 describe("dependencies", () => {
 	function docWithDeps() {
 		return initCoordination("s", [
-			{ id: "1", checked: false, text: "base", deps: [] },
-			{ id: "2", checked: false, text: "needs 1", deps: ["1"] },
-			{ id: "3", checked: false, text: "needs 1,2", deps: ["1", "2"] },
+			{ id: "1", status: "open", text: "base", deps: [] },
+			{ id: "2", status: "open", text: "needs 1", deps: ["1"] },
+			{ id: "3", status: "open", text: "needs 1,2", deps: ["1", "2"] },
 		]);
 	}
 
@@ -290,12 +400,12 @@ describe("dependencies", () => {
 
 	test("reconcile adopts deps declared in tasks.md", () => {
 		const doc = initCoordination("s", [
-			{ id: "1", checked: false, text: "base", deps: [] },
-			{ id: "2", checked: false, text: "needs 1", deps: [] },
+			{ id: "1", status: "open", text: "base", deps: [] },
+			{ id: "2", status: "open", text: "needs 1", deps: [] },
 		]);
 		const tasks = [
-			{ id: "1", checked: false, text: "base", deps: [] },
-			{ id: "2", checked: false, text: "needs 1", deps: ["1"] },
+			{ id: "1", status: "open" as const, text: "base", deps: [] },
+			{ id: "2", status: "open" as const, text: "needs 1", deps: ["1"] },
 		];
 		const next = reconcile(doc, tasks, NOW);
 		expect(next.claims.find((c) => c.taskId === "2")?.deps).toEqual(["1"]);
@@ -318,7 +428,7 @@ describe("leases", () => {
 
 	test("claimTask sets a lease; default duration applies", () => {
 		const doc = initCoordination("s", [
-			{ id: "1", checked: false, text: "a", deps: [] },
+			{ id: "1", status: "open", text: "a", deps: [] },
 		]);
 		const { doc: next } = claimTask(doc, "1", "code", NOW);
 		expect(next.claims[0].leaseUntil).toBe(
@@ -328,7 +438,7 @@ describe("leases", () => {
 
 	test("a stale claim can be reclaimed by another agent without force", () => {
 		let doc = initCoordination("s", [
-			{ id: "1", checked: false, text: "a", deps: [] },
+			{ id: "1", status: "open", text: "a", deps: [] },
 		]);
 		doc = claimTask(doc, "1", "code", NOW).doc; // lease NOW+30m
 		// Long after the lease expired, cowork can take it.
@@ -339,7 +449,7 @@ describe("leases", () => {
 
 	test("a live claim still conflicts for a different agent", () => {
 		let doc = initCoordination("s", [
-			{ id: "1", checked: false, text: "a", deps: [] },
+			{ id: "1", status: "open", text: "a", deps: [] },
 		]);
 		doc = claimTask(doc, "1", "code", NOW).doc;
 		const r = claimTask(doc, "1", "cowork", NOW); // within lease window
@@ -370,9 +480,9 @@ describe("leases", () => {
 describe("selectNextTask", () => {
 	test("picks the lowest-id ready task, skipping blocked ones", () => {
 		let doc = initCoordination("s", [
-			{ id: "1", checked: false, text: "base", deps: [] },
-			{ id: "2", checked: false, text: "needs 1", deps: ["1"] },
-			{ id: "3", checked: false, text: "free", deps: [] },
+			{ id: "1", status: "open", text: "base", deps: [] },
+			{ id: "2", status: "open", text: "needs 1", deps: ["1"] },
+			{ id: "3", status: "open", text: "free", deps: [] },
 		]);
 		// 2 is blocked by 1; 1 and 3 are free → pick 1.
 		expect(selectNextTask(doc, "code", NOW)?.taskId).toBe("1");
@@ -383,8 +493,8 @@ describe("selectNextTask", () => {
 
 	test("skips tasks actively owned by others, but includes stale ones", () => {
 		let doc = initCoordination("s", [
-			{ id: "1", checked: false, text: "a", deps: [] },
-			{ id: "2", checked: false, text: "b", deps: [] },
+			{ id: "1", status: "open", text: "a", deps: [] },
+			{ id: "2", status: "open", text: "b", deps: [] },
 		]);
 		doc = claimTask(doc, "1", "other", NOW).doc; // live lease on 1
 		expect(selectNextTask(doc, "code", NOW)?.taskId).toBe("2");
@@ -394,7 +504,7 @@ describe("selectNextTask", () => {
 
 	test("returns null when everything is done or blocked", () => {
 		let doc = initCoordination("s", [
-			{ id: "1", checked: true, text: "a", deps: [] },
+			{ id: "1", status: "done", text: "a", deps: [] },
 		]);
 		doc = setTaskStatus(doc, "1", "done", NOW);
 		expect(selectNextTask(doc, "code", NOW)).toBeNull();

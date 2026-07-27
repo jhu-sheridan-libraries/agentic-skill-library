@@ -1,0 +1,12 @@
+{
+  "name": "Post-Task Code Review",
+  "version": "1.0.0",
+  "description": "Performs a lightweight code review after each spec task completes",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "This task has just been completed. Perform a lightweight code review of the changes made during this task:\n\n1. Read the review-changes steering file from the codeshop power.\n2. Review the changes made during this task using the review-changes taxonomy.\n3. Classify findings as must-address, should-address, or nit.\n4. Report only must-address and should-address findings inline.\n\nLoad the review-changes workflow and confirm the review is complete.\n"
+  }
+}

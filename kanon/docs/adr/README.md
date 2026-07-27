@@ -58,6 +58,10 @@ ADRs document significant architectural decisions made during the project's deve
 | [046](0046-committed-claude-code-plugin-skills.md) | Committed, generated Claude Code plugin skills | Proposed | 2026-07-13 |
 | [047](0047-coordination-sidecar-for-multi-agent-specs.md) | COORDINATION.md sidecar for multi-agent work on Kiro Specs | Accepted | 2026-07-17 |
 | [048](0048-config-driven-upstream-marketplace-sync.md) | Config-driven upstream marketplace sync | Proposed | 2026-07-18 |
+| [049](0049-curation-preserving-upstream-reconciliation.md) | Curation-preserving upstream reconciliation | Proposed | 2026-07-19 |
+| [050](0050-agent-compatibility-and-degradation-reconciliation.md) | Reconcile agent asset-type compatibility with agent capability support | Accepted | 2026-07-23 |
+| [051](0051-deprecate-power-as-asset-taxonomy-value.md) | Deprecate `power` as an asset-taxonomy value | Accepted | 2026-07-23 |
+| [052](0052-client-side-hybrid-search-score-fusion.md) | Client-side hybrid search score fusion for Souk Compass | Proposed | 2026-07-23 |
 
 ## Creating a New ADR
 

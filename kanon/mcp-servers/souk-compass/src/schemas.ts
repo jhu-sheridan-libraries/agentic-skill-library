@@ -49,6 +49,17 @@ export const SolrDocumentSchema = z
 		content_hash: z.string().optional(),
 		chunk_index: z.number().int().nonnegative().optional(),
 		parent_artifact: z.string().optional(),
+		/**
+		 * Model that produced `vector`. Vectors from different models occupy
+		 * different spaces and are not comparable, so this records which one —
+		 * making a partially migrated collection detectable instead of silent.
+		 */
+		embed_provider: z.string().optional(),
+		/**
+		 * Absolute folder a codebase document was indexed from. Ids are
+		 * root-relative, so incremental reindex uses this to scope deletions.
+		 */
+		index_root: z.string().optional(),
 	})
 	.passthrough();
 
@@ -88,8 +99,16 @@ export type SearchResult = z.infer<typeof SearchResultSchema>;
 export const ToolInputSchemas = {
 	compass_setup: z.object({
 		action: z
-			.enum(["check", "start", "create_collections", "stop"])
+			.enum([
+				"check",
+				"start",
+				"create_collections",
+				"create_collection",
+				"stop",
+			])
 			.default("check"),
+		/** Collection to create; required for action "create_collection". */
+		name: z.string().optional(),
 	}),
 
 	compass_index_artifacts: z.object({
@@ -177,16 +196,28 @@ export const ToolInputSchemas = {
 		chunked: z.boolean().default(true),
 		chunkMaxLength: z.number().int().positive().default(2000),
 		clear: z.boolean().default(false),
+		/**
+		 * Target a specific Solr collection instead of the configured default.
+		 * Must already exist; see compass_setup "create_collection".
+		 */
+		collection: z.string().optional(),
 	}),
 
 	compass_search_codebase: z.object({
 		query: z.string(),
 		topK: z.number().int().positive().default(10),
 		path: z.string().optional(),
+		/** Restrict to one indexed repository root. Omit to search all of them. */
+		root: z.string().optional(),
 		mode: z.enum(["vector", "keyword", "hybrid"]).default("hybrid"),
 		hybridWeight: z.number().min(0).max(1).default(0.5),
 		snippetLength: z.number().int().positive().default(300),
 		minScore: z.number().min(0).max(1).optional(),
+		/**
+		 * Target a specific Solr collection instead of the configured default.
+		 * Must already exist; see compass_setup "create_collection".
+		 */
+		collection: z.string().optional(),
 	}),
 
 	compass_reindex_folder: z.object({
@@ -204,6 +235,11 @@ export const ToolInputSchemas = {
 			]),
 		maxFileSize: z.number().int().positive().default(100_000),
 		chunkMaxLength: z.number().int().positive().default(2000),
+		/**
+		 * Target a specific Solr collection instead of the configured default.
+		 * Must already exist; see compass_setup "create_collection".
+		 */
+		collection: z.string().optional(),
 	}),
 } as const;
 

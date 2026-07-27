@@ -5,7 +5,7 @@
   },
   "souk-compass": {
     "command": "bun",
-    "args": ["${CLAUDE_PLUGIN_ROOT}/kanon/mcp-servers/souk-compass/dist/mcp-server.cjs"],
+    "args": ["${CLAUDE_PLUGIN_ROOT}/kanon/mcp-servers/souk-compass/bridge/mcp-server.mjs"],
     "env": {
       "SOUK_COMPASS_SOLR_URL": "http://localhost:8983",
       "SOUK_COMPASS_SOLR_COLLECTION": "context-bazaar",

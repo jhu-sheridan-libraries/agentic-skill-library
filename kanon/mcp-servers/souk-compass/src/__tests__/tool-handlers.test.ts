@@ -528,7 +528,10 @@ describe("compass_search handler", () => {
 		expect(results[0].artifactName).toBe("commit-craft");
 		expect(results[0].displayName).toBe("Commit Craft");
 		expect(results[0].type).toBe("skill");
-		expect(results[0].score).toBe(0.95);
+		// Default mode is hybrid, which reports a fused score normalized per
+		// request (ADR-0052) rather than the raw Solr score. A lone result
+		// normalizes to the top of its own range.
+		expect(results[0].score).toBe(1);
 		expect(results[0].artifactPath).toBe("knowledge/commit-craft/knowledge.md");
 	});
 

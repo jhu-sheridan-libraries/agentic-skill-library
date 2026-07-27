@@ -1,0 +1,12 @@
+{
+  "name": "Harness Audit",
+  "version": "1.0.0",
+  "description": "Manually audit the current harness — detect drift between the agent/skill files and the orchestrator roster, and report it.",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Run the Factory Harness maintenance audit (Phase 0). Read the harness's native locations for this harness (agents, skills, the always-loaded pointer file, hooks, and specs). Compare the actual files against what the orchestrator and pointer claim, list any drift, and report a remediation plan. Do not change anything until I confirm."
+  }
+}

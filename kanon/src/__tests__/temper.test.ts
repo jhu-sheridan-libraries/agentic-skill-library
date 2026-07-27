@@ -11,6 +11,8 @@ async function createTestArtifact(
 		hooks?: boolean;
 		mcpServers?: boolean;
 		harnesses?: string[];
+		type?: string;
+		body?: string;
 	} = {},
 ) {
 	const artifactDir = join(baseDir, name);
@@ -31,13 +33,11 @@ async function createTestArtifact(
 		`name: ${name}`,
 		`description: Test artifact`,
 		`harnesses: [${harnesses.join(", ")}]`,
-		`type: skill`,
+		`type: ${opts.type ?? "skill"}`,
 		`version: "1.0.0"`,
 		"---",
 		"",
-		"# Test Artifact",
-		"",
-		"This is a test artifact body.",
+		opts.body ?? "# Test Artifact\n\nThis is a test artifact body.",
 	].join("\n");
 
 	await writeFile(join(artifactDir, "knowledge.md"), frontmatter, "utf-8");
@@ -194,6 +194,61 @@ describe("renderTemper", () => {
 		const sectionTypes = result.sections.map((s) => s.type);
 		expect(sectionTypes).not.toContain("degradation-report");
 		expect(result.degradations).toHaveLength(0);
+	});
+
+	test("reports agents degradation for type: agent artifacts", async () => {
+		const tmpDir = await mkdtemp(join(tmpdir(), "temper-test-"));
+		await createTestArtifact(tmpDir, "my-agent", { type: "agent" });
+
+		const result = await renderTemper({
+			artifactName: "my-agent",
+			harness: "claude-code",
+			knowledgeDirs: [tmpDir],
+			templatesDir: "templates/harness-adapters",
+		});
+
+		expect(result.degradations.some((d) => d.startsWith("agents:"))).toBe(true);
+	});
+
+	test("reports agents degradation for type: power artifacts whose body documents an agent loop", async () => {
+		const tmpDir = await mkdtemp(join(tmpdir(), "temper-test-"));
+		await createTestArtifact(tmpDir, "my-power-agent", {
+			type: "power",
+			body: [
+				"## Goal",
+				"",
+				"Investigate incidents autonomously.",
+				"",
+				"## Inputs",
+				"",
+				"A CloudWatch alarm ID.",
+			].join("\n"),
+		});
+
+		const result = await renderTemper({
+			artifactName: "my-power-agent",
+			harness: "claude-code",
+			knowledgeDirs: [tmpDir],
+			templatesDir: "templates/harness-adapters",
+		});
+
+		expect(result.degradations.some((d) => d.startsWith("agents:"))).toBe(true);
+	});
+
+	test("does not report agents degradation for type: power artifacts with plain content", async () => {
+		const tmpDir = await mkdtemp(join(tmpdir(), "temper-test-"));
+		await createTestArtifact(tmpDir, "my-plain-power", { type: "power" });
+
+		const result = await renderTemper({
+			artifactName: "my-plain-power",
+			harness: "claude-code",
+			knowledgeDirs: [tmpDir],
+			templatesDir: "templates/harness-adapters",
+		});
+
+		expect(result.degradations.some((d) => d.startsWith("agents:"))).toBe(
+			false,
+		);
 	});
 
 	test("fileCount reflects number of compiled output files", async () => {
