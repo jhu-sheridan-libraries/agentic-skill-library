@@ -1,0 +1,12 @@
+{
+  "name": "Commit Message Quality Gate",
+  "version": "1.0.0",
+  "description": "Before executing a shell command that contains 'git commit', reminds the agent to follow the Commit Craft format: type(scope): subject in imperative mood, body explaining why not what, and proper footer references.",
+  "when": {
+    "type": "preToolUse"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "If this shell command involves a git commit, ensure the commit message follows the Commit Craft format:\n1. Subject: <type>(<scope>): <subject> — imperative mood, ≤72 chars, no period 2. Body: explain WHY this change was made, not WHAT changed (the diff shows what) 3. Footer: reference issues (Closes #N) and note breaking changes\nTypes: feat, fix, refactor, docs, test, chore, perf\nAnti-patterns to reject: - \"WIP\", \"misc fixes\", \"update code\", \"improvements\" - Past tense (\"added X\") — use imperative (\"add X\") - Summarising the diff instead of explaining motivation\nIf the message fails these checks, rewrite it before executing."
+  }
+}

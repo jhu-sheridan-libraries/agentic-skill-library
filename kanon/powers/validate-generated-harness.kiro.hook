@@ -1,0 +1,12 @@
+{
+  "name": "Validate Generated Harness",
+  "version": "1.0.0",
+  "description": "After a task completes, structure-check any harness artifacts that were generated or modified.",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "If this task generated or modified harness artifacts, run Factory Harness Phase 6 structure validation: confirm every agent/role file is in the correct native location, every skill has valid frontmatter (name + description), agent/skill cross-references are consistent, and the data-handoff path has no dead links. Report any failures."
+  }
+}
