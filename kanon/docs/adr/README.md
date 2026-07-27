@@ -61,6 +61,7 @@ ADRs document significant architectural decisions made during the project's deve
 | [049](0049-curation-preserving-upstream-reconciliation.md) | Curation-preserving upstream reconciliation | Proposed | 2026-07-19 |
 | [050](0050-agent-compatibility-and-degradation-reconciliation.md) | Reconcile agent asset-type compatibility with agent capability support | Accepted | 2026-07-23 |
 | [051](0051-deprecate-power-as-asset-taxonomy-value.md) | Deprecate `power` as an asset-taxonomy value | Accepted | 2026-07-23 |
+| [052](0052-client-side-hybrid-search-score-fusion.md) | Client-side hybrid search score fusion for Souk Compass | Proposed | 2026-07-23 |
 
 ## Creating a New ADR
 

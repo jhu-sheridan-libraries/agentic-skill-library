@@ -1,0 +1,12 @@
+{
+  "name": "Domain Concept Validation",
+  "version": "1.0.0",
+  "description": "Detects tasks introducing new domain concepts and validates them against the existing model",
+  "when": {
+    "type": "preTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Before starting this task, assess whether it introduces new domain concepts:\n\n1. Check the task description for domain-related keywords: new type, new interface, new entity, new aggregate, bounded context, domain event, value object, new module, new model.\n2. If the task matches:\n   a. Read the challenge-domain-model steering file from the codeshop power.\n   b. Validate that the proposed concepts align with the project's existing domain model in CONTEXT.md and UBIQUITOUS_LANGUAGE.md.\n3. If the task does not match, proceed with the task normally.\n\nEither load the challenge-domain-model workflow and confirm it is applied, or confirm the task does not introduce new domain concepts and proceed with implementation.\n"
+  }
+}

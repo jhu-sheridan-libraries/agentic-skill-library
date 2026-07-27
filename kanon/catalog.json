@@ -1480,6 +1480,67 @@
     "outcomes": []
   },
   {
+    "name": "factory-harness",
+    "displayName": "Factory Harness",
+    "description": "The team-architecture factory. Turns a domain or project description into a reusable agent team and the skills they use, using six team patterns (Pipeline, Fan-out/Fan-in, Expert Pool, Producer-Reviewer, Supervisor, Hierarchical Delegation). Use this whenever someone asks to build, compose, set up, design, engineer, audit, sync, or evolve a harness; scaffold specialist agents and the skills they use; or stand up domain automation. It realizes the same team natively on each harness — Claude Code agent teams plus skills, Codex AGENTS.md plus repo-local skills, Kiro powers plus steering plus agent hooks.",
+    "keywords": [
+      "harness",
+      "agent-team",
+      "team-architecture",
+      "meta-skill",
+      "orchestration",
+      "multi-agent",
+      "skill-architect",
+      "pipeline",
+      "fan-out-fan-in",
+      "expert-pool",
+      "producer-reviewer",
+      "supervisor",
+      "hierarchical-delegation",
+      "agent-scaffolding"
+    ],
+    "author": "robin (revfactory), adapted for Kanon by Steven J. Miklovic",
+    "version": "0.1.1",
+    "harnesses": [
+      "kiro",
+      "claude-code",
+      "codex"
+    ],
+    "type": "workflow",
+    "path": "knowledge/factory-harness",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "architecture"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power",
+      "claude-code": "claude-md",
+      "codex": "skill"
+    },
+    "features": {
+      "hooks": true,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "license": "Apache-2.0",
+    "maturity": "experimental",
+    "trust": "community",
+    "audience": "advanced",
+    "model-assumptions": [
+      "Uses the highest-reasoning model available (e.g. Claude Opus, GPT-5-class) for design and orchestration quality"
+    ],
+    "collections": [],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
     "name": "fantasy-novelist",
     "displayName": "Fantasy Novelist",
     "description": "Genre-specific companion to the Novelist power for writing fantasy fiction. Provides magic system design, mythic world-building, non-human species and culture creation, prophecy and fate mechanics, and subgenre-aware conventions. Designed for agent consumption.",
