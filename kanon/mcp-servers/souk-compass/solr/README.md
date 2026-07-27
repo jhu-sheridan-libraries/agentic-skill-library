@@ -32,11 +32,14 @@ docker exec souk-compass-solr solr zk upconfig \
 compass_setup { "action": "create_collections" }
 ```
 
-Or create collections manually:
+Or create collections manually — there are three (see
+[ADR 0035](../../../docs/adr/0035-codebase-indexing-as-separate-collection.md)
+for why codebase content is kept separate):
 
 ```bash
-curl "http://localhost:8983/solr/admin/collections?action=CREATE&name=context-bazaar&numShards=1&replicationFactor=1&collection.configName=souk-compass&wt=json"
-curl "http://localhost:8983/solr/admin/collections?action=CREATE&name=context-bazaar-user-docs&numShards=1&replicationFactor=1&collection.configName=souk-compass&wt=json"
+for c in context-bazaar context-bazaar-user-docs context-bazaar-codebase; do
+  curl "http://localhost:8983/solr/admin/collections?action=CREATE&name=$c&numShards=1&replicationFactor=1&collection.configName=souk-compass&wt=json"
+done
 ```
 
 Verify it's running:
@@ -59,15 +62,105 @@ compass_setup { "action": "stop" }                # Stop containers
 
 The `start` action automatically uploads the `souk-compass` configset to ZooKeeper after the containers are healthy.
 
+## Required JVM setting
+
+`docker-compose.yml` sets:
+
+```yaml
+SOLR_OPTS: "-Dsolr.jetty.request.header.size=65536"
+```
+
+This is not optional. A kNN query inlines the full 1024-dimension query vector
+into the request URI — roughly 22 KB — and Jetty's default limit is 8192 bytes,
+so every vector and hybrid search fails with **HTTP 414 URI Too Long** without
+it. Keyword search is unaffected, which makes the failure look selective rather
+than systemic. If you run a Solr you did not start from this compose file, set
+the same property there. Measured cost of raising it: none (kNN stays at 5–7 ms
+warm; the JVM's own GC and heap defaults are untouched because `SOLR_OPTS` is
+additive).
+
 ## Configset
 
 The custom schema lives in `solr/configset/conf/`:
-- `schema.xml` — Field definitions including the 1024-dim dense vector field
+- `schema.xml` — Field definitions including the 1024-dim dense vector field and
+  `embed_provider`, which records the model that produced each vector
 - `solrconfig.xml` — Solr configuration (autocommit, request handlers)
 
-A copy of `schema.xml` is also kept at `solr/schema.xml` for reference.
+A copy of `schema.xml` is also kept at `solr/schema.xml` for reference. Keep the
+two in step — the container mounts `solr/configset/`, so that is the copy that
+actually reaches ZooKeeper.
 
 The configset is mounted into the Solr container and uploaded to ZooKeeper on startup. Collections reference it by name (`souk-compass`) via the `collection.configName` parameter.
+
+### Changing the schema on a running cluster
+
+Editing `schema.xml` has no effect until the configset is re-uploaded and the
+collections reload. Nothing warns you if you skip this; queries simply behave as
+though the field does not exist.
+
+```bash
+docker exec souk-compass-solr solr zk upconfig \
+  -n souk-compass \
+  -d /opt/solr/server/solr/configsets/souk-compass/conf \
+  -z zoo:2181
+
+for c in context-bazaar context-bazaar-user-docs context-bazaar-codebase; do
+  curl "http://localhost:8983/solr/admin/collections?action=RELOAD&name=$c&wt=json"
+done
+
+# Confirm the field landed
+curl "http://localhost:8983/solr/context-bazaar/schema/fields/embed_provider?wt=json"
+```
+
+Adding a field is safe for existing documents; they simply carry no value for it.
+Changing `vectorDimension` or the similarity function is not — that requires a
+full reindex.
+
+## Indexing More Than One Repository
+
+The codebase collection is shared by every repository you index. Isolation comes
+from `index_root`, the absolute folder each document was indexed from, rather
+than from separate collections.
+
+```
+compass_index_folder   { path: "/repos/my-app" }
+compass_index_folder   { path: "/repos/other-service" }
+
+compass_search_codebase { query: "...", root: "/repos/my-app" }   # one repo
+compass_search_codebase { query: "..." }                          # all repos
+```
+
+Search results carry a `root`, so a cross-repository hit is attributable.
+`compass_status` reports `indexedRoots` — a per-repository document count — which
+is the only way to see what is currently indexed.
+
+Both destructive operations are scoped to the root you name:
+
+- `compass_index_folder { clear: true }` deletes only that root's documents.
+- `compass_reindex_folder` deletes only documents belonging to that root, and
+  reports anything it declined to remove as `skippedRemovals`.
+
+Neither will touch another repository. Documents predating `index_root` cannot be
+attributed to any root, so they are never deleted automatically; `compass_status`
+counts them as `untrackedRootDocs`, and the way to clear them is a one-off
+`delete` by `*:*` followed by a reindex.
+
+### Separate collections, if you want them
+
+The three folder tools accept a `collection` argument to target a different Solr
+collection entirely — genuine isolation, at the cost of provisioning and of
+losing cross-repository search. The collection must exist first; the tools refuse
+a name they cannot find rather than creating it, so a typo does not silently
+become an empty collection that returns nothing.
+
+```bash
+compass_setup { "action": "create_collection", "name": "codebase-my-app" }
+compass_index_folder { "path": "/repos/my-app", "collection": "codebase-my-app" }
+```
+
+Note that `SOUK_COMPASS_CODEBASE_COLLECTION` sets the default for a whole server
+process, whereas `collection` is per call — so one server can serve several
+repositories without any per-project MCP configuration.
 
 ## Stopping Solr
 
@@ -104,8 +197,57 @@ Ensure the remote Solr instance has:
 | `SOUK_COMPASS_SOLR_URL` | `http://localhost:8983` | Solr base URL |
 | `SOUK_COMPASS_SOLR_COLLECTION` | `context-bazaar` | Artifact collection name |
 | `SOUK_COMPASS_USER_COLLECTION` | `context-bazaar-user-docs` | User document collection name |
+| `SOUK_COMPASS_CODEBASE_COLLECTION` | `context-bazaar-codebase` | Codebase collection name |
 | `SOUK_COMPASS_EMBED_PROVIDER` | `local` | Embedding provider (`local`, `bedrock-titan`) |
 | `SOUK_COMPASS_EMBED_DIMENSIONS` | `1024` | Embedding vector dimensions |
+| `SOUK_COMPASS_CACHE_TIERS` | `memory,sqlite,solr` | Embedding cache tiers, in lookup order |
+| `SOUK_COMPASS_CACHE_DB` | `~/.souk-compass/embed-cache.db` | SQLite cache path |
+| `SOUK_COMPASS_EMBED_CACHE_SIZE` | `1000` | In-memory LRU entries |
+| `SOUK_COMPASS_DEFAULT_MIN_SCORE` | unset | Default similarity floor, 0–1 |
+| `SOUK_COMPASS_EF_SEARCH_SCALE` | `1.0` | HNSW candidate multiplier |
+| `SOUK_COMPASS_FILTERED_SEARCH_THRESHOLD` | unset | ACORN threshold, integer 0–100 |
+
+## Choosing an Embedding Provider
+
+`local` is the default so the server works with no cloud credentials. It runs
+`Xenova/all-MiniLM-L6-v2` on CPU via `onnxruntime`, which means:
+
+- **A 512-token ceiling (~1,970 characters on this corpus).** Anything past it is
+  silently discarded — it contributes nothing to the vector while still appearing
+  indexed. Long chunks match only their opening.
+- **384 native dimensions, zero-padded to 1024** to fit the schema. The padding
+  is harmless for cosine ranking but wastes distance computation and vector
+  storage.
+- **`node_modules` must be present on disk.** `onnxruntime`'s native binding
+  cannot be bundled, so a packaged build still needs the dependency installed.
+
+`bedrock-titan` uses `amazon.titan-embed-text-v2:0`: 1024 native dimensions
+(no padding), unit-normalised, and an 8,192-token context window. It needs
+`@aws-sdk/client-bedrock-runtime`, working AWS credentials, and `AWS_REGION`.
+Model access must be enabled for the account — check with:
+
+```bash
+aws bedrock list-foundation-models --by-output-modality EMBEDDING \
+  --query 'modelSummaries[?contains(modelId,`titan-embed-text`)].modelId' --output text
+```
+
+### Switching providers requires a full reindex
+
+Vectors from different models occupy different spaces and are not comparable.
+Querying a Titan-built index with the local provider returns plausible-looking
+scores that are meaningless, and raises no error. Three guards exist, but they
+mitigate rather than remove the hazard:
+
+- The embedding cache is keyed by provider and dimensionality, so a stale cache
+  cannot serve the previous model's vectors.
+- Provider initialisation failure is fatal rather than falling back to `local`.
+- Each document records `embed_provider`, and `compass_status` reports
+  `providerMismatch` naming any collection that disagrees with the configured
+  provider.
+
+When you switch, clear and reindex **every** collection: the provider is global,
+not per-collection. Check `compass_status` afterwards and confirm
+`providerMismatch` is absent and no `untaggedDocs` remain.
 
 ## Auto-Reindex Hook
 

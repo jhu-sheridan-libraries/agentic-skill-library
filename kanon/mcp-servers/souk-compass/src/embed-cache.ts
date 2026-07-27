@@ -1,12 +1,15 @@
 import { createHash } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import type { EmbeddingProvider } from "./embedding-provider.js";
+import { type EmbeddingProvider, modelIdentity } from "./embedding-provider.js";
 import type { SoukVectorClient } from "./solr-client.js";
 
 /**
  * Compute a SHA-256 hex digest of the given text.
- * Used as the cache key for embedding lookups across all tiers.
+ *
+ * This identifies *content*, not an embedding of it: it populates the
+ * `content_hash` field that drives reindex change detection. Do not fold
+ * provider identity into it — see `CachedEmbeddingProvider.cacheKey`.
  */
 export function contentHash(text: string): string {
 	return createHash("sha256").update(text, "utf-8").digest("hex");
@@ -26,6 +29,7 @@ export interface CacheTierStats {
 export class CachedEmbeddingProvider implements EmbeddingProvider {
 	readonly name: string;
 	readonly dimensions: number;
+	readonly modelName: string;
 
 	private readonly inner: EmbeddingProvider;
 	private readonly tiers: Array<"memory" | "sqlite" | "solr">;
@@ -47,6 +51,7 @@ export class CachedEmbeddingProvider implements EmbeddingProvider {
 	}) {
 		this.inner = options.inner;
 		this.name = `cached(${options.inner.name})`;
+		this.modelName = modelIdentity(options.inner);
 		this.dimensions = options.inner.dimensions;
 		this.tiers = options.tiers;
 		this.memoryCacheSize = options.memoryCacheSize;
@@ -63,16 +68,31 @@ export class CachedEmbeddingProvider implements EmbeddingProvider {
 	}
 
 	/**
+	 * Cache key for an embedding of `text` by *this* provider.
+	 *
+	 * Namespaced by provider name and dimensionality, because a cached vector
+	 * is only valid for the model that produced it. Keying on text alone means
+	 * switching providers silently serves the previous model's vectors —
+	 * numerically fine, semantically meaningless, and invisible in results.
+	 * The NUL separator keeps a provider name from colliding with text.
+	 */
+	private cacheKey(text: string): string {
+		return createHash("sha256")
+			.update(`${this.modelName}:${this.dimensions}\u0000${text}`, "utf-8")
+			.digest("hex");
+	}
+
+	/**
 	 * Embed a single text with cache lookup.
 	 * Checks tiers in order, returns first hit. On complete miss,
 	 * calls the inner provider and writes to memory + SQLite tiers.
 	 */
 	async embed(text: string): Promise<number[]> {
-		const hash = contentHash(text);
+		const hash = this.cacheKey(text);
 
 		// Check each active tier in order
 		for (const tier of this.tiers) {
-			const cached = await this.getFromTier(tier, hash);
+			const cached = await this.getFromTier(tier, hash, contentHash(text));
 			if (cached) {
 				return cached;
 			}
@@ -100,11 +120,15 @@ export class CachedEmbeddingProvider implements EmbeddingProvider {
 
 		// Per-text cache lookup
 		for (let i = 0; i < texts.length; i++) {
-			const hash = contentHash(texts[i]);
+			const hash = this.cacheKey(texts[i]);
 			let found = false;
 
 			for (const tier of this.tiers) {
-				const cached = await this.getFromTier(tier, hash);
+				const cached = await this.getFromTier(
+					tier,
+					hash,
+					contentHash(texts[i]),
+				);
 				if (cached) {
 					results[i] = cached;
 					found = true;
@@ -125,7 +149,7 @@ export class CachedEmbeddingProvider implements EmbeddingProvider {
 				const idx = missIndices[j];
 				results[idx] = embeddings[j];
 
-				const hash = contentHash(missTexts[j]);
+				const hash = this.cacheKey(missTexts[j]);
 				this.writeToMemory(hash, embeddings[j]);
 				this.writeToSqlite(hash, embeddings[j]);
 			}
@@ -149,17 +173,24 @@ export class CachedEmbeddingProvider implements EmbeddingProvider {
 	// Private tier methods
 	// ---------------------------------------------------------------------------
 
+	/**
+	 * @param key         provider-namespaced cache key (memory + SQLite tiers)
+	 * @param contentKey  plain content hash — the Solr tier matches documents on
+	 *                    their stored `content_hash` field, so it cannot use the
+	 *                    namespaced key. It is provider-guarded instead.
+	 */
 	private async getFromTier(
 		tier: "memory" | "sqlite" | "solr",
-		hash: string,
+		key: string,
+		contentKey: string,
 	): Promise<number[] | null> {
 		switch (tier) {
 			case "memory":
-				return this.getFromMemory(hash);
+				return this.getFromMemory(key);
 			case "sqlite":
-				return this.getFromSqlite(hash);
+				return this.getFromSqlite(key);
 			case "solr":
-				return this.getFromSolr(hash);
+				return this.getFromSolr(contentKey);
 		}
 	}
 
@@ -300,7 +331,10 @@ export class CachedEmbeddingProvider implements EmbeddingProvider {
 		}
 
 		try {
-			const doc = await this.solrClient.findByContentHash(hash);
+			// Provider-scoped: a vector already in the index is only reusable if
+			// the same model produced it. Without this filter, a half-migrated
+			// collection hands back the previous provider's vectors.
+			const doc = await this.solrClient.findByContentHash(hash, this.modelName);
 			if (doc?.vector) {
 				this.stats.solr.hits++;
 				return doc.vector as number[];

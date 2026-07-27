@@ -28,6 +28,7 @@ export function toSolrDocument(
 	entry: CatalogEntry,
 	text: string,
 	embedding: number[],
+	embedProvider?: string,
 ): SolrDocument {
 	const doc: SolrDocument = {
 		id: entry.name,
@@ -43,6 +44,7 @@ export function toSolrDocument(
 		version: entry.version,
 		doc_source: "artifact",
 		content_hash: contentHash(text),
+		...(embedProvider ? { embed_provider: embedProvider } : {}),
 	};
 
 	return SolrDocumentSchema.parse(doc);
@@ -115,12 +117,14 @@ export function toUserSolrDocument(
 	text: string,
 	embedding: number[],
 	metadata?: Record<string, string>,
+	embedProvider?: string,
 ): SolrDocument {
 	const doc: Record<string, unknown> = {
 		id,
 		text,
 		vector: embedding,
 		doc_source: "user",
+		...(embedProvider ? { embed_provider: embedProvider } : {}),
 	};
 
 	if (metadata) {
@@ -143,12 +147,14 @@ export function toMemoryDocument(
 	category: string,
 	tags?: string[],
 	sessionId?: string,
+	embedProvider?: string,
 ): SolrDocument {
 	const doc: Record<string, unknown> = {
 		id: randomUUID(),
 		text: note,
 		vector: embedding,
 		doc_source: "memory",
+		...(embedProvider ? { embed_provider: embedProvider } : {}),
 		metadata_category: category,
 		metadata_tags: tags?.join(",") ?? "",
 		metadata_created_at: new Date().toISOString(),
