@@ -1,1 +1,0 @@
-Imported the Library AI Workshop facilitator, cohort, reference-interview, and research-output-review skills from eudaemon-ai/academic-ai-library-workshop, including their course references and simulated practice data, and exposed them through a dedicated catalog collection.
