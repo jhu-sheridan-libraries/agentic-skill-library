@@ -20,9 +20,38 @@ export type AssetValidationRuleKey =
 	| "reference-pack-must-be-manual"
 	| "workflow-should-have-workflows-dir"
 	| "prompt-body-too-short"
+	| "agent-should-document-loop"
+	| "type-power-deprecated"
 	| "kiro-power-should-be-progressive"
 	| "kiro-power-workflow-should-be-progressive"
 	| "kiro-default-inclusion-informational";
+
+/**
+ * Markdown heading markers that signal an artifact's body documents
+ * agent-loop behavior (goal, inputs/outputs, an autonomous loop), independent
+ * of the artifact's declared `type`. Shared by validate.ts (agent
+ * conventions) and temper.ts (degradation detection) so both answer "does
+ * this content document agent-loop behavior?" the same way.
+ */
+const AGENT_LOOP_MARKERS: Record<string, RegExp> = {
+	goal: /^#{1,6}\s*(goal|objective)s?\b/im,
+	inputs: /^#{1,6}\s*inputs?\b/im,
+	outputs: /^#{1,6}\s*outputs?\b/im,
+	loop: /^#{1,6}\s*(autonomous\s+)?loop\b/im,
+};
+
+/**
+ * An artifact "documents agent-loop behavior" when its body has at least two
+ * of the four canonical headings (goal, inputs, outputs, loop). Two is a
+ * deliberately low bar — it flags likely agent content for degradation
+ * reporting without requiring a rigid template.
+ */
+export function documentsAgentLoop(body: string): boolean {
+	const hits = Object.values(AGENT_LOOP_MARKERS).filter((marker) =>
+		marker.test(body),
+	).length;
+	return hits >= 2;
+}
 
 export const ASSET_CONVENTION_RULES: Record<AssetValidationRuleKey, string> = {
 	"reference-pack-must-be-manual":
@@ -31,6 +60,10 @@ export const ASSET_CONVENTION_RULES: Record<AssetValidationRuleKey, string> = {
 		"workflow artifacts should contain at least one file in the workflows/ directory",
 	"prompt-body-too-short":
 		"prompt artifacts should have a non-trivial body (at least 50 characters)",
+	"agent-should-document-loop":
+		"agent artifacts should document at least two of: a goal/objective, inputs, outputs, and an autonomous loop — otherwise harnesses have no basis for rendering agent-specific behavior",
+	"type-power-deprecated":
+		'type: "power" is a deprecated alias for "skill" — "power" is Kiro\'s own output-format concept, not an asset-taxonomy value. Use type: "skill" and set harness-config.kiro.format: "power" explicitly instead.',
 	"kiro-power-should-be-progressive":
 		'Artifacts using harness-config.kiro.format: "power" should not set inclusion to "always"; POWER.md is the always-on surface, steering/ files are meant to be progressively disclosed.',
 	"kiro-power-workflow-should-be-progressive":
@@ -45,10 +78,12 @@ export const ASSET_CONVENTIONS: Record<AssetType, AssetFileConvention> = {
 		optionalFiles: ["hooks.yaml", "mcp-servers.yaml", "workflows/"],
 		validationRuleKeys: [],
 	},
+	// "power" is a deprecated alias for "skill" (see ADR-0051) — same file
+	// conventions, plus a deprecation warning skill doesn't need.
 	power: {
 		requiredFiles: ["knowledge.md"],
 		optionalFiles: ["hooks.yaml", "mcp-servers.yaml", "workflows/"],
-		validationRuleKeys: [],
+		validationRuleKeys: ["type-power-deprecated"],
 	},
 	rule: {
 		requiredFiles: ["knowledge.md"],
@@ -63,7 +98,7 @@ export const ASSET_CONVENTIONS: Record<AssetType, AssetFileConvention> = {
 	agent: {
 		requiredFiles: ["knowledge.md"],
 		optionalFiles: ["hooks.yaml", "mcp-servers.yaml", "workflows/"],
-		validationRuleKeys: [],
+		validationRuleKeys: ["agent-should-document-loop"],
 	},
 	prompt: {
 		requiredFiles: ["knowledge.md"],

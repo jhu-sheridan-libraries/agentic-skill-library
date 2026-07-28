@@ -9,6 +9,12 @@ services:
       - ./solr/configset:/opt/solr/server/solr/configsets/souk-compass
     environment:
       ZK_HOST: zoo:2181
+      # kNN queries inline the full query vector into the request URI. At
+      # vectorDimension=1024 (see solr/schema.xml) that is ~22KB, well over
+      # Jetty's 8192-byte default, which fails every vector and hybrid search
+      # with HTTP 414. Headroom is for larger topK, filter queries, and any
+      # future dimension increase.
+      SOLR_OPTS: "-Dsolr.jetty.request.header.size=65536"
     depends_on:
       zoo:
         condition: service_healthy

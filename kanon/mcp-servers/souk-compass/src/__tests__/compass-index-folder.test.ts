@@ -1,7 +1,8 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { rootKey } from "../codebase-docs.js";
 import type { EmbeddingProvider } from "../embedding-provider.js";
 import type { SoukCompassConfig } from "../schemas.js";
 import type { SoukVectorClient } from "../solr-client.js";
@@ -91,6 +92,90 @@ afterEach(() => {
 // compass_index_folder
 // ===========================================================================
 
+describe("handleCompassIndexFolder multi-repo safety", () => {
+	// The codebase collection is shared by every indexed repository, so anything
+	// that deletes must say which root it is deleting for, and document ids must
+	// distinguish roots. Otherwise one repo's index silently destroys another's.
+
+	test("clear deletes only the root being indexed, never the whole collection", async () => {
+		writeFileSync(join(testDir, "a.ts"), "export const a = 1;\n");
+		const bodies: string[] = [];
+		const fetchSpy = spyOn(globalThis, "fetch").mockImplementation((async (
+			_url: string,
+			init?: { body?: string },
+		) => {
+			if (init?.body) bodies.push(init.body);
+			return new Response(JSON.stringify({ responseHeader: { status: 0 } }), {
+				status: 200,
+				headers: { "Content-Type": "application/json" },
+			});
+		}) as unknown as typeof fetch);
+
+		try {
+			await handleCompassIndexFolder({ path: testDir, clear: true }, makeCtx());
+		} finally {
+			fetchSpy.mockRestore();
+		}
+
+		const deletes = bodies.filter((b) => b.includes('"delete"'));
+		expect(deletes.length).toBeGreaterThan(0);
+		for (const body of deletes) {
+			expect(body).not.toContain("*:*");
+			expect(body).toContain("index_root");
+			expect(body).toContain(testDir);
+		}
+	});
+
+	test("document ids differ between roots for the same relative path", async () => {
+		const rootA = join(testDir, "repo-a");
+		const rootB = join(testDir, "repo-b");
+		mkdirSync(join(rootA, "src"), { recursive: true });
+		mkdirSync(join(rootB, "src"), { recursive: true });
+		// Identical relative path, different content, different repos.
+		writeFileSync(join(rootA, "src", "index.ts"), "export const a = 1;\n");
+		writeFileSync(join(rootB, "src", "index.ts"), "export const b = 2;\n");
+
+		const idsFor = async (root: string) => {
+			const seen: string[] = [];
+			const ctx = makeCtx({
+				codebaseSolrClient: makeMockSolrClient({
+					upsert: (async (id: string) => {
+						seen.push(id);
+					}) as unknown as never,
+				}),
+			});
+			await handleCompassIndexFolder({ path: root }, ctx);
+			return seen;
+		};
+
+		const a = await idsFor(rootA);
+		const b = await idsFor(rootB);
+
+		expect(a.length).toBeGreaterThan(0);
+		expect(b.length).toBeGreaterThan(0);
+		// No id may appear for both roots.
+		expect(a.filter((id) => b.includes(id))).toEqual([]);
+	});
+
+	test("ids are stable across repeated indexing of the same root", async () => {
+		writeFileSync(join(testDir, "stable.ts"), "export const s = 1;\n");
+		const idsFor = async () => {
+			const seen: string[] = [];
+			const ctx = makeCtx({
+				codebaseSolrClient: makeMockSolrClient({
+					upsert: (async (id: string) => {
+						seen.push(id);
+					}) as unknown as never,
+				}),
+			});
+			await handleCompassIndexFolder({ path: testDir }, ctx);
+			return seen;
+		};
+
+		expect(await idsFor()).toEqual(await idsFor());
+	});
+});
+
 describe("handleCompassIndexFolder", () => {
 	test("returns error for non-existent directory", async () => {
 		const ctx = makeCtx();
@@ -141,8 +226,8 @@ describe("handleCompassIndexFolder", () => {
 
 		// Check IDs follow the expected pattern
 		const ids = upsertCalls.map((c) => c.id);
-		expect(ids).toContain("codebase::main.ts");
-		expect(ids).toContain("codebase::utils.ts");
+		expect(ids).toContain(`codebase::${rootKey(testDir)}::main.ts`);
+		expect(ids).toContain(`codebase::${rootKey(testDir)}::utils.ts`);
 	});
 
 	test("excludes node_modules by default", async () => {
@@ -165,7 +250,7 @@ describe("handleCompassIndexFolder", () => {
 		const data = parseResult(result);
 
 		expect(data.indexed).toBe(1);
-		expect(upsertCalls).toContain("codebase::app.ts");
+		expect(upsertCalls).toContain(`codebase::${rootKey(testDir)}::app.ts`);
 		expect(upsertCalls.some((id) => id.includes("node_modules"))).toBe(false);
 	});
 
@@ -186,7 +271,7 @@ describe("handleCompassIndexFolder", () => {
 		const data = parseResult(result);
 
 		expect(data.indexed).toBe(1);
-		expect(upsertCalls).toContain("codebase::index.ts");
+		expect(upsertCalls).toContain(`codebase::${rootKey(testDir)}::index.ts`);
 	});
 
 	test("respects custom include patterns", async () => {
@@ -209,7 +294,7 @@ describe("handleCompassIndexFolder", () => {
 		const data = parseResult(result);
 
 		expect(data.indexed).toBe(1);
-		expect(upsertCalls).toContain("codebase::main.ts");
+		expect(upsertCalls).toContain(`codebase::${rootKey(testDir)}::main.ts`);
 	});
 
 	test("respects custom exclude patterns", async () => {
@@ -235,7 +320,7 @@ describe("handleCompassIndexFolder", () => {
 		const data = parseResult(result);
 
 		expect(data.indexed).toBe(1);
-		expect(upsertCalls).toContain("codebase::app.ts");
+		expect(upsertCalls).toContain(`codebase::${rootKey(testDir)}::app.ts`);
 	});
 
 	test("skips binary/non-text files", async () => {
@@ -257,7 +342,7 @@ describe("handleCompassIndexFolder", () => {
 		const data = parseResult(result);
 
 		expect(data.indexed).toBe(1);
-		expect(upsertCalls).toContain("codebase::app.ts");
+		expect(upsertCalls).toContain(`codebase::${rootKey(testDir)}::app.ts`);
 	});
 
 	test("skips files exceeding maxFileSize", async () => {
@@ -279,7 +364,7 @@ describe("handleCompassIndexFolder", () => {
 		const data = parseResult(result);
 
 		expect(data.indexed).toBe(1);
-		expect(upsertCalls).toContain("codebase::small.ts");
+		expect(upsertCalls).toContain(`codebase::${rootKey(testDir)}::small.ts`);
 	});
 
 	test("chunks large files when chunked=true", async () => {
@@ -329,7 +414,7 @@ describe("handleCompassIndexFolder", () => {
 		const data = parseResult(result);
 
 		expect(data.indexed).toBe(1);
-		expect(upsertCalls[0].id).toBe("codebase::tiny.ts");
+		expect(upsertCalls[0].id).toBe(`codebase::${rootKey(testDir)}::tiny.ts`);
 	});
 
 	test("returns empty result for directory with no matching files", async () => {
@@ -367,8 +452,12 @@ describe("handleCompassIndexFolder", () => {
 		const data = parseResult(result);
 
 		expect(data.indexed).toBe(2);
-		expect(upsertCalls).toContain("codebase::src/index.ts");
-		expect(upsertCalls).toContain("codebase::src/utils/helpers.ts");
+		expect(upsertCalls).toContain(
+			`codebase::${rootKey(testDir)}::src/index.ts`,
+		);
+		expect(upsertCalls).toContain(
+			`codebase::${rootKey(testDir)}::src/utils/helpers.ts`,
+		);
 	});
 
 	test("clear=true deletes existing documents before indexing", async () => {
@@ -449,6 +538,6 @@ describe("handleCompassIndexFolder", () => {
 		const data = parseResult(result);
 
 		expect(data.indexed).toBe(1);
-		expect(upsertCalls).toContain("codebase::notempty.ts");
+		expect(upsertCalls).toContain(`codebase::${rootKey(testDir)}::notempty.ts`);
 	});
 });

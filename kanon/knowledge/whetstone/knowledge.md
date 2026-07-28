@@ -36,7 +36,7 @@ harnesses:
   - claude-code
   - codex
   - cursor
-type: power
+type: skill
 inclusion: auto
 categories:
   - architecture
@@ -291,7 +291,7 @@ Referenced by: `drive-tests`, `compose-issues`, `triage-bug`.
 
 Every project has a vocabulary — the terms that appear in its domain model, its `CONTEXT.md`, its ubiquitous language glossary. Domain language discipline means using those terms consistently in all artifacts: code identifiers, comments, commit messages, issue titles, documentation, and conversation.
 
-When you encounter a term in the codebase, use it exactly as defined. Don't introduce synonyms ("user" vs "account" vs "member" for the same concept). Don't abbreviate canonical terms. If a term feels wrong, challenge it through the `challenge-domain-model` workflow rather than silently introducing an alternative.
+Whetstone workflows chain naturally — the output of one becomes the input of the next. These chains represent proven sequences where each step builds on the previous one's deliverables.
 
 This discipline compounds: consistent language makes code searchable, issues traceable, and conversations unambiguous. Inconsistent language creates hidden translation layers that slow everyone down.
 

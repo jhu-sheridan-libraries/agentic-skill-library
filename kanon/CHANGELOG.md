@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-07-27
+
+### Added
+- Imported the Library AI Workshop facilitator, cohort, reference-interview, and research-output-review skills from eudaemon-ai/academic-ai-library-workshop, including their course references and simulated practice data, and exposed them through a dedicated catalog collection.
+- kanon spec next command to atomically pull the next ready task for an agent
+- Config-driven upstream marketplace sync with superpowers import format
+- kanon spec now reads and writes Kiro's [~] in-progress checkbox marker in tasks.md, keeping claim/next/release/done in sync with COORDINATION.md
+- Added an optional Souk Compass practice module for safe semantic-search retrieval evaluation
+- kiro-specs skill for reading, writing, and executing Kiro Specs with multi-agent coordination
+- Added Windows installation instructions for Bun alongside the existing macOS/Linux instructions in tutorial.md and self-paced-module.md, covering PowerShell, package managers (npm, Scoop, WinGet), and WSL options.
+- Souk Compass supports Amazon Titan embeddings on Bedrock as a first-class provider, with connection reuse and retry for long reindexes, `embed_provider` recorded on every document, and a `providerMismatch` warning from `compass_status` when a collection was built by a different model.
+- Souk Compass can pack artifact sections into larger chunks so each vector fills more of the embedding model's context window.
+- Added the JHU Editorial Check skill as a Kanon knowledge artifact with bundled style, brand-asset, website-audit, scoring, checker, evaluation, and sample references.
+- kanon spec channel alias and a Kirouija glossary for the multi-agent coordination protocol
+- Progressive Steering for the Kiro harness: explicit `harness-config.kiro.inclusion` field with three-level resolver precedence (harness-config > top-level > default), build pipeline Kiro Inclusion Summary and configurable `alwaysWarnThreshold` warning, install pipeline `--max-always` gating with post-install summary, `<!-- forge:kiro-inclusion: ... -->` audit comment in emitted steering files, cross-field validation rules and progressive conventions in the validator, conditional Kiro inclusion prompt in the wizard, and a new `progressive-steering` eval rubric with six metrics (AOCW, PR, FMP, MD, DER, WCA).
+- Add a generated skill-library index skill listing all installed plugin skills, reframe the kanon skill and plugin manifests to lead with the skill library.
+- Souk Compass indexes more than one repository into the shared codebase collection. Documents record `index_root`, `compass_search_codebase` accepts a `root` filter and reports each hit's repository, the folder tools accept a `collection` override, `compass_setup` gains a `create_collection` action, and `compass_status` reports per-repository counts.
+- kanon spec commands to coordinate multi-agent work on Kiro Specs via COORDINATION.md
+- Per-harness body overrides: a `bodyOverrides` schema field, `body.<harness>.md` loading in the parser, a `resolveBody` helper, resolution in the compile pipeline, and generated plugin skills for powers.
+- Task dependencies (_Depends:_) and claim leases for parallel multi-agent spec work
+
+### Changed
+- Refresh contributor guidance for current Kanon, curriculum, harness, and Souk Compass workflows
+- Reclassify kanon guide as a skill so it ships as a discoverable Claude Code plugin skill
+- Preserve nested and non-Markdown workflow reference files during parsing so imported skills retain their progressive-disclosure trees and simulated fixtures.
+- Renamed codeshop to whetstone throughout, and community archon to codefactory.
+- Souk Compass builds an ESM bundle to the tracked `bridge/mcp-server.mjs` instead of a gitignored `dist/`, so published releases carry a runnable server.
+- Updated committed Claude plugin skill generation to create parent directories for nested workflow references.
+- Expanded the Kanon curriculum for Johns Hopkins Libraries staff with accurate CLI exercises, safe practice content, assessments, a capstone rubric, and a coordinator guide
+- Souk Compass fuses hybrid search scores on the client (ADR-0052). Solr rejects a `{!knn}` clause nested inside `{!func}`, so vector and keyword searches now run in parallel and merge locally. `SoukVectorClient.search()` accepts only `vector` and `keyword`. In hybrid mode `score` is a fused value normalized per request rather than a raw Solr score, so scores are not comparable across queries.
+
+### Deprecated
+- Deprecate type: "power" as an asset-taxonomy value in favor of type: "skill" + harness-config.kiro.format: "power"; migrate all 47 existing power-typed artifacts
+
+### Fixed
+- Souk Compass now honours the catalog's `path` field when reading artifacts. Deriving the path from the artifact name excluded every nested collection, leaving 42 of 63 artifacts absent from the index.
+- Fix plugin install showing 0 skills — generate and commit real SKILL.md files for Claude Code discovery
+- Souk Compass reported a healthy SolrCloud collection as missing, because cores are named `<collection>_shard1_replica_n1` rather than after the collection.
+- Souk Compass fails loudly when a configured embedding provider cannot start, instead of silently falling back to a different model and embedding queries in the wrong vector space.
+- `compass_search` no longer fails in its default mode, which is hybrid.
+- Souk Compass failed to connect with JSON-RPC error -32000 when installed as a plugin, because no build artifact was published.
+- The Souk Compass embedding cache is keyed by provider and dimensionality. Keyed on text alone, switching providers served the previous model's vectors — meaningless similarity scores with nothing to indicate it.
+- Reconcile agent asset-type compatibility with per-harness agent capability support, make temper agent-degradation detection content-aware, and add agent validation rules
+- Every vector and hybrid search failed with HTTP 414 because a 1024-dimension query vector exceeds Jetty's default 8 KB header limit. The Solr container now raises `solr.jetty.request.header.size`, and searches POST their parameters.
+- Souk Compass silently dropped roughly half of all indexed documents. A long numeric token in a vector triggered a Solr ClassCastException when it landed on a JSON parser buffer boundary; vector components are now rounded before transmission, which loses no precision the 7-bit quantised field would have kept.
+- Souk Compass scopes `clear` and incremental reindex to the folder being indexed. Both previously deleted documents belonging to other indexed repositories.
+- Stale codeshop references after the whetstone rename, and CodeQL findings for incomplete string escaping and an unused loop iteration variable.
+
+
 ## [0.5.0] - 2026-07-08
 
 ### Added

@@ -1,5 +1,9 @@
+import { resolve } from "node:path";
+import { requireCollection } from "../collections.js";
+import { hybridSearch } from "../hybrid-search.js";
 import type { CompassSearchCodebaseInput } from "../schemas.js";
 import type { SolrSearchResponse } from "../solr-client.js";
+import { SoukVectorClient } from "../solr-client.js";
 import type { ToolContext, ToolResult } from "./types.js";
 
 export async function handleCompassSearchCodebase(
@@ -12,33 +16,56 @@ export async function handleCompassSearchCodebase(
 		const snippetLength = input.snippetLength ?? 300;
 		const effectiveMinScore = input.minScore ?? ctx.config.defaultMinScore;
 
+		if (input.collection) {
+			await requireCollection(ctx.config.solrUrl, input.collection);
+		}
+		const codebaseClient = input.collection
+			? new SoukVectorClient(ctx.config.solrUrl, input.collection)
+			: ctx.codebaseSolrClient;
+
 		// Embed query for vector and hybrid modes
 		let embedding: number[] | null = null;
 		if (mode === "vector" || mode === "hybrid") {
 			embedding = await ctx.embeddingProvider.embed(input.query);
 		}
 
-		// Build filter query for path filtering
-		let filterQuery: string | undefined;
-		if (input.path) {
-			// Filter by path prefix using wildcard
-			filterQuery = `metadata_path:${escapeForSolr(input.path)}*`;
+		// Build the filter query. `root` selects which indexed repository to search
+		// (the collection is shared by all of them); `path` narrows to a prefix
+		// *within* a repository, since metadata_path is root-relative. They compose.
+		const filters: string[] = [];
+		if (input.root) {
+			filters.push(`index_root:"${resolve(input.root)}"`);
 		}
+		if (input.path) {
+			filters.push(`metadata_path:${escapeForSolr(input.path)}*`);
+		}
+		const filterQuery = filters.length > 0 ? filters.join(" AND ") : undefined;
 
 		let response: SolrSearchResponse;
 
-		if (effectiveMinScore != null && mode === "vector" && embedding) {
-			response = await ctx.codebaseSolrClient.searchByThreshold(
+		if (mode === "hybrid" && embedding) {
+			// Hybrid mode: perform two searches and merge results
+			response = await hybridSearch(codebaseClient, {
+				embedding,
+				queryText: input.query,
+				topK,
+				hybridWeight: input.hybridWeight ?? 0.5,
+				filterQuery,
+				snippetLength,
+			});
+		} else if (effectiveMinScore != null && mode === "vector" && embedding) {
+			response = await codebaseClient.searchByThreshold(
 				embedding,
 				topK,
 				effectiveMinScore,
 				{ filterQuery },
 			);
 		} else {
-			response = await ctx.codebaseSolrClient.search(embedding, topK, {
+			response = await codebaseClient.search(embedding, topK, {
 				filterQuery,
-				mode,
-				hybridWeight: input.hybridWeight,
+				// Hybrid is fused above; the client itself only does these two. A
+				// hybrid request without an embedding degrades to keyword.
+				mode: mode === "hybrid" ? "keyword" : mode,
 				queryText: input.query,
 				snippetLength,
 			});
@@ -87,6 +114,8 @@ export async function handleCompassSearchCodebase(
 interface CodebaseSearchResult {
 	id: string;
 	path: string;
+	/** Indexed root this document came from; absent on pre-`index_root` docs. */
+	root?: string;
 	extension: string;
 	score: number;
 	snippet: string;
@@ -102,6 +131,7 @@ function parseCodebaseResults(
 		const id = extractString(doc.id) ?? "";
 		const text = extractString(doc.text) ?? "";
 		const path = extractString(doc.metadata_path) ?? "";
+		const root = extractString(doc.index_root);
 		const extension = extractString(doc.metadata_extension) ?? "";
 		const score = typeof doc.score === "number" ? doc.score : 0;
 
@@ -140,6 +170,10 @@ function parseCodebaseResults(
 			score,
 			snippet,
 		};
+		// Searches can span repositories, so a hit is ambiguous without this.
+		if (root) {
+			result.root = root;
+		}
 		if (chunkInfo) {
 			result.chunkInfo = chunkInfo;
 		}
@@ -152,6 +186,11 @@ function extractString(value: unknown): string | undefined {
 	if (Array.isArray(value) && value.length > 0) return String(value[0]);
 	return undefined;
 }
+
+/**
+ * Perform hybrid search by running vector and keyword searches separately,
+ * then merging results with weighted scores.
+ */
 
 function escapeForSolr(value: string): string {
 	// Escape special Solr query characters

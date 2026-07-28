@@ -140,6 +140,55 @@ describe("chunkMarkdown", () => {
 // buildChunkDocuments
 // ---------------------------------------------------------------------------
 
+describe("chunkMarkdown packing", () => {
+	// Heading-driven splitting yields whatever size the document's structure
+	// happens to give — typically a few hundred characters, far below what a
+	// large-context encoder can use. Packing combines adjacent sections so each
+	// vector carries more context, which is only safe to opt into.
+	// Each heading must start a line for the splitter to see it.
+	const doc = Array.from(
+		{ length: 12 },
+		(_, i) => `## Section ${i}\n\n${"word ".repeat(40)}\n\n`,
+	).join("");
+
+	test("is off by default, preserving one chunk per heading", () => {
+		const chunks = chunkMarkdown(doc);
+		expect(chunks.length).toBe(12);
+	});
+
+	test("packs adjacent sections toward maxLength when enabled", () => {
+		const unpacked = chunkMarkdown(doc);
+		const packed = chunkMarkdown(doc, { pack: true, maxLength: 8000 });
+
+		expect(packed.length).toBeLessThan(unpacked.length);
+		// Everything still present, in order.
+		expect(packed.map((c) => c.text).join("")).toBe(
+			unpacked.map((c) => c.text).join(""),
+		);
+	});
+
+	test("packing never exceeds maxLength", () => {
+		const packed = chunkMarkdown(doc, { pack: true, maxLength: 600 });
+		for (const c of packed) {
+			expect(c.text.length).toBeLessThanOrEqual(600);
+		}
+		expect(packed.length).toBeGreaterThan(1);
+	});
+
+	test("packed chunks carry sequential indices", () => {
+		const packed = chunkMarkdown(doc, { pack: true, maxLength: 8000 });
+		expect(packed.map((c) => c.index)).toEqual(packed.map((_, i) => i));
+	});
+
+	test("a section larger than maxLength is still split, not merged", () => {
+		const big = `## Big\n\n${"x".repeat(500)}\n\n${"y".repeat(500)}`;
+		const packed = chunkMarkdown(big, { pack: true, maxLength: 600 });
+		for (const c of packed) {
+			expect(c.text.length).toBeLessThanOrEqual(600);
+		}
+	});
+});
+
 describe("buildChunkDocuments", () => {
 	const makeChunks = (texts: string[]) =>
 		texts.map((text, index) => ({ index, text }));

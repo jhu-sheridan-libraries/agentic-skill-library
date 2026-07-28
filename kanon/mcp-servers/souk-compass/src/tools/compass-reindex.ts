@@ -1,5 +1,6 @@
 import { loadCatalog, readArtifactContent } from "../catalog-reader.js";
 import { contentHash } from "../embed-cache.js";
+import { modelIdentity } from "../embedding-provider.js";
 import { ErrorCodes, SoukCompassError } from "../errors.js";
 import type { CompassReindexInput } from "../schemas.js";
 import { buildEmbeddingText, toSolrDocument } from "../serialization.js";
@@ -108,7 +109,12 @@ export async function handleCompassReindex(
 				body,
 			);
 			const embedding = await ctx.embeddingProvider.embed(embeddingText);
-			const doc = toSolrDocument(entry, embeddingText, embedding);
+			const doc = toSolrDocument(
+				entry,
+				embeddingText,
+				embedding,
+				modelIdentity(ctx.embeddingProvider),
+			);
 
 			await ctx.solrClient.upsert(
 				doc.id,

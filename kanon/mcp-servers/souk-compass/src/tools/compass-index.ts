@@ -1,5 +1,6 @@
 import { loadCatalog, readArtifactContent } from "../catalog-reader.js";
 import { buildChunkDocuments, chunkMarkdown } from "../chunker.js";
+import { modelIdentity } from "../embedding-provider.js";
 import { ErrorCodes, SoukCompassError } from "../errors.js";
 import type { CompassIndexArtifactsInput } from "../schemas.js";
 import { buildEmbeddingText, toSolrDocument } from "../serialization.js";
@@ -48,7 +49,9 @@ async function indexSingle(
 		const { body } = await readArtifactContent(ctx.pluginRoot, entry);
 
 		if (chunked) {
-			const chunks = chunkMarkdown(body);
+			// Pack sections toward the encoder's window: artifact sections are
+			// often only a few hundred characters, which wastes most of it.
+			const chunks = chunkMarkdown(body, { pack: true });
 			const chunkTexts = chunks.map((c) => c.text);
 			const embeddings = await ctx.embeddingProvider.batchEmbed(chunkTexts);
 			const metadata = extractArtifactMetadata(entry);
@@ -57,6 +60,7 @@ async function indexSingle(
 				chunks,
 				embeddings,
 				metadata,
+				modelIdentity(ctx.embeddingProvider),
 			);
 
 			for (const chunkDoc of chunkDocs) {
@@ -87,7 +91,12 @@ async function indexSingle(
 			body,
 		);
 		const embedding = await ctx.embeddingProvider.embed(embeddingText);
-		const doc = toSolrDocument(entry, embeddingText, embedding);
+		const doc = toSolrDocument(
+			entry,
+			embeddingText,
+			embedding,
+			modelIdentity(ctx.embeddingProvider),
+		);
 
 		await ctx.solrClient.upsert(
 			doc.id,
@@ -125,7 +134,9 @@ async function indexAll(
 			const { body } = await readArtifactContent(ctx.pluginRoot, entry);
 
 			if (chunked) {
-				const chunks = chunkMarkdown(body);
+				// Pack sections toward the encoder's window: artifact sections are
+				// often only a few hundred characters, which wastes most of it.
+				const chunks = chunkMarkdown(body, { pack: true });
 				const chunkTexts = chunks.map((c) => c.text);
 				const embeddings = await ctx.embeddingProvider.batchEmbed(chunkTexts);
 				const metadata = extractArtifactMetadata(entry);
@@ -134,6 +145,7 @@ async function indexAll(
 					chunks,
 					embeddings,
 					metadata,
+					modelIdentity(ctx.embeddingProvider),
 				);
 
 				for (const chunkDoc of chunkDocs) {
@@ -159,7 +171,12 @@ async function indexAll(
 					body,
 				);
 				const embedding = await ctx.embeddingProvider.embed(embeddingText);
-				const doc = toSolrDocument(entry, embeddingText, embedding);
+				const doc = toSolrDocument(
+					entry,
+					embeddingText,
+					embedding,
+					modelIdentity(ctx.embeddingProvider),
+				);
 
 				await ctx.solrClient.upsert(
 					doc.id,
@@ -230,6 +247,7 @@ function extractMetadata(
 		"content_hash",
 		"chunk_index",
 		"parent_artifact",
+		"embed_provider",
 	];
 	for (const key of metadataKeys) {
 		if (doc[key] != null) {
