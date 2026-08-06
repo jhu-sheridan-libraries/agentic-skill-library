@@ -51,13 +51,21 @@ curl "http://localhost:8983/solr/admin/info/system?wt=json" | python3 -c "import
 
 ## Automated Setup
 
-The `compass_setup` MCP tool handles the full lifecycle:
+The `compass_setup` MCP tool handles the full lifecycle. For first use, prefer the idempotent one-call initializer:
 
 ```
-compass_setup { "action": "start" }              # Start containers + upload configset
-compass_setup { "action": "create_collections" }  # Create both collections
-compass_setup { "action": "check" }               # Verify status
+compass_setup { "action": "initialize" }          # Pull images if absent, start containers, upload configset, create collections, verify readiness
+compass_setup { "action": "check" }               # Verify status without changing anything
 compass_setup { "action": "stop" }                # Stop containers
+```
+
+`initialize` first checks whether Solr and all configured collections are already ready. If they are, it makes no changes. Otherwise, Docker Compose automatically downloads the pinned `solr:10.0.0` and `zookeeper:3.9.3` images when absent, starts the containers, uploads the `souk-compass` configset, creates missing collections, and returns a final status report.
+
+The lower-level actions remain available for troubleshooting:
+
+```
+compass_setup { "action": "start" }               # Start containers + upload configset
+compass_setup { "action": "create_collections" }  # Create configured collections
 ```
 
 The `start` action automatically uploads the `souk-compass` configset to ZooKeeper after the containers are healthy.

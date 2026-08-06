@@ -4,10 +4,12 @@ import matter from "gray-matter";
 import { type CatalogEntry, CatalogSchema } from "../../../src/schemas.js";
 
 /**
- * Load and validate the catalog from the plugin root directory.
+ * Load and validate the catalog from the configured content root.
  */
-export async function loadCatalog(pluginRoot: string): Promise<CatalogEntry[]> {
-	const catalogPath = join(pluginRoot, "kanon", "catalog.json");
+export async function loadCatalog(
+	contentRoot: string,
+): Promise<CatalogEntry[]> {
+	const catalogPath = join(contentRoot, "catalog.json");
 	const raw = await readFile(catalogPath, "utf-8");
 	const parsed = JSON.parse(raw);
 	return CatalogSchema.parse(parsed);
@@ -17,7 +19,7 @@ export async function loadCatalog(pluginRoot: string): Promise<CatalogEntry[]> {
  * Read a knowledge artifact's content, parsing frontmatter and body.
  */
 export async function readArtifactContent(
-	pluginRoot: string,
+	contentRoot: string,
 	entry: CatalogEntry,
 ): Promise<{ frontmatter: Record<string, unknown>; body: string }> {
 	// Use the catalog's recorded path. Not every artifact sits at
@@ -26,7 +28,7 @@ export async function readArtifactContent(
 	// fails with ENOENT for those, which shows up as artifacts silently missing
 	// from search rather than as an obvious error.
 	const relativePath = entry.path ?? join("knowledge", entry.name);
-	const filePath = join(pluginRoot, "kanon", relativePath, "knowledge.md");
+	const filePath = join(contentRoot, relativePath, "knowledge.md");
 	const raw = await readFile(filePath, "utf-8");
 	const parsed = matter(raw);
 	return { frontmatter: parsed.data, body: parsed.content };

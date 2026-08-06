@@ -46,12 +46,15 @@ export async function handleCompassSearch(
 		// Cross-tool chaining: inline content when includeContent is true
 		if (input.includeContent && results.length > 0) {
 			try {
-				const catalog = await loadCatalog(ctx.pluginRoot);
+				const catalog = await loadCatalog(ctx.contentRoot);
 				for (const result of results) {
 					const entry = catalog.find((e) => e.name === result.artifactName);
 					if (entry) {
 						try {
-							const { body } = await readArtifactContent(ctx.pluginRoot, entry);
+							const { body } = await readArtifactContent(
+								ctx.contentRoot,
+								entry,
+							);
 							if (results.length <= 3) {
 								result.content = body;
 							} else {
