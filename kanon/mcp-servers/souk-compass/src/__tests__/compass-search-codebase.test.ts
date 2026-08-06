@@ -60,7 +60,8 @@ function makeCtx(overrides?: Partial<ToolContext>): ToolContext {
 		codebaseSolrClient: makeMockSolrClient(),
 		embeddingProvider: makeMockEmbeddingProvider(),
 		config: makeConfig(),
-		pluginRoot: "/fake/plugin/root",
+		packageRoot: "/fake/package/root",
+		contentRoot: "/fake/content/root",
 		...overrides,
 	};
 }

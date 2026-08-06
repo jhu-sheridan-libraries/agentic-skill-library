@@ -72,7 +72,8 @@ function makeCtx(overrides?: Partial<ToolContext>): ToolContext {
 		codebaseSolrClient: makeMockSolrClient(),
 		embeddingProvider: makeMockEmbeddingProvider(),
 		config: makeConfig(),
-		pluginRoot: "/fake/plugin/root",
+		packageRoot: "/fake/package/root",
+		contentRoot: "/fake/content/root",
 		...overrides,
 	};
 }
@@ -921,7 +922,7 @@ describe("compass_index_document handler", () => {
 
 	test("indexes with metadata", async () => {
 		const handleCompassIndexDocument = await importHandler();
-		let capturedMetadata: Record<string, string> | undefined;
+		let capturedMetadata: Record<string, string | string[]> | undefined;
 		const ctx = makeCtx({
 			userSolrClient: makeMockSolrClient({
 				upsert: async (_docId, _text, _emb, metadata) => {

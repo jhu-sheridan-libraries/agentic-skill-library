@@ -22,7 +22,7 @@
 		"build": "bun build src/cli.ts --compile --outfile forge",
 		"build:bridge": "bun build src/mcp-bridge.ts --outfile bridge/mcp-server.cjs --target node --format cjs",
 		"build:skills": "bun run scripts/generate-plugin-skills.ts",
-		"build:souk-compass": "bun build mcp-servers/souk-compass/src/index.ts --target=node --outfile=mcp-servers/souk-compass/bridge/mcp-server.mjs --format=esm --external @xenova/transformers --external @aws-sdk/*",
+		"build:souk-compass": "bun --cwd mcp-servers/souk-compass run build",
 		"prepublishOnly": "bun test && biome check src/cli.ts src/adapters/ src/backends/ src/guild/ src/help/ src/importers/ src/*.ts templates/ bridge/",
 		"test": "bun test",
 		"lint": "biome check .",

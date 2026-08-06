@@ -101,6 +101,7 @@ export const ToolInputSchemas = {
 		action: z
 			.enum([
 				"check",
+				"initialize",
 				"start",
 				"create_collections",
 				"create_collection",

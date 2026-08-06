@@ -8,7 +8,8 @@ export interface ToolContext {
 	codebaseSolrClient: SoukVectorClient;
 	embeddingProvider: EmbeddingProvider;
 	config: SoukCompassConfig;
-	pluginRoot: string;
+	packageRoot: string;
+	contentRoot: string;
 }
 
 export interface ToolResult {

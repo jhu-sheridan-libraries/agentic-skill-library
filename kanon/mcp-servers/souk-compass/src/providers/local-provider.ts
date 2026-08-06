@@ -1,12 +1,11 @@
+import type { FeatureExtractionPipeline, Tensor } from "@xenova/transformers";
 import type { EmbeddingProvider } from "../embedding-provider.js";
 import { ErrorCodes, SoukCompassError } from "../errors.js";
 
 const MAX_INPUT_LENGTH = 32_000; // ~8k tokens rough estimate
 
 // Lazily initialised on first call to embedViaTransformers(); reused for all subsequent calls.
-let cachedTransformersPipeline:
-	| Awaited<ReturnType<typeof import("@xenova/transformers").pipeline>>
-	| undefined;
+let cachedTransformersPipeline: FeatureExtractionPipeline | undefined;
 
 export class LocalEmbeddingProvider implements EmbeddingProvider {
 	readonly name = "transformers-local";
@@ -66,13 +65,13 @@ export class LocalEmbeddingProvider implements EmbeddingProvider {
 		try {
 			if (!cachedTransformersPipeline) {
 				const { pipeline } = await import("@xenova/transformers");
-				cachedTransformersPipeline = await pipeline(
+				cachedTransformersPipeline = (await pipeline(
 					"feature-extraction",
 					"Xenova/all-MiniLM-L6-v2",
-				);
+				)) as FeatureExtractionPipeline;
 			}
 			const extractor = cachedTransformersPipeline;
-			const output = await extractor(text, {
+			const output: Tensor = await extractor(text, {
 				pooling: "mean",
 				normalize: true,
 			});

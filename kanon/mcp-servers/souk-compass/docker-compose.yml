@@ -1,6 +1,7 @@
 services:
   solr:
-    image: solr:10
+    # Patch-pinned for reproducible npm package initialization.
+    image: solr:10.0.0
     container_name: souk-compass-solr
     ports:
       - "8983:8983"
@@ -20,7 +21,8 @@ services:
         condition: service_healthy
 
   zoo:
-    image: zookeeper:3.9
+    # Patch-pinned for reproducible npm package initialization.
+    image: zookeeper:3.9.3
     container_name: souk-compass-zoo
     ports:
       - "2181:2181"

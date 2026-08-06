@@ -25,7 +25,7 @@ function entry(name: string, path: string): CatalogEntry {
 }
 
 function writeArtifact(relPath: string, body: string) {
-	const dir = join(ROOT, "kanon", relPath);
+	const dir = join(ROOT, relPath);
 	mkdirSync(dir, { recursive: true });
 	writeFileSync(
 		join(dir, "knowledge.md"),
