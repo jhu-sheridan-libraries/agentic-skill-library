@@ -91,6 +91,133 @@ describe("CachedEmbeddingProvider", () => {
 	// Memory tier
 	// -----------------------------------------------------------------------
 
+	describe("cache key provider isolation", () => {
+		test("does not serve one provider's vectors to another", async () => {
+			const dbPath = tmpDbPath();
+			const text = "shared text";
+
+			const local = new CachedEmbeddingProvider({
+				inner: makeMockProvider({
+					name: "local",
+					dimensions: 4,
+					embed: async () => [1, 1, 1, 1],
+				}),
+				tiers: ["memory", "sqlite"],
+				memoryCacheSize: 10,
+				sqliteDbPath: dbPath,
+			});
+			expect(await local.embed(text)).toEqual([1, 1, 1, 1]);
+
+			// Different provider, same text, same on-disk cache.
+			const titan = new CachedEmbeddingProvider({
+				inner: makeMockProvider({
+					name: "bedrock-titan",
+					dimensions: 4,
+					embed: async () => [2, 2, 2, 2],
+				}),
+				tiers: ["memory", "sqlite"],
+				memoryCacheSize: 10,
+				sqliteDbPath: dbPath,
+			});
+			expect(await titan.embed(text)).toEqual([2, 2, 2, 2]);
+
+			cleanupDb(dbPath);
+		});
+
+		test("does not serve vectors across differing dimensions", async () => {
+			const dbPath = tmpDbPath();
+			const text = "shared text";
+
+			const small = new CachedEmbeddingProvider({
+				inner: makeMockProvider({
+					name: "titan",
+					dimensions: 4,
+					embed: async () => [1, 1, 1, 1],
+				}),
+				tiers: ["sqlite"],
+				memoryCacheSize: 10,
+				sqliteDbPath: dbPath,
+			});
+			expect(await small.embed(text)).toEqual([1, 1, 1, 1]);
+
+			const large = new CachedEmbeddingProvider({
+				inner: makeMockProvider({
+					name: "titan",
+					dimensions: 8,
+					embed: async () => [9, 9, 9, 9, 9, 9, 9, 9],
+				}),
+				tiers: ["sqlite"],
+				memoryCacheSize: 10,
+				sqliteDbPath: dbPath,
+			});
+			expect(await large.embed(text)).toEqual([9, 9, 9, 9, 9, 9, 9, 9]);
+
+			cleanupDb(dbPath);
+		});
+
+		test("still reuses the cache for the same provider and dimensions", async () => {
+			const dbPath = tmpDbPath();
+			let calls = 0;
+			const opts = {
+				tiers: ["memory", "sqlite"] as Array<"memory" | "sqlite">,
+				memoryCacheSize: 10,
+				sqliteDbPath: dbPath,
+			};
+			const mk = () =>
+				new CachedEmbeddingProvider({
+					inner: makeMockProvider({
+						name: "titan",
+						dimensions: 4,
+						embed: async () => {
+							calls++;
+							return [3, 3, 3, 3];
+						},
+					}),
+					...opts,
+				});
+
+			expect(await mk().embed("same text")).toEqual([3, 3, 3, 3]);
+			expect(await mk().embed("same text")).toEqual([3, 3, 3, 3]);
+			expect(calls).toBe(1); // second instance hit the SQLite tier
+
+			cleanupDb(dbPath);
+		});
+
+		test("batchEmbed is isolated by provider too", async () => {
+			const dbPath = tmpDbPath();
+			const texts = ["a", "b"];
+
+			const local = new CachedEmbeddingProvider({
+				inner: makeMockProvider({
+					name: "local",
+					dimensions: 4,
+					batchEmbed: async (t: string[]) => t.map(() => [1, 1, 1, 1]),
+				}),
+				tiers: ["sqlite"],
+				memoryCacheSize: 10,
+				sqliteDbPath: dbPath,
+			});
+			await local.batchEmbed(texts);
+
+			const titan = new CachedEmbeddingProvider({
+				inner: makeMockProvider({
+					name: "bedrock-titan",
+					dimensions: 4,
+					batchEmbed: async (t: string[]) => t.map(() => [2, 2, 2, 2]),
+				}),
+				tiers: ["sqlite"],
+				memoryCacheSize: 10,
+				sqliteDbPath: dbPath,
+			});
+			expect(await titan.batchEmbed(texts)).toEqual([
+				[2, 2, 2, 2],
+				[2, 2, 2, 2],
+			]);
+
+			cleanupDb(dbPath);
+		});
+	});
+
 	describe("memory tier", () => {
 		test("hit returns cached value without calling inner provider", async () => {
 			const embedSpy = { called: 0 };

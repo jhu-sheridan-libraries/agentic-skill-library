@@ -7,7 +7,7 @@ import { type CatalogEntry, CatalogSchema } from "../../../src/schemas.js";
  * Load and validate the catalog from the plugin root directory.
  */
 export async function loadCatalog(pluginRoot: string): Promise<CatalogEntry[]> {
-	const catalogPath = join(pluginRoot, "catalog.json");
+	const catalogPath = join(pluginRoot, "kanon", "catalog.json");
 	const raw = await readFile(catalogPath, "utf-8");
 	const parsed = JSON.parse(raw);
 	return CatalogSchema.parse(parsed);
@@ -20,7 +20,13 @@ export async function readArtifactContent(
 	pluginRoot: string,
 	entry: CatalogEntry,
 ): Promise<{ frontmatter: Record<string, unknown>; body: string }> {
-	const filePath = join(pluginRoot, "knowledge", entry.name, "knowledge.md");
+	// Use the catalog's recorded path. Not every artifact sits at
+	// knowledge/<name>/: imported collections nest them, e.g.
+	// knowledge/kiro-official/<name>/. Deriving the path from the name instead
+	// fails with ENOENT for those, which shows up as artifacts silently missing
+	// from search rather than as an obvious error.
+	const relativePath = entry.path ?? join("knowledge", entry.name);
+	const filePath = join(pluginRoot, "kanon", relativePath, "knowledge.md");
 	const raw = await readFile(filePath, "utf-8");
 	const parsed = matter(raw);
 	return { frontmatter: parsed.data, body: parsed.content };

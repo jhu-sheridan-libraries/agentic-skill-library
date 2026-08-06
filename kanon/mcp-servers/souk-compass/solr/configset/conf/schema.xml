@@ -15,6 +15,13 @@
   <field name="author" type="string" indexed="true" stored="true" />
   <field name="version" type="string" indexed="true" stored="true" />
   <field name="doc_source" type="string" indexed="true" stored="true" />
+  <!-- Model that produced the vector. Vectors from different models are not
+       comparable, so this makes a partially migrated collection detectable. -->
+  <field name="embed_provider" type="string" indexed="true" stored="true" />
+  <!-- Absolute folder a codebase document was indexed from. Document ids are
+       root-relative, so incremental reindex needs this to know which
+       documents it owns and must not delete another root's index. -->
+  <field name="index_root" type="string" indexed="true" stored="true" />
 
   <!-- Change detection and chunking -->
   <field name="content_hash" type="string" indexed="true" stored="true" />

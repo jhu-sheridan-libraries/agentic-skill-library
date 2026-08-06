@@ -1,7 +1,7 @@
 {
-  "version": "v0.4.1",
-  "date": "2026-07-08T17:00:21.373Z",
-  "artifactCount": 49,
+  "version": "v0.6.0",
+  "date": "2026-07-24T20:37:47.049Z",
+  "artifactCount": 63,
   "harnesses": [
     "kiro",
     "claude-code",
@@ -15,24 +15,24 @@
   "governanceSummary": {
     "official": 5,
     "partner": 26,
-    "community": 16,
+    "community": 30,
     "experimental": 0,
     "unclassified": 2
   },
   "collectionSummary": {
     "neon-caravan": 10,
-    "jh-drcc": 6,
+    "jh-drcc": 10,
     "archon": 1,
-    "kiro-official": 26,
-    "byron-powers": 7,
-    "jhu": 2
+    "kiro-official": 34,
+    "byron-powers": 8,
+    "library-ai-workshop": 4
   },
   "perHarnessFileCounts": {
-    "kiro": 439,
-    "claude-code": 3,
-    "codex": 16,
+    "kiro": 603,
+    "claude-code": 4,
+    "codex": 105,
     "copilot": 1,
-    "cursor": 1,
+    "cursor": 2,
     "windsurf": 15,
     "cline": 1,
     "qdeveloper": 1

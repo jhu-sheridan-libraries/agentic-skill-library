@@ -1,8 +1,12 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import { basename, extname, join, relative, resolve } from "node:path";
+import { buildCodebaseDocs } from "../codebase-docs.js";
+import { requireCollection } from "../collections.js";
 import { contentHash } from "../embed-cache.js";
+import { modelIdentity } from "../embedding-provider.js";
 import { ErrorCodes, SoukCompassError } from "../errors.js";
 import type { CompassIndexFolderInput } from "../schemas.js";
+import { SoukVectorClient } from "../solr-client.js";
 import type { ToolContext, ToolResult } from "./types.js";
 
 // ---------------------------------------------------------------------------
@@ -170,65 +174,10 @@ function matchesAny(patterns: string[], filePath: string): boolean {
 // Code chunker (splits source files into logical chunks)
 // ---------------------------------------------------------------------------
 
-interface CodeChunk {
-	index: number;
-	text: string;
-	startLine: number;
-	endLine: number;
-}
-
 /**
  * Split source code into chunks by logical boundaries (functions, classes, blocks).
  * Falls back to line-count-based splitting for files without clear boundaries.
  */
-function chunkCode(content: string, maxLength: number): CodeChunk[] {
-	if (content.length <= maxLength) {
-		return [
-			{
-				index: 0,
-				text: content,
-				startLine: 1,
-				endLine: content.split("\n").length,
-			},
-		];
-	}
-
-	const lines = content.split("\n");
-	const chunks: CodeChunk[] = [];
-	let currentChunk = "";
-	let chunkStartLine = 1;
-	let lineIndex = 0;
-
-	for (const line of lines) {
-		lineIndex++;
-		const wouldExceed = `${currentChunk}\n${line}`.length > maxLength;
-
-		if (wouldExceed && currentChunk.length > 0) {
-			chunks.push({
-				index: chunks.length,
-				text: currentChunk,
-				startLine: chunkStartLine,
-				endLine: lineIndex - 1,
-			});
-			currentChunk = line;
-			chunkStartLine = lineIndex;
-		} else {
-			currentChunk += (currentChunk ? "\n" : "") + line;
-		}
-	}
-
-	if (currentChunk) {
-		chunks.push({
-			index: chunks.length,
-			text: currentChunk,
-			startLine: chunkStartLine,
-			endLine: lineIndex,
-		});
-	}
-
-	return chunks;
-}
-
 // ---------------------------------------------------------------------------
 // Directory walker
 // ---------------------------------------------------------------------------
@@ -307,6 +256,27 @@ export async function handleCompassIndexFolder(
 	ctx: ToolContext,
 ): Promise<ToolResult> {
 	const folderPath = resolve(input.path);
+
+	// A repository may be indexed into its own collection instead of the shared
+	// default. Refuse a name that does not exist rather than creating it: a typo
+	// would otherwise become a real, empty collection that returns nothing.
+	const collectionName = input.collection ?? ctx.config.codebaseCollection;
+	if (input.collection) {
+		try {
+			await requireCollection(ctx.config.solrUrl, input.collection);
+		} catch (err) {
+			// Reported like other bad input rather than thrown, matching how this
+			// tool already handles an unusable path.
+			return jsonResult({
+				indexed: 0,
+				errors: 1,
+				message: err instanceof Error ? err.message : String(err),
+			});
+		}
+	}
+	const codebaseClient = input.collection
+		? new SoukVectorClient(ctx.config.solrUrl, input.collection)
+		: ctx.codebaseSolrClient;
 	const include = input.include ?? ["**/*"];
 	const exclude = input.exclude ?? [
 		"**/node_modules/**",
@@ -342,11 +312,15 @@ export async function handleCompassIndexFolder(
 	// Clear existing codebase documents if requested
 	if (clear) {
 		try {
-			const deleteUrl = `${ctx.config.solrUrl}/solr/${encodeURIComponent(ctx.config.codebaseCollection)}/update?commit=true`;
+			const deleteUrl = `${ctx.config.solrUrl}/solr/${encodeURIComponent(collectionName)}/update?commit=true`;
 			await fetch(deleteUrl, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ delete: { query: "*:*" } }),
+				body: JSON.stringify({
+					// Scoped to this root: the collection is shared by every
+					// indexed repository, so "*:*" would wipe all of them.
+					delete: { query: `index_root:"${folderPath}"` },
+				}),
 			});
 		} catch (err) {
 			if (
@@ -399,24 +373,15 @@ export async function handleCompassIndexFolder(
 			try {
 				const content = await readFile(file.absolutePath, "utf-8");
 
-				if (chunked && content.length > chunkMaxLength) {
-					const chunks = chunkCode(content, chunkMaxLength);
-					for (const chunk of chunks) {
-						const docId = `codebase::${file.relativePath}::chunk_${chunk.index}`;
-						batchDocs.push({
-							id: docId,
-							text: `File: ${file.relativePath} (lines ${chunk.startLine}-${chunk.endLine})\n\n${chunk.text}`,
-							relativePath: file.relativePath,
-						});
-					}
-				} else {
-					const docId = `codebase::${file.relativePath}`;
-					batchDocs.push({
-						id: docId,
-						text: `File: ${file.relativePath}\n\n${content}`,
+				batchDocs.push(
+					...buildCodebaseDocs({
+						root: folderPath,
 						relativePath: file.relativePath,
-					});
-				}
+						content,
+						chunkMaxLength,
+						chunked,
+					}),
+				);
 			} catch (err) {
 				errors++;
 				errorDetails.push({
@@ -439,7 +404,7 @@ export async function handleCompassIndexFolder(
 				const embedding = embeddings[j];
 
 				try {
-					await ctx.codebaseSolrClient.upsert(
+					await codebaseClient.upsert(
 						doc.id,
 						doc.text,
 						embedding,
@@ -448,6 +413,8 @@ export async function handleCompassIndexFolder(
 							metadata_path: doc.relativePath,
 							metadata_extension: extname(doc.relativePath).toLowerCase(),
 							content_hash: contentHash(doc.text),
+							embed_provider: modelIdentity(ctx.embeddingProvider),
+							index_root: folderPath,
 						},
 						{ commit: false },
 					);
@@ -477,7 +444,7 @@ export async function handleCompassIndexFolder(
 
 	// Final commit
 	try {
-		await ctx.codebaseSolrClient.commit();
+		await codebaseClient.commit();
 	} catch (err) {
 		return jsonResult({
 			indexed,
@@ -494,7 +461,7 @@ export async function handleCompassIndexFolder(
 		errors,
 		filesScanned: files.length,
 		chunksIndexed,
-		collection: ctx.config.codebaseCollection,
+		collection: collectionName,
 		path: folderPath,
 		message: `Successfully indexed ${indexed} document(s) from ${files.length} file(s).`,
 	};

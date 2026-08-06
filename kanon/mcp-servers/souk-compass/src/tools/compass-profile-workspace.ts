@@ -1,3 +1,4 @@
+import { modelIdentity } from "../embedding-provider.js";
 import { ErrorCodes, SoukCompassError } from "../errors.js";
 import type { CompassProfileWorkspaceInput } from "../schemas.js";
 import { fromSolrDocument, toMemoryDocument } from "../serialization.js";
@@ -63,6 +64,9 @@ export async function handleCompassProfileWorkspace(
 					description,
 					embedding,
 					"workspace_profile",
+					undefined,
+					undefined,
+					modelIdentity(ctx.embeddingProvider),
 				);
 				const meta: Record<string, string> = {};
 				for (const [key, value] of Object.entries(memDoc)) {

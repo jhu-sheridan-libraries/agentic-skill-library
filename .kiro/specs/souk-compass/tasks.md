@@ -329,7 +329,7 @@ Souk Compass is a standalone MCP server providing Solr-backed semantic search ov
   - [x] 21.1 Add `mode`, `hybridWeight`, `queryText`, `snippetLength` options to `search()` method
     - `"vector"` mode: existing `{!knn}` query (no BM25 components)
     - `"keyword"` mode: standard Solr `q` text query against `text` field, no embedding needed (`queryEmbedding` may be null)
-    - `"hybrid"` mode: combined BM25 + kNN using Solr's `seedQuery` on knn parser / `{!rerank}` / `sum(mul(scale(...)))` function queries, weighted by `hybridWeight`
+    - `"hybrid"` mode: **superseded by ADR-0052.** Solr rejects a `{!knn}` clause nested inside `{!func}`, so the two scores are fused on the client in `src/hybrid-search.ts`; `SoukVectorClient.search()` accepts only `"vector" | "keyword"`
     - Highlighting: when `snippetLength` is set and mode is `"keyword"` or `"hybrid"`, add `hl=true&hl.fl=text&hl.snippets=1&hl.fragsize={snippetLength}` to Solr query
     - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 13.7, 16.2_
 
@@ -354,7 +354,8 @@ Souk Compass is a standalone MCP server providing Solr-backed semantic search ov
     - **Validates: Requirements 13.6**
 
   - [x] 21.6 Write unit tests for extended `SoukVectorClient`
-    - Hybrid mode constructs combined BM25+kNN query; keyword mode skips embedding; `searchByThreshold` uses `{!vectorSimilarity}` parser with `minReturn`; highlighting params added for keyword/hybrid; `findByContentHash` queries correct field; `earlyTermination`/`efSearchScaleFactor` defaults applied
+    - Keyword mode skips embedding; `searchByThreshold` uses `{!vectorSimilarity}` parser with `minReturn`; highlighting params added for keyword mode; `findByContentHash` queries correct field; `earlyTermination`/`efSearchScaleFactor` defaults applied. Parameters are read from the POST form body, since a 1024-dim vector inlined in the URI exceeds Jetty's header limit
+    - Hybrid fusion is covered separately in `src/__tests__/hybrid-search.test.ts` (normalization, weight extremes, merge, highlighting) per ADR-0052
     - _Requirements: 13.1, 13.2, 13.4, 13.5, 13.7, 16.2, 17.7, 18.1_
 
 - [x] 22. Checkpoint — Ensure extended Solr client tests pass

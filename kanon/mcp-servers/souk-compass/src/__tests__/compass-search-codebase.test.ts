@@ -130,7 +130,9 @@ describe("handleCompassSearchCodebase", () => {
 		const results = data.results as Array<Record<string, unknown>>;
 		expect(results[0].path).toBe("src/auth.ts");
 		expect(results[0].extension).toBe(".ts");
-		expect(results[0].score).toBe(0.85);
+		// Default mode is hybrid, which reports a fused score normalized per
+		// request (ADR-0052), not the raw Solr score.
+		expect(results[0].score).toBe(1);
 		expect(results[1].path).toBe("src/middleware.ts");
 		expect(results[1].chunkInfo).toContain("lines 1-30");
 	});
@@ -329,21 +331,45 @@ describe("handleCompassSearchCodebase", () => {
 		expect(data.results).toEqual([]);
 	});
 
-	test("passes hybridWeight to search", async () => {
-		let capturedOptions: Record<string, unknown> | undefined;
+	test("hybridWeight decides which half wins the ranking", async () => {
+		// The weight drives client-side fusion (ADR-0052) and is never sent to
+		// Solr, so its effect is observable only in the ordering. Give each half
+		// a different top hit.
 		const mockClient = makeMockSolrClient({
 			search: async (_embedding, _topK, options) => {
-				capturedOptions = options as Record<string, unknown>;
-				return makeSolrResponse([]);
+				const mode = (options as { mode?: string })?.mode;
+				const path = mode === "keyword" ? "keyword-only.ts" : "vector-only.ts";
+				return makeSolrResponse([
+					{
+						id: `codebase::${path}`,
+						text: `File: ${path}\n\nbody`,
+						metadata_path: path,
+						metadata_extension: ".ts",
+						doc_source: "codebase",
+						score: 1,
+					},
+				]);
 			},
 		});
 
 		const ctx = makeCtx({ codebaseSolrClient: mockClient });
-		await handleCompassSearchCodebase(
-			{ query: "test", mode: "hybrid", hybridWeight: 0.8 },
-			ctx,
+
+		const vectorHeavy = parseResult(
+			await handleCompassSearchCodebase(
+				{ query: "test", mode: "hybrid", hybridWeight: 1.0 },
+				ctx,
+			),
+		);
+		const keywordHeavy = parseResult(
+			await handleCompassSearchCodebase(
+				{ query: "test", mode: "hybrid", hybridWeight: 0.0 },
+				ctx,
+			),
 		);
 
-		expect(capturedOptions?.hybridWeight).toBe(0.8);
+		const first = (d: Record<string, unknown>) =>
+			(d.results as Array<Record<string, unknown>>)[0].path;
+		expect(first(vectorHeavy)).toBe("vector-only.ts");
+		expect(first(keywordHeavy)).toBe("keyword-only.ts");
 	});
 });
