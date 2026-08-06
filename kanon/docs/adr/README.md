@@ -62,6 +62,9 @@ ADRs document significant architectural decisions made during the project's deve
 | [050](0050-agent-compatibility-and-degradation-reconciliation.md) | Reconcile agent asset-type compatibility with agent capability support | Accepted | 2026-07-23 |
 | [051](0051-deprecate-power-as-asset-taxonomy-value.md) | Deprecate `power` as an asset-taxonomy value | Accepted | 2026-07-23 |
 | [052](0052-client-side-hybrid-search-score-fusion.md) | Client-side hybrid search score fusion for Souk Compass | Proposed | 2026-07-23 |
+| [053](0053-rosetta-stone-schemas-centralized-in-schemas-ts.md) | Rosetta Stone schemas centralized in schemas.ts | Accepted | 2026-07-24 |
+| [054](0054-transactional-translation-registry.md) | Transactional translation registry with atomic registration and frozen snapshots | Accepted | 2026-07-25 |
+| [055](0055-publish-solr-compass-as-a-bun-npm-package.md) | Publish Solr Compass as a Bun npm package with independent roots | Accepted | 2026-08-06 |
 
 ## Creating a New ADR
 
