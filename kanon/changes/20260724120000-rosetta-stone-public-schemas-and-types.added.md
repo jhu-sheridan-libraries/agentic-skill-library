@@ -1,0 +1,1 @@
+Add Rosetta Stone public Zod schemas and inferred TypeScript types to src/schemas.ts covering format contracts, detection models, translation requests/results, diagnostics, compatibility profiles, plans, profiles, provenance, and machine-output envelopes
