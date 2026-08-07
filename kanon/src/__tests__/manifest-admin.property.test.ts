@@ -127,6 +127,7 @@ describe("Manifest admin property tests", () => {
 							min: new Date("2000-01-01T00:00:00Z"),
 							max: new Date("2099-12-31T23:59:59Z"),
 						})
+						.filter((d) => !Number.isNaN(d.getTime()))
 						.map((d) => d.toISOString()),
 					{ nil: undefined },
 				),
