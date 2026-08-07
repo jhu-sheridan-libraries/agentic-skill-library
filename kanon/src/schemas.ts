@@ -638,3 +638,813 @@ export const VersionManifestSchema = z.object({
 	files: z.array(z.string()),
 });
 export type VersionManifest = z.infer<typeof VersionManifestSchema>;
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Rosetta Stone — Public Schemas and Types
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// All Rosetta Stone data shapes are defined here with Zod 4 and exported with
+// inferred TypeScript types. Rosetta modules compose but never redefine these
+// public schemas. Schemas use .strict() unless an explicit extension map exists.
+//
+// Requirements: 1.2, 2.4, 8.1, 8.2, 8.6, 13.1, 15.3
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// --- Rosetta Primitives and Version Schemas ---
+
+/** SemVer pattern for canonical schema versions */
+const SEMVER_PATTERN =
+	/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
+
+/**
+ * Validates a normalized relative path.
+ * Rules:
+ * - Uses `/` separator only
+ * - Unicode NFC normalized
+ * - No empty or `.` segments
+ * - No `..` (traversal)
+ * - No absolute/root/drive/UNC prefix
+ * - No NUL character
+ */
+function validateRelativePath(val: string, ctx: z.RefinementCtx): void {
+	if (val.length === 0) {
+		ctx.addIssue({
+			code: z.ZodIssueCode.custom,
+			message: "Path must not be empty",
+		});
+		return;
+	}
+	if (val.includes("\0")) {
+		ctx.addIssue({
+			code: z.ZodIssueCode.custom,
+			message: "Path must not contain NUL character",
+		});
+		return;
+	}
+	// Reject absolute/drive/UNC prefixes
+	if (val.startsWith("/") || val.startsWith("\\")) {
+		ctx.addIssue({
+			code: z.ZodIssueCode.custom,
+			message: "Path must not be absolute",
+		});
+		return;
+	}
+	if (/^[A-Za-z]:/.test(val)) {
+		ctx.addIssue({
+			code: z.ZodIssueCode.custom,
+			message: "Path must not contain a drive prefix",
+		});
+		return;
+	}
+	if (val.startsWith("\\\\") || val.startsWith("//")) {
+		ctx.addIssue({
+			code: z.ZodIssueCode.custom,
+			message: "Path must not be a UNC path",
+		});
+		return;
+	}
+	// Check NFC normalization
+	if (val !== val.normalize("NFC")) {
+		ctx.addIssue({
+			code: z.ZodIssueCode.custom,
+			message: "Path must be Unicode NFC normalized",
+		});
+		return;
+	}
+	// Only forward slashes
+	if (val.includes("\\")) {
+		ctx.addIssue({
+			code: z.ZodIssueCode.custom,
+			message: "Path must use '/' separator only",
+		});
+		return;
+	}
+	// Check segments
+	const segments = val.split("/");
+	for (const seg of segments) {
+		if (seg === "") {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message: "Path must not contain empty segments",
+			});
+			return;
+		}
+		if (seg === ".") {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message: "Path must not contain '.' segments",
+			});
+			return;
+		}
+		if (seg === "..") {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message: "Path must not contain '..' traversal",
+			});
+			return;
+		}
+	}
+}
+
+export const FormatIdentifierSchema = z
+	.string()
+	.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+export type FormatIdentifier = z.infer<typeof FormatIdentifierSchema>;
+
+export const NormalizedRelativePathSchema = z
+	.string()
+	.superRefine(validateRelativePath);
+export type NormalizedRelativePath = z.infer<
+	typeof NormalizedRelativePathSchema
+>;
+
+export const ContractVersionSchema = z.literal("1.0");
+export type ContractVersion = z.infer<typeof ContractVersionSchema>;
+
+export const CanonicalSchemaVersionSchema = z.string().regex(SEMVER_PATTERN);
+export type CanonicalSchemaVersion = z.infer<
+	typeof CanonicalSchemaVersionSchema
+>;
+
+export const LifecycleStatusSchema = z.enum([
+	"experimental",
+	"active",
+	"deprecated",
+	"retired",
+]);
+export type LifecycleStatus = z.infer<typeof LifecycleStatusSchema>;
+
+export const DirectionSchema = z.enum(["source", "target", "bidirectional"]);
+export type Direction = z.infer<typeof DirectionSchema>;
+
+export const RosettaSeveritySchema = z.enum(["info", "warning", "error"]);
+export type RosettaSeverity = z.infer<typeof RosettaSeveritySchema>;
+
+// --- Recursive JSON Value ---
+
+export type JsonValue =
+	| null
+	| boolean
+	| number
+	| string
+	| JsonValue[]
+	| { [key: string]: JsonValue };
+
+export const JsonValueSchema: z.ZodType<JsonValue> = z.lazy(() =>
+	z.union([
+		z.null(),
+		z.boolean(),
+		z.number().finite(),
+		z.string(),
+		z.array(JsonValueSchema),
+		z.record(z.string(), JsonValueSchema),
+	]),
+);
+
+// --- Source Documents ---
+
+export const SourceDocumentSchema = z
+	.object({
+		path: NormalizedRelativePathSchema,
+		content: z.union([z.string(), z.instanceof(Uint8Array)]),
+		mediaType: z.string().optional(),
+		executable: z.boolean().default(false),
+	})
+	.strict();
+export type SourceDocument = z.infer<typeof SourceDocumentSchema>;
+export type SourceDocumentInput = z.input<typeof SourceDocumentSchema>;
+
+// --- Lifecycle Metadata ---
+
+export const LifecycleMetadataSchema = z
+	.object({
+		status: LifecycleStatusSchema,
+		introducedIn: CanonicalSchemaVersionSchema,
+		deprecatedIn: CanonicalSchemaVersionSchema.optional(),
+		retiredIn: CanonicalSchemaVersionSchema.optional(),
+		replacement: FormatIdentifierSchema.optional(),
+	})
+	.strict();
+export type LifecycleMetadata = z.infer<typeof LifecycleMetadataSchema>;
+
+// --- Canonical Version Range ---
+
+export const CanonicalVersionRangeSchema = z
+	.object({
+		minInclusive: CanonicalSchemaVersionSchema,
+		maxExclusive: CanonicalSchemaVersionSchema,
+	})
+	.strict();
+export type CanonicalVersionRange = z.infer<typeof CanonicalVersionRangeSchema>;
+
+// --- Schema Reference ---
+
+export const SchemaReferenceSchema = z
+	.object({
+		type: z.enum(["zod", "json-schema", "grammar", "none"]),
+		location: z.string().optional(),
+		description: z.string().optional(),
+	})
+	.strict();
+export type SchemaReference = z.infer<typeof SchemaReferenceSchema>;
+
+// --- Path Convention ---
+
+export const PathConventionSchema = z
+	.object({
+		pattern: z.string().min(1),
+		required: z.boolean().default(false),
+		description: z.string().optional(),
+	})
+	.strict();
+export type PathConvention = z.infer<typeof PathConventionSchema>;
+
+// --- Detection Rule Kinds and Contract ---
+
+export const DetectionRuleKindSchema = z.enum([
+	"path-glob",
+	"basename",
+	"extension",
+	"content-marker",
+	"frontmatter-key",
+	"json-pointer",
+	"yaml-key",
+]);
+export type DetectionRuleKind = z.infer<typeof DetectionRuleKindSchema>;
+
+export const DetectionRuleSchema = z
+	.object({
+		id: z.string().min(1),
+		kind: DetectionRuleKindSchema,
+		pattern: z.string().min(1),
+		weight: z.number().int(),
+		required: z.boolean().default(false),
+		evidenceLabel: z.string().min(1),
+		maxParseBytes: z.number().int().positive().optional(),
+	})
+	.strict();
+export type DetectionRule = z.infer<typeof DetectionRuleSchema>;
+
+export const DetectionContractSchema = z
+	.object({
+		threshold: z.number().min(0).max(1),
+		rules: z.array(DetectionRuleSchema),
+	})
+	.strict();
+export type DetectionContract = z.infer<typeof DetectionContractSchema>;
+
+// --- Variant Contract ---
+
+export const VariantContractSchema = z
+	.object({
+		id: FormatIdentifierSchema,
+		description: z.string().optional(),
+		pathConventions: z.array(PathConventionSchema).default([]),
+		defaults: z.record(z.string(), JsonValueSchema).default({}),
+		optionOverrides: z.record(z.string(), JsonValueSchema).default({}),
+	})
+	.strict();
+export type VariantContract = z.infer<typeof VariantContractSchema>;
+
+// --- Format Option Definition ---
+
+export const FormatOptionDefinitionSchema = z
+	.object({
+		type: z.enum(["string", "boolean", "number", "enum"]),
+		description: z.string().min(1),
+		required: z.boolean().default(false),
+		defaultValue: JsonValueSchema.optional(),
+		enumValues: z.array(z.string()).optional(),
+		effective: z.boolean().default(true),
+	})
+	.strict();
+export type FormatOptionDefinition = z.infer<
+	typeof FormatOptionDefinitionSchema
+>;
+
+// --- Normalization Rule ---
+
+export const NormalizationRuleSchema = z
+	.object({
+		id: z.string().min(1),
+		description: z.string().min(1),
+		scope: z.enum(["source", "canonical", "both"]),
+	})
+	.strict();
+export type NormalizationRule = z.infer<typeof NormalizationRuleSchema>;
+
+// --- Format Security Policy ---
+
+export const FormatSecurityPolicySchema = z
+	.object({
+		sensitiveValuePolicy: z.enum(["reject", "preserve", "reference-only"]),
+		allowedReferencePatterns: z.array(z.string()).default([]),
+	})
+	.strict();
+export type FormatSecurityPolicy = z.infer<typeof FormatSecurityPolicySchema>;
+
+// --- Canonical Capability ---
+
+/** Closed enum of all translatable KnowledgeArtifact capabilities */
+export const CanonicalCapabilitySchema = z.enum([
+	"frontmatter",
+	"body",
+	"hooks",
+	"mcp-servers",
+	"workflows",
+	"body-overrides",
+	"extra-fields",
+	"path-scoping",
+	"toggleable-rules",
+	"file-match-inclusion",
+	"system-prompt-merging",
+	// Asset-type capabilities (one per AssetTypeSchema value)
+	"skill",
+	"power",
+	"rule",
+	"workflow",
+	"agent",
+	"prompt",
+	"template",
+	"reference-pack",
+]);
+export type CanonicalCapability = z.infer<typeof CanonicalCapabilitySchema>;
+
+// --- Rosetta Compatibility Profile ---
+
+/**
+ * Compatibility entry for the Rosetta Stone. Reuses the same support/degradation
+ * semantics as the existing CapabilityEntrySchema but is independent to allow
+ * future divergence and keeps the Rosetta boundary self-contained.
+ */
+export const RosettaCompatibilityEntrySchema = z
+	.object({
+		support: SupportLevelSchema,
+		degradation: DegradationStrategySchema.optional(),
+	})
+	.strict()
+	.refine(
+		(entry) =>
+			entry.support === "full"
+				? entry.degradation === undefined
+				: entry.degradation !== undefined,
+		{
+			message:
+				"Degradation action is required for 'partial'/'none' and forbidden for 'full'",
+		},
+	);
+export type RosettaCompatibilityEntry = z.infer<
+	typeof RosettaCompatibilityEntrySchema
+>;
+
+/**
+ * A complete compatibility profile: every canonical capability must have an entry.
+ * Enforced by Zod refinement checking completeness against CanonicalCapabilitySchema values.
+ */
+export const RosettaCompatibilityProfileSchema = z
+	.record(CanonicalCapabilitySchema, RosettaCompatibilityEntrySchema)
+	.refine(
+		(profile) => {
+			const required = CanonicalCapabilitySchema.options;
+			return required.every((cap) => cap in profile);
+		},
+		{
+			message:
+				"Compatibility profile must include an entry for every canonical capability",
+		},
+	);
+export type RosettaCompatibilityProfile = z.infer<
+	typeof RosettaCompatibilityProfileSchema
+>;
+
+// --- Format Contract ---
+
+export const FormatContractSchema = z
+	.object({
+		id: FormatIdentifierSchema,
+		contractVersion: ContractVersionSchema,
+		direction: DirectionSchema,
+		harness: HarnessNameSchema.nullable(),
+		aliases: z.array(FormatIdentifierSchema),
+		lifecycle: LifecycleMetadataSchema,
+		canonicalVersions: CanonicalVersionRangeSchema,
+		schemaReference: SchemaReferenceSchema,
+		pathConventions: z.array(PathConventionSchema),
+		detection: DetectionContractSchema,
+		variants: z
+			.record(FormatIdentifierSchema, VariantContractSchema)
+			.default({}),
+		defaultVariant: FormatIdentifierSchema.optional(),
+		optionDefinitions: z
+			.record(z.string(), FormatOptionDefinitionSchema)
+			.default({}),
+		defaults: z.record(z.string(), JsonValueSchema).default({}),
+		normalizationRules: z.array(NormalizationRuleSchema),
+		compatibility: RosettaCompatibilityProfileSchema,
+		security: FormatSecurityPolicySchema,
+	})
+	.strict();
+export type FormatContract = z.infer<typeof FormatContractSchema>;
+
+// --- Translation Phase ---
+
+export const TranslationPhaseSchema = z.enum([
+	"request",
+	"registry",
+	"detection",
+	"source-validation",
+	"source-translation",
+	"canonical-validation",
+	"compatibility",
+	"target-translation",
+	"plan-validation",
+	"redaction",
+]);
+export type TranslationPhase = z.infer<typeof TranslationPhaseSchema>;
+
+// --- Source and Canonical Diagnostic Locations ---
+
+export const SourceLocationSchema = z
+	.object({
+		path: NormalizedRelativePathSchema,
+		field: z.string().optional(),
+		line: z.number().int().positive().optional(),
+		column: z.number().int().nonnegative().optional(),
+		offset: z.number().int().nonnegative().optional(),
+	})
+	.strict();
+export type SourceLocation = z.infer<typeof SourceLocationSchema>;
+
+export const SourceDiagnosticLocationSchema = SourceLocationSchema;
+export type SourceDiagnosticLocation = SourceLocation;
+
+export const CanonicalDiagnosticLocationSchema = z
+	.object({
+		artifactName: z.string().min(1),
+		fieldPath: z.string().min(1),
+	})
+	.strict();
+export type CanonicalDiagnosticLocation = z.infer<
+	typeof CanonicalDiagnosticLocationSchema
+>;
+
+// --- Degradation Detail ---
+
+export const DegradationDetailSchema = z
+	.object({
+		capability: CanonicalCapabilitySchema,
+		action: DegradationStrategySchema,
+		affectedValueCount: z.number().int().nonnegative(),
+		expectedSemanticChange: z.string().optional(),
+	})
+	.strict();
+export type DegradationDetail = z.infer<typeof DegradationDetailSchema>;
+
+// --- Translation Diagnostic ---
+
+export const TranslationDiagnosticSchema = z
+	.object({
+		code: z.string().regex(/^RS_[A-Z0-9_]+$/),
+		severity: RosettaSeveritySchema,
+		phase: TranslationPhaseSchema,
+		formatId: FormatIdentifierSchema.optional(),
+		message: z.string().min(1),
+		remediation: z.string().min(1),
+		source: SourceDiagnosticLocationSchema.optional(),
+		canonical: CanonicalDiagnosticLocationSchema.optional(),
+		degradation: DegradationDetailSchema.optional(),
+		unavailableDetails: z.array(z.string()).default([]),
+		blocking: z.boolean(),
+	})
+	.strict();
+export type TranslationDiagnostic = z.infer<typeof TranslationDiagnosticSchema>;
+
+// --- Translation Plan ---
+
+export const OutputFileSchema = z
+	.object({
+		relativePath: NormalizedRelativePathSchema,
+		content: z.union([z.string(), z.instanceof(Uint8Array)]),
+		executable: z.boolean().default(false),
+		mediaType: z.string().optional(),
+	})
+	.strict();
+export type OutputFile = z.infer<typeof OutputFileSchema>;
+
+export const PlanOperationSchema = z
+	.object({
+		kind: z.literal("write-file"),
+		relativePath: NormalizedRelativePathSchema,
+		outputFileIndex: z.number().int().nonnegative(),
+	})
+	.strict();
+export type PlanOperation = z.infer<typeof PlanOperationSchema>;
+
+export const TranslationPlanSchema = z
+	.object({
+		schemaVersion: z.literal("1.0"),
+		formatId: FormatIdentifierSchema,
+		variant: FormatIdentifierSchema.optional(),
+		canonicalSchemaVersion: CanonicalSchemaVersionSchema,
+		outputFiles: z.array(OutputFileSchema),
+		operations: z.array(PlanOperationSchema),
+		applicationState: z.enum(["eligible", "policy-required", "withheld"]),
+		policyDiagnosticCodes: z.array(z.string()),
+	})
+	.strict();
+export type TranslationPlan = z.infer<typeof TranslationPlanSchema>;
+
+// --- Format Selection ---
+
+export const FormatSelectionSchema = z
+	.object({
+		formatId: FormatIdentifierSchema.optional(),
+		variant: FormatIdentifierSchema.optional(),
+		options: z.record(z.string(), JsonValueSchema).default({}),
+	})
+	.strict();
+export type FormatSelection = z.infer<typeof FormatSelectionSchema>;
+
+// --- Canonical Output Options ---
+
+export const CanonicalOutputOptionsSchema = z
+	.object({
+		emitEmptyAuxiliaryFiles: z.boolean().default(false),
+		destinationName: z.string().min(1).optional(),
+	})
+	.strict();
+export type CanonicalOutputOptions = z.infer<
+	typeof CanonicalOutputOptionsSchema
+>;
+
+// --- Translation Requests (Discriminated Union) ---
+
+export const InboundTranslationRequestSchema = z
+	.object({
+		mode: z.literal("inbound"),
+		sourceDocuments: z.array(SourceDocumentSchema),
+		source: FormatSelectionSchema,
+		canonical: CanonicalOutputOptionsSchema,
+		canonicalSchemaVersion: CanonicalSchemaVersionSchema,
+		strict: z.boolean(),
+		callerContext: z.record(z.string(), JsonValueSchema),
+	})
+	.strict();
+export type InboundTranslationRequest = z.infer<
+	typeof InboundTranslationRequestSchema
+>;
+
+export const OutboundTranslationRequestSchema = z
+	.object({
+		mode: z.literal("outbound"),
+		artifact: KnowledgeArtifactSchema,
+		target: FormatSelectionSchema.extend({
+			formatId: FormatIdentifierSchema,
+		}).strict(),
+		canonicalSchemaVersion: CanonicalSchemaVersionSchema,
+		strict: z.boolean(),
+		callerContext: z.record(z.string(), JsonValueSchema),
+	})
+	.strict();
+export type OutboundTranslationRequest = z.infer<
+	typeof OutboundTranslationRequestSchema
+>;
+
+export const TranscodeTranslationRequestSchema = z
+	.object({
+		mode: z.literal("transcode"),
+		sourceDocuments: z.array(SourceDocumentSchema),
+		source: FormatSelectionSchema,
+		target: FormatSelectionSchema.extend({
+			formatId: FormatIdentifierSchema,
+		}).strict(),
+		canonicalSchemaVersion: CanonicalSchemaVersionSchema,
+		strict: z.boolean(),
+		callerContext: z.record(z.string(), JsonValueSchema),
+	})
+	.strict();
+export type TranscodeTranslationRequest = z.infer<
+	typeof TranscodeTranslationRequestSchema
+>;
+
+export const TranslationRequestSchema = z.discriminatedUnion("mode", [
+	InboundTranslationRequestSchema,
+	OutboundTranslationRequestSchema,
+	TranscodeTranslationRequestSchema,
+]);
+export type TranslationRequest = z.infer<typeof TranslationRequestSchema>;
+
+// --- Resolved Format Summary ---
+
+export const ResolvedFormatSummarySchema = z
+	.object({
+		formatId: FormatIdentifierSchema,
+		variant: FormatIdentifierSchema.optional(),
+		contractVersion: ContractVersionSchema,
+		lifecycle: LifecycleStatusSchema,
+	})
+	.strict();
+export type ResolvedFormatSummary = z.infer<typeof ResolvedFormatSummarySchema>;
+
+// --- Applied Default ---
+
+export const AppliedDefaultSchema = z
+	.object({
+		field: z.string().min(1),
+		value: JsonValueSchema,
+		rule: z.string().min(1),
+	})
+	.strict();
+export type AppliedDefault = z.infer<typeof AppliedDefaultSchema>;
+
+// --- Applied Normalization ---
+
+export const AppliedNormalizationSchema = z
+	.object({
+		ruleId: z.string().min(1),
+		field: z.string().min(1),
+		description: z.string().min(1),
+	})
+	.strict();
+export type AppliedNormalization = z.infer<typeof AppliedNormalizationSchema>;
+
+// --- Degradation Record ---
+
+export const DegradationRecordSchema = z
+	.object({
+		capability: CanonicalCapabilitySchema,
+		canonicalPaths: z.array(z.string()),
+		action: DegradationStrategySchema,
+		affectedValueCount: z.number().int().nonnegative(),
+		expectedSemanticChange: z.string().optional(),
+	})
+	.strict();
+export type DegradationRecord = z.infer<typeof DegradationRecordSchema>;
+
+// --- Translation Result ---
+
+export const TranslationResultSchema = z
+	.object({
+		schemaVersion: z.literal("1.0"),
+		status: z.enum(["success", "partial", "failure"]),
+		registryVersion: z.string().min(1),
+		sourceFormat: ResolvedFormatSummarySchema.optional(),
+		targetFormat: ResolvedFormatSummarySchema.optional(),
+		canonical: KnowledgeArtifactSchema.optional(),
+		plan: TranslationPlanSchema.optional(),
+		diagnostics: z.array(TranslationDiagnosticSchema),
+		defaults: z.array(AppliedDefaultSchema),
+		normalizations: z.array(AppliedNormalizationSchema),
+		degradations: z.array(DegradationRecordSchema),
+	})
+	.strict();
+export type TranslationResult = z.infer<typeof TranslationResultSchema>;
+
+// --- Detection Models ---
+
+export const DetectionEvidenceSchema = z
+	.object({
+		ruleId: z.string().min(1),
+		kind: DetectionRuleKindSchema,
+		outcome: z.enum([
+			"matched",
+			"missing-required",
+			"conflicting",
+			"not-matched",
+		]),
+		paths: z.array(NormalizedRelativePathSchema),
+		marker: z.string().optional(),
+		metadataLocation: SourceLocationSchema.optional(),
+	})
+	.strict();
+export type DetectionEvidence = z.infer<typeof DetectionEvidenceSchema>;
+
+export const DetectionCandidateSchema = z
+	.object({
+		formatId: FormatIdentifierSchema,
+		confidence: z.number().min(0).max(1),
+		threshold: z.number().min(0).max(1),
+		qualifies: z.boolean(),
+		evidence: z.array(DetectionEvidenceSchema),
+	})
+	.strict();
+export type DetectionCandidate = z.infer<typeof DetectionCandidateSchema>;
+
+// --- Registry Failure ---
+
+export const RegistryFailureSchema = z
+	.object({
+		code: z.literal("RS_REGISTRY_FAILURE"),
+		message: z.string().min(1),
+	})
+	.strict();
+export type RegistryFailure = z.infer<typeof RegistryFailureSchema>;
+
+// --- Profiles ---
+
+export const AcquisitionProfileSchema = z
+	.object({
+		repo: z.string().min(1),
+		branch: z.string().min(1).default("main"),
+		remote: z.string().min(1).default("origin"),
+		checkoutPrefix: z.string().optional(),
+		credentialReference: z.string().optional(),
+	})
+	.strict();
+export type AcquisitionProfile = z.infer<typeof AcquisitionProfileSchema>;
+
+export const TranslationProfileSchema = z
+	.object({
+		sourceFormat: FormatIdentifierSchema.optional(),
+		sourceSubpath: z.string().optional(),
+		targetFormat: FormatIdentifierSchema.optional(),
+		targetVariant: FormatIdentifierSchema.optional(),
+		canonicalDestination: z.string().optional(),
+		collections: z.array(z.string()).default([]),
+		strict: z.boolean().default(false),
+		canonicalSchemaVersion: CanonicalSchemaVersionSchema.optional(),
+		options: z.record(z.string(), JsonValueSchema).default({}),
+	})
+	.strict();
+export type TranslationProfile = z.infer<typeof TranslationProfileSchema>;
+
+// --- Machine-Output Envelopes ---
+
+export const InspectionReportEnvelopeSchema = z
+	.object({
+		machineSchemaVersion: z.literal("1.0"),
+		generatedAt: z.string().datetime(),
+		registryVersion: z.string().min(1),
+		request: TranslationRequestSchema,
+		sourceFormat: ResolvedFormatSummarySchema.optional(),
+		targetFormat: ResolvedFormatSummarySchema.optional(),
+		detection: z
+			.object({
+				candidates: z.array(DetectionCandidateSchema),
+				selected: FormatIdentifierSchema.optional(),
+			})
+			.strict()
+			.optional(),
+		canonical: z
+			.object({
+				artifactName: z.string().optional(),
+				fieldCount: z.number().int().nonnegative(),
+			})
+			.strict()
+			.optional(),
+		compatibility: z
+			.object({
+				counts: z.record(
+					CanonicalCapabilitySchema,
+					z
+						.object({
+							support: SupportLevelSchema,
+							affectedValues: z.number().int().nonnegative(),
+						})
+						.strict(),
+				),
+			})
+			.strict()
+			.optional(),
+		plan: z
+			.object({
+				fileCount: z.number().int().nonnegative(),
+				paths: z.array(z.string()),
+			})
+			.strict()
+			.optional(),
+		defaults: z.array(AppliedDefaultSchema),
+		normalizations: z.array(AppliedNormalizationSchema),
+		diagnostics: z.array(TranslationDiagnosticSchema),
+		degradations: z.array(DegradationRecordSchema),
+	})
+	.strict();
+export type InspectionReportEnvelope = z.infer<
+	typeof InspectionReportEnvelopeSchema
+>;
+
+export const DiagnosticsEnvelopeSchema = z
+	.object({
+		machineSchemaVersion: z.literal("1.0"),
+		generatedAt: z.string().datetime(),
+		registryVersion: z.string().min(1),
+		diagnostics: z.array(TranslationDiagnosticSchema),
+		status: z.enum(["success", "partial", "failure"]),
+	})
+	.strict();
+export type DiagnosticsEnvelope = z.infer<typeof DiagnosticsEnvelopeSchema>;
+
+// --- Provenance Record ---
+
+export const ProvenanceRecordSchema = z
+	.object({
+		upstream: z.string().min(1),
+		sourcePath: z.string().min(1),
+		sourceFormat: FormatIdentifierSchema,
+		sourceRevision: z.string().min(1),
+		contract: z.string().min(1),
+		baseDigest: z.string().min(1),
+		importedAt: z.string().datetime(),
+	})
+	.strict();
+export type ProvenanceRecord = z.infer<typeof ProvenanceRecordSchema>;
