@@ -32,7 +32,8 @@
 		"changelog:compile": "bun run scripts/changelog-compile.ts",
 		"changelog:draft": "bun run scripts/changelog-compile.ts --draft",
 		"release": "bun run scripts/release-tag.ts",
-		"bundle:analyze": "rollup --config rollup.config.js"
+		"bundle:analyze": "rollup --config rollup.config.js",
+		"docs:rosetta": "bun run src/rosetta-docs-generator.ts"
 	},
 	"keywords": [
 		"ai",
