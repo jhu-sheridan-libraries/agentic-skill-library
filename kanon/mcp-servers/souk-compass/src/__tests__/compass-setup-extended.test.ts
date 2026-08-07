@@ -76,7 +76,8 @@ function makeCtx(overrides: Partial<ToolContext> = {}): ToolContext {
 			batchEmbed: async () => [],
 		},
 		config: makeConfig(),
-		pluginRoot: "/fake/root",
+		packageRoot: "/fake/package/root",
+		contentRoot: "/fake/content/root",
 		...overrides,
 	};
 }
@@ -379,7 +380,9 @@ describe("compass_setup — create_collections (extended)", () => {
 				}),
 			}),
 		);
-		const urls = fetchSpy.mock.calls.map(([url]) => url as string);
+		const urls = fetchSpy.mock.calls.map(
+			(call: unknown[]) => call[0] as string,
+		);
 		expect(urls[0]).toContain("my-artifacts");
 		expect(urls[1]).toContain("my-user-docs");
 	});

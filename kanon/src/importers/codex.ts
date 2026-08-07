@@ -1,7 +1,26 @@
+/**
+ * Codex Importer — Compatibility Facade
+ *
+ * Preserves the public `parseCodex` interface while delegating pure parsing
+ * to the Rosetta Stone codex-native source translator. Handles multi-file
+ * grouping (AGENTS.md, SKILL.md files, config.toml) deterministically.
+ *
+ * For config.toml files (which are supplementary and lack a primary markdown
+ * document), a synthetic AGENTS.md is injected so the translator can produce
+ * a valid candidate with MCP servers extracted.
+ *
+ * Requirements: 14.2, 14.10, 14.11
+ */
+
 import { readFile } from "node:fs/promises";
 import { basename } from "node:path";
-import matter from "gray-matter";
-import type { McpServerDefinition } from "../schemas";
+import { translateCodexNative } from "../rosetta/builtins/sources/codex-native";
+import type { SourceTranslatorContext } from "../rosetta/registry";
+import type {
+	FormatIdentifier,
+	NormalizedRelativePath,
+	SourceDocument,
+} from "../schemas";
 import type { ImportedFile, ImportParser } from "./types";
 
 /**
@@ -20,6 +39,10 @@ function deriveArtifactName(filePath: string): string {
 	if (name.toLowerCase() === "agents") {
 		name = "codex-agents";
 	}
+	// `config.toml` → use "codex-mcp" as the artifact name
+	if (base === "config.toml") {
+		return "codex-mcp";
+	}
 	return name
 		.toLowerCase()
 		.replace(/[^a-z0-9]+/g, "-")
@@ -27,160 +50,91 @@ function deriveArtifactName(filePath: string): string {
 }
 
 /**
- * Parse an AGENTS.md or SKILL.md file — markdown with optional YAML frontmatter.
- */
-async function parseMarkdown(filePath: string): Promise<ImportedFile> {
-	const raw = await readFile(filePath, "utf-8");
-	const parsed = matter(raw);
-
-	return {
-		sourcePath: filePath,
-		artifactName: deriveArtifactName(filePath),
-		body: parsed.content.trim(),
-		frontmatter: { ...parsed.data },
-		hooks: [],
-		mcpServers: [],
-		extraFields: {},
-	};
-}
-
-/**
- * Parse `.codex/config.toml` — extract `[mcp_servers.<name>]` tables.
- *
- * This is a deliberately small TOML reader scoped to the mcp_servers section.
- * It understands `command = "..."`, `args = [...]`, and `env = { K = "v" }`.
- */
-async function parseConfigToml(filePath: string): Promise<ImportedFile> {
-	const raw = await readFile(filePath, "utf-8");
-	const lines = raw.split(/\r?\n/);
-
-	const mcpServers: McpServerDefinition[] = [];
-	let current: {
-		name: string;
-		command?: string;
-		url?: string;
-		args: string[];
-		env: Record<string, string>;
-		timeout?: number;
-	} | null = null;
-
-	const flush = () => {
-		if (!current) return;
-		if (current.command) {
-			mcpServers.push({
-				name: current.name,
-				transport: "stdio",
-				command: current.command,
-				args: current.args,
-				env: current.env,
-				timeout: current.timeout,
-			});
-		} else if (current.url) {
-			mcpServers.push({
-				name: current.name,
-				transport: "sse",
-				url: current.url,
-				env: current.env,
-				timeout: current.timeout,
-			});
-		}
-		current = null;
-	};
-
-	const parseStringArray = (value: string): string[] => {
-		const inner = value.trim().replace(/^\[/, "").replace(/\]$/, "");
-		if (!inner.trim()) return [];
-		return inner
-			.split(",")
-			.map((s) => s.trim().replace(/^["']|["']$/g, ""))
-			.filter((s) => s.length > 0);
-	};
-
-	const parseInlineTable = (value: string): Record<string, string> => {
-		const env: Record<string, string> = {};
-		const inner = value.trim().replace(/^\{/, "").replace(/\}$/, "");
-		for (const pair of inner.split(",")) {
-			const eq = pair.indexOf("=");
-			if (eq === -1) continue;
-			const k = pair
-				.slice(0, eq)
-				.trim()
-				.replace(/^["']|["']$/g, "");
-			const v = pair
-				.slice(eq + 1)
-				.trim()
-				.replace(/^["']|["']$/g, "");
-			if (k) env[k] = v;
-		}
-		return env;
-	};
-
-	for (const line of lines) {
-		const trimmed = line.trim();
-		if (!trimmed || trimmed.startsWith("#")) continue;
-
-		const tableMatch = trimmed.match(/^\[mcp_servers\.([^\]]+)\]$/);
-		if (tableMatch) {
-			flush();
-			current = {
-				name: tableMatch[1].replace(/^["']|["']$/g, ""),
-				args: [],
-				env: {},
-			};
-			continue;
-		}
-
-		// Leaving the mcp_servers section
-		if (trimmed.startsWith("[") && !trimmed.startsWith("[mcp_servers")) {
-			flush();
-			continue;
-		}
-
-		if (!current) continue;
-
-		const eq = trimmed.indexOf("=");
-		if (eq === -1) continue;
-		const key = trimmed.slice(0, eq).trim();
-		const value = trimmed.slice(eq + 1).trim();
-
-		if (key === "command") {
-			current.command = value.replace(/^["']|["']$/g, "");
-		} else if (key === "url") {
-			current.url = value.replace(/^["']|["']$/g, "");
-		} else if (key === "args") {
-			current.args = parseStringArray(value);
-		} else if (key === "env") {
-			current.env = parseInlineTable(value);
-		} else if (key === "startup_timeout_ms") {
-			const parsed = Number(value);
-			if (Number.isFinite(parsed)) current.timeout = parsed;
-		}
-	}
-	flush();
-
-	return {
-		sourcePath: filePath,
-		artifactName: "codex-mcp",
-		body: "",
-		frontmatter: {},
-		hooks: [],
-		mcpServers,
-		extraFields: {},
-	};
-}
-
-/**
  * Codex import parser.
  * Handles AGENTS.md, SKILL.md files under .codex/skills and .agents/skills,
  * and `.codex/config.toml`.
+ * Delegates pure parsing to the Rosetta Stone codex-native source translator.
  */
 export const parseCodex: ImportParser = async (
 	filePath: string,
 ): Promise<ImportedFile> => {
-	if (filePath.endsWith("config.toml")) {
-		return parseConfigToml(filePath);
+	const raw = await readFile(filePath, "utf-8");
+	const artifactName = deriveArtifactName(filePath);
+	const base = basename(filePath);
+
+	// Build SourceDocument set for Rosetta Stone.
+	// For config.toml (supplementary file), we inject a synthetic primary
+	// document so the translator can produce a candidate with MCP servers.
+	const documents: SourceDocument[] = [];
+
+	if (base === "config.toml") {
+		// Inject a minimal synthetic AGENTS.md as the primary document
+		documents.push({
+			path: "AGENTS.md" as NormalizedRelativePath,
+			content: "",
+			executable: false,
+		});
+		documents.push({
+			path: base as NormalizedRelativePath,
+			content: raw,
+			executable: false,
+		});
+	} else {
+		documents.push({
+			path: base as NormalizedRelativePath,
+			content: raw,
+			executable: false,
+		});
 	}
-	return parseMarkdown(filePath);
+
+	// Build translator context
+	const context: SourceTranslatorContext = {
+		format: {
+			id: "codex" as FormatIdentifier,
+		} as SourceTranslatorContext["format"],
+		canonicalSchemaVersion: "1.0.0",
+		options: {},
+		callerContext: { artifactNameHint: artifactName },
+	};
+
+	// Delegate to Rosetta Stone
+	const output = translateCodexNative(documents, context);
+
+	// Map SourceTranslationOutput back to ImportedFile shape
+	if (output.candidate) {
+		const candidate = output.candidate as Record<string, unknown>;
+		const frontmatter = (candidate.frontmatter ?? {}) as Record<
+			string,
+			unknown
+		>;
+		const {
+			name: _n,
+			type: _t,
+			harnesses: _h,
+			...restFrontmatter
+		} = frontmatter;
+
+		return {
+			sourcePath: filePath,
+			artifactName,
+			body: (candidate.body as string) ?? "",
+			frontmatter: restFrontmatter,
+			hooks: (candidate.hooks as ImportedFile["hooks"]) ?? [],
+			mcpServers: (candidate.mcpServers as ImportedFile["mcpServers"]) ?? [],
+			extraFields: (candidate.extraFields as Record<string, unknown>) ?? {},
+		};
+	}
+
+	// Fallback: if translation produced no candidate, return minimal result
+	return {
+		sourcePath: filePath,
+		artifactName,
+		body: "",
+		frontmatter: {},
+		hooks: [],
+		mcpServers: [],
+		extraFields: {},
+	};
 };
 
 export default parseCodex;

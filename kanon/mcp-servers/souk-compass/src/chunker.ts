@@ -118,7 +118,7 @@ export function buildChunkDocuments(
 	artifactName: string,
 	chunks: Chunk[],
 	embeddings: number[][],
-	metadata: Record<string, string>,
+	metadata: Record<string, string | string[]>,
 	embedProvider?: string,
 ): SolrDocument[] {
 	return chunks.map((chunk, i) => ({

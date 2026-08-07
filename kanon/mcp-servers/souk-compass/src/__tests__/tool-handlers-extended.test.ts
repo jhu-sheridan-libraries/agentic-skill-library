@@ -71,7 +71,8 @@ function makeCtx(overrides?: Partial<ToolContext>): ToolContext {
 		codebaseSolrClient: makeMockSolrClient(),
 		embeddingProvider: makeMockEmbeddingProvider(),
 		config: makeConfig(),
-		pluginRoot: "/fake/plugin/root",
+		packageRoot: "/fake/package/root",
+		contentRoot: "/fake/content/root",
 		...overrides,
 	};
 }
@@ -588,7 +589,7 @@ describe("compass_index_artifacts extended", () => {
 		const handleCompassIndexArtifacts = await importHandler();
 		const upsertCalls: Array<{
 			docId: string;
-			metadata: Record<string, string>;
+			metadata: Record<string, string | string[]>;
 		}> = [];
 		const ctx = makeCtx({
 			solrClient: makeMockSolrClient({
@@ -617,7 +618,7 @@ describe("compass_index_artifacts extended", () => {
 		const handleCompassIndexArtifacts = await importHandler();
 		const upsertCalls: Array<{
 			docId: string;
-			metadata: Record<string, string>;
+			metadata: Record<string, string | string[]>;
 		}> = [];
 		const ctx = makeCtx({
 			solrClient: makeMockSolrClient({
@@ -665,7 +666,7 @@ describe("compass_index_artifacts extended", () => {
 
 	test("non-chunked indexing includes content_hash in Solr document", async () => {
 		const handleCompassIndexArtifacts = await importHandler();
-		let capturedMetadata: Record<string, string> | undefined;
+		let capturedMetadata: Record<string, string | string[]> | undefined;
 		const ctx = makeCtx({
 			solrClient: makeMockSolrClient({
 				upsert: async (_docId, _text, _emb, metadata) => {

@@ -1,0 +1,125 @@
+name: Eval (LLM)
+
+# Manual-dispatch only. These evals call paid LLM providers (Bedrock) through
+# promptfoo across ~45 discovered eval configs, so they are deliberately not
+# wired to pull_request or a schedule. Per ADR-0022 the LLM rubric layer is a
+# maintainer review tool, not a CI hard gate.
+#
+# Cost levers, cheapest first:
+#   artifact  — scope to one artifact's eval configs instead of all
+#   harness   — build and evaluate a single harness instead of all
+#   provider  — pin one provider instead of every provider in the config
+
+on:
+  workflow_dispatch:
+    inputs:
+      artifact:
+        description: "Artifact name to evaluate (blank = all artifacts)"
+        type: string
+        default: ""
+      harness:
+        description: "Harness to build and evaluate (blank = all harnesses)"
+        type: choice
+        default: ""
+        options:
+          - ""
+          - kiro
+          - claude-code
+          - codex
+          - copilot
+          - cursor
+          - windsurf
+          - cline
+          - qdeveloper
+      provider:
+        description: "Single provider override (blank = providers declared in each config)"
+        type: string
+        default: ""
+      threshold:
+        description: "Minimum passing score (0.0–1.0)"
+        type: string
+        default: "0.7"
+
+permissions:
+  contents: read
+  models: read
+
+# Never let two paid eval runs overlap on the same ref.
+concurrency:
+  group: eval-llm-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    # Hard cap: a hung promptfoo run burns both runner minutes and provider spend.
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: kanon
+    env:
+      AWS_BEARER_TOKEN_BEDROCK: ${{ secrets.AWS_BEARER_TOKEN_BEDROCK }}
+      AWS_DEFAULT_REGION: us-east-1
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.12"
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.bun/install/cache
+            kanon/node_modules
+          key: bun-${{ runner.os }}-${{ hashFiles('kanon/bun.lock') }}
+          restore-keys: |
+            bun-${{ runner.os }}-
+
+      - run: bun install --frozen-lockfile
+
+      - name: Fail fast if the Bedrock credential is missing
+        run: |
+          if [ -z "$AWS_BEARER_TOKEN_BEDROCK" ]; then
+            echo "::error::AWS_BEARER_TOKEN_BEDROCK is not set — every eval would fail with API errors after burning runner minutes."
+            exit 1
+          fi
+
+      - name: Build artifacts
+        env:
+          HARNESS: ${{ inputs.harness }}
+        run: |
+          if [ -n "$HARNESS" ]; then
+            bun run dev build --harness "$HARNESS"
+          else
+            bun run dev build
+          fi
+
+      - name: Run evals
+        env:
+          ARTIFACT: ${{ inputs.artifact }}
+          HARNESS: ${{ inputs.harness }}
+          PROVIDER: ${{ inputs.provider }}
+          THRESHOLD: ${{ inputs.threshold }}
+        run: |
+          set -- eval
+          [ -n "$ARTIFACT" ] && set -- "$@" "$ARTIFACT"
+          [ -n "$HARNESS" ] && set -- "$@" --harness "$HARNESS"
+          [ -n "$PROVIDER" ] && set -- "$@" --provider "$PROVIDER"
+          [ -n "$THRESHOLD" ] && set -- "$@" --threshold "$THRESHOLD"
+          set -- "$@" --ci --output eval-results.json
+          echo "Running: bun run dev $*"
+          bun run dev "$@"
+
+      - name: Upload eval results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: eval-results
+          path: kanon/eval-results.json
+          retention-days: 30

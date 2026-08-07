@@ -34,6 +34,7 @@ import { importCommand as multiHarnessImportCommand } from "./importers/index";
 import { installCommand } from "./install";
 import { newCommand } from "./new";
 import { publishCommand } from "./publish";
+import { registerRosettaCommands } from "./rosetta-cli";
 import type { HarnessName } from "./schemas";
 import { SUPPORTED_HARNESSES } from "./schemas";
 import {
@@ -512,6 +513,9 @@ if (import.meta.main !== false) {
 
 	// Register guild commands
 	registerGuildCommands(program);
+
+	// Register rosetta commands
+	registerRosettaCommands(program);
 
 	// Register `kanon help [command]` subcommand
 	program

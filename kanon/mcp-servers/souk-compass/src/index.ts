@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 
 /**
  * Souk Compass MCP server
@@ -22,8 +22,6 @@
  *   compass_profile_workspace  — workspace-aware skill matching
  */
 
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -35,6 +33,7 @@ import { loadConfig } from "./config.js";
 import { CachedEmbeddingProvider } from "./embed-cache.js";
 import { createEmbeddingProvider } from "./embedding-provider.js";
 import { SoukCompassError } from "./errors.js";
+import { resolveContentRoot, resolvePackageRoot } from "./roots.js";
 import type {
 	CompassHealthInput,
 	CompassIndexArtifactsInput,
@@ -69,13 +68,11 @@ import { handleCompassStatus } from "./tools/compass-status.js";
 import type { ToolContext, ToolResult } from "./tools/types.js";
 
 // ---------------------------------------------------------------------------
-// Resolve plugin root
+// Resolve independently packaged assets and user-provided catalog content.
 // ---------------------------------------------------------------------------
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const PLUGIN_ROOT =
-	process.env.CLAUDE_PLUGIN_ROOT ?? resolve(__dirname, "..", "..", "..");
+const PACKAGE_ROOT = resolvePackageRoot();
+const CONTENT_ROOT = resolveContentRoot();
 
 // ---------------------------------------------------------------------------
 // Bootstrap (async)
@@ -126,7 +123,8 @@ async function bootstrap() {
 		codebaseSolrClient,
 		embeddingProvider,
 		config,
-		pluginRoot: PLUGIN_ROOT,
+		packageRoot: PACKAGE_ROOT,
+		contentRoot: CONTENT_ROOT,
 	};
 
 	return { toolContext, server };
@@ -150,7 +148,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 		{
 			name: "compass_setup",
 			description:
-				"Check, start, stop, or create collections for the local Solr instance. Default action is 'check'.",
+				"Check or initialize the local Solr environment, manage containers, and create collections. The 'initialize' action is idempotent and performs the complete first-run setup, including pulling missing Docker images.",
 			inputSchema: {
 				type: "object" as const,
 				properties: {
@@ -163,12 +161,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 						type: "string",
 						enum: [
 							"check",
+							"initialize",
 							"start",
 							"create_collections",
 							"create_collection",
 							"stop",
 						],
-						description: "Action to perform. Default is 'check'.",
+						description:
+							"Action to perform. Use 'initialize' for seamless first-run provisioning; default is 'check'.",
 					},
 				},
 			},

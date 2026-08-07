@@ -46,10 +46,10 @@ function config(): SoukCompassConfig {
 
 /** Solr `select` response for fetchExistingHashes. */
 function solrDocs(docs: Array<Record<string, unknown>>) {
-	return new Response(
-		JSON.stringify({ response: { docs }, nextCursorMark: "done" }),
-		{ status: 200, headers: { "Content-Type": "application/json" } },
-	);
+	return new Response(JSON.stringify({ response: { docs } }), {
+		status: 200,
+		headers: { "Content-Type": "application/json" },
+	});
 }
 
 describe("compass_reindex_folder removal scoping", () => {
@@ -71,7 +71,8 @@ describe("compass_reindex_folder removal scoping", () => {
 			} as unknown as SoukVectorClient,
 			embeddingProvider: provider(),
 			config: config(),
-			pluginRoot: ROOT,
+			packageRoot: ROOT,
+			contentRoot: ROOT,
 		} as unknown as ToolContext;
 		fetchSpy = spyOn(globalThis, "fetch");
 	});

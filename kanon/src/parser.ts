@@ -2,6 +2,7 @@ import { exists, readdir, readFile } from "node:fs/promises";
 import { basename, join, resolve } from "node:path";
 import matter from "gray-matter";
 import yaml from "js-yaml";
+import { parseCanonical } from "./rosetta/canonical";
 import {
 	type CanonicalHook,
 	type Frontmatter,
@@ -9,13 +10,17 @@ import {
 	HarnessNameSchema,
 	HooksFileSchema,
 	type KnowledgeArtifact,
-	KnowledgeArtifactSchema,
 	type McpServerDefinition,
 	McpServersFileSchema,
+	type SourceDocument,
 	type ValidationError,
 	type WorkflowFile,
 } from "./schemas";
 
+/**
+ * @deprecated Use getKnownFrontmatterKeys() from rosetta/canonical.ts which
+ * derives keys from the FrontmatterSchema shape automatically.
+ */
 const KNOWN_FRONTMATTER_FIELDS = new Set([
 	"name",
 	"displayName",
@@ -291,7 +296,7 @@ const BODY_OVERRIDE_RE = /^body\.(.+)\.md$/;
  * discarded — the artifact's canonical frontmatter always wins). Files whose
  * `<harness>` token is not a supported harness are ignored with a warning.
  */
-async function parseBodyOverrides(
+async function _parseBodyOverrides(
 	artifactDir: string,
 ): Promise<ParseResult<Record<string, string>>> {
 	const warnings: string[] = [];
@@ -325,68 +330,113 @@ async function parseBodyOverrides(
 export async function loadKnowledgeArtifact(
 	artifactDir: string,
 ): Promise<ParseResult<KnowledgeArtifact> | ParseError> {
-	const allWarnings: string[] = [];
-	const allErrors: ValidationError[] = [];
-
-	const knowledgeMdPath = join(artifactDir, "knowledge.md");
-	const hooksYamlPath = join(artifactDir, "hooks.yaml");
-	const mcpServersYamlPath = join(artifactDir, "mcp-servers.yaml");
-	const workflowsDir = join(artifactDir, "workflows");
-
-	// Parse knowledge.md (required)
-	const mdResult = await parseKnowledgeMd(knowledgeMdPath);
-	if (isParseError(mdResult)) {
-		return mdResult;
-	}
-	allWarnings.push(...mdResult.warnings);
-
-	// Parse hooks.yaml (optional)
-	const hooksResult = await parseHooksYaml(hooksYamlPath);
-	if (isParseError(hooksResult)) {
-		allErrors.push(...hooksResult.errors);
-	}
-
-	// Parse mcp-servers.yaml (optional)
-	const mcpResult = await parseMcpServersYaml(mcpServersYamlPath);
-	if (isParseError(mcpResult)) {
-		allErrors.push(...mcpResult.errors);
-	}
-
-	// Parse workflows (optional)
-	const workflowsResult = await parseWorkflows(workflowsDir);
-	allWarnings.push(...workflowsResult.warnings);
-
-	// Parse per-harness body overrides (optional)
-	const bodyOverridesResult = await parseBodyOverrides(artifactDir);
-	allWarnings.push(...bodyOverridesResult.warnings);
-
-	if (allErrors.length > 0) {
-		return { errors: allErrors };
-	}
+	// Build in-memory SourceDocument[] from the filesystem
+	const documents = await readArtifactDocuments(artifactDir);
 
 	const artifactName = basename(artifactDir);
-	const artifact: KnowledgeArtifact = {
-		name: artifactName,
-		frontmatter: mdResult.data.frontmatter,
-		body: mdResult.data.body,
-		hooks: isParseError(hooksResult) ? [] : hooksResult.data,
-		mcpServers: isParseError(mcpResult) ? [] : mcpResult.data,
-		workflows: workflowsResult.data,
-		sourcePath: artifactDir,
-		extraFields: mdResult.data.extraFields,
-		bodyOverrides: bodyOverridesResult.data,
-	};
 
-	// Validate the full artifact
-	const validated = KnowledgeArtifactSchema.safeParse(artifact);
-	if (!validated.success) {
-		const errors: ValidationError[] = validated.error.issues.map((issue) => ({
-			field: issue.path.join(".") || "artifact",
-			message: issue.message,
-			filePath: artifactDir,
+	// Delegate to the pure canonical parser
+	const { artifact, diagnostics } = parseCanonical(documents, {
+		artifactNameHint: artifactName,
+	});
+
+	// Map pure parser diagnostics to legacy ParseError/ParseResult format
+	if (!artifact) {
+		const errors: ValidationError[] = diagnostics.map((d) => ({
+			field: d.source?.path ?? "artifact",
+			message: d.message,
+			filePath: d.source?.path ? join(artifactDir, d.source.path) : artifactDir,
 		}));
 		return { errors };
 	}
 
-	return { data: validated.data, warnings: allWarnings };
+	// The pure parser uses a logical sourcePath; the filesystem adapter
+	// overwrites it with the actual directory path for backward compatibility.
+	const result: KnowledgeArtifact = {
+		...artifact,
+		sourcePath: artifactDir,
+	};
+
+	// Map non-blocking diagnostics to warnings
+	const warnings: string[] = diagnostics
+		.filter((d) => !d.blocking)
+		.map((d) => d.message);
+
+	return { data: result, warnings };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Filesystem → SourceDocument[] adapter
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Reads an artifact directory into an array of SourceDocuments suitable
+ * for the pure CanonicalParser. This is the impure filesystem boundary.
+ */
+async function readArtifactDocuments(
+	artifactDir: string,
+): Promise<SourceDocument[]> {
+	const documents: SourceDocument[] = [];
+
+	// Read knowledge.md (required)
+	const knowledgeMdPath = join(artifactDir, "knowledge.md");
+	try {
+		const content = await readFile(knowledgeMdPath, "utf-8");
+		documents.push({ path: "knowledge.md", content, executable: false });
+	} catch {
+		// Missing knowledge.md — the pure parser will emit a diagnostic
+	}
+
+	// Read hooks.yaml (optional)
+	const hooksYamlPath = join(artifactDir, "hooks.yaml");
+	try {
+		const content = await readFile(hooksYamlPath, "utf-8");
+		documents.push({ path: "hooks.yaml", content, executable: false });
+	} catch {
+		// Missing is fine — optional
+	}
+
+	// Read mcp-servers.yaml (optional)
+	const mcpServersYamlPath = join(artifactDir, "mcp-servers.yaml");
+	try {
+		const content = await readFile(mcpServersYamlPath, "utf-8");
+		documents.push({ path: "mcp-servers.yaml", content, executable: false });
+	} catch {
+		// Missing is fine — optional
+	}
+
+	// Read workflows directory (optional)
+	const workflowsDir = join(artifactDir, "workflows");
+	const workflowsExist = await exists(workflowsDir);
+	if (workflowsExist) {
+		const workflowFiles = await collectWorkflowFiles(workflowsDir);
+		for (const filename of workflowFiles) {
+			const content = await readFile(join(workflowsDir, filename), "utf-8");
+			documents.push({
+				path: `workflows/${filename}`,
+				content,
+				executable: false,
+			});
+		}
+	}
+
+	// Read body override files (optional)
+	try {
+		const dirents = await readdir(artifactDir, { withFileTypes: true });
+		const bodyOverrideRe = /^body\..+\.md$/;
+		for (const dirent of dirents) {
+			if (dirent.isFile() && bodyOverrideRe.test(dirent.name)) {
+				const content = await readFile(join(artifactDir, dirent.name), "utf-8");
+				documents.push({
+					path: dirent.name,
+					content,
+					executable: false,
+				});
+			}
+		}
+	} catch {
+		// Directory read failure — body overrides are optional
+	}
+
+	return documents;
 }

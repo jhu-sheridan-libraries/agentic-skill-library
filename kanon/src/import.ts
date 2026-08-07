@@ -1,16 +1,33 @@
-import {
-	copyFile,
-	exists,
-	mkdir,
-	readdir,
-	readFile,
-	writeFile,
-} from "node:fs/promises";
+/**
+ * Legacy Path-Import Facade
+ *
+ * Preserves the public interface of `kanon import`: ImportFormat, ImportOptions,
+ * ImportResult, and importCommand. Internally delegates source translation and
+ * canonical plan generation to Rosetta Stone while retaining all scanning,
+ * --all grouping, format/auto detection, collection injection, collision
+ * behavior, destination override, and dry-run logic in this imperative shell.
+ *
+ * Requirements: 14.1, 14.3, 14.4, 14.10, 14.11
+ */
+
+import { exists, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { basename, extname, join } from "node:path";
 import chalk from "chalk";
-import matter from "gray-matter";
-import yaml from "js-yaml";
-import type { Frontmatter } from "./schemas";
+import { translateKiroPower } from "./rosetta/builtins/sources/kiro-power";
+import { translateKiroSkill } from "./rosetta/builtins/sources/kiro-skill";
+import { translateSuperpowers } from "./rosetta/builtins/sources/superpowers";
+import { serializeCanonical } from "./rosetta/canonical";
+import type { SourceTranslatorContext } from "./rosetta/registry";
+import type {
+	FormatIdentifier,
+	KnowledgeArtifact,
+	NormalizedRelativePath,
+	SourceDocument,
+} from "./schemas";
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Public Types (preserved for backward compatibility)
+// ═══════════════════════════════════════════════════════════════════════════════
 
 export type ImportFormat = "kiro-power" | "kiro-skill" | "superpowers" | "auto";
 
@@ -36,335 +53,209 @@ export interface ImportResult {
 	skipped?: string;
 }
 
-// ── Format detection ──────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// Format Detection (same logic as before)
+// ═══════════════════════════════════════════════════════════════════════════════
 
 function detectFormat(_sourceDir: string, entries: string[]): ImportFormat {
 	if (entries.includes("POWER.md")) return "kiro-power";
-	// Superpowers skills use SKILL.md with a specific frontmatter pattern (name + description).
-	// Kiro skills also use SKILL.md but live under .kiro/skills/ and have different frontmatter.
-	// If there's a SKILL.md and the parent looks like a superpowers layout (no .kiro dir),
-	// we fall through to auto and let the explicit --format flag decide.
 	if (entries.includes("SKILL.md")) return "kiro-skill";
 	return "auto";
 }
 
-// ── Kiro power importer ───────────────────────────────────────────────────────
-
-async function importKiroPower(
-	sourceDir: string,
-	opts: ImportOptions & { dryRun: boolean; knowledgeDir: string },
-): Promise<ImportResult> {
-	const powerMdPath = join(sourceDir, "POWER.md");
-	const raw = await readFile(powerMdPath, "utf-8");
-	const parsed = matter(raw);
-	const sourceFm = parsed.data as Record<string, unknown>;
-
-	// Infer name from directory if not in frontmatter
-	const name = String(sourceFm.name || basename(sourceDir));
-
-	const targetPath = join(opts.knowledgeDir, name);
-
-	// Check for collision
-	if (await exists(targetPath)) {
-		return {
-			name,
-			sourcePath: sourceDir,
-			targetPath,
-			filesWritten: [],
-			workflowsCopied: 0,
-			skipped: `${targetPath} already exists — use --force to overwrite`,
-		};
-	}
-
-	// Build kanon frontmatter
-	const fm: Frontmatter = {
-		name,
-		displayName: String(sourceFm.displayName || name),
-		description: String(sourceFm.description || ""),
-		keywords: Array.isArray(sourceFm.keywords)
-			? sourceFm.keywords.map(String)
-			: [],
-		author: String(sourceFm.author || ""),
-		version: "0.1.0",
-		harnesses: ["kiro"],
-		// "power" is a deprecated alias for "skill" (ADR-0051) — the
-		// harness-config.kiro.format below is what actually makes this a
-		// Kiro power, not the type field.
-		type: "skill",
-		inclusion: "manual",
-		categories: ["documentation"],
-		ecosystem: [],
-		depends: [],
-		enhances: [],
-		maturity: "stable",
-		trust: "community",
-		audience: "intermediate",
-		"model-assumptions": [],
-		collections: opts.collections ?? [],
-		"inherit-hooks": false,
-		outcomes: [],
-		"harness-config": { kiro: { format: "power" } },
-	};
-
-	const frontmatterYaml = yaml.dump(fm, { lineWidth: -1 });
-	const body = parsed.content.trim();
-	const knowledgeMd = `---\n${frontmatterYaml}---\n${body}\n`;
-
-	const filesWritten: string[] = [];
-
-	if (!opts.dryRun) {
-		await mkdir(join(targetPath, "workflows"), { recursive: true });
-		await writeFile(join(targetPath, "knowledge.md"), knowledgeMd, "utf-8");
-		await writeFile(join(targetPath, "hooks.yaml"), "[]\n", "utf-8");
-		await writeFile(join(targetPath, "mcp-servers.yaml"), "[]\n", "utf-8");
-	}
-
-	filesWritten.push(
-		join(targetPath, "knowledge.md"),
-		join(targetPath, "hooks.yaml"),
-		join(targetPath, "mcp-servers.yaml"),
-	);
-
-	// Copy steering/ → workflows/
-	let workflowsCopied = 0;
-	const steeringDir = join(sourceDir, "steering");
-	if (await exists(steeringDir)) {
-		const steeringFiles = (await readdir(steeringDir))
-			.filter((f) => extname(f) === ".md")
-			.sort();
-
-		for (const file of steeringFiles) {
-			const src = join(steeringDir, file);
-			const dest = join(targetPath, "workflows", file);
-			if (!opts.dryRun) {
-				await copyFile(src, dest);
-			}
-			filesWritten.push(dest);
-			workflowsCopied++;
-		}
-	}
-
-	return {
-		name,
-		sourcePath: sourceDir,
-		targetPath,
-		filesWritten,
-		workflowsCopied,
-	};
-}
-
-// ── Kiro skill importer ───────────────────────────────────────────────────────
-
-async function importKiroSkill(
-	sourceDir: string,
-	opts: ImportOptions & { dryRun: boolean; knowledgeDir: string },
-): Promise<ImportResult> {
-	const skillMdPath = join(sourceDir, "SKILL.md");
-	const raw = await readFile(skillMdPath, "utf-8");
-	const parsed = matter(raw);
-	const sourceFm = parsed.data as Record<string, unknown>;
-
-	const name = String(sourceFm.name || basename(sourceDir));
-	const targetPath = join(opts.knowledgeDir, name);
-
-	if (await exists(targetPath)) {
-		return {
-			name,
-			sourcePath: sourceDir,
-			targetPath,
-			filesWritten: [],
-			workflowsCopied: 0,
-			skipped: `${targetPath} already exists — use --force to overwrite`,
-		};
-	}
-
-	const fm: Frontmatter = {
-		name,
-		displayName: String(sourceFm.displayName || name),
-		description: String(sourceFm.description || ""),
-		keywords: Array.isArray(sourceFm.keywords)
-			? sourceFm.keywords.map(String)
-			: [],
-		author: String(sourceFm.author || ""),
-		version: String(sourceFm.version || "0.1.0"),
-		harnesses: ["claude-code"],
-		type: "skill",
-		inclusion: "manual",
-		categories: ["documentation"],
-		ecosystem: [],
-		depends: [],
-		enhances: [],
-		maturity: "stable",
-		trust: "community",
-		audience: "intermediate",
-		"model-assumptions": [],
-		collections: opts.collections ?? [],
-		"inherit-hooks": false,
-		outcomes: [],
-	};
-
-	const frontmatterYaml = yaml.dump(fm, { lineWidth: -1 });
-	const body = parsed.content.trim();
-	const knowledgeMd = `---\n${frontmatterYaml}---\n${body}\n`;
-
-	const filesWritten: string[] = [];
-
-	if (!opts.dryRun) {
-		await mkdir(join(targetPath, "workflows"), { recursive: true });
-		await writeFile(join(targetPath, "knowledge.md"), knowledgeMd, "utf-8");
-		await writeFile(join(targetPath, "hooks.yaml"), "[]\n", "utf-8");
-		await writeFile(join(targetPath, "mcp-servers.yaml"), "[]\n", "utf-8");
-	}
-
-	filesWritten.push(
-		join(targetPath, "knowledge.md"),
-		join(targetPath, "hooks.yaml"),
-		join(targetPath, "mcp-servers.yaml"),
-	);
-
-	// Copy references/ → workflows/
-	let workflowsCopied = 0;
-	const refsDir = join(sourceDir, "references");
-	if (await exists(refsDir)) {
-		const refFiles = (await readdir(refsDir))
-			.filter((f) => extname(f) === ".md")
-			.sort();
-
-		for (const file of refFiles) {
-			const src = join(refsDir, file);
-			const dest = join(targetPath, "workflows", file);
-			if (!opts.dryRun) {
-				await copyFile(src, dest);
-			}
-			filesWritten.push(dest);
-			workflowsCopied++;
-		}
-	}
-
-	return {
-		name,
-		sourcePath: sourceDir,
-		targetPath,
-		filesWritten,
-		workflowsCopied,
-	};
-}
-
-// ── Superpowers skill importer ─────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// Document Building — Read source dir into SourceDocument[] for Rosetta Stone
+// ═══════════════════════════════════════════════════════════════════════════════
 
 /**
- * Import a skill from the obra/superpowers format.
- * Superpowers skills are directories containing a SKILL.md with YAML frontmatter
- * (name, description) and a markdown body. The body becomes the knowledge artifact
- * content directly.
+ * Reads a source directory into an in-memory SourceDocument[] suitable for
+ * Rosetta Stone source translators. Determines which files to include based
+ * on the expected format structure.
  */
-async function importSuperpowers(
+async function buildSourceDocuments(
 	sourceDir: string,
-	opts: ImportOptions & { dryRun: boolean; knowledgeDir: string },
-): Promise<ImportResult> {
-	const skillMdPath = join(sourceDir, "SKILL.md");
-	const raw = await readFile(skillMdPath, "utf-8");
-	const parsed = matter(raw);
-	const sourceFm = parsed.data as Record<string, unknown>;
+	format: "kiro-power" | "kiro-skill" | "superpowers",
+): Promise<SourceDocument[]> {
+	const documents: SourceDocument[] = [];
+	const entries = await readdir(sourceDir);
 
-	// Superpowers uses the directory name as the canonical skill name
-	const name = String(sourceFm.name || basename(sourceDir));
-	const targetPath = join(opts.knowledgeDir, name);
+	if (format === "kiro-power") {
+		// POWER.md (required) + steering/*.md (optional)
+		const powerMdPath = join(sourceDir, "POWER.md");
+		if (entries.includes("POWER.md")) {
+			const content = await readFile(powerMdPath, "utf-8");
+			documents.push({
+				path: "POWER.md" as NormalizedRelativePath,
+				content,
+				executable: false,
+			});
+		}
+		const steeringDir = join(sourceDir, "steering");
+		if (await exists(steeringDir)) {
+			const steeringFiles = (await readdir(steeringDir))
+				.filter((f) => extname(f) === ".md")
+				.sort();
+			for (const file of steeringFiles) {
+				const content = await readFile(join(steeringDir, file), "utf-8");
+				documents.push({
+					path: `steering/${file}` as NormalizedRelativePath,
+					content,
+					executable: false,
+				});
+			}
+		}
+	} else if (format === "kiro-skill") {
+		// SKILL.md (required) + references/*.md (optional)
+		const skillMdPath = join(sourceDir, "SKILL.md");
+		if (entries.includes("SKILL.md")) {
+			const content = await readFile(skillMdPath, "utf-8");
+			documents.push({
+				path: "SKILL.md" as NormalizedRelativePath,
+				content,
+				executable: false,
+			});
+		}
+		const refsDir = join(sourceDir, "references");
+		if (await exists(refsDir)) {
+			const refFiles = (await readdir(refsDir))
+				.filter((f) => extname(f) === ".md")
+				.sort();
+			for (const file of refFiles) {
+				const content = await readFile(join(refsDir, file), "utf-8");
+				documents.push({
+					path: `references/${file}` as NormalizedRelativePath,
+					content,
+					executable: false,
+				});
+			}
+		}
+	} else {
+		// superpowers: SKILL.md (required) + companion *.md files (optional)
+		const skillMdPath = join(sourceDir, "SKILL.md");
+		if (entries.includes("SKILL.md")) {
+			const content = await readFile(skillMdPath, "utf-8");
+			documents.push({
+				path: "SKILL.md" as NormalizedRelativePath,
+				content,
+				executable: false,
+			});
+		}
+		const additionalMd = entries
+			.filter((f) => extname(f) === ".md" && f !== "SKILL.md")
+			.sort();
+		for (const file of additionalMd) {
+			const content = await readFile(join(sourceDir, file), "utf-8");
+			documents.push({
+				path: file as NormalizedRelativePath,
+				content,
+				executable: false,
+			});
+		}
+	}
 
-	if (await exists(targetPath)) {
+	return documents;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Rosetta Stone Delegation
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Selects and invokes the appropriate Rosetta Stone source translator, then
+ * requests a canonical serializer plan. Injects collections from CLI options
+ * into the resulting artifact before serialization.
+ */
+function translateViaRosetta(
+	documents: readonly SourceDocument[],
+	format: "kiro-power" | "kiro-skill" | "superpowers",
+	artifactNameHint: string,
+	collections: string[],
+): {
+	artifact: KnowledgeArtifact | undefined;
+	plan:
+		| {
+				outputFiles: Array<{
+					relativePath: string;
+					content: string | Uint8Array;
+					executable: boolean;
+				}>;
+		  }
+		| undefined;
+	diagnostics: Array<{ severity: string; message: string }>;
+} {
+	// Build translator context
+	const context: SourceTranslatorContext = {
+		format: {
+			id: format as FormatIdentifier,
+		} as SourceTranslatorContext["format"],
+		canonicalSchemaVersion: "1.0.0",
+		options: {},
+		callerContext: { artifactNameHint },
+	};
+
+	// Delegate to the appropriate source translator
+	let translationOutput: ReturnType<typeof translateKiroPower>;
+	switch (format) {
+		case "kiro-power":
+			translationOutput = translateKiroPower(documents, context);
+			break;
+		case "kiro-skill":
+			translationOutput = translateKiroSkill(documents, context);
+			break;
+		case "superpowers":
+			translationOutput = translateSuperpowers(documents, context);
+			break;
+	}
+
+	const { candidate, diagnostics } = translationOutput;
+
+	if (!candidate) {
 		return {
-			name,
-			sourcePath: sourceDir,
-			targetPath,
-			filesWritten: [],
-			workflowsCopied: 0,
-			skipped: `${targetPath} already exists — use --force to overwrite`,
+			artifact: undefined,
+			plan: undefined,
+			diagnostics: diagnostics.map((d) => ({
+				severity: d.severity,
+				message: d.message,
+			})),
 		};
 	}
 
-	// Extract keywords from description or other metadata
-	const keywords: string[] = [];
-	if (Array.isArray(sourceFm.keywords)) {
-		keywords.push(...sourceFm.keywords.map(String));
-	}
-	// Superpowers skills sometimes reference other skills — capture those as enhances/depends
-	const depends: string[] = [];
-	if (Array.isArray(sourceFm.requires)) {
-		depends.push(...sourceFm.requires.map(String));
+	// The translator returns a KnowledgeArtifact-shaped value typed as Record<string, unknown>
+	const artifact = candidate as unknown as KnowledgeArtifact;
+
+	// Inject CLI-provided collections into the candidate
+	if (collections.length > 0) {
+		artifact.frontmatter.collections = collections;
 	}
 
-	const fm: Frontmatter = {
-		name,
-		displayName: String(
-			sourceFm.displayName ||
-				name.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-		),
-		description: String(sourceFm.description || ""),
-		keywords,
-		author: String(sourceFm.author || "obra"),
-		version: "0.1.0",
-		harnesses: ["claude-code", "codex", "cursor"],
-		type: "skill",
-		inclusion: "manual",
-		categories: ["documentation"],
-		ecosystem: [],
-		depends,
-		enhances: [],
-		maturity: "stable",
-		trust: "community",
-		audience: "intermediate",
-		"model-assumptions": [],
-		collections: opts.collections ?? [],
-		"inherit-hooks": false,
-		outcomes: [],
-	};
-
-	const frontmatterYaml = yaml.dump(fm, { lineWidth: -1 });
-	const body = parsed.content.trim();
-	const knowledgeMd = `---\n${frontmatterYaml}---\n${body}\n`;
-
-	const filesWritten: string[] = [];
-
-	if (!opts.dryRun) {
-		await mkdir(join(targetPath, "workflows"), { recursive: true });
-		await writeFile(join(targetPath, "knowledge.md"), knowledgeMd, "utf-8");
-		await writeFile(join(targetPath, "hooks.yaml"), "[]\n", "utf-8");
-		await writeFile(join(targetPath, "mcp-servers.yaml"), "[]\n", "utf-8");
-	}
-
-	filesWritten.push(
-		join(targetPath, "knowledge.md"),
-		join(targetPath, "hooks.yaml"),
-		join(targetPath, "mcp-servers.yaml"),
-	);
-
-	// Copy any additional .md files in the skill dir as workflow references
-	let workflowsCopied = 0;
-	const entries = await readdir(sourceDir);
-	const additionalMd = entries
-		.filter((f) => extname(f) === ".md" && f !== "SKILL.md")
-		.sort();
-
-	for (const file of additionalMd) {
-		const src = join(sourceDir, file);
-		const dest = join(targetPath, "workflows", file);
-		if (!opts.dryRun) {
-			await copyFile(src, dest);
-		}
-		filesWritten.push(dest);
-		workflowsCopied++;
-	}
+	// Request a canonical serializer plan from Rosetta Stone
+	const serializerOutput = serializeCanonical(artifact, {
+		emitEmptyAuxiliaryFiles: true,
+		emitBodyOverrides: true,
+		emitWorkflows: true,
+	});
 
 	return {
-		name,
-		sourcePath: sourceDir,
-		targetPath,
-		filesWritten,
-		workflowsCopied,
+		artifact,
+		plan: serializerOutput.plan
+			? {
+					outputFiles: serializerOutput.plan.outputFiles.map((f) => ({
+						relativePath: f.relativePath,
+						content: f.content,
+						executable: f.executable,
+					})),
+				}
+			: undefined,
+		diagnostics: diagnostics.map((d) => ({
+			severity: d.severity,
+			message: d.message,
+		})),
 	};
 }
 
-// ── Single directory import ───────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// Single Directory Import (preserves collision and skip behavior)
+// ═══════════════════════════════════════════════════════════════════════════════
 
 async function importOne(
 	sourceDir: string,
@@ -372,13 +263,13 @@ async function importOne(
 ): Promise<ImportResult> {
 	const entries = await readdir(sourceDir);
 
-	// Always verify the expected file exists — even when format is explicitly set.
-	// This prevents crashes on non-artifact directories (e.g. .github, .kiro).
+	// Format detection (same logic as before)
 	const detectedFormat =
 		opts.format === "auto" || !opts.format
 			? detectFormat(sourceDir, entries)
 			: opts.format;
 
+	// Validate the expected primary file exists
 	if (detectedFormat === "kiro-power") {
 		if (!entries.includes("POWER.md")) {
 			return {
@@ -390,9 +281,7 @@ async function importOne(
 				skipped: `No POWER.md found in ${sourceDir}`,
 			};
 		}
-		return importKiroPower(sourceDir, opts);
-	}
-	if (detectedFormat === "kiro-skill") {
+	} else if (detectedFormat === "kiro-skill") {
 		if (!entries.includes("SKILL.md")) {
 			return {
 				name: basename(sourceDir),
@@ -403,9 +292,7 @@ async function importOne(
 				skipped: `No SKILL.md found in ${sourceDir}`,
 			};
 		}
-		return importKiroSkill(sourceDir, opts);
-	}
-	if (detectedFormat === "superpowers") {
+	} else if (detectedFormat === "superpowers") {
 		if (!entries.includes("SKILL.md")) {
 			return {
 				name: basename(sourceDir),
@@ -416,20 +303,106 @@ async function importOne(
 				skipped: `No SKILL.md found in ${sourceDir}`,
 			};
 		}
-		return importSuperpowers(sourceDir, opts);
+	} else {
+		// auto detection returned "auto" — could not detect format
+		return {
+			name: basename(sourceDir),
+			sourcePath: sourceDir,
+			targetPath: "",
+			filesWritten: [],
+			workflowsCopied: 0,
+			skipped: `Could not detect format in ${sourceDir} (no POWER.md or SKILL.md found)`,
+		};
+	}
+
+	// Build in-memory SourceDocuments from the filesystem
+	const documents = await buildSourceDocuments(sourceDir, detectedFormat);
+
+	// Delegate to Rosetta Stone for translation and canonical plan generation
+	const artifactNameHint = basename(sourceDir);
+	const collections = opts.collections ?? [];
+	const { artifact, plan } = translateViaRosetta(
+		documents,
+		detectedFormat,
+		artifactNameHint,
+		collections,
+	);
+
+	if (!artifact || !plan) {
+		return {
+			name: basename(sourceDir),
+			sourcePath: sourceDir,
+			targetPath: "",
+			filesWritten: [],
+			workflowsCopied: 0,
+			skipped: `Translation failed for ${sourceDir}`,
+		};
+	}
+
+	const name = artifact.name;
+	const targetPath = join(opts.knowledgeDir, name);
+
+	// Collision check (existing behavior: error/skip)
+	if (await exists(targetPath)) {
+		return {
+			name,
+			sourcePath: sourceDir,
+			targetPath,
+			filesWritten: [],
+			workflowsCopied: 0,
+			skipped: `${targetPath} already exists — use --force to overwrite`,
+		};
+	}
+
+	// Apply the canonical plan — write output files
+	const filesWritten: string[] = [];
+	let workflowsCopied = 0;
+
+	if (!opts.dryRun) {
+		// Ensure the target directory and workflows subdirectory exist
+		await mkdir(join(targetPath, "workflows"), { recursive: true });
+	}
+
+	for (const file of plan.outputFiles) {
+		const destPath = join(targetPath, file.relativePath);
+		const content =
+			typeof file.content === "string"
+				? file.content
+				: new TextDecoder().decode(file.content);
+
+		if (!opts.dryRun) {
+			// Ensure parent directory exists for nested paths (e.g., workflows/)
+			const dir = join(
+				targetPath,
+				file.relativePath.includes("/")
+					? file.relativePath.slice(0, file.relativePath.lastIndexOf("/"))
+					: "",
+			);
+			if (dir !== targetPath) {
+				await mkdir(dir, { recursive: true });
+			}
+			await writeFile(destPath, content, "utf-8");
+		}
+
+		filesWritten.push(destPath);
+
+		if (file.relativePath.startsWith("workflows/")) {
+			workflowsCopied++;
+		}
 	}
 
 	return {
-		name: basename(sourceDir),
+		name,
 		sourcePath: sourceDir,
-		targetPath: "",
-		filesWritten: [],
-		workflowsCopied: 0,
-		skipped: `Could not detect format in ${sourceDir} (no POWER.md or SKILL.md found)`,
+		targetPath,
+		filesWritten,
+		workflowsCopied,
 	};
 }
 
-// ── CLI command ───────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// CLI Command (public interface preserved)
+// ═══════════════════════════════════════════════════════════════════════════════
 
 export async function importCommand(
 	sourcePath: string,

@@ -14,7 +14,7 @@ export async function handleCompassReindex(
 		const force = input.force ?? false;
 
 		// 1. Load catalog entries
-		const catalog = await loadCatalog(ctx.pluginRoot);
+		const catalog = await loadCatalog(ctx.contentRoot);
 
 		// 2. Query Solr for all existing artifact docs
 		const existingDocs = await fetchExistingArtifactDocs(ctx);
@@ -67,7 +67,7 @@ export async function handleCompassReindex(
 			}
 
 			// Check content hash change
-			const { body } = await readArtifactContent(ctx.pluginRoot, entry);
+			const { body } = await readArtifactContent(ctx.contentRoot, entry);
 			const embeddingText = buildEmbeddingText(
 				entry.displayName,
 				entry.description,
@@ -102,7 +102,7 @@ export async function handleCompassReindex(
 
 		// 6. Re-index added + updated artifacts
 		for (const { entry } of toIndex) {
-			const { body } = await readArtifactContent(ctx.pluginRoot, entry);
+			const { body } = await readArtifactContent(ctx.contentRoot, entry);
 			const embeddingText = buildEmbeddingText(
 				entry.displayName,
 				entry.description,

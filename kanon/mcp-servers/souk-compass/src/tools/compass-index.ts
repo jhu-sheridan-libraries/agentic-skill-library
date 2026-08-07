@@ -10,7 +10,7 @@ export async function handleCompassIndexArtifacts(
 	input: CompassIndexArtifactsInput,
 	ctx: ToolContext,
 ): Promise<ToolResult> {
-	const catalog = await loadCatalog(ctx.pluginRoot);
+	const catalog = await loadCatalog(ctx.contentRoot);
 	const chunked = input.chunked ?? false;
 
 	if (input.name) {
@@ -46,7 +46,7 @@ async function indexSingle(
 	}
 
 	try {
-		const { body } = await readArtifactContent(ctx.pluginRoot, entry);
+		const { body } = await readArtifactContent(ctx.contentRoot, entry);
 
 		if (chunked) {
 			// Pack sections toward the encoder's window: artifact sections are
@@ -131,7 +131,7 @@ async function indexAll(
 
 	for (const entry of catalog) {
 		try {
-			const { body } = await readArtifactContent(ctx.pluginRoot, entry);
+			const { body } = await readArtifactContent(ctx.contentRoot, entry);
 
 			if (chunked) {
 				// Pack sections toward the encoder's window: artifact sections are

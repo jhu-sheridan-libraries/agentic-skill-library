@@ -30,7 +30,7 @@ keywords:
   - test-optimization
   - vertical-slices
 author: Steven J. Miklovic
-version: 0.4.2
+version: 0.4.3
 harnesses:
   - kiro
   - claude-code

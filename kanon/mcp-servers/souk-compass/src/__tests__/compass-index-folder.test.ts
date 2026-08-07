@@ -64,7 +64,8 @@ function makeCtx(overrides?: Partial<ToolContext>): ToolContext {
 		codebaseSolrClient: makeMockSolrClient(),
 		embeddingProvider: makeMockEmbeddingProvider(),
 		config: makeConfig(),
-		pluginRoot: "/fake/plugin/root",
+		packageRoot: "/fake/package/root",
+		contentRoot: "/fake/content/root",
 		...overrides,
 	};
 }
@@ -465,7 +466,10 @@ describe("handleCompassIndexFolder", () => {
 
 		let deleteCalled = false;
 		const originalFetch = globalThis.fetch;
-		globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+		globalThis.fetch = (async (
+			input: RequestInfo | URL,
+			init?: RequestInit,
+		) => {
 			const url = typeof input === "string" ? input : input.toString();
 			if (
 				url.includes("/update") &&
@@ -475,7 +479,7 @@ describe("handleCompassIndexFolder", () => {
 				return new Response(JSON.stringify({}), { status: 200 });
 			}
 			return originalFetch(input, init);
-		};
+		}) as typeof fetch;
 
 		const mockClient = makeMockSolrClient();
 		const ctx = makeCtx({ codebaseSolrClient: mockClient });

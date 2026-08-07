@@ -1,0 +1,1939 @@
+{
+  "pbtResults": {
+    "2.5 Write the fast-check test for registry metadata history": {
+      "status": "passed",
+      "lastRunTimestamp": 1786052396697
+    },
+    "2.6 Write the fast-check test for direction-safe dispatch": {
+      "status": "passed",
+      "lastRunTimestamp": 1786052397192
+    },
+    "2.4 Write the fast-check test for registry atomicity": {
+      "status": "passed",
+      "lastRunTimestamp": 1786052650833
+    },
+    "3.4 Write the fast-check test for deterministic detection ranking": {
+      "status": "passed",
+      "lastRunTimestamp": 1786053554349
+    },
+    "3.5 Write the fast-check test for total detection selection": {
+      "status": "passed",
+      "lastRunTimestamp": 1786053564339
+    },
+    "3.3 Write the fast-check test for guarded request dispatch": {
+      "status": "passed",
+      "lastRunTimestamp": 1786053565505
+    },
+    "4.3 Write the fast-check test for canonical round trips": {
+      "status": "passed",
+      "lastRunTimestamp": 1786057626300
+    },
+    "4.4 Write the fast-check test for canonical byte determinism": {
+      "status": "passed",
+      "lastRunTimestamp": 1786057989497
+    },
+    "7.4 Write the fast-check test for compatibility profile validity": {
+      "status": "passed",
+      "lastRunTimestamp": 1786058327618
+    },
+    "7.5 Write the fast-check test for degradation diagnostics and counts": {
+      "status": "passed",
+      "lastRunTimestamp": 1786058361303
+    },
+    "7.6 Write the fast-check test for strict-mode promotion": {
+      "status": "passed",
+      "lastRunTimestamp": 1786058700491
+    },
+    "6.6 Write the fast-check test for complete source accounting": {
+      "status": "passed",
+      "lastRunTimestamp": 1786061528378
+    },
+    "6.7 Write the fast-check test for inbound order independence": {
+      "status": "passed",
+      "lastRunTimestamp": 1786061570467
+    },
+    "12.3 Write the fast-check test for profile validation": {
+      "status": "passed",
+      "lastRunTimestamp": 1786062282673
+    },
+    "8.8 Write the fast-check test for safe path normalization and collisions": {
+      "status": "passed",
+      "lastRunTimestamp": 1786063072924
+    },
+    "6.8 Write the fast-check test for every source parser/pretty-printer round trip": {
+      "status": "passed",
+      "lastRunTimestamp": 1786063130755
+    },
+    "8.6 Write the fast-check test for outbound extensional determinism": {
+      "status": "passed",
+      "lastRunTimestamp": 1786063714707
+    },
+    "8.5 Write the fast-check test for effective contract conformance": {
+      "status": "passed",
+      "lastRunTimestamp": 1786063715600
+    },
+    "8.7 Write the fast-check test for observable effective options": {
+      "status": "passed",
+      "lastRunTimestamp": 1786063718807
+    },
+    "10.6 Write the fast-check test for structured and plan-safe diagnostics": {
+      "status": "passed",
+      "lastRunTimestamp": 1786065430374
+    },
+    "10.8 Write the fast-check test for explicit translation context": {
+      "status": "passed",
+      "lastRunTimestamp": 1786065491456
+    },
+    "10.5 Write the fast-check test for inbound plan gating": {
+      "status": "passed",
+      "lastRunTimestamp": 1786065500729
+    },
+    "10.7 Write the fast-check test for fail-closed inspection redaction": {
+      "status": "passed",
+      "lastRunTimestamp": 1786065546259
+    },
+    "10.9 Write the fast-check test for sensitive-value policy non-leakage": {
+      "status": "passed",
+      "lastRunTimestamp": 1786065740292
+    },
+    "11.6 Write the fast-check test for profile isolation and acquisition independence": {
+      "status": "passed",
+      "lastRunTimestamp": 1786075085145
+    },
+    "11.5 Write the fast-check test for dry-run equivalence": {
+      "status": "passed",
+      "lastRunTimestamp": 1786075135475
+    },
+    "13.3 Write the fast-check test for variant and option precedence": {
+      "status": "passed",
+      "lastRunTimestamp": 1786105023053
+    }
+  },
+  "executionHistory": {
+    "1.1 Add the strict Rosetta Stone Zod schemas and inferred TypeScript types to `src/schemas.ts`": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048384442
+      },
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048418668
+      },
+      {
+        "executionId": "28c9c6b4-aa88-414b-bb8a-326a703978ea",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786050038248
+      }
+    ],
+    "1.2 Create `src/rosetta/contracts.ts` and deterministic normalization utilities": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048384571
+      },
+      {
+        "executionId": "28c9c6b4-aa88-414b-bb8a-326a703978ea",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786050041518
+      }
+    ],
+    "1.3 Implement structured diagnostics in `src/rosetta/diagnostics.ts`": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048384630
+      },
+      {
+        "executionId": "28c9c6b4-aa88-414b-bb8a-326a703978ea",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786050044681
+      }
+    ],
+    "1.4 Add Bun schema/diagnostic unit tests and shared fast-check arbitraries": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048384662
+      },
+      {
+        "executionId": "28c9c6b4-aa88-414b-bb8a-326a703978ea",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786050047600
+      }
+    ],
+    "2.1 Implement `TranslationRegistryBuilder` and immutable `TranslationRegistrySnapshot` in `src/rosetta/registry.ts`": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048384709
+      },
+      {
+        "executionId": "28c9c6b4-aa88-414b-bb8a-326a703978ea",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786050095737
+      },
+      {
+        "executionId": "28c9c6b4-aa88-414b-bb8a-326a703978ea",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786051733051
+      }
+    ],
+    "2.2 Register every built-in format contract in `src/rosetta/builtins/contracts.ts`": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048384761
+      },
+      {
+        "executionId": "28c9c6b4-aa88-414b-bb8a-326a703978ea",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786051755217
+      },
+      {
+        "executionId": "28c9c6b4-aa88-414b-bb8a-326a703978ea",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786052183428
+      }
+    ],
+    "2.3 Complete extension validation and registry metadata history": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048384791
+      },
+      {
+        "executionId": "28c9c6b4-aa88-414b-bb8a-326a703978ea",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786051758749
+      },
+      {
+        "executionId": "28c9c6b4-aa88-414b-bb8a-326a703978ea",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786052184236
+      }
+    ],
+    "3.1 Implement `src/rosetta/request-guard.ts`": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048384822
+      },
+      {
+        "executionId": "4080bd51-df43-4e93-bedd-26689594249e",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786052829250
+      },
+      {
+        "executionId": "4080bd51-df43-4e93-bedd-26689594249e",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786053184676
+      }
+    ],
+    "3.2 Implement deterministic rule evaluation and selection in `src/rosetta/detector.ts`": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048384853
+      },
+      {
+        "executionId": "4080bd51-df43-4e93-bedd-26689594249e",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786053189006
+      },
+      {
+        "executionId": "4080bd51-df43-4e93-bedd-26689594249e",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786053401811
+      }
+    ],
+    "4.1 Extract a pure `CanonicalParser` into `src/rosetta/canonical.ts`": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048384888
+      },
+      {
+        "executionId": "bf886a21-6fb7-42e1-9536-6f0f1e0ef153",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786053741119
+      },
+      {
+        "executionId": "ab9be101-fa63-429e-a0b3-1be2523f4b31",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786054402444
+      }
+    ],
+    "4.2 Implement deterministic `CanonicalSerializer` plan generation": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048384915
+      },
+      {
+        "executionId": "ab9be101-fa63-429e-a0b3-1be2523f4b31",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786055375942
+      },
+      {
+        "executionId": "840231d1-d16b-409c-9496-4bcb73638810",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786055609541
+      },
+      {
+        "executionId": "840231d1-d16b-409c-9496-4bcb73638810",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786056224280
+      }
+    ],
+    "5. Checkpoint - Ensure all foundation tests pass": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048384955
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065245121
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074898207
+      }
+    ],
+    "6.1 Add shared source accounting and mapping helpers": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048384990
+      },
+      {
+        "executionId": "840231d1-d16b-409c-9496-4bcb73638810",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786055610271
+      },
+      {
+        "executionId": "840231d1-d16b-409c-9496-4bcb73638810",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786056225347
+      }
+    ],
+    "6.2 Implement path-based source translators for Kiro powers, Kiro skills, and Superpowers": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385033
+      },
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786057484808
+      },
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786058188596
+      }
+    ],
+    "6.3 Implement harness-native source translators for Kiro, Claude Code, and Codex": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385081
+      },
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786057485713
+      },
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786058189494
+      }
+    ],
+    "6.4 Implement harness-native source translators for Copilot, Cursor, Windsurf, Cline, and Q Developer": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385114
+      },
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786058195869
+      },
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786058545898
+      }
+    ],
+    "6.5 Implement a deterministic pretty-printer for every source-capable contract": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385145
+      },
+      {
+        "executionId": "4659e788-1a8d-42f8-a9a7-727edc942842",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786061360035
+      },
+      {
+        "executionId": "4659e788-1a8d-42f8-a9a7-727edc942842",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786061992028
+      }
+    ],
+    "7.1 Implement `src/rosetta/compatibility.ts`": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385174
+      },
+      {
+        "executionId": "ab9be101-fa63-429e-a0b3-1be2523f4b31",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786054492196
+      },
+      {
+        "executionId": "ab9be101-fa63-429e-a0b3-1be2523f4b31",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786055361817
+      }
+    ],
+    "7.2 Seed built-in compatibility profiles from current asset and harness capability declarations": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385206
+      },
+      {
+        "executionId": "840231d1-d16b-409c-9496-4bcb73638810",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786055611197
+      },
+      {
+        "executionId": "840231d1-d16b-409c-9496-4bcb73638810",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786056226114
+      }
+    ],
+    "7.3 Implement shared format variant and option resolution": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385232
+      },
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786058196668
+      },
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786058546939
+      }
+    ],
+    "8.1 Implement the impure immutable template bundle loader and pure renderer contract": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385265
+      },
+      {
+        "executionId": "ab9be101-fa63-429e-a0b3-1be2523f4b31",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786054493011
+      },
+      {
+        "executionId": "ab9be101-fa63-429e-a0b3-1be2523f4b31",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786055363600
+      }
+    ],
+    "8.2 Implement target translators for Kiro, Claude Code, and Codex": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385298
+      },
+      {
+        "executionId": "4659e788-1a8d-42f8-a9a7-727edc942842",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786061362322
+      },
+      {
+        "executionId": "4659e788-1a8d-42f8-a9a7-727edc942842",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786061994679
+      }
+    ],
+    "8.3 Implement target translators for Copilot, Cursor, Windsurf, Cline, and Q Developer": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385324
+      },
+      {
+        "executionId": "4659e788-1a8d-42f8-a9a7-727edc942842",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786061363287
+      },
+      {
+        "executionId": "4659e788-1a8d-42f8-a9a7-727edc942842",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786061995673
+      }
+    ],
+    "8.4 Implement `src/rosetta/plan.ts`": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385357
+      },
+      {
+        "executionId": "ab9be101-fa63-429e-a0b3-1be2523f4b31",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786054493851
+      },
+      {
+        "executionId": "ab9be101-fa63-429e-a0b3-1be2523f4b31",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786055362558
+      }
+    ],
+    "9. Checkpoint - Ensure all pure translation tests pass": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385397
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065245211
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074898304
+      }
+    ],
+    "10.1 Implement `src/rosetta/engine.ts`": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385429
+      },
+      {
+        "executionId": "0f36b9f0-a763-4f11-85ef-ec3be3dfd452",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786062928841
+      },
+      {
+        "executionId": "0f36b9f0-a763-4f11-85ef-ec3be3dfd452",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786063512660
+      }
+    ],
+    "10.2 Implement fail-closed sensitive-value handling in `src/rosetta/redaction.ts`": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385457
+      },
+      {
+        "executionId": "ab9be101-fa63-429e-a0b3-1be2523f4b31",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786054494604
+      },
+      {
+        "executionId": "ab9be101-fa63-429e-a0b3-1be2523f4b31",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786055364541
+      }
+    ],
+    "10.3 Implement deterministic inspection models in `src/rosetta/inspection.ts`": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385490
+      },
+      {
+        "executionId": "840231d1-d16b-409c-9496-4bcb73638810",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786055611930
+      },
+      {
+        "executionId": "840231d1-d16b-409c-9496-4bcb73638810",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786056226913
+      }
+    ],
+    "10.4 Export the stable library API from `src/rosetta/index.ts`": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385522
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065245265
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065252617
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065559173
+      }
+    ],
+    "11.1 Implement allowed-root scanning and deterministic document grouping in `src/translation-orchestrator.ts`": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385550
+      },
+      {
+        "executionId": "ab9be101-fa63-429e-a0b3-1be2523f4b31",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786054495683
+      },
+      {
+        "executionId": "ab9be101-fa63-429e-a0b3-1be2523f4b31",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786055365689
+      }
+    ],
+    "11.2 Implement application policy and cross-request collision analysis": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385588
+      },
+      {
+        "executionId": "840231d1-d16b-409c-9496-4bcb73638810",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786055612778
+      },
+      {
+        "executionId": "840231d1-d16b-409c-9496-4bcb73638810",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786056227909
+      }
+    ],
+    "11.3 Implement `src/translation-plan-applier.ts`": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385622
+      },
+      {
+        "executionId": "840231d1-d16b-409c-9496-4bcb73638810",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786056231969
+      },
+      {
+        "executionId": "840231d1-d16b-409c-9496-4bcb73638810",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786056603841
+      }
+    ],
+    "11.4 Complete dry-run/write orchestration and per-profile status isolation": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385656
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065245610
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065568009
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786072214451
+      }
+    ],
+    "12.1 Integrate `AcquisitionProfileSchema` and `TranslationProfileSchema` into `src/config.ts`": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385690
+      },
+      {
+        "executionId": "840231d1-d16b-409c-9496-4bcb73638810",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786056233148
+      },
+      {
+        "executionId": "840231d1-d16b-409c-9496-4bcb73638810",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786056604824
+      }
+    ],
+    "12.2 Normalize legacy `upstreams` through validated profile mappings": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385721
+      },
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786058199121
+      },
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786058549832
+      }
+    ],
+    "13.1 Implement and register `kanon rosetta` commands": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385763
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065245809
+      },
+      {
+        "executionId": "3328c9d8-05db-4267-a471-e5b8d05d738b",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074407217
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074898482
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074906625
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786080716525
+      }
+    ],
+    "13.2 Implement human and versioned JSON renderers": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385790
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065245852
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065568734
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786072215392
+      }
+    ],
+    "14.1 Refactor `src/import.ts` into a legacy path-import facade": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385821
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065245998
+      },
+      {
+        "executionId": "3328c9d8-05db-4267-a471-e5b8d05d738b",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074408139
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074898654
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074907499
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786080714685
+      }
+    ],
+    "14.2 Refactor `src/importers/` into harness-native compatibility facades": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385849
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065246042
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074898698
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786080723184
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786081186761
+      }
+    ],
+    "15.1 Replace `HARNESS_FORMAT_REGISTRY` and `resolveFormat` internals with registry projections": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385883
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065246123
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065569700
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786072216456
+      }
+    ],
+    "15.2 Route `adapterRegistry` through target translators": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385914
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065246165
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065573113
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074319278
+      }
+    ],
+    "15.3 Delegate canonical parse and target translation from `src/build.ts`": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385947
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065246199
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074898787
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786080724017
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786081188152
+      }
+    ],
+    "16.1 Add a script-facing validated profile listing/translation command": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048385974
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065246277
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074898871
+      },
+      {
+        "executionId": "7e8d2abc-ab3c-40e9-bfc7-ed8928c78479",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786104861168
+      },
+      {
+        "executionId": "7e8d2abc-ab3c-40e9-bfc7-ed8928c78479",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786106199073
+      }
+    ],
+    "16.2 Update `scripts/sync-upstream.sh` and `scripts/sync-kiro-powers.sh`": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048386005
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065246326
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074898919
+      },
+      {
+        "executionId": "47d1b731-ffd9-404d-bf8b-47520ebf5539",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786107239874
+      },
+      {
+        "executionId": "47d1b731-ffd9-404d-bf8b-47520ebf5539",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786110594294
+      }
+    ],
+    "17.1 Implement a Bun generator for registry/profile reference and executable CLI examples": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048386037
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065246416
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074899021
+      },
+      {
+        "executionId": "7e8d2abc-ab3c-40e9-bfc7-ed8928c78479",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786106204054
+      },
+      {
+        "executionId": "7e8d2abc-ab3c-40e9-bfc7-ed8928c78479",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786106549389
+      }
+    ],
+    "17.2 Implement generated architecture, migration, and extension guidance": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048386065
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065246452
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074899063
+      },
+      {
+        "executionId": "47d1b731-ffd9-404d-bf8b-47520ebf5539",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786107240544
+      },
+      {
+        "executionId": "47d1b731-ffd9-404d-bf8b-47520ebf5539",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786110595405
+      }
+    ],
+    "18.2 Add a one-shot Bun validation entry point for Rosetta Stone": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048386099
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065246607
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074899239
+      }
+    ],
+    "18.3 Enforce and add the Rosetta Stone changelog fragment": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048386132
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065246644
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074899290
+      }
+    ],
+    "19.1 Add provenance and reconciliation schemas": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048386168
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065246691
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074899346
+      }
+    ],
+    "19.2 Implement the pure three-way reconciliation core in `src/rosetta/reconcile.ts`": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048386215
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065246758
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074899404
+      }
+    ],
+    "19.3 Compute and verify Base_Digest via the Canonical_Serializer": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048386247
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065246793
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074899441
+      }
+    ],
+    "19.4 Write provenance at import and cache the base artifact (orchestration)": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048386280
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065246832
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074899489
+      }
+    ],
+    "19.5 Add the `reconcile` collision policy and reconciliation report to the sync orchestrator": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048386307
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065246883
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074899537
+      }
+    ],
+    "19.6 Add a provenance backfill command and retire the drift scripts": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048386340
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065246920
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074899578
+      }
+    ],
+    "20. Final checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "83eb7f4e-7068-47c2-89a2-7f3c688033a7",
+        "chatSessionId": "sess_bc8b84ad-43c4-405e-a8ab-eee3b71af323",
+        "timestamp": 1786048386373
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065247092
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074899756
+      }
+    ],
+    "1. Establish Rosetta Stone public schemas and deterministic contracts": [
+      {
+        "executionId": "28c9c6b4-aa88-414b-bb8a-326a703978ea",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786050047666
+      }
+    ],
+    "2.4 Write the fast-check test for registry atomicity": [
+      {
+        "executionId": "28c9c6b4-aa88-414b-bb8a-326a703978ea",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786052189656
+      },
+      {
+        "executionId": "28c9c6b4-aa88-414b-bb8a-326a703978ea",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786052664125
+      }
+    ],
+    "2.5 Write the fast-check test for registry metadata history": [
+      {
+        "executionId": "28c9c6b4-aa88-414b-bb8a-326a703978ea",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786052190447
+      },
+      {
+        "executionId": "28c9c6b4-aa88-414b-bb8a-326a703978ea",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786052664883
+      }
+    ],
+    "2.6 Write the fast-check test for direction-safe dispatch": [
+      {
+        "executionId": "28c9c6b4-aa88-414b-bb8a-326a703978ea",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786052191390
+      },
+      {
+        "executionId": "28c9c6b4-aa88-414b-bb8a-326a703978ea",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786052665676
+      }
+    ],
+    "2.7 Add registry unit and inventory tests": [
+      {
+        "executionId": "28c9c6b4-aa88-414b-bb8a-326a703978ea",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786052192436
+      },
+      {
+        "executionId": "28c9c6b4-aa88-414b-bb8a-326a703978ea",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786052666641
+      }
+    ],
+    "2. Implement the transactional registry and complete built-in format catalog": [
+      {
+        "executionId": "28c9c6b4-aa88-414b-bb8a-326a703978ea",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786052666717
+      }
+    ],
+    "3.3 Write the fast-check test for guarded request dispatch": [
+      {
+        "executionId": "4080bd51-df43-4e93-bedd-26689594249e",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786053406183
+      },
+      {
+        "executionId": "4080bd51-df43-4e93-bedd-26689594249e",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786053666123
+      }
+    ],
+    "3.4 Write the fast-check test for deterministic detection ranking": [
+      {
+        "executionId": "4080bd51-df43-4e93-bedd-26689594249e",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786053407083
+      },
+      {
+        "executionId": "4080bd51-df43-4e93-bedd-26689594249e",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786053667083
+      }
+    ],
+    "3.5 Write the fast-check test for total detection selection": [
+      {
+        "executionId": "4080bd51-df43-4e93-bedd-26689594249e",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786053407999
+      },
+      {
+        "executionId": "4080bd51-df43-4e93-bedd-26689594249e",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786053667892
+      }
+    ],
+    "3.6 Add detector and request-guard unit tests": [
+      {
+        "executionId": "4080bd51-df43-4e93-bedd-26689594249e",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786053409045
+      },
+      {
+        "executionId": "4080bd51-df43-4e93-bedd-26689594249e",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786053668828
+      }
+    ],
+    "3. Guard requests and implement explainable format detection": [
+      {
+        "executionId": "4080bd51-df43-4e93-bedd-26689594249e",
+        "chatSessionId": "sess_5f6d7972-8cbf-4b2c-80df-47f4d03be552",
+        "timestamp": 1786053668894
+      }
+    ],
+    "4.3 Write the fast-check test for canonical round trips": [
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786057482399
+      },
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786058185838
+      }
+    ],
+    "4.4 Write the fast-check test for canonical byte determinism": [
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786057483190
+      },
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786058186637
+      }
+    ],
+    "4.5 Add canonical parser/serializer unit tests": [
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786057483943
+      },
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786058187664
+      }
+    ],
+    "4. Implement pure canonical parsing and serialization": [
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786058187704
+      }
+    ],
+    "7.4 Write the fast-check test for compatibility profile validity": [
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786058197392
+      },
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786058547915
+      }
+    ],
+    "7.5 Write the fast-check test for degradation diagnostics and counts": [
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786058198195
+      },
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786058548831
+      }
+    ],
+    "7.6 Write the fast-check test for strict-mode promotion": [
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786058554054
+      },
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786059873989
+      }
+    ],
+    "7.7 Add compatibility and resolution unit tests": [
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786058554783
+      },
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786059873912
+      }
+    ],
+    "7.8 Add compatibility inventory regression tests": [
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786058555612
+      },
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786059874866
+      }
+    ],
+    "7. Implement compatibility evaluation and effective option resolution": [
+      {
+        "executionId": "1f616609-9329-4551-9ac8-5b5c97a5bed1",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786059874924
+      }
+    ],
+    "6.6 Write the fast-check test for complete source accounting": [
+      {
+        "executionId": "4659e788-1a8d-42f8-a9a7-727edc942842",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786061360716
+      },
+      {
+        "executionId": "4659e788-1a8d-42f8-a9a7-727edc942842",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786061993146
+      }
+    ],
+    "6.7 Write the fast-check test for inbound order independence": [
+      {
+        "executionId": "4659e788-1a8d-42f8-a9a7-727edc942842",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786061361497
+      },
+      {
+        "executionId": "4659e788-1a8d-42f8-a9a7-727edc942842",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786061993868
+      }
+    ],
+    "6.9 Add fixture-based inbound regression tests": [
+      {
+        "executionId": "4659e788-1a8d-42f8-a9a7-727edc942842",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786062000012
+      },
+      {
+        "executionId": "4659e788-1a8d-42f8-a9a7-727edc942842",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786062295017
+      }
+    ],
+    "12.3 Write the fast-check test for profile validation": [
+      {
+        "executionId": "4659e788-1a8d-42f8-a9a7-727edc942842",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786062000820
+      },
+      {
+        "executionId": "4659e788-1a8d-42f8-a9a7-727edc942842",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786062296160
+      }
+    ],
+    "12.4 Add config loading and legacy mapping unit tests": [
+      {
+        "executionId": "4659e788-1a8d-42f8-a9a7-727edc942842",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786062001657
+      },
+      {
+        "executionId": "4659e788-1a8d-42f8-a9a7-727edc942842",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786062296830
+      }
+    ],
+    "12. Add typed acquisition and translation configuration": [
+      {
+        "executionId": "4659e788-1a8d-42f8-a9a7-727edc942842",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786062296871
+      }
+    ],
+    "6.8 Write the fast-check test for every source parser/pretty-printer round trip": [
+      {
+        "executionId": "0f36b9f0-a763-4f11-85ef-ec3be3dfd452",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786062929663
+      },
+      {
+        "executionId": "0f36b9f0-a763-4f11-85ef-ec3be3dfd452",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786063516961
+      }
+    ],
+    "8.8 Write the fast-check test for safe path normalization and collisions": [
+      {
+        "executionId": "0f36b9f0-a763-4f11-85ef-ec3be3dfd452",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786062930522
+      },
+      {
+        "executionId": "0f36b9f0-a763-4f11-85ef-ec3be3dfd452",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786063513851
+      }
+    ],
+    "8.9 Add fixture-based outbound adapter regression tests": [
+      {
+        "executionId": "0f36b9f0-a763-4f11-85ef-ec3be3dfd452",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786062931268
+      },
+      {
+        "executionId": "0f36b9f0-a763-4f11-85ef-ec3be3dfd452",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786063514861
+      }
+    ],
+    "8.10 Add target/template/plan unit and security tests": [
+      {
+        "executionId": "0f36b9f0-a763-4f11-85ef-ec3be3dfd452",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786062932152
+      },
+      {
+        "executionId": "0f36b9f0-a763-4f11-85ef-ec3be3dfd452",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786063516061
+      }
+    ],
+    "6. Implement complete built-in source translation and pretty-printing": [
+      {
+        "executionId": "0f36b9f0-a763-4f11-85ef-ec3be3dfd452",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786063517022
+      }
+    ],
+    "8.5 Write the fast-check test for effective contract conformance": [
+      {
+        "executionId": "0f36b9f0-a763-4f11-85ef-ec3be3dfd452",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786063522127
+      },
+      {
+        "executionId": "0f36b9f0-a763-4f11-85ef-ec3be3dfd452",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786063733056
+      }
+    ],
+    "8.6 Write the fast-check test for outbound extensional determinism": [
+      {
+        "executionId": "0f36b9f0-a763-4f11-85ef-ec3be3dfd452",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786063523010
+      },
+      {
+        "executionId": "0f36b9f0-a763-4f11-85ef-ec3be3dfd452",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786063735043
+      }
+    ],
+    "8.7 Write the fast-check test for observable effective options": [
+      {
+        "executionId": "0f36b9f0-a763-4f11-85ef-ec3be3dfd452",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786063523733
+      },
+      {
+        "executionId": "0f36b9f0-a763-4f11-85ef-ec3be3dfd452",
+        "chatSessionId": "sess_3770c4a1-60ce-4cb9-a6a6-aff0df40e21f",
+        "timestamp": 1786063735119
+      }
+    ],
+    "10.5 Write the fast-check test for inbound plan gating": [
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065245348
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065253386
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065560257
+      }
+    ],
+    "10.6 Write the fast-check test for structured and plan-safe diagnostics": [
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065245401
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065254175
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065561075
+      }
+    ],
+    "10.7 Write the fast-check test for fail-closed inspection redaction": [
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065245445
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065254960
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065561847
+      }
+    ],
+    "10.8 Write the fast-check test for explicit translation context": [
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065245486
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065255786
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065562694
+      }
+    ],
+    "10.9 Write the fast-check test for sensitive-value policy non-leakage": [
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065245527
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065566530
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786072212693
+      }
+    ],
+    "10.10 Add engine, inspection, and redaction unit tests": [
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065245564
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065567201
+      },
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786072213635
+      }
+    ],
+    "11.5 Write the fast-check test for dry-run equivalence": [
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065245649
+      },
+      {
+        "executionId": "3328c9d8-05db-4267-a471-e5b8d05d738b",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074404953
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074898347
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074904317
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786080716418
+      }
+    ],
+    "11.6 Write the fast-check test for profile isolation and acquisition independence": [
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065245734
+      },
+      {
+        "executionId": "3328c9d8-05db-4267-a471-e5b8d05d738b",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074405731
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074898398
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074905073
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786080718450
+      }
+    ],
+    "11.7 Add Bun orchestration/applier integration tests": [
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065245775
+      },
+      {
+        "executionId": "3328c9d8-05db-4267-a471-e5b8d05d738b",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074406485
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074898439
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074905871
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786080717569
+      }
+    ],
+    "13.3 Write the fast-check test for variant and option precedence": [
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065245893
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074898531
+      },
+      {
+        "executionId": "7e8d2abc-ab3c-40e9-bfc7-ed8928c78479",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786104858983
+      },
+      {
+        "executionId": "7e8d2abc-ab3c-40e9-bfc7-ed8928c78479",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786106195315
+      }
+    ],
+    "13.4 Add Bun CLI integration tests": [
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065245931
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074898582
+      },
+      {
+        "executionId": "7e8d2abc-ab3c-40e9-bfc7-ed8928c78479",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786104859072
+      },
+      {
+        "executionId": "7e8d2abc-ab3c-40e9-bfc7-ed8928c78479",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786106196099
+      }
+    ],
+    "14.3 Add legacy inbound command and facade regression tests": [
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065246080
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074898740
+      },
+      {
+        "executionId": "7e8d2abc-ab3c-40e9-bfc7-ed8928c78479",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786104859670
+      },
+      {
+        "executionId": "7e8d2abc-ab3c-40e9-bfc7-ed8928c78479",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786106197056
+      }
+    ],
+    "15.4 Add adapter/format/build regression tests": [
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065246240
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074898828
+      },
+      {
+        "executionId": "7e8d2abc-ab3c-40e9-bfc7-ed8928c78479",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786104860333
+      },
+      {
+        "executionId": "7e8d2abc-ab3c-40e9-bfc7-ed8928c78479",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786106197923
+      }
+    ],
+    "16.3 Add local-fixture sync integration tests": [
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065246375
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074898981
+      }
+    ],
+    "17.3 Write the fast-check test for documentation projections": [
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065246485
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074899113
+      }
+    ],
+    "17.4 Add generated-guidance and executable-example tests": [
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065246525
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074899150
+      }
+    ],
+    "18.1 Add Rosetta Stone architecture-boundary and synchronization tests": [
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065246567
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074899189
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786080724861
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786081185709
+      }
+    ],
+    "19.7 Write the fast-check test for curation-preserving deterministic reconciliation": [
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065246956
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074899623
+      }
+    ],
+    "19.8 Write the fast-check test for total, stable provenance outcomes": [
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065247007
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074899677
+      }
+    ],
+    "19.9 Add reconciliation config validation and fixture regression tests": [
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786065247052
+      },
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786074899714
+      }
+    ],
+    "10. Coordinate translation phases, redaction, and inspection": [
+      {
+        "executionId": "0dad6176-5bbe-4bb2-8e12-bd684d7d4b27",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786072213705
+      }
+    ],
+    "11. Implement safe filesystem orchestration and plan application": [
+      {
+        "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786080718493
+      }
+    ],
+    "13. Expose Rosetta Stone through Commander and stable renderers": [
+      {
+        "executionId": "7e8d2abc-ab3c-40e9-bfc7-ed8928c78479",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786106196152
+      }
+    ],
+    "14. Migrate legacy inbound interfaces behind compatibility facades": [
+      {
+        "executionId": "7e8d2abc-ab3c-40e9-bfc7-ed8928c78479",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786106197114
+      }
+    ],
+    "15. Migrate target registries, adapters, and build orchestration": [
+      {
+        "executionId": "7e8d2abc-ab3c-40e9-bfc7-ed8928c78479",
+        "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
+        "timestamp": 1786106197963
+      }
+    ]
+  }
+}
