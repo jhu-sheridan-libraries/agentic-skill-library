@@ -1,3 +1,34 @@
+/**
+ * Build Pipeline — Imperative Orchestration Shell
+ *
+ * This module is the imperative build shell that coordinates artifact
+ * compilation. It retains all side-effectful and orchestration concerns:
+ *
+ * - Artifact scanning and discovery (collectArtifactPaths)
+ * - Dependency composition (resolveComposition — MCP server + hook merging)
+ * - Shared MCP server merge (loadSharedMcpServers)
+ * - Workspace overrides (applyProjectOverrides, filterArtifactsForProject)
+ * - Dist directory cleanup/policy
+ * - Build summaries and counts (kiroInclusionSummary, threshold warnings)
+ * - File writes to dist/
+ *
+ * It DELEGATES to Rosetta Stone for:
+ *
+ * - Canonical parsing: loadKnowledgeArtifact (src/parser.ts) delegates to
+ *   parseCanonical (src/rosetta/canonical.ts) for the pure parse step.
+ * - Target translation: adapterRegistry (src/adapters/index.ts) routes
+ *   through Rosetta Stone target translators with immutable template bundles,
+ *   mapping plans/diagnostics back to AdapterResult.
+ * - Format resolution: resolveFormat (src/format-registry.ts) projects from
+ *   Rosetta Stone built-in format contracts.
+ *
+ * ADR-RS-001: Functional core, imperative shell.
+ * ADR-RS-002: One authoritative registry (adapters route through Rosetta Stone).
+ * ADR-RS-004: Templates preloaded into immutable bundles.
+ *
+ * Requirements: 1.3, 12.1, 12.2, 14.5, 14.10
+ */
+
 import { chmod, exists, mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import chalk from "chalk";
@@ -141,6 +172,16 @@ function printKiroInclusionSummary(
 	console.error(lines.join("\n"));
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// Imperative Shell — Shared MCP Server Loading
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Load shared MCP server definitions from the project's mcp-servers/ directory.
+ * These are merged into each artifact's mcpServers array (artifact-local takes
+ * precedence) as part of the dependency composition step that remains in the
+ * imperative build shell.
+ */
 async function loadSharedMcpServers(mcpServersDir: string) {
 	const servers: Map<string, Omit<McpServerDefinition, "name">> = new Map();
 	if (!(await exists(mcpServersDir))) return servers;
@@ -159,11 +200,19 @@ async function loadSharedMcpServers(mcpServersDir: string) {
 	return servers;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// Imperative Shell — Artifact Discovery
+// ═══════════════════════════════════════════════════════════════════════════════
+
 /**
  * Collect all artifact paths from one or more source directories.
  * Handles two layouts:
  *   Flat:       <sourceDir>/<artifact>/knowledge.md
  *   Namespaced: <sourceDir>/<prefix>/<artifact>/knowledge.md
+ *
+ * This is an imperative concern (filesystem scanning) that remains in the
+ * build shell. The discovered paths are then fed to loadKnowledgeArtifact()
+ * which delegates the pure parse step to Rosetta Stone's parseCanonical().
  */
 async function collectArtifactPaths(sourceDirs: string[]): Promise<string[]> {
 	const paths: string[] = [];
@@ -216,9 +265,17 @@ async function collectArtifactPaths(sourceDirs: string[]): Promise<string[]> {
 	return paths;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// Imperative Shell — Dependency Composition
+// ═══════════════════════════════════════════════════════════════════════════════
+
 /**
  * Resolve composed mcpServers and hooks from an artifact's dependency tree.
  * Returns merged arrays (deduped by name) plus a cycle error string if detected.
+ *
+ * This is a build-shell concern: composing resources from the dependency graph
+ * before handing the enriched artifact to the Rosetta Stone target translator
+ * (via adapterRegistry). The pure translator sees the final composed artifact.
  */
 async function resolveComposition(
 	artifact: KnowledgeArtifact,
@@ -274,6 +331,10 @@ async function resolveComposition(
 	return { mcpServers: mergedMcp, hooks: mergedHooks };
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// Imperative Shell — Workspace Filtering and Overrides
+// ═══════════════════════════════════════════════════════════════════════════════
+
 /**
  * Filter artifacts based on a project's include/exclude configuration.
  */
@@ -320,8 +381,20 @@ function applyProjectOverrides(
 	fm["harness-config"] = harnessConfig;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// Build Orchestration — Workspace-Aware
+// ═══════════════════════════════════════════════════════════════════════════════
+
 /**
  * Workspace-aware build: compile artifacts per project according to workspace config.
+ *
+ * Orchestration flow:
+ * 1. Scan artifact paths from workspace knowledge sources (imperative: discovery)
+ * 2. Load and parse each artifact via loadKnowledgeArtifact (delegates to Rosetta Stone parseCanonical)
+ * 3. Apply workspace filtering/overrides (imperative: workspace policy)
+ * 4. Merge shared MCP servers and resolve dependencies (imperative: composition)
+ * 5. Call adapterRegistry[harness] for target translation (delegates to Rosetta Stone target translators)
+ * 6. Write output files to dist/ (imperative: file writes)
  */
 async function buildWithWorkspace(
 	wsConfig: WorkspaceConfig,
@@ -626,6 +699,21 @@ async function buildWithWorkspace(
 	};
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// Build Orchestration — Standard (Non-Workspace)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Build all artifacts from source directories into harness-specific output.
+ *
+ * This is the main build entry point. It:
+ * - Delegates canonical parsing to Rosetta Stone (via loadKnowledgeArtifact → parseCanonical)
+ * - Delegates target translation to Rosetta Stone (via adapterRegistry → target translators)
+ * - Retains imperative concerns: scanning, dependency composition, shared MCP merge,
+ *   workspace overrides, dist policy, summaries, version embedding, and file writes
+ *
+ * Requirements: 1.3, 12.1, 12.2, 14.5, 14.10
+ */
 export async function build(options: BuildOptions): Promise<BuildResult> {
 	// Resolve source dirs — support both new knowledgeDirs and legacy knowledgeDir
 	const sourceDirs =

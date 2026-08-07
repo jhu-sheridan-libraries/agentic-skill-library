@@ -21,6 +21,7 @@ import {
 } from "./collection-builder";
 import { evalCommand } from "./eval";
 import { registerGuildCommands } from "./guild/cli";
+import { registerRosettaCommands } from "./rosetta-cli";
 import { commandMetaRegistry } from "./help/metadata";
 import {
 	type RootCommand,
@@ -512,6 +513,9 @@ if (import.meta.main !== false) {
 
 	// Register guild commands
 	registerGuildCommands(program);
+
+	// Register rosetta commands
+	registerRosettaCommands(program);
 
 	// Register `kanon help [command]` subcommand
 	program
