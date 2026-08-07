@@ -17,9 +17,12 @@ import type {
 	SourceDocument,
 	TranslationDiagnostic,
 } from "../../../schemas";
-import { codePointCompare } from "../../contracts";
 import { renderDeterministicYaml } from "../../canonical";
-import type { SourcePrintOutput, SourceTranslatorContext } from "../../registry";
+import { codePointCompare } from "../../contracts";
+import type {
+	SourcePrintOutput,
+	SourceTranslatorContext,
+} from "../../registry";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Pretty-Printer
@@ -41,7 +44,12 @@ export function prettyPrintSuperpowers(
 
 	const fm = (artifact.frontmatter ?? {}) as Record<string, unknown>;
 	const body = (artifact.body as string) ?? "";
-	const workflows = (artifact.workflows as Array<{ name: string; filename: string; content: string }>) ?? [];
+	const workflows =
+		(artifact.workflows as Array<{
+			name: string;
+			filename: string;
+			content: string;
+		}>) ?? [];
 
 	// Build SKILL.md frontmatter
 	const skillFm: Record<string, unknown> = {};
@@ -60,7 +68,10 @@ export function prettyPrintSuperpowers(
 
 	// Render SKILL.md
 	const SUPERPOWERS_KEY_ORDER = ["name", "description", "requires", "keywords"];
-	const frontmatterYaml = renderDeterministicYaml(skillFm, SUPERPOWERS_KEY_ORDER);
+	const frontmatterYaml = renderDeterministicYaml(
+		skillFm,
+		SUPERPOWERS_KEY_ORDER,
+	);
 	const skillContent = `---\n${frontmatterYaml}---\n${body}\n`;
 
 	documents.push({

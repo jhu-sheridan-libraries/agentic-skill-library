@@ -17,11 +17,7 @@ import {
 	type TargetTranslationOutput,
 	type TargetTranslator,
 } from "../rosetta/registry";
-import {
-	arbFormatContract,
-	arbFormatIdentifier,
-	arbLifecycleMetadata,
-} from "./rosetta-arbitraries";
+import { arbFormatContract, arbFormatIdentifier } from "./rosetta-arbitraries";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Stub Translators

@@ -20,9 +20,12 @@ import type {
 	SourceDocument,
 	TranslationDiagnostic,
 } from "../../../schemas";
-import { codePointCompare, stableJsonStringify } from "../../contracts";
 import { renderDeterministicYaml } from "../../canonical";
-import type { SourcePrintOutput, SourceTranslatorContext } from "../../registry";
+import { codePointCompare, stableJsonStringify } from "../../contracts";
+import type {
+	SourcePrintOutput,
+	SourceTranslatorContext,
+} from "../../registry";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Pretty-Printer
@@ -52,9 +55,23 @@ export function prettyPrintKiroNative(
 	// Build the primary markdown frontmatter
 	const steeringFm: Record<string, unknown> = {};
 	const STEERING_KEY_ORDER = [
-		"name", "displayName", "description", "keywords", "author", "version",
-		"type", "harnesses", "inclusion", "file_patterns", "categories",
-		"ecosystem", "depends", "enhances", "maturity", "trust", "audience",
+		"name",
+		"displayName",
+		"description",
+		"keywords",
+		"author",
+		"version",
+		"type",
+		"harnesses",
+		"inclusion",
+		"file_patterns",
+		"categories",
+		"ecosystem",
+		"depends",
+		"enhances",
+		"maturity",
+		"trust",
+		"audience",
 	];
 
 	for (const key of STEERING_KEY_ORDER) {
@@ -73,7 +90,10 @@ export function prettyPrintKiroNative(
 	}
 
 	// Render primary markdown
-	const frontmatterYaml = renderDeterministicYaml(steeringFm, STEERING_KEY_ORDER);
+	const frontmatterYaml = renderDeterministicYaml(
+		steeringFm,
+		STEERING_KEY_ORDER,
+	);
 	const primaryPath = `${name}.md`;
 	const primaryContent = `---\n${frontmatterYaml}---\n${body}\n`;
 

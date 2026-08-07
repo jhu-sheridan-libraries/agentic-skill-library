@@ -520,7 +520,7 @@ function globToRegex(pattern: string): string {
 		} else if (char === "\\") {
 			// Escape the next character
 			if (i + 1 < pattern.length) {
-				result += "\\" + pattern[i + 1];
+				result += `\\${pattern[i + 1]}`;
 				i += 2;
 			} else {
 				result += "\\\\";
@@ -595,8 +595,8 @@ function matchFrontmatterKey(
 		const trimmed = line.trimStart();
 		// Match key at start of line: "key:" or "key :"
 		if (
-			trimmed.startsWith(pattern + ":") ||
-			trimmed.startsWith(pattern + " :")
+			trimmed.startsWith(`${pattern}:`) ||
+			trimmed.startsWith(`${pattern} :`)
 		) {
 			return true;
 		}
@@ -682,7 +682,7 @@ function matchYamlKey(
 	const lines = yamlContent.split("\n");
 	for (const line of lines) {
 		// Top-level key: starts at column 0 with "key:" or "key :"
-		if (line.startsWith(pattern + ":") || line.startsWith(pattern + " :")) {
+		if (line.startsWith(`${pattern}:`) || line.startsWith(`${pattern} :`)) {
 			return true;
 		}
 	}

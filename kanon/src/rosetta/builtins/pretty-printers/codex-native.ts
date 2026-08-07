@@ -19,7 +19,10 @@ import type {
 	TranslationDiagnostic,
 } from "../../../schemas";
 import { codePointCompare } from "../../contracts";
-import type { SourcePrintOutput, SourceTranslatorContext } from "../../registry";
+import type {
+	SourcePrintOutput,
+	SourceTranslatorContext,
+} from "../../registry";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TOML Rendering Helper
@@ -47,7 +50,7 @@ function renderMcpToml(servers: McpServerDefinition[]): string {
 		if (server.env && Object.keys(server.env).length > 0) {
 			const envEntries = Object.keys(server.env)
 				.sort(codePointCompare)
-				.map((k) => `${quoteTomlKey(k)} = ${quoteTomlString(server.env![k])}`)
+				.map((k) => `${quoteTomlKey(k)} = ${quoteTomlString(server.env?.[k])}`)
 				.join(", ");
 			lines.push(`env = { ${envEntries} }`);
 		}

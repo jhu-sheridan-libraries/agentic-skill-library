@@ -9,10 +9,9 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { cp } from "node:fs/promises";
 
 const CLI_PATH = resolve(import.meta.dir, "../cli.ts");
 const TEMPLATES_SRC = resolve(import.meta.dir, "../../templates");
@@ -109,6 +108,7 @@ async function writeCanonicalArtifact(
 }
 
 // ANSI regex for verification
+// biome-ignore lint/suspicious/noControlCharactersInRegex: intentionally matching ANSI escape sequences
 const ANSI_REGEX = /\x1b\[/;
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -266,11 +266,7 @@ describe("kanon rosetta detect", () => {
 
 	test("detect human output exits non-zero when no format matches", async () => {
 		const artifactDir = await writeCanonicalArtifact("detect-no-match");
-		const { exitCode, stdout } = await runCli(
-			"rosetta",
-			"detect",
-			artifactDir,
-		);
+		const { exitCode, stdout } = await runCli("rosetta", "detect", artifactDir);
 		// Human output exits 1 when no match
 		expect(exitCode).toBe(1);
 		expect(stdout).toContain("No unique format match");
@@ -286,12 +282,7 @@ describe("kanon rosetta detect", () => {
 
 	test("detect --json includes diagnostics", async () => {
 		const artifactDir = await writeCanonicalArtifact("detect-diags");
-		const { stdout } = await runCli(
-			"rosetta",
-			"detect",
-			artifactDir,
-			"--json",
-		);
+		const { stdout } = await runCli("rosetta", "detect", artifactDir, "--json");
 		const result = JSON.parse(stdout);
 		expect(result.diagnostics).toBeDefined();
 		expect(Array.isArray(result.diagnostics)).toBe(true);
@@ -425,12 +416,7 @@ describe("kanon rosetta — no-color JSON", () => {
 
 	test("detect --json never contains ANSI escape sequences", async () => {
 		const artifactDir = await writeCanonicalArtifact("detect-no-color");
-		const { stdout } = await runCli(
-			"rosetta",
-			"detect",
-			artifactDir,
-			"--json",
-		);
+		const { stdout } = await runCli("rosetta", "detect", artifactDir, "--json");
 		expect(stdout).not.toMatch(ANSI_REGEX);
 	});
 });

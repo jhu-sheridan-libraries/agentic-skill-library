@@ -14,17 +14,13 @@
 
 import { describe, expect, it } from "bun:test";
 import fc from "fast-check";
-
-import type {
-	TranslationDiagnostic,
-	TranslationPlan,
-} from "../schemas";
 import {
 	createDiagnostic,
 	getBlockingDiagnostics,
 	hasBlockingDiagnostics,
 	withholdBlockedOperations,
 } from "../rosetta";
+import type { TranslationDiagnostic, TranslationPlan } from "../schemas";
 import {
 	arbFormatIdentifier,
 	arbNormalizedRelativePath,
@@ -89,9 +85,7 @@ function arbSourceLossDiagnostic(
 ): fc.Arbitrary<TranslationDiagnostic> {
 	return fc
 		.tuple(
-			sourcePath
-				? fc.constant(sourcePath)
-				: arbNormalizedRelativePath(),
+			sourcePath ? fc.constant(sourcePath) : arbNormalizedRelativePath(),
 			fc.stringMatching(/^[a-z][a-z0-9._-]{1,20}$/),
 		)
 		.map(([path, field]) =>
@@ -128,7 +122,7 @@ function arbInfoDiagnostic(): fc.Arbitrary<TranslationDiagnostic> {
  * Generates a blocking diagnostic whose source path matches
  * one of the provided plan paths (to test partial withholding).
  */
-function arbBlockingDiagForPath(
+function _arbBlockingDiagForPath(
 	paths: readonly string[],
 ): fc.Arbitrary<TranslationDiagnostic> {
 	return fc
@@ -338,7 +332,10 @@ describe("Property 8: Inbound validation gates plans by diagnostic class", () =>
 					// None of these should be blocking
 					expect(hasBlockingDiagnostics(allDiags)).toBe(false);
 
-					const result = withholdBlockedOperations(plan, getBlockingDiagnostics(allDiags));
+					const result = withholdBlockedOperations(
+						plan,
+						getBlockingDiagnostics(allDiags),
+					);
 
 					// No blocking diagnostics → plan is eligible, all operations retained
 					expect(result.applicationState).toBe("eligible");

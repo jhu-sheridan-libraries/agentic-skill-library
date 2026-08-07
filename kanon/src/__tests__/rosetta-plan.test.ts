@@ -9,10 +9,8 @@
 import { describe, expect, test } from "bun:test";
 import { createDiagnostic } from "../rosetta/diagnostics";
 import {
-	type CreatePlanOptions,
 	createPlan,
 	normalizePlanPath,
-	type PlanValidationResult,
 	sortPlanDeterministically,
 	validatePlan,
 	withholdBlockedOperations,

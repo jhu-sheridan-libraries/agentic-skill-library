@@ -17,27 +17,32 @@
 import { dirname, resolve } from "node:path";
 import chalk from "chalk";
 import type { Command } from "commander";
+import { loadForgeConfig } from "./config";
+import { PRETTY_PRINTERS } from "./rosetta/builtins/pretty-printers/index";
+import {
+	HARNESS_NATIVE_SOURCE_TRANSLATORS,
+	PATH_BASED_SOURCE_TRANSLATORS,
+} from "./rosetta/builtins/sources/index";
+import { TARGET_TRANSLATORS } from "./rosetta/builtins/targets/index";
 import {
 	BUILTIN_FORMAT_CONTRACTS,
 	createEngine,
 	createRegistryBuilder,
-	renderHuman,
-	renderJson,
 	type JsonRenderOptions,
 	type RegistryExtension,
+	renderHuman,
+	renderJson,
 	type TranslationRegistrySnapshot,
 } from "./rosetta/index";
-import {
-	PATH_BASED_SOURCE_TRANSLATORS,
-	HARNESS_NATIVE_SOURCE_TRANSLATORS,
-} from "./rosetta/builtins/sources/index";
-import { TARGET_TRANSLATORS } from "./rosetta/builtins/targets/index";
-import { PRETTY_PRINTERS } from "./rosetta/builtins/pretty-printers/index";
-import { loadTemplateBundle } from "./template-bundle-loader";
-import { loadForgeConfig } from "./config";
-import { registerProfilesCommands } from "./rosetta-profiles-cli";
-import type { FormatContract, SourceDocument, TranslationProfile, TranslationRequest } from "./schemas";
 import type { ImmutableTemplateBundle } from "./rosetta/templates";
+import { registerProfilesCommands } from "./rosetta-profiles-cli";
+import type {
+	FormatContract,
+	SourceDocument,
+	TranslationProfile,
+	TranslationRequest,
+} from "./schemas";
+import { loadTemplateBundle } from "./template-bundle-loader";
 import {
 	readArtifactDocuments,
 	resolveAllowedRoot,
@@ -101,7 +106,9 @@ function getTemplates(): ImmutableTemplateBundle {
  * Load source documents from a given path for use with the Rosetta Stone engine.
  * Resolves the path as an allowed root and reads all files in the artifact directory.
  */
-async function loadSourceDocuments(sourcePath: string): Promise<SourceDocument[]> {
+async function loadSourceDocuments(
+	sourcePath: string,
+): Promise<SourceDocument[]> {
 	const resolvedPath = resolve(sourcePath);
 
 	// The parent directory serves as the allowed root for containment
@@ -129,7 +136,10 @@ interface DirectionResult {
  * - both --from and --to → transcode
  * - neither → error
  */
-function resolveDirection(from?: string, to?: string): DirectionResult | string {
+function resolveDirection(
+	from?: string,
+	to?: string,
+): DirectionResult | string {
 	if (from && to) {
 		return { mode: "transcode", sourceFormatId: from, targetFormatId: to };
 	}
@@ -233,14 +243,14 @@ async function formatsCommand(options: FormatsOptions): Promise<void> {
 			);
 			console.log(`    Variants: ${display.join(", ")}`);
 		}
-		console.log(
-			`    Schema versions: ${contract.canonicalVersions}`,
-		);
+		console.log(`    Schema versions: ${contract.canonicalVersions}`);
 		console.log();
 	}
 }
 
-function formatContractToJson(contract: FormatContract): Record<string, unknown> {
+function formatContractToJson(
+	contract: FormatContract,
+): Record<string, unknown> {
 	return {
 		formatId: contract.id,
 		direction: contract.direction,
@@ -278,7 +288,9 @@ async function detectCommand(
 	const documents = await loadSourceDocuments(sourcePath);
 
 	if (documents.length === 0) {
-		console.error(chalk.red("Error: No documents found at the specified path."));
+		console.error(
+			chalk.red("Error: No documents found at the specified path."),
+		);
 		process.exit(1);
 	}
 
@@ -330,7 +342,12 @@ async function detectCommand(
 	if (result.diagnostics.length > 0) {
 		console.log(chalk.bold("  Diagnostics:"));
 		for (const diag of result.diagnostics) {
-			const icon = diag.severity === "error" ? "✗" : diag.severity === "warning" ? "⚠" : "ℹ";
+			const icon =
+				diag.severity === "error"
+					? "✗"
+					: diag.severity === "warning"
+						? "⚠"
+						: "ℹ";
 			console.log(`    ${icon} [${diag.code}] ${diag.message}`);
 		}
 	}
@@ -368,7 +385,9 @@ async function inspectCommand(
 
 	if (options.profile && !profile) {
 		console.error(
-			chalk.red(`Error: Translation profile "${options.profile}" not found in config.`),
+			chalk.red(
+				`Error: Translation profile "${options.profile}" not found in config.`,
+			),
 		);
 		process.exit(1);
 	}
@@ -419,7 +438,9 @@ async function inspectCommand(
 	const documents = await loadSourceDocuments(sourcePath);
 
 	if (documents.length === 0) {
-		console.error(chalk.red("Error: No documents found at the specified path."));
+		console.error(
+			chalk.red("Error: No documents found at the specified path."),
+		);
 		process.exit(1);
 	}
 
@@ -471,7 +492,9 @@ async function translateCommand(
 
 	if (options.profile && !profile) {
 		console.error(
-			chalk.red(`Error: Translation profile "${options.profile}" not found in config.`),
+			chalk.red(
+				`Error: Translation profile "${options.profile}" not found in config.`,
+			),
 		);
 		process.exit(1);
 	}
@@ -522,7 +545,9 @@ async function translateCommand(
 	const documents = await loadSourceDocuments(sourcePath);
 
 	if (documents.length === 0) {
-		console.error(chalk.red("Error: No documents found at the specified path."));
+		console.error(
+			chalk.red("Error: No documents found at the specified path."),
+		);
 		process.exit(1);
 	}
 
@@ -558,7 +583,8 @@ async function translateCommand(
 			plan: result.plan
 				? {
 						operationCount: result.plan.outputFiles?.length ?? 0,
-						outputFiles: result.plan.outputFiles?.map((f) => f.relativePath) ?? [],
+						outputFiles:
+							result.plan.outputFiles?.map((f) => f.relativePath) ?? [],
 					}
 				: null,
 		};
@@ -649,6 +675,7 @@ function buildTranslationRequest(
 					options: {},
 				},
 				target: {
+					// biome-ignore lint/style/noNonNullAssertion: targetFormatId guaranteed for outbound
 					formatId: direction.targetFormatId!,
 					variant: resolved.variant,
 					options: resolved.options as Record<string, never>,
@@ -667,6 +694,7 @@ function buildTranslationRequest(
 					options: {},
 				},
 				target: {
+					// biome-ignore lint/style/noNonNullAssertion: targetFormatId guaranteed for transcode
 					formatId: direction.targetFormatId!,
 					variant: resolved.variant,
 					options: resolved.options as Record<string, never>,
@@ -717,9 +745,7 @@ export function registerRosettaCommands(program: Command): void {
 		.option("--strict", "Promote compatibility diagnostics to errors")
 		.option("--json", "Output as versioned JSON")
 		.option("--profile <name>", "Named translation profile from config")
-		.action((path: string, opts: InspectOptions) =>
-			inspectCommand(path, opts),
-		);
+		.action((path: string, opts: InspectOptions) => inspectCommand(path, opts));
 
 	rosettaCmd
 		.command("translate <path>")

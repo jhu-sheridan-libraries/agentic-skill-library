@@ -22,15 +22,7 @@
  * Requirements: 1.3, 9.1, 12.2, 13.4
  */
 
-import {
-	chmod,
-	mkdir,
-	realpath,
-	rename,
-	rm,
-	stat,
-	writeFile,
-} from "node:fs/promises";
+import { chmod, mkdir, rename, rm, stat, writeFile } from "node:fs/promises";
 import { dirname, join, resolve, sep } from "node:path";
 import { codePointCompare } from "./rosetta/contracts";
 import type { TranslationPlan } from "./schemas";
@@ -115,7 +107,9 @@ function nextOperationId(): string {
  * Find the nearest existing ancestor directory for a given path.
  * Walks up the directory tree until an existing directory is found.
  */
-async function findNearestExistingParent(absolutePath: string): Promise<string> {
+async function findNearestExistingParent(
+	absolutePath: string,
+): Promise<string> {
 	let current = dirname(absolutePath);
 	while (true) {
 		try {
@@ -225,7 +219,9 @@ async function atomicWrite(
 	const tempPath = finalPath + tempSuffix;
 
 	const bytes =
-		typeof content === "string" ? Buffer.byteLength(content, "utf-8") : content.length;
+		typeof content === "string"
+			? Buffer.byteLength(content, "utf-8")
+			: content.length;
 
 	await writeFile(tempPath, content);
 
@@ -312,7 +308,9 @@ export async function stageArtifactFiles(
  *
  * Returns ApplicationReport with all outcomes.
  */
-export async function applyPlan(options: ApplyPlanOptions): Promise<ApplicationReport> {
+export async function applyPlan(
+	options: ApplyPlanOptions,
+): Promise<ApplicationReport> {
 	const { plan, destinationRoot, collisionPolicy, dryRun = false } = options;
 	const operationId = nextOperationId();
 	const timestamp = new Date().toISOString();
@@ -349,10 +347,7 @@ export async function applyPlan(options: ApplyPlanOptions): Promise<ApplicationR
 
 	// If using staging for multi-file artifacts, set up staging dir
 	if (sortedFiles.length > 1 && !dryRun) {
-		stagedDir = join(
-			destinationRoot.resolvedPath,
-			`.staging-${operationId}`,
-		);
+		stagedDir = join(destinationRoot.resolvedPath, `.staging-${operationId}`);
 	}
 
 	// Process each file
@@ -384,7 +379,8 @@ export async function applyPlan(options: ApplyPlanOptions): Promise<ApplicationR
 		try {
 			await verifyParentWithinRoot(absoluteDest, destinationRoot);
 		} catch (error) {
-			const msg = error instanceof Error ? error.message : "Symlink escape detected";
+			const msg =
+				error instanceof Error ? error.message : "Symlink escape detected";
 			outcomes.push({
 				path: file.relativePath,
 				action: "failed",
@@ -396,7 +392,10 @@ export async function applyPlan(options: ApplyPlanOptions): Promise<ApplicationR
 		}
 
 		// Recheck collision policy immediately before write
-		const collisionDecision = await recheckCollision(absoluteDest, collisionPolicy);
+		const collisionDecision = await recheckCollision(
+			absoluteDest,
+			collisionPolicy,
+		);
 
 		if (collisionDecision === "abort") {
 			outcomes.push({

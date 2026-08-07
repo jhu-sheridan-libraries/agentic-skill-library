@@ -6,13 +6,12 @@
  */
 
 import { describe, expect, test } from "bun:test";
-import type { TranslationDiagnostic } from "../schemas";
 import {
-	type InspectionContext,
-	type InspectionReport,
 	buildInspectionReport,
+	type InspectionContext,
 	validateInspectionReport,
 } from "../rosetta/inspection";
+import type { TranslationDiagnostic } from "../schemas";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Helpers
@@ -446,7 +445,14 @@ describe("buildInspectionReport", () => {
 						confidence: 0.9,
 						threshold: 0.7,
 						qualifies: true,
-						evidence: [{ ruleId: "r1", kind: "path-glob", outcome: "matched", paths: ["a.md"] }],
+						evidence: [
+							{
+								ruleId: "r1",
+								kind: "path-glob",
+								outcome: "matched",
+								paths: ["a.md"],
+							},
+						],
 					},
 				],
 				selectedFormatId: "kiro",
@@ -454,7 +460,11 @@ describe("buildInspectionReport", () => {
 			},
 			diagnostics: [
 				makeDiagnostic({ code: "RS_X_CODE", severity: "warning" }),
-				makeDiagnostic({ code: "RS_A_CODE", severity: "error", blocking: true }),
+				makeDiagnostic({
+					code: "RS_A_CODE",
+					severity: "error",
+					blocking: true,
+				}),
 			],
 			options: {
 				effective: { b: 2, a: 1 },

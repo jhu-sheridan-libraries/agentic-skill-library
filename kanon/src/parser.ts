@@ -2,7 +2,7 @@ import { exists, readdir, readFile } from "node:fs/promises";
 import { basename, join, resolve } from "node:path";
 import matter from "gray-matter";
 import yaml from "js-yaml";
-import { getKnownFrontmatterKeys, parseCanonical } from "./rosetta/canonical";
+import { parseCanonical } from "./rosetta/canonical";
 import {
 	type CanonicalHook,
 	type Frontmatter,
@@ -10,7 +10,6 @@ import {
 	HarnessNameSchema,
 	HooksFileSchema,
 	type KnowledgeArtifact,
-	KnowledgeArtifactSchema,
 	type McpServerDefinition,
 	McpServersFileSchema,
 	type SourceDocument,
@@ -297,7 +296,7 @@ const BODY_OVERRIDE_RE = /^body\.(.+)\.md$/;
  * discarded — the artifact's canonical frontmatter always wins). Files whose
  * `<harness>` token is not a supported harness are ignored with a warning.
  */
-async function parseBodyOverrides(
+async function _parseBodyOverrides(
 	artifactDir: string,
 ): Promise<ParseResult<Record<string, string>>> {
 	const warnings: string[] = [];

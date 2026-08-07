@@ -8,7 +8,7 @@
  */
 
 import { describe, expect, it } from "bun:test";
-import { type DetectionRequest, detect } from "../rosetta/detector";
+import { detect } from "../rosetta/detector";
 import {
 	createRegistryBuilder,
 	type SourceTranslator,

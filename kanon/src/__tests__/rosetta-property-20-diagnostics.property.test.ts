@@ -15,14 +15,6 @@
 
 import { describe, expect, it } from "bun:test";
 import fc from "fast-check";
-import type {
-	CanonicalDiagnosticLocation,
-	RosettaSeverity,
-	SourceDiagnosticLocation,
-	TranslationDiagnostic,
-	TranslationPhase,
-} from "../schemas";
-import { TranslationDiagnosticSchema } from "../schemas";
 import {
 	createDiagnostic,
 	DIAGNOSTIC_CODE_REGISTRY,
@@ -32,12 +24,18 @@ import {
 	sortDiagnostics,
 	TRANSLATION_PHASE_ORDER,
 } from "../rosetta/diagnostics";
+import type {
+	CanonicalDiagnosticLocation,
+	RosettaSeverity,
+	SourceDiagnosticLocation,
+	TranslationDiagnostic,
+	TranslationPhase,
+} from "../schemas";
+import { TranslationDiagnosticSchema } from "../schemas";
 import {
 	arbFormatIdentifier,
 	arbNormalizedRelativePath,
-	arbRosettaSeverity,
 	arbTranslationDiagnostic,
-	arbTranslationPhase,
 } from "./rosetta-arbitraries";
 
 // ═══════════════════════════════════════════════════════════════════════════════

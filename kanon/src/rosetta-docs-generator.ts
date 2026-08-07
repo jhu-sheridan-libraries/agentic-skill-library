@@ -28,10 +28,7 @@ import type {
 	RosettaCompatibilityEntry,
 	RosettaCompatibilityProfile,
 } from "./schemas";
-import {
-	AcquisitionProfileSchema,
-	TranslationProfileSchema,
-} from "./schemas";
+import { AcquisitionProfileSchema, TranslationProfileSchema } from "./schemas";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Configuration
@@ -73,7 +70,8 @@ function generateFormatReference(): string {
 	];
 
 	for (const contract of BUILTIN_FORMAT_CONTRACTS) {
-		const aliases = contract.aliases.length > 0 ? contract.aliases.join(", ") : "—";
+		const aliases =
+			contract.aliases.length > 0 ? contract.aliases.join(", ") : "—";
 		const harness = contract.harness ?? "none";
 		const defaultVariant = contract.defaultVariant ?? "—";
 		const lifecycle = contract.lifecycle.status;
@@ -118,16 +116,19 @@ function generateVariantReference(): string {
 		lines.push("");
 		lines.push(`Default variant: \`${contract.defaultVariant ?? "none"}\``);
 		lines.push("");
-		lines.push("| Variant | Description | Path Conventions | Option Overrides |");
+		lines.push(
+			"| Variant | Description | Path Conventions | Option Overrides |",
+		);
 		lines.push("|---|---|---|---|");
 
 		for (const [variantId, variant] of variants) {
-			const paths = variant.pathConventions
-				?.map((p) => `\`${p.pattern}\``)
-				.join(", ") ?? "—";
-			const overrides = Object.keys(variant.optionOverrides ?? {}).length > 0
-				? JSON.stringify(variant.optionOverrides)
-				: "—";
+			const paths =
+				variant.pathConventions?.map((p) => `\`${p.pattern}\``).join(", ") ??
+				"—";
+			const overrides =
+				Object.keys(variant.optionOverrides ?? {}).length > 0
+					? JSON.stringify(variant.optionOverrides)
+					: "—";
 			lines.push(
 				`| \`${variantId}\` | ${escapeCell(variant.description ?? "—")} | ${paths} | ${escapeCell(overrides)} |`,
 			);
@@ -160,7 +161,9 @@ function generateDetectionReference(): string {
 		lines.push("");
 		lines.push(`Threshold: ${contract.detection.threshold}`);
 		lines.push("");
-		lines.push("| Rule ID | Kind | Pattern | Weight | Required | Evidence Label |");
+		lines.push(
+			"| Rule ID | Kind | Pattern | Weight | Required | Evidence Label |",
+		);
 		lines.push("|---|---|---|---|---|---|");
 
 		for (const rule of contract.detection.rules) {
@@ -199,7 +202,9 @@ function generateLifecycleReference(): string {
 		const contracts = byStatus[status];
 		if (!contracts || contracts.length === 0) continue;
 
-		lines.push(`## ${status.charAt(0).toUpperCase() + status.slice(1)} Formats`);
+		lines.push(
+			`## ${status.charAt(0).toUpperCase() + status.slice(1)} Formats`,
+		);
 		lines.push("");
 		lines.push("| Format | Introduced In | Deprecated In | Replacement |");
 		lines.push("|---|---|---|---|");
@@ -207,8 +212,10 @@ function generateLifecycleReference(): string {
 		for (const contract of contracts) {
 			const lc = contract.lifecycle;
 			const introduced = lc.introducedIn ?? "—";
-			const deprecated = "deprecatedIn" in lc ? (lc.deprecatedIn as string) ?? "—" : "—";
-			const replacement = "replacement" in lc ? (lc.replacement as string) ?? "—" : "—";
+			const deprecated =
+				"deprecatedIn" in lc ? ((lc.deprecatedIn as string) ?? "—") : "—";
+			const replacement =
+				"replacement" in lc ? ((lc.replacement as string) ?? "—") : "—";
 			lines.push(
 				`| \`${contract.id}\` | ${introduced} | ${deprecated} | ${replacement} |`,
 			);
@@ -265,12 +272,17 @@ interface ZodFieldInfo {
 	optional: boolean;
 }
 
-function getZodInnerType(def: { type?: string; innerType?: { _zod?: { def?: { type?: string } } } }): string {
+function getZodInnerType(def: {
+	type?: string;
+	innerType?: { _zod?: { def?: { type?: string } } };
+}): string {
 	const inner = def.innerType?._zod?.def;
 	return inner?.type ?? "unknown";
 }
 
-function extractZodFields(schema: { shape: Record<string, unknown> }): ZodFieldInfo[] {
+function extractZodFields(schema: {
+	shape: Record<string, unknown>;
+}): ZodFieldInfo[] {
 	const fields: ZodFieldInfo[] = [];
 
 	const shape = schema.shape;
@@ -280,7 +292,15 @@ function extractZodFields(schema: { shape: Record<string, unknown> }): ZodFieldI
 		let optional = false;
 
 		// Zod 4 internal structure: _zod.def.type
-		const s = fieldSchema as { _zod?: { def?: { type?: string; defaultValue?: unknown; innerType?: { _zod?: { def?: { type?: string } } } } } };
+		const s = fieldSchema as {
+			_zod?: {
+				def?: {
+					type?: string;
+					defaultValue?: unknown;
+					innerType?: { _zod?: { def?: { type?: string } } };
+				};
+			};
+		};
 		const def = s?._zod?.def;
 		if (def) {
 			if (def.type === "default") {
@@ -347,9 +367,14 @@ function generateProfileFieldReference(): string {
 	lines.push("");
 	lines.push("## Security Constraints");
 	lines.push("");
-	lines.push("- `credentialReference` in acquisition profiles accepts `${ENV_VAR}` references only");
+	lines.push(
+		// biome-ignore lint/suspicious/noTemplateCurlyInString: literal ${ENV_VAR} in documentation output
+		"- `credentialReference` in acquisition profiles accepts `${ENV_VAR}` references only",
+	);
 	lines.push("- Literal credentials are rejected during profile validation");
-	lines.push("- Sensitive values are never logged or included in diagnostic payloads");
+	lines.push(
+		"- Sensitive values are never logged or included in diagnostic payloads",
+	);
 	lines.push("");
 
 	return lines.join("\n");
@@ -376,7 +401,9 @@ function generateNormalizationReference(): string {
 		lines.push("|---|---|---|");
 
 		for (const rule of contract.normalizationRules) {
-			lines.push(`| \`${rule.id}\` | ${escapeCell(rule.description)} | ${rule.scope} |`);
+			lines.push(
+				`| \`${rule.id}\` | ${escapeCell(rule.description)} | ${rule.scope} |`,
+			);
 		}
 
 		lines.push("");
@@ -403,18 +430,28 @@ function generateSecurityReference(): string {
 
 	for (const contract of BUILTIN_FORMAT_CONTRACTS) {
 		const policy = contract.security.sensitiveValuePolicy;
-		const patterns = contract.security.allowedReferencePatterns.length > 0
-			? contract.security.allowedReferencePatterns.map((p) => `\`${p}\``).join(", ")
-			: "—";
+		const patterns =
+			contract.security.allowedReferencePatterns.length > 0
+				? contract.security.allowedReferencePatterns
+						.map((p) => `\`${p}\``)
+						.join(", ")
+				: "—";
 		lines.push(`| \`${contract.id}\` | ${policy} | ${patterns} |`);
 	}
 
 	lines.push("");
 	lines.push("## Policy Descriptions");
 	lines.push("");
-	lines.push("- **reject**: Sensitive values are rejected entirely. No credentials allowed in content.");
-	lines.push("- **reference-only**: Only `${ENV_VAR}` style references are permitted. Raw secrets are rejected.");
-	lines.push("- **preserve**: Sensitive values pass through unchanged (not currently used by built-ins).");
+	lines.push(
+		"- **reject**: Sensitive values are rejected entirely. No credentials allowed in content.",
+	);
+	lines.push(
+		// biome-ignore lint/suspicious/noTemplateCurlyInString: literal ${ENV_VAR} in documentation output
+		"- **reference-only**: Only `${ENV_VAR}` style references are permitted. Raw secrets are rejected.",
+	);
+	lines.push(
+		"- **preserve**: Sensitive values pass through unchanged (not currently used by built-ins).",
+	);
 	lines.push("");
 
 	return lines.join("\n");
@@ -562,9 +599,14 @@ function generateDegradationReference(): string {
 
 	for (const contract of BUILTIN_FORMAT_CONTRACTS) {
 		const profile = contract.compatibility as RosettaCompatibilityProfile;
-		const degradedCaps: Array<{ cap: string; entry: RosettaCompatibilityEntry }> = [];
+		const degradedCaps: Array<{
+			cap: string;
+			entry: RosettaCompatibilityEntry;
+		}> = [];
 
-		for (const [cap, entry] of Object.entries(profile) as Array<[string, RosettaCompatibilityEntry]>) {
+		for (const [cap, entry] of Object.entries(profile) as Array<
+			[string, RosettaCompatibilityEntry]
+		>) {
 			if (entry.support !== "full") {
 				degradedCaps.push({ cap, entry });
 			}
@@ -577,7 +619,9 @@ function generateDegradationReference(): string {
 		lines.push("| Capability | Support | Degradation Action |");
 		lines.push("|---|---|---|");
 
-		for (const { cap, entry } of degradedCaps.sort((a, b) => a.cap.localeCompare(b.cap))) {
+		for (const { cap, entry } of degradedCaps.sort((a, b) =>
+			a.cap.localeCompare(b.cap),
+		)) {
 			const action = entry.degradation ?? "—";
 			lines.push(`| ${cap} | ${entry.support} | ${action} |`);
 		}
@@ -606,7 +650,9 @@ function generateDiagnosticConventions(): string {
 		"|---|---|---|---|---|",
 	];
 
-	const entries = Object.values(DIAGNOSTIC_CODE_REGISTRY) as DiagnosticCodeMetadata[];
+	const entries = Object.values(
+		DIAGNOSTIC_CODE_REGISTRY,
+	) as DiagnosticCodeMetadata[];
 	const sorted = [...entries].sort((a, b) => a.code.localeCompare(b.code));
 
 	for (const entry of sorted) {
@@ -618,7 +664,9 @@ function generateDiagnosticConventions(): string {
 	lines.push("");
 	lines.push("## Code Naming Convention");
 	lines.push("");
-	lines.push("All codes use the `RS_` prefix followed by a category and optional detail:");
+	lines.push(
+		"All codes use the `RS_` prefix followed by a category and optional detail:",
+	);
 	lines.push("");
 	lines.push("```");
 	lines.push("RS_<CATEGORY>_<DETAIL>");
@@ -629,12 +677,18 @@ function generateDiagnosticConventions(): string {
 	lines.push("| Severity | Meaning | Blocks Application |");
 	lines.push("|---|---|---|");
 	lines.push("| `info` | Informational note | Never |");
-	lines.push("| `warning` | Potential issue, review recommended | Only in strict mode |");
-	lines.push("| `error` | Translation cannot proceed safely | Always (if blocking) |");
+	lines.push(
+		"| `warning` | Potential issue, review recommended | Only in strict mode |",
+	);
+	lines.push(
+		"| `error` | Translation cannot proceed safely | Always (if blocking) |",
+	);
 	lines.push("");
 	lines.push("## Phase Order");
 	lines.push("");
-	lines.push("Diagnostics sort by phase (lower = earlier), then severity, then code:");
+	lines.push(
+		"Diagnostics sort by phase (lower = earlier), then severity, then code:",
+	);
 	lines.push("");
 	lines.push("1. request");
 	lines.push("2. registry");
@@ -649,7 +703,9 @@ function generateDiagnosticConventions(): string {
 	lines.push("");
 	lines.push("## Safe Construction");
 	lines.push("");
-	lines.push("Use `createDiagnostic` from `./rosetta` — never embed raw content,");
+	lines.push(
+		"Use `createDiagnostic` from `./rosetta` — never embed raw content,",
+	);
 	lines.push("stack traces, or credential-like values in diagnostic messages.");
 	lines.push("Use `convertInternalError` for unexpected exceptions.");
 	lines.push("");
@@ -699,7 +755,9 @@ function main(): void {
 	}
 
 	console.log("");
-	console.log(`Done. Generated ${11} files, ${guidanceFiles.length} guidance files in docs/rosetta/`);
+	console.log(
+		`Done. Generated ${11} files, ${guidanceFiles.length} guidance files in docs/rosetta/`,
+	);
 }
 
 main();

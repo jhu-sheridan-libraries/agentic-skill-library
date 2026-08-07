@@ -17,11 +17,11 @@
 
 import { describe, expect, it } from "bun:test";
 import fc from "fast-check";
-import type { FormatContract, FormatOptionDefinition } from "../schemas";
 import {
 	type OptionResolutionContext,
 	resolveOptions,
 } from "../rosetta/resolution";
+import type { FormatContract, FormatOptionDefinition, JsonValue } from "../schemas";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Helpers
@@ -29,10 +29,25 @@ import {
 
 function makeFullProfile() {
 	const capabilities = [
-		"frontmatter", "body", "hooks", "mcp-servers", "workflows",
-		"body-overrides", "extra-fields", "path-scoping", "toggleable-rules",
-		"file-match-inclusion", "system-prompt-merging", "skill", "power",
-		"rule", "workflow", "agent", "prompt", "template", "reference-pack",
+		"frontmatter",
+		"body",
+		"hooks",
+		"mcp-servers",
+		"workflows",
+		"body-overrides",
+		"extra-fields",
+		"path-scoping",
+		"toggleable-rules",
+		"file-match-inclusion",
+		"system-prompt-merging",
+		"skill",
+		"power",
+		"rule",
+		"workflow",
+		"agent",
+		"prompt",
+		"template",
+		"reference-pack",
 	];
 	const profile: Record<string, { support: string }> = {};
 	for (const cap of capabilities) {
@@ -53,7 +68,11 @@ function makeContract(
 		aliases: [],
 		lifecycle: { status: "active" },
 		canonicalVersions: { min: "1.0.0", max: "1.0.0" },
-		schemaReference: { type: "zod", module: "schemas.ts", export: "KnowledgeArtifactSchema" },
+		schemaReference: {
+			type: "zod",
+			module: "schemas.ts",
+			export: "KnowledgeArtifactSchema",
+		},
 		pathConventions: [],
 		detection: { threshold: 0.5, rules: [] },
 		variants: {},
@@ -92,39 +111,45 @@ function arbOptionTypeWithDistinctValues(): fc.Arbitrary<{
 			defaultValue: false,
 		}),
 		// Number option: two distinct numbers
-		fc.tuple(
-			fc.integer({ min: -1000, max: 1000 }),
-			fc.integer({ min: -1000, max: 1000 }),
-		).filter(([a, b]) => a !== b).map(([a, b]) => ({
-			type: "number" as const,
-			valueA: a,
-			valueB: b,
-			defaultValue: 0,
-		})),
+		fc
+			.tuple(
+				fc.integer({ min: -1000, max: 1000 }),
+				fc.integer({ min: -1000, max: 1000 }),
+			)
+			.filter(([a, b]) => a !== b)
+			.map(([a, b]) => ({
+				type: "number" as const,
+				valueA: a,
+				valueB: b,
+				defaultValue: 0,
+			})),
 		// String option: two distinct non-empty strings
-		fc.tuple(
-			fc.string({ minLength: 1, maxLength: 20 }),
-			fc.string({ minLength: 1, maxLength: 20 }),
-		).filter(([a, b]) => a !== b).map(([a, b]) => ({
-			type: "string" as const,
-			valueA: a,
-			valueB: b,
-			defaultValue: "",
-		})),
+		fc
+			.tuple(
+				fc.string({ minLength: 1, maxLength: 20 }),
+				fc.string({ minLength: 1, maxLength: 20 }),
+			)
+			.filter(([a, b]) => a !== b)
+			.map(([a, b]) => ({
+				type: "string" as const,
+				valueA: a,
+				valueB: b,
+				defaultValue: "",
+			})),
 		// Enum option: pick two distinct values from a generated set
-		fc.array(
-			fc.stringMatching(/^[a-z]{2,8}$/),
-			{ minLength: 2, maxLength: 6 },
-		).filter((arr) => new Set(arr).size >= 2).map((arr) => {
-			const unique = [...new Set(arr)];
-			return {
-				type: "enum" as const,
-				valueA: unique[0],
-				valueB: unique[1],
-				enumValues: unique,
-				defaultValue: unique[0],
-			};
-		}),
+		fc
+			.array(fc.stringMatching(/^[a-z]{2,8}$/), { minLength: 2, maxLength: 6 })
+			.filter((arr) => new Set(arr).size >= 2)
+			.map((arr) => {
+				const unique = [...new Set(arr)];
+				return {
+					type: "enum" as const,
+					valueA: unique[0],
+					valueB: unique[1],
+					enumValues: unique,
+					defaultValue: unique[0],
+				};
+			}),
 	);
 }
 
@@ -132,16 +157,23 @@ function arbOptionTypeWithDistinctValues(): fc.Arbitrary<{
  * Generates a valid option key name (kebab-case identifier).
  */
 function arbOptionKey(): fc.Arbitrary<string> {
-	return fc.stringMatching(/^[a-z][a-z0-9-]{1,15}$/).filter(
-		(s) => !s.endsWith("-") && !s.includes("--"),
-	);
+	return fc
+		.stringMatching(/^[a-z][a-z0-9-]{1,15}$/)
+		.filter((s) => !s.endsWith("-") && !s.includes("--"));
 }
 
 /**
  * Generates a precedence layer: explicit, profile, canonical, or contract-default.
  */
-function arbPrecedenceLayer(): fc.Arbitrary<"explicit" | "profile" | "canonical" | "contract-default"> {
-	return fc.constantFrom("explicit", "profile", "canonical", "contract-default");
+function arbPrecedenceLayer(): fc.Arbitrary<
+	"explicit" | "profile" | "canonical" | "contract-default"
+> {
+	return fc.constantFrom(
+		"explicit",
+		"profile",
+		"canonical",
+		"contract-default",
+	);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -159,9 +191,11 @@ describe("Property 16: Effective option changes are observable in output", () =>
 						type: optionSpec.type,
 						description: `Test option ${key}`,
 						required: false,
-						defaultValue: optionSpec.defaultValue,
+						defaultValue: optionSpec.defaultValue as JsonValue,
 						effective: true,
-						...(optionSpec.enumValues ? { enumValues: optionSpec.enumValues } : {}),
+						...(optionSpec.enumValues
+							? { enumValues: optionSpec.enumValues }
+							: {}),
 					};
 					const contract = makeContract({ [key]: definition });
 
@@ -201,9 +235,11 @@ describe("Property 16: Effective option changes are observable in output", () =>
 						type: optionSpec.type,
 						description: `Test option ${key}`,
 						required: false,
-						defaultValue: optionSpec.defaultValue,
+						defaultValue: optionSpec.defaultValue as JsonValue,
 						effective: true,
-						...(optionSpec.enumValues ? { enumValues: optionSpec.enumValues } : {}),
+						...(optionSpec.enumValues
+							? { enumValues: optionSpec.enumValues }
+							: {}),
 					};
 					const contract = makeContract({ [key]: definition });
 
@@ -236,9 +272,11 @@ describe("Property 16: Effective option changes are observable in output", () =>
 						type: optionSpec.type,
 						description: `Test option ${key}`,
 						required: false,
-						defaultValue: optionSpec.defaultValue,
+						defaultValue: optionSpec.defaultValue as JsonValue,
 						effective: true,
-						...(optionSpec.enumValues ? { enumValues: optionSpec.enumValues } : {}),
+						...(optionSpec.enumValues
+							? { enumValues: optionSpec.enumValues }
+							: {}),
 					};
 					const contract = makeContract({ [key]: definition });
 
@@ -269,9 +307,11 @@ describe("Property 16: Effective option changes are observable in output", () =>
 						type: optionSpec.type,
 						description: `Test option ${key}`,
 						required: false,
-						defaultValue: optionSpec.defaultValue,
+						defaultValue: optionSpec.defaultValue as JsonValue,
 						effective: true,
-						...(optionSpec.enumValues ? { enumValues: optionSpec.enumValues } : {}),
+						...(optionSpec.enumValues
+							? { enumValues: optionSpec.enumValues }
+							: {}),
 					};
 					const contract = makeContract({ [key]: definition });
 
@@ -302,18 +342,24 @@ describe("Property 16: Effective option changes are observable in output", () =>
 						type: optionSpec.type,
 						description: `Test option ${key}`,
 						required: false,
-						defaultValue: optionSpec.defaultValue,
+						defaultValue: optionSpec.defaultValue as JsonValue,
 						effective: true,
-						...(optionSpec.enumValues ? { enumValues: optionSpec.enumValues } : {}),
+						...(optionSpec.enumValues
+							? { enumValues: optionSpec.enumValues }
+							: {}),
 					};
 					const contract = makeContract({ [key]: definition });
 
 					// Build context where only the chosen layer provides the value
 					const context: OptionResolutionContext = {
-						explicitOptions: layer === "explicit" ? { [key]: optionSpec.valueA } : {},
-						profileOptions: layer === "profile" ? { [key]: optionSpec.valueA } : undefined,
-						canonicalOptions: layer === "canonical" ? { [key]: optionSpec.valueA } : undefined,
-						contractDefaults: layer === "contract-default" ? { [key]: optionSpec.valueA } : {},
+						explicitOptions:
+							layer === "explicit" ? { [key]: optionSpec.valueA } : {},
+						profileOptions:
+							layer === "profile" ? { [key]: optionSpec.valueA } : undefined,
+						canonicalOptions:
+							layer === "canonical" ? { [key]: optionSpec.valueA } : undefined,
+						contractDefaults:
+							layer === "contract-default" ? { [key]: optionSpec.valueA } : {},
 					};
 
 					const result = resolveOptions(contract, context);
@@ -336,9 +382,11 @@ describe("Property 16: Effective option changes are observable in output", () =>
 						type: optionSpec.type,
 						description: `Test option ${key}`,
 						required: false,
-						defaultValue: optionSpec.defaultValue,
+						defaultValue: optionSpec.defaultValue as JsonValue,
 						effective: true,
-						...(optionSpec.enumValues ? { enumValues: optionSpec.enumValues } : {}),
+						...(optionSpec.enumValues
+							? { enumValues: optionSpec.enumValues }
+							: {}),
 					};
 					const contract = makeContract({ [key]: definition });
 
@@ -357,7 +405,10 @@ describe("Property 16: Effective option changes are observable in output", () =>
 					};
 
 					const withExplicit = resolveOptions(contract, contextWithExplicit);
-					const withoutExplicit = resolveOptions(contract, contextWithoutExplicit);
+					const withoutExplicit = resolveOptions(
+						contract,
+						contextWithoutExplicit,
+					);
 
 					// With explicit: valueA from explicit
 					expect(withExplicit.effective[key]).toEqual(optionSpec.valueA);
@@ -368,7 +419,9 @@ describe("Property 16: Effective option changes are observable in output", () =>
 					expect(withoutExplicit.origins[key]).toBe("profile");
 
 					// The effective values must differ (observable change)
-					expect(withExplicit.effective[key]).not.toEqual(withoutExplicit.effective[key]);
+					expect(withExplicit.effective[key]).not.toEqual(
+						withoutExplicit.effective[key],
+					);
 				},
 			),
 			{ numRuns: 100, verbose: 2 },
@@ -389,7 +442,7 @@ describe("Property 16: Effective option changes are observable in output", () =>
 							type: specA.type,
 							description: "Option A",
 							required: false,
-							defaultValue: specA.defaultValue,
+							defaultValue: specA.defaultValue as JsonValue,
 							effective: true,
 							...(specA.enumValues ? { enumValues: specA.enumValues } : {}),
 						},
@@ -397,7 +450,7 @@ describe("Property 16: Effective option changes are observable in output", () =>
 							type: specB.type,
 							description: "Option B",
 							required: false,
-							defaultValue: specB.defaultValue,
+							defaultValue: specB.defaultValue as JsonValue,
 							effective: true,
 							...(specB.enumValues ? { enumValues: specB.enumValues } : {}),
 						},
@@ -439,9 +492,11 @@ describe("Property 16: Effective option changes are observable in output", () =>
 						type: optionSpec.type,
 						description: `Test option ${key}`,
 						required: false,
-						defaultValue: optionSpec.defaultValue,
+						defaultValue: optionSpec.defaultValue as JsonValue,
 						effective: true,
-						...(optionSpec.enumValues ? { enumValues: optionSpec.enumValues } : {}),
+						...(optionSpec.enumValues
+							? { enumValues: optionSpec.enumValues }
+							: {}),
 					};
 					const contract = makeContract({ [key]: definition });
 

@@ -17,12 +17,19 @@
 
 import { resolve } from "node:path";
 import type nunjucks from "nunjucks";
-import type { FormatContract, HarnessName, KnowledgeArtifact } from "../schemas";
-import type { TargetTranslatorContext, TargetTranslator } from "../rosetta/registry";
-import type { ImmutableTemplateBundle } from "../rosetta/templates";
-import { loadTemplateBundle } from "../template-bundle-loader";
-import { SUPPORTED_HARNESSES } from "../schemas";
 import { resolveFormat } from "../format-registry";
+import type {
+	TargetTranslator,
+	TargetTranslatorContext,
+} from "../rosetta/registry";
+import type { ImmutableTemplateBundle } from "../rosetta/templates";
+import type {
+	FormatContract,
+	HarnessName,
+	KnowledgeArtifact,
+} from "../schemas";
+import { SUPPORTED_HARNESSES } from "../schemas";
+import { loadTemplateBundle } from "../template-bundle-loader";
 import type { AdapterContext, AdapterResult, HarnessAdapter } from "./types";
 
 export type { HarnessName };
@@ -44,7 +51,9 @@ let cachedTemplateBundle: ImmutableTemplateBundle | null = null;
  * Lazily loads templates from the filesystem on first call, then returns the
  * cached frozen bundle for all subsequent calls.
  */
-function getTemplateBundle(templateEnv: nunjucks.Environment): ImmutableTemplateBundle {
+function getTemplateBundle(
+	templateEnv: nunjucks.Environment,
+): ImmutableTemplateBundle {
 	if (cachedTemplateBundle !== null) {
 		return cachedTemplateBundle;
 	}
@@ -52,7 +61,9 @@ function getTemplateBundle(templateEnv: nunjucks.Environment): ImmutableTemplate
 	// Extract the templates directory from the Nunjucks environment's loader.
 	// The FileSystemLoader stores its search paths; use the first one.
 	let templatesDir: string;
-	const loaders = (templateEnv as unknown as { loaders: Array<{ searchPaths?: string[] }> }).loaders;
+	const loaders = (
+		templateEnv as unknown as { loaders: Array<{ searchPaths?: string[] }> }
+	).loaders;
 	if (loaders?.[0]?.searchPaths?.[0]) {
 		templatesDir = loaders[0].searchPaths[0];
 	} else {
@@ -107,7 +118,10 @@ function getTargetTranslatorMap(): ReadonlyMap<string, TargetTranslator> {
 		return targetTranslatorMap;
 	}
 	const { TARGET_TRANSLATORS } = require("../rosetta/builtins/targets");
-	targetTranslatorMap = TARGET_TRANSLATORS as ReadonlyMap<string, TargetTranslator>;
+	targetTranslatorMap = TARGET_TRANSLATORS as ReadonlyMap<
+		string,
+		TargetTranslator
+	>;
 	return targetTranslatorMap;
 }
 
@@ -125,14 +139,27 @@ function getTargetTranslatorMap(): ReadonlyMap<string, TargetTranslator> {
  * - degradation records generate additional warnings
  */
 function mapToAdapterResult(
-	output: { plan: Record<string, unknown>; diagnostics: readonly Record<string, unknown>[]; degradations: readonly Record<string, unknown>[] },
+	output: {
+		plan: Record<string, unknown>;
+		diagnostics: readonly Record<string, unknown>[];
+		degradations: readonly Record<string, unknown>[];
+	},
 	artifactName: string,
 	harnessName: HarnessName,
 ): AdapterResult {
-	const plan = output.plan as { outputFiles?: Array<{ relativePath: string; content: string | Uint8Array; executable?: boolean }> };
+	const plan = output.plan as {
+		outputFiles?: Array<{
+			relativePath: string;
+			content: string | Uint8Array;
+			executable?: boolean;
+		}>;
+	};
 	const files = (plan.outputFiles ?? []).map((f) => ({
 		relativePath: f.relativePath,
-		content: typeof f.content === "string" ? f.content : new TextDecoder().decode(f.content),
+		content:
+			typeof f.content === "string"
+				? f.content
+				: new TextDecoder().decode(f.content),
 		...(f.executable ? { executable: true } : {}),
 	}));
 
@@ -162,7 +189,11 @@ function mapToAdapterResult(
 
 	// Map degradation records to warnings
 	for (const deg of output.degradations) {
-		const d = deg as { capability?: string; action?: string; affectedValueCount?: number };
+		const d = deg as {
+			capability?: string;
+			action?: string;
+			affectedValueCount?: number;
+		};
 		warnings.push({
 			artifactName,
 			harnessName,
@@ -194,7 +225,7 @@ function createRosettaAdapter(harness: HarnessName): HarnessAdapter {
 	return (
 		artifact: KnowledgeArtifact,
 		templateEnv: nunjucks.Environment,
-		context?: AdapterContext,
+		_context?: AdapterContext,
 	): AdapterResult => {
 		// Get the format contract for this harness (lazy init)
 		const contractMap = getHarnessContractMap();
@@ -202,11 +233,13 @@ function createRosettaAdapter(harness: HarnessName): HarnessAdapter {
 		if (!contract) {
 			return {
 				files: [],
-				warnings: [{
-					artifactName: artifact.name,
-					harnessName: harness,
-					message: `No format contract found for harness "${harness}"`,
-				}],
+				warnings: [
+					{
+						artifactName: artifact.name,
+						harnessName: harness,
+						message: `No format contract found for harness "${harness}"`,
+					},
+				],
 			};
 		}
 
@@ -214,7 +247,10 @@ function createRosettaAdapter(harness: HarnessName): HarnessAdapter {
 		const harnessConfig = (artifact.frontmatter as Record<string, unknown>)[
 			"harness-config"
 		] as Record<string, unknown> | undefined;
-		const perHarnessConfig = (harnessConfig?.[harness] ?? {}) as Record<string, unknown>;
+		const perHarnessConfig = (harnessConfig?.[harness] ?? {}) as Record<
+			string,
+			unknown
+		>;
 		const { format: variant } = resolveFormat(harness, perHarnessConfig);
 
 		// Preload immutable template bundle (cached after first load)
@@ -236,16 +272,21 @@ function createRosettaAdapter(harness: HarnessName): HarnessAdapter {
 		if (!translator) {
 			return {
 				files: [],
-				warnings: [{
-					artifactName: artifact.name,
-					harnessName: harness,
-					message: `No target translator found for format "${contract.id}"`,
-				}],
+				warnings: [
+					{
+						artifactName: artifact.name,
+						harnessName: harness,
+						message: `No target translator found for format "${contract.id}"`,
+					},
+				],
 			};
 		}
 
 		// Call the target translator with the artifact as a record
-		const output = translator(artifact as unknown as Record<string, unknown>, translatorContext);
+		const output = translator(
+			artifact as unknown as Record<string, unknown>,
+			translatorContext,
+		);
 
 		// Map the output back to AdapterResult shape
 		return mapToAdapterResult(output, artifact.name, harness);

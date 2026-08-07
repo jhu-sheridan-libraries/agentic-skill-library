@@ -17,27 +17,17 @@
  */
 
 import type {
-	CanonicalCapability,
 	DegradationRecord,
 	DetectionCandidate,
 	Direction,
-	FormatContract,
-	FormatIdentifier,
 	InspectionReportEnvelope,
 	JsonValue,
 	LifecycleStatus,
-	NormalizedRelativePath,
-	RosettaSeverity,
 	TranslationDiagnostic,
 	TranslationPlan,
-	VariantContract,
 } from "../schemas";
 import { InspectionReportEnvelopeSchema } from "../schemas";
-import {
-	codePointCompare,
-	compareDiagnostics,
-	deepFreeze,
-} from "./contracts";
+import { codePointCompare, compareDiagnostics, deepFreeze } from "./contracts";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Sub-types
@@ -304,13 +294,11 @@ function buildDetectionSummary(
 		return codePointCompare(a.formatId, b.formatId);
 	});
 
-	const candidates: DetectionCandidateSummary[] = sortedCandidates.map(
-		(c) => ({
-			formatId: c.formatId,
-			confidence: c.confidence,
-			evidenceCount: c.evidence.length,
-		}),
-	);
+	const candidates: DetectionCandidateSummary[] = sortedCandidates.map((c) => ({
+		formatId: c.formatId,
+		confidence: c.confidence,
+		evidenceCount: c.evidence.length,
+	}));
 
 	return {
 		candidates,
@@ -526,7 +514,9 @@ function buildCollisionSummary(
  * Returns a result object with success status and either the validated data
  * or an array of error messages.
  */
-export function validateInspectionReport(report: unknown):
+export function validateInspectionReport(
+	report: unknown,
+):
 	| { success: true; data: InspectionReportEnvelope }
 	| { success: false; errors: string[] } {
 	const result = InspectionReportEnvelopeSchema.safeParse(report);

@@ -9,9 +9,13 @@
 
 import { readFile } from "node:fs/promises";
 import { basename } from "node:path";
-import type { FormatIdentifier, NormalizedRelativePath, SourceDocument } from "../schemas";
-import type { SourceTranslatorContext } from "../rosetta/registry";
 import { translateQDeveloperNative } from "../rosetta/builtins/sources/qdeveloper-native";
+import type { SourceTranslatorContext } from "../rosetta/registry";
+import type {
+	FormatIdentifier,
+	NormalizedRelativePath,
+	SourceDocument,
+} from "../schemas";
 import type { ImportedFile, ImportParser } from "./types";
 
 /**
@@ -48,7 +52,9 @@ export const parseQDeveloper: ImportParser = async (
 
 	// Build translator context
 	const context: SourceTranslatorContext = {
-		format: { id: "qdeveloper" as FormatIdentifier } as SourceTranslatorContext["format"],
+		format: {
+			id: "qdeveloper" as FormatIdentifier,
+		} as SourceTranslatorContext["format"],
 		canonicalSchemaVersion: "1.0.0",
 		options: {},
 		callerContext: { artifactNameHint: artifactName },
@@ -60,8 +66,16 @@ export const parseQDeveloper: ImportParser = async (
 	// Map SourceTranslationOutput back to ImportedFile shape
 	if (output.candidate) {
 		const candidate = output.candidate as Record<string, unknown>;
-		const frontmatter = (candidate.frontmatter ?? {}) as Record<string, unknown>;
-		const { name: _n, type: _t, harnesses: _h, ...restFrontmatter } = frontmatter;
+		const frontmatter = (candidate.frontmatter ?? {}) as Record<
+			string,
+			unknown
+		>;
+		const {
+			name: _n,
+			type: _t,
+			harnesses: _h,
+			...restFrontmatter
+		} = frontmatter;
 
 		return {
 			sourcePath: filePath,

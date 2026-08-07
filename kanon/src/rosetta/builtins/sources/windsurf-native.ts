@@ -39,8 +39,7 @@ function isWindsurfRulesRoot(path: string): boolean {
  */
 function isWindsurfRuleFile(path: string): boolean {
 	return (
-		(path.includes(".windsurf/rules/") ||
-			path.includes(".windsurf/rules\\")) &&
+		(path.includes(".windsurf/rules/") || path.includes(".windsurf/rules\\")) &&
 		path.endsWith(".md")
 	);
 }

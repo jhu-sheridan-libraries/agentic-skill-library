@@ -14,11 +14,8 @@
 
 import { describe, expect, it } from "bun:test";
 import fc from "fast-check";
-import {
-	type ForgeConfig,
-	validateProfiles,
-	type ProfileValidationOptions,
-} from "../config";
+import { type ForgeConfig, validateProfiles } from "../config";
+import type { JsonValue } from "../schemas";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Arbitraries
@@ -73,13 +70,9 @@ function arbApprovedReference(): fc.Arbitrary<string> {
 function arbLiteralCredential(): fc.Arbitrary<string> {
 	return fc.oneof(
 		// AWS access keys (AKIA + 16 uppercase alphanumeric chars)
-		fc
-			.stringMatching(/^[A-Z0-9]{16}$/)
-			.map((suffix) => `AKIA${suffix}`),
+		fc.stringMatching(/^[A-Z0-9]{16}$/).map((suffix) => `AKIA${suffix}`),
 		// GitHub tokens (ghp_ + 36 alphanumeric chars)
-		fc
-			.stringMatching(/^[a-zA-Z0-9]{36}$/)
-			.map((suffix) => `ghp_${suffix}`),
+		fc.stringMatching(/^[a-zA-Z0-9]{36}$/).map((suffix) => `ghp_${suffix}`),
 	);
 }
 
@@ -134,14 +127,12 @@ function arbValidAcquisitionProfile(): fc.Arbitrary<{
 }
 
 /** Generates a valid translation profile (all safe values) */
-function arbValidTranslationProfile(
-	knownFormats: string[],
-): fc.Arbitrary<{
+function arbValidTranslationProfile(knownFormats: string[]): fc.Arbitrary<{
 	sourceFormat?: string;
 	canonicalDestination: string;
 	collections: string[];
 	strict: boolean;
-	options: Record<string, unknown>;
+	options: Record<string, JsonValue>;
 }> {
 	return fc
 		.tuple(
@@ -175,7 +166,11 @@ describe("Property 23: Profile validation separates concerns and halts invalid w
 						section === "acquisitions"
 							? {
 									acquisitions: {
-										[badKey]: { repo: "org/repo", branch: "main", remote: "origin" },
+										[badKey]: {
+											repo: "org/repo",
+											branch: "main",
+											remote: "origin",
+										},
 									},
 								}
 							: {
@@ -212,7 +207,11 @@ describe("Property 23: Profile validation separates concerns and halts invalid w
 				fc.constantFrom("sourceFormat", "targetFormat"),
 				(profileKey, unknownFormat, field) => {
 					// Provide a registry that does NOT include unknownFormat
-					const knownFormatIds = new Set(["kanon-canonical", "kiro-power", "kiro-skill"]);
+					const knownFormatIds = new Set([
+						"kanon-canonical",
+						"kiro-power",
+						"kiro-skill",
+					]);
 
 					// Ensure our generated format is actually unknown
 					fc.pre(!knownFormatIds.has(unknownFormat));
@@ -306,8 +305,8 @@ describe("Property 23: Profile validation separates concerns and halts invalid w
 					const errors = result.diagnostics.filter(
 						(d) => d.severity === "error",
 					);
-					const hasCredentialError = errors.some(
-						(d) => d.message.includes("credential"),
+					const hasCredentialError = errors.some((d) =>
+						d.message.includes("credential"),
 					);
 					expect(hasCredentialError).toBe(true);
 					expect(result.valid).toBe(false);
@@ -338,8 +337,7 @@ describe("Property 23: Profile validation separates concerns and halts invalid w
 
 					// Must NOT produce credential-related errors
 					const credentialErrors = result.diagnostics.filter(
-						(d) =>
-							d.severity === "error" && d.message.includes("credential"),
+						(d) => d.severity === "error" && d.message.includes("credential"),
 					);
 					expect(credentialErrors.length).toBe(0);
 				},
@@ -349,7 +347,12 @@ describe("Property 23: Profile validation separates concerns and halts invalid w
 	});
 
 	it("valid profiles with no issues produce zero diagnostics", () => {
-		const knownFormats = ["kanon-canonical", "kiro-power", "kiro-skill", "claude-skill"];
+		const knownFormats = [
+			"kanon-canonical",
+			"kiro-power",
+			"kiro-skill",
+			"claude-skill",
+		];
 		const knownFormatIds = new Set(knownFormats);
 
 		fc.assert(

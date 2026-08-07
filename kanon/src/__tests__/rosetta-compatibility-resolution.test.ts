@@ -11,14 +11,6 @@
  */
 
 import { describe, expect, test } from "bun:test";
-import type {
-	CanonicalCapability,
-	FormatContract,
-	KnowledgeArtifact,
-	RosettaCompatibilityEntry,
-	RosettaCompatibilityProfile,
-} from "../schemas";
-import { CanonicalCapabilitySchema } from "../schemas";
 import {
 	type EffectiveCompatibilityProfile,
 	evaluateCompatibility,
@@ -26,6 +18,13 @@ import {
 	promoteInStrictMode,
 	resolveEffectiveProfile,
 } from "../rosetta/compatibility";
+import type {
+	CanonicalCapability,
+	FormatContract,
+	RosettaCompatibilityEntry,
+	RosettaCompatibilityProfile,
+} from "../schemas";
+import { CanonicalCapabilitySchema } from "../schemas";
 import { makeArtifact, makeFrontmatter } from "./test-helpers";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -55,7 +54,9 @@ function makeNoneProfile(): RosettaCompatibilityProfile {
 
 /** Build a partial profile (some full, some partial, some none). */
 function makeMixedProfile(
-	overrides: Partial<Record<CanonicalCapability, RosettaCompatibilityEntry>> = {},
+	overrides: Partial<
+		Record<CanonicalCapability, RosettaCompatibilityEntry>
+	> = {},
 ): RosettaCompatibilityProfile {
 	const profile: Record<string, RosettaCompatibilityEntry> = {};
 	for (const cap of ALL_CAPABILITIES) {
@@ -68,9 +69,7 @@ function makeMixedProfile(
 }
 
 /** Build a minimal FormatContract with a given compatibility profile. */
-function makeContract(
-	overrides: Partial<FormatContract> = {},
-): FormatContract {
+function makeContract(overrides: Partial<FormatContract> = {}): FormatContract {
 	return {
 		id: "test-format",
 		contractVersion: "1.0.0",
@@ -79,7 +78,11 @@ function makeContract(
 		aliases: [],
 		lifecycle: { status: "active" },
 		canonicalVersions: { min: "1.0.0", max: "1.0.0" },
-		schemaReference: { type: "zod", module: "schemas.ts", export: "KnowledgeArtifactSchema" },
+		schemaReference: {
+			type: "zod",
+			module: "schemas.ts",
+			export: "KnowledgeArtifactSchema",
+		},
 		pathConventions: [],
 		detection: { threshold: 0.5, rules: [] },
 		variants: {},
@@ -122,9 +125,25 @@ describe("evaluateCompatibility edge cases", () => {
 		// Build an artifact that exercises every capability
 		const artifact = makeArtifact({
 			body: "Some content here",
-			hooks: [{ name: "save-hook", event: "file_edited", action: { type: "run_command", command: "lint" } }],
-			mcpServers: [{ name: "test-server", transport: "stdio", command: "test", args: [], env: {} }],
-			workflows: [{ name: "plan", filename: "plan.md", content: "plan content" }],
+			hooks: [
+				{
+					name: "save-hook",
+					event: "file_edited",
+					action: { type: "run_command", command: "lint" },
+				},
+			],
+			mcpServers: [
+				{
+					name: "test-server",
+					transport: "stdio",
+					command: "test",
+					args: [],
+					env: {},
+				},
+			],
+			workflows: [
+				{ name: "plan", filename: "plan.md", content: "plan content" },
+			],
 			bodyOverrides: { kiro: "kiro override" },
 			extraFields: { custom: "value" },
 			frontmatter: makeFrontmatter({
@@ -153,20 +172,33 @@ describe("evaluateCompatibility edge cases", () => {
 		expect(result.degradations.length).toBe(7);
 
 		// Verify each affected capability has an entry in affectedCounts
-		expect(result.affectedCounts["hooks"]).toBe(1);
+		expect(result.affectedCounts.hooks).toBe(1);
 		expect(result.affectedCounts["mcp-servers"]).toBe(1);
-		expect(result.affectedCounts["workflows"]).toBe(1);
+		expect(result.affectedCounts.workflows).toBe(1);
 		expect(result.affectedCounts["body-overrides"]).toBe(1);
 		expect(result.affectedCounts["extra-fields"]).toBe(1);
-		expect(result.affectedCounts["power"]).toBe(1);
+		expect(result.affectedCounts.power).toBe(1);
 	});
 
 	test("profile with all 'full' entries → zero diagnostics regardless of artifact usage", () => {
 		// Heavily-loaded artifact
 		const artifact = makeArtifact({
 			body: "Complex body content",
-			hooks: [{ name: "save-hook", event: "file_edited", action: { type: "run_command", command: "lint" } }, { name: "commit-hook", event: "agent_stop", action: { type: "run_command", command: "test" } }],
-			mcpServers: [{ name: "s1", transport: "stdio", command: "c", args: [], env: {} }],
+			hooks: [
+				{
+					name: "save-hook",
+					event: "file_edited",
+					action: { type: "run_command", command: "lint" },
+				},
+				{
+					name: "commit-hook",
+					event: "agent_stop",
+					action: { type: "run_command", command: "test" },
+				},
+			],
+			mcpServers: [
+				{ name: "s1", transport: "stdio", command: "c", args: [], env: {} },
+			],
 			workflows: [{ name: "plan", filename: "plan.md", content: "p" }],
 			bodyOverrides: { cursor: "override" },
 			extraFields: { x: 1, y: 2 },
@@ -188,7 +220,13 @@ describe("evaluateCompatibility edge cases", () => {
 	test("profile with all 'none' entries → diagnostic for every used capability", () => {
 		const artifact = makeArtifact({
 			body: "Some body",
-			hooks: [{ name: "save-hook", event: "file_edited", action: { type: "run_command", command: "lint" } }],
+			hooks: [
+				{
+					name: "save-hook",
+					event: "file_edited",
+					action: { type: "run_command", command: "lint" },
+				},
+			],
 			mcpServers: [],
 			workflows: [],
 			bodyOverrides: {},
@@ -220,7 +258,13 @@ describe("evaluateCompatibility edge cases", () => {
 	test("unavailableDetails contains 'expectedSemanticChange' in diagnostics", () => {
 		const artifact = makeArtifact({
 			body: "content",
-			hooks: [{ name: "save-hook", event: "file_edited", action: { type: "run_command", command: "run" } }],
+			hooks: [
+				{
+					name: "save-hook",
+					event: "file_edited",
+					action: { type: "run_command", command: "run" },
+				},
+			],
 			frontmatter: makeFrontmatter({ type: "skill" }),
 		});
 
@@ -236,7 +280,7 @@ describe("evaluateCompatibility edge cases", () => {
 			d.message.includes("hooks"),
 		);
 		expect(hooksDiag).toBeDefined();
-		expect(hooksDiag!.unavailableDetails).toContain("expectedSemanticChange");
+		expect(hooksDiag?.unavailableDetails).toContain("expectedSemanticChange");
 	});
 });
 
@@ -322,7 +366,10 @@ describe("identifyUsedCapabilities edge cases", () => {
 	test("fileMatch inclusion → path-scoping is used", () => {
 		const artifact = makeArtifact({
 			body: "",
-			frontmatter: makeFrontmatter({ inclusion: "fileMatch", file_patterns: ["**/*.ts"] }),
+			frontmatter: makeFrontmatter({
+				inclusion: "fileMatch",
+				file_patterns: ["**/*.ts"],
+			}),
 		});
 		const caps = identifyUsedCapabilities(artifact);
 		expect(caps.has("path-scoping")).toBe(true);
@@ -351,7 +398,10 @@ describe("identifyUsedCapabilities edge cases", () => {
 	test("file_patterns non-empty → file-match-inclusion is used", () => {
 		const artifact = makeArtifact({
 			body: "",
-			frontmatter: makeFrontmatter({ inclusion: "always", file_patterns: ["src/**"] }),
+			frontmatter: makeFrontmatter({
+				inclusion: "always",
+				file_patterns: ["src/**"],
+			}),
 		});
 		const caps = identifyUsedCapabilities(artifact);
 		expect(caps.has("file-match-inclusion")).toBe(true);
@@ -397,8 +447,16 @@ describe("Resolution + compatibility interactions", () => {
 	test("strict mode promotion does not modify degradation records", () => {
 		const artifact = makeArtifact({
 			body: "content",
-			hooks: [{ name: "save-hook", event: "file_edited", action: { type: "run_command", command: "lint" } }],
-			mcpServers: [{ name: "srv", transport: "stdio", command: "c", args: [], env: {} }],
+			hooks: [
+				{
+					name: "save-hook",
+					event: "file_edited",
+					action: { type: "run_command", command: "lint" },
+				},
+			],
+			mcpServers: [
+				{ name: "srv", transport: "stdio", command: "c", args: [], env: {} },
+			],
 			frontmatter: makeFrontmatter({ type: "skill" }),
 		});
 
@@ -448,12 +506,13 @@ describe("resolveEffectiveProfile", () => {
 		// Create a contract with an incomplete profile (missing some capabilities)
 		const incompleteProfile: Record<string, RosettaCompatibilityEntry> = {};
 		// Only add a few capabilities
-		incompleteProfile["frontmatter"] = { support: "full" };
-		incompleteProfile["body"] = { support: "full" };
+		incompleteProfile.frontmatter = { support: "full" };
+		incompleteProfile.body = { support: "full" };
 		// Missing all others
 
 		const contract = makeContract({
-			compatibility: incompleteProfile as unknown as RosettaCompatibilityProfile,
+			compatibility:
+				incompleteProfile as unknown as RosettaCompatibilityProfile,
 		});
 
 		expect(() => resolveEffectiveProfile(contract)).toThrow(
@@ -463,12 +522,13 @@ describe("resolveEffectiveProfile", () => {
 
 	test("incomplete profile error message lists missing capabilities", () => {
 		const incompleteProfile: Record<string, RosettaCompatibilityEntry> = {};
-		incompleteProfile["frontmatter"] = { support: "full" };
-		incompleteProfile["body"] = { support: "full" };
-		incompleteProfile["hooks"] = { support: "full" };
+		incompleteProfile.frontmatter = { support: "full" };
+		incompleteProfile.body = { support: "full" };
+		incompleteProfile.hooks = { support: "full" };
 
 		const contract = makeContract({
-			compatibility: incompleteProfile as unknown as RosettaCompatibilityProfile,
+			compatibility:
+				incompleteProfile as unknown as RosettaCompatibilityProfile,
 		});
 
 		try {
@@ -510,15 +570,20 @@ describe("resolveEffectiveProfile", () => {
 		const effectiveProfile = resolveEffectiveProfile(contract);
 
 		expect(Object.isFrozen(effectiveProfile)).toBe(true);
-		expect(effectiveProfile["hooks"].support).toBe("partial");
-		expect(effectiveProfile["hooks"].degradation).toBe("comment");
+		expect(effectiveProfile.hooks.support).toBe("partial");
+		expect(effectiveProfile.hooks.degradation).toBe("comment");
 		expect(effectiveProfile["mcp-servers"].support).toBe("none");
 		expect(effectiveProfile["mcp-servers"].degradation).toBe("omit");
 	});
 
 	test("variant parameter does not currently alter the effective profile", () => {
 		const contract = makeContract();
-		const variant = { id: "power", pathConventions: [], defaults: {}, optionOverrides: {} };
+		const variant = {
+			id: "power",
+			pathConventions: [],
+			defaults: {},
+			optionOverrides: {},
+		};
 
 		const withVariant = resolveEffectiveProfile(contract, variant as any);
 		const withoutVariant = resolveEffectiveProfile(contract);

@@ -20,13 +20,12 @@ import type {
 	FormatContract,
 	KnowledgeArtifact,
 	RosettaCompatibilityEntry,
-	RosettaCompatibilityProfile,
 	TranslationDiagnostic,
 	VariantContract,
 } from "../schemas";
 import { CanonicalCapabilitySchema } from "../schemas";
 import { codePointCompare } from "./contracts";
-import { createDiagnostic, DIAGNOSTIC_CODE_REGISTRY } from "./diagnostics";
+import { createDiagnostic } from "./diagnostics";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Types
@@ -115,7 +114,7 @@ const CAPABILITY_FIELD_GROUPS: Readonly<
  */
 export function resolveEffectiveProfile(
 	contract: FormatContract,
-	variant?: VariantContract,
+	_variant?: VariantContract,
 ): EffectiveCompatibilityProfile {
 	// Start with the contract's base compatibility profile
 	const baseProfile = contract.compatibility;

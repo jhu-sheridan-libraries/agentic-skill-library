@@ -15,6 +15,16 @@
  */
 
 import { describe, expect, test } from "bun:test";
+import type { TranslationDiagnostic } from "../rosetta/contracts";
+import { codePointCompare, deepFreeze } from "../rosetta/contracts";
+import {
+	convertInternalError,
+	createDiagnostic,
+	getBlockingDiagnostics,
+	hasBlockingDiagnostics,
+	sortDiagnostics,
+} from "../rosetta/diagnostics";
+import type { RedactionProof } from "../rosetta/redaction";
 import {
 	applySensitivePolicy,
 	computeFingerprint,
@@ -24,20 +34,6 @@ import {
 	RedactionRegistry,
 	suppressOnIncompleteRedaction,
 } from "../rosetta/redaction";
-import type { RedactionProof } from "../rosetta/redaction";
-import {
-	convertInternalError,
-	createDiagnostic,
-	getBlockingDiagnostics,
-	hasBlockingDiagnostics,
-	sortDiagnostics,
-} from "../rosetta/diagnostics";
-import {
-	codePointCompare,
-	compareDiagnostics,
-	deepFreeze,
-} from "../rosetta/contracts";
-import type { TranslationDiagnostic } from "../rosetta/contracts";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // 1. Phase Short-Circuiting (Req 4.7, 4.8)
@@ -304,12 +300,12 @@ describe("sensitive reference handling", () => {
 	});
 
 	test("matchesApprovedPattern identifies env-var syntax", () => {
-		expect(
-			matchesApprovedPattern("${MY_TOKEN}", ["\\$\\{[A-Z_]+\\}"]),
-		).toBe(true);
-		expect(
-			matchesApprovedPattern("literal-value", ["\\$\\{[A-Z_]+\\}"]),
-		).toBe(false);
+		expect(matchesApprovedPattern("${MY_TOKEN}", ["\\$\\{[A-Z_]+\\}"])).toBe(
+			true,
+		);
+		expect(matchesApprovedPattern("literal-value", ["\\$\\{[A-Z_]+\\}"])).toBe(
+			false,
+		);
 	});
 
 	test("matchesApprovedPattern handles invalid regex gracefully", () => {
@@ -321,9 +317,9 @@ describe("sensitive reference handling", () => {
 	});
 
 	test("looksLikeSecret detects GitHub tokens", () => {
-		expect(
-			looksLikeSecret("ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefgh"),
-		).toBe(true);
+		expect(looksLikeSecret("ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefgh")).toBe(
+			true,
+		);
 	});
 
 	test("looksLikeSecret rejects normal text", () => {
@@ -423,9 +419,9 @@ describe("preview suppression on incomplete redaction", () => {
 		for (const d of safeDiags) {
 			expect(["request", "registry", "detection"]).toContain(d.phase);
 		}
-		expect(
-			safeDiags.some((d) => d.code === "RS_CANONICAL_INVALID"),
-		).toBe(false);
+		expect(safeDiags.some((d) => d.code === "RS_CANONICAL_INVALID")).toBe(
+			false,
+		);
 	});
 
 	test("RS_REDACTION_UNSAFE diagnostic is blocking", () => {
@@ -492,11 +488,21 @@ describe("inspection report — non-sensitive fields unchanged", () => {
 		// Build two report-like structures: one with preview, one without
 		const baseFields = {
 			request: { direction: "target", targetFormat: "cursor", strict: true },
-			format: { formatId: "cursor", contractVersion: "1.0", lifecycle: "active" },
-			options: { effective: { lineWidth: 80 }, origins: { lineWidth: "contract-default" } },
+			format: {
+				formatId: "cursor",
+				contractVersion: "1.0",
+				lifecycle: "active",
+			},
+			options: {
+				effective: { lineWidth: 80 },
+				origins: { lineWidth: "contract-default" },
+			},
 		};
 
-		const withPreview = deepFreeze({ ...baseFields, preview: { available: true } });
+		const withPreview = deepFreeze({
+			...baseFields,
+			preview: { available: true },
+		});
 		const withoutPreview = deepFreeze({
 			...baseFields,
 			preview: { available: false, reason: "Redaction incomplete" },
@@ -546,10 +552,7 @@ describe("RedactionRegistry and createRedactor", () => {
 		const registry = new RedactionRegistry();
 		const fp = computeFingerprint("AKIAIOSFODNN7EXAMPLE1");
 
-		registry.registerSensitive(
-			{ path: "config.yaml", field: "aws_key" },
-			fp,
-		);
+		registry.registerSensitive({ path: "config.yaml", field: "aws_key" }, fp);
 
 		const locations = registry.getLocations();
 		expect(locations).toHaveLength(1);
@@ -590,9 +593,7 @@ describe("RedactionRegistry and createRedactor", () => {
 	test("redactor replaces matched secrets with [REDACTED]", () => {
 		const secret = "AKIAIOSFODNN7EXAMPLE";
 		const fp = computeFingerprint(secret);
-		const locations = [
-			{ path: "config.yaml", field: "key", fingerprint: fp },
-		];
+		const locations = [{ path: "config.yaml", field: "key", fingerprint: fp }];
 
 		const redactor = createRedactor(locations);
 		const content = `aws_key: ${secret}\nother: safe`;
@@ -606,9 +607,7 @@ describe("RedactionRegistry and createRedactor", () => {
 	test("redactor proves completeness after successful redaction", () => {
 		const secret = "AKIAIOSFODNN7EXAMPLE";
 		const fp = computeFingerprint(secret);
-		const locations = [
-			{ path: "config.yaml", field: "key", fingerprint: fp },
-		];
+		const locations = [{ path: "config.yaml", field: "key", fingerprint: fp }];
 
 		const redactor = createRedactor(locations);
 		redactor.redactContent(`key: ${secret}`);
@@ -623,9 +622,7 @@ describe("RedactionRegistry and createRedactor", () => {
 	test("redactor reports incomplete when secret absent from content", () => {
 		const secret = "AKIAIOSFODNN7EXAMPLE";
 		const fp = computeFingerprint(secret);
-		const locations = [
-			{ path: "config.yaml", field: "key", fingerprint: fp },
-		];
+		const locations = [{ path: "config.yaml", field: "key", fingerprint: fp }];
 
 		const redactor = createRedactor(locations);
 		redactor.redactContent("this content has no secrets");
@@ -641,9 +638,7 @@ describe("RedactionRegistry and createRedactor", () => {
 	test("redactor redacts diagnostics containing secrets", () => {
 		const secret = "AKIAIOSFODNN7EXAMPLE";
 		const fp = computeFingerprint(secret);
-		const locations = [
-			{ path: "env.yaml", field: "aws", fingerprint: fp },
-		];
+		const locations = [{ path: "env.yaml", field: "aws", fingerprint: fp }];
 
 		const redactor = createRedactor(locations);
 		const diagnostics: TranslationDiagnostic[] = [
@@ -659,10 +654,7 @@ describe("RedactionRegistry and createRedactor", () => {
 
 	test("getLocations returns frozen array", () => {
 		const registry = new RedactionRegistry();
-		registry.registerSensitive(
-			{ path: "a.yaml", field: "x" },
-			"fingerprint1",
-		);
+		registry.registerSensitive({ path: "a.yaml", field: "x" }, "fingerprint1");
 		const locations = registry.getLocations();
 		expect(() => {
 			(locations as any).push({ path: "b", field: "y", fingerprint: "z" });

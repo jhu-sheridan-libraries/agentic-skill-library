@@ -14,23 +14,18 @@
 
 import { describe, expect, it } from "bun:test";
 import fc from "fast-check";
+import { createDiagnostic } from "../rosetta/diagnostics";
+import type { RedactionProof, SensitiveLocation } from "../rosetta/redaction";
 import {
 	applySensitivePolicy,
 	computeFingerprint,
 	createRedactor,
 	looksLikeSecret,
 	matchesApprovedPattern,
-	RedactionRegistry,
 	suppressOnIncompleteRedaction,
 } from "../rosetta/redaction";
-import type {
-	PolicyApplicationResult,
-	RedactionProof,
-	SensitiveLocation,
-} from "../rosetta/redaction";
-import { createDiagnostic } from "../rosetta/diagnostics";
 import type { FormatSecurityPolicy, TranslationDiagnostic } from "../schemas";
-import { arbFormatSecurityPolicy, arbSensitiveCanary } from "./rosetta-arbitraries";
+import { arbSensitiveCanary } from "./rosetta-arbitraries";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Generators
@@ -51,7 +46,7 @@ function arbApprovedReference(): fc.Arbitrary<string> {
 }
 
 /** Generates content that wraps a canary secret in surrounding text */
-function arbContentWithCanary(
+function _arbContentWithCanary(
 	canary: fc.Arbitrary<string>,
 ): fc.Arbitrary<{ content: string; secret: string }> {
 	return fc
@@ -80,7 +75,7 @@ function arbDetectableSecret(): fc.Arbitrary<string> {
 }
 
 /** Generates a diagnostic that accidentally embeds a raw secret in its message */
-function arbLeakyDiagnostic(
+function _arbLeakyDiagnostic(
 	secret: fc.Arbitrary<string>,
 ): fc.Arbitrary<{ diagnostic: TranslationDiagnostic; secret: string }> {
 	return secret.map((s) => ({
@@ -160,11 +155,7 @@ describe("Property 27: Sensitive-value policy never leaks diagnostic or report p
 		fc.assert(
 			fc.property(arbDetectableSecret(), (secret) => {
 				// No approved patterns → literal secret must be rejected
-				const result = applySensitivePolicy(
-					`key: ${secret}`,
-					"reject",
-					[],
-				);
+				const result = applySensitivePolicy(`key: ${secret}`, "reject", []);
 
 				expect(result.ok).toBe(false);
 				expect(result.diagnostics.length).toBeGreaterThan(0);
@@ -186,7 +177,11 @@ describe("Property 27: Sensitive-value policy never leaks diagnostic or report p
 				const approvedPatterns = ["\\$\\{[A-Z][A-Z0-9_]*\\}"];
 				const content = `token: ${ref}`;
 
-				const result = applySensitivePolicy(content, "reject", approvedPatterns);
+				const result = applySensitivePolicy(
+					content,
+					"reject",
+					approvedPatterns,
+				);
 
 				// Reference values that match approved patterns should pass
 				expect(result.ok).toBe(true);

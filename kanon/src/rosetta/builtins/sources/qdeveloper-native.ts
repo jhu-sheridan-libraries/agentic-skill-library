@@ -44,8 +44,7 @@ function isQDeveloperRuleFile(path: string): boolean {
  */
 function isAmazonQRuleFile(path: string): boolean {
 	return (
-		(path.includes(".amazonq/rules/") ||
-			path.includes(".amazonq/rules\\")) &&
+		(path.includes(".amazonq/rules/") || path.includes(".amazonq/rules\\")) &&
 		path.endsWith(".md")
 	);
 }

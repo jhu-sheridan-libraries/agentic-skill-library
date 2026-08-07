@@ -2,13 +2,13 @@
  * Unit tests for Rosetta Stone source accounting and mapping helpers.
  */
 import { describe, expect, it } from "bun:test";
-import type { SourceDocument } from "../schemas";
 import {
-	SourceAccountant,
 	namespacedExtraField,
 	normalizeDocumentOrder,
+	SourceAccountant,
 	validateSourceAccounting,
 } from "../rosetta/source-accounting";
+import type { SourceDocument } from "../schemas";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SourceAccountant
@@ -31,10 +31,7 @@ describe("SourceAccountant", () => {
 		accountant.preserve("workflows/phase-1.md");
 
 		const preserved = accountant.getPreservedPaths();
-		expect(preserved).toEqual([
-			"workflows/phase-1.md",
-			"workflows/phase-2.md",
-		]);
+		expect(preserved).toEqual(["workflows/phase-1.md", "workflows/phase-2.md"]);
 	});
 
 	it("deduplicates consumed paths", () => {
@@ -182,11 +179,7 @@ describe("validateSourceAccounting", () => {
 		const docs = [makeDoc("z.md"), makeDoc("a.md"), makeDoc("m.md")];
 		const diags = validateSourceAccounting(accountant, docs, "test-format");
 
-		expect(diags.map((d) => d.source?.path)).toEqual([
-			"a.md",
-			"m.md",
-			"z.md",
-		]);
+		expect(diags.map((d) => d.source?.path)).toEqual(["a.md", "m.md", "z.md"]);
 	});
 
 	it("uses correct severity and phase for RS_SOURCE_UNACCOUNTED", () => {

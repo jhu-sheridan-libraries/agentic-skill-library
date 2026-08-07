@@ -18,20 +18,16 @@
 
 import { describe, expect, it } from "bun:test";
 import fc from "fast-check";
-
-import {
-	orchestrateProfiles,
-} from "../translation-orchestrator";
+import type { SourceDocument, TranslationResult } from "../schemas";
+import type { CollisionPolicy } from "../translation-application-policy";
 import type {
 	AllowedRoot,
 	ApplyFn,
-	MultiProfileOrchestrationOptions,
 	ProfileOrchestrationOptions,
 	TranslateFn,
 } from "../translation-orchestrator";
-import type { CollisionPolicy } from "../translation-application-policy";
+import { orchestrateProfiles } from "../translation-orchestrator";
 import type { ApplicationReport } from "../translation-plan-applier";
-import type { SourceDocument, TranslationResult } from "../schemas";
 import { arbNormalizedRelativePath } from "./rosetta-arbitraries";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -72,7 +68,12 @@ function arbDocumentSet(): fc.Arbitrary<SourceDocument[]> {
 
 /** Generates a collision policy value */
 function arbCollisionPolicy(): fc.Arbitrary<CollisionPolicy> {
-	return fc.constantFrom("error", "skip", "replace", "reconcile") as fc.Arbitrary<CollisionPolicy>;
+	return fc.constantFrom(
+		"error",
+		"skip",
+		"replace",
+		"reconcile",
+	) as fc.Arbitrary<CollisionPolicy>;
 }
 
 /** Generates a unique profile name (kebab-case) */
@@ -91,9 +92,11 @@ function arbTranslationResult(): fc.Arbitrary<TranslationResult> {
 				"success" | "partial" | "failure"
 			>,
 			fc.array(arbNormalizedRelativePath(), { minLength: 0, maxLength: 3 }),
-			fc.constantFrom("eligible", "policy-required", "withheld") as fc.Arbitrary<
-				"eligible" | "policy-required" | "withheld"
-			>,
+			fc.constantFrom(
+				"eligible",
+				"policy-required",
+				"withheld",
+			) as fc.Arbitrary<"eligible" | "policy-required" | "withheld">,
 		)
 		.map(([status, outputPaths, applicationState]) => {
 			const diagnostics = [];
@@ -155,7 +158,11 @@ function arbTranslationResult(): fc.Arbitrary<TranslationResult> {
 				schemaVersion: "1.0" as const,
 				status,
 				registryVersion: "1.0.0",
-				sourceFormat: { formatId: "kanon-canonical", contractVersion: "1.0", lifecycle: "active" as const },
+				sourceFormat: {
+					formatId: "kanon-canonical",
+					contractVersion: "1.0",
+					lifecycle: "active" as const,
+				},
 				targetFormat: undefined,
 				canonical: undefined,
 				plan,
@@ -200,7 +207,7 @@ const FIXED_ROOT: AllowedRoot = Object.freeze({
 function makeProfileTranslateFn(
 	profileResults: Map<string, TranslationResult>,
 ): TranslateFn {
-	return (documents, callerContext) => {
+	return (_documents, callerContext) => {
 		const profileName = callerContext.artifactNameHint ?? "unknown";
 		const result = profileResults.get(profileName);
 		if (result) return result;
@@ -227,8 +234,9 @@ function makeApplyFn(): ApplyFn {
 			timestamp: "2024-01-01T00:00:00.000Z",
 			completedSuccessfully: true,
 			outcomes: (options.plan?.outputFiles ?? []).map((f) => ({
-				relativePath: f.relativePath,
+				path: f.relativePath,
 				action: "written" as const,
+				executable: false,
 			})),
 			failedAt: undefined,
 		} as ApplicationReport;
@@ -238,15 +246,13 @@ function makeApplyFn(): ApplyFn {
 /**
  * Creates a failing apply function to simulate application failures.
  */
-function makeFailingApplyFn(): ApplyFn {
+function _makeFailingApplyFn(): ApplyFn {
 	return async (_options) => {
 		return {
 			operationId: "test-op-fail",
 			timestamp: "2024-01-01T00:00:00.000Z",
 			completedSuccessfully: false,
-			outcomes: [
-				{ relativePath: "some-file.md", action: "failed" as const },
-			],
+			outcomes: [{ path: "some-file.md", action: "failed" as const, executable: false }],
 			failedAt: "some-file.md",
 		} as ApplicationReport;
 	};
@@ -262,11 +268,7 @@ describe("Property 24: Multi-profile orchestration isolates status and translati
 			fc.asyncProperty(
 				// Generate 2-4 profiles with independent documents and outcomes
 				fc.array(
-					fc.tuple(
-						arbProfileName(),
-						arbDocumentSet(),
-						arbTranslationResult(),
-					),
+					fc.tuple(arbProfileName(), arbDocumentSet(), arbTranslationResult()),
 					{ minLength: 2, maxLength: 4 },
 				),
 				arbCollisionPolicy(),
@@ -350,7 +352,9 @@ describe("Property 24: Multi-profile orchestration isolates status and translati
 					// Verify that a failure in one profile doesn't alter others
 					// Find profiles with non-failure translation status
 					const successfulProfiles = result.profiles.filter(
-						(p) => p.translation.status !== "failure" && p.translation.status !== "skipped",
+						(p) =>
+							p.translation.status !== "failure" &&
+							p.translation.status !== "skipped",
 					);
 					const failedProfiles = result.profiles.filter(
 						(p) => p.translation.status === "failure",
@@ -462,9 +466,7 @@ describe("Property 24: Multi-profile orchestration isolates status and translati
 					);
 
 					// Plan summaries are identical
-					expect(
-						JSON.stringify(profileA.translation.planSummaries),
-					).toBe(
+					expect(JSON.stringify(profileA.translation.planSummaries)).toBe(
 						JSON.stringify(profileB.translation.planSummaries),
 					);
 
@@ -472,9 +474,7 @@ describe("Property 24: Multi-profile orchestration isolates status and translati
 					expect(resultA.overallStatus).toBe(resultB.overallStatus);
 
 					// Combined plan summaries are identical
-					expect(
-						JSON.stringify(resultA.combinedPlanSummaries),
-					).toBe(
+					expect(JSON.stringify(resultA.combinedPlanSummaries)).toBe(
 						JSON.stringify(resultB.combinedPlanSummaries),
 					);
 				},
@@ -486,10 +486,10 @@ describe("Property 24: Multi-profile orchestration isolates status and translati
 	it("profile ordering: results are sorted deterministically by profile name regardless of input order", async () => {
 		await fc.assert(
 			fc.asyncProperty(
-				fc.array(
-					fc.tuple(arbDocumentSet(), arbTranslationResult()),
-					{ minLength: 2, maxLength: 4 },
-				),
+				fc.array(fc.tuple(arbDocumentSet(), arbTranslationResult()), {
+					minLength: 2,
+					maxLength: 4,
+				}),
 				async (profileInputs) => {
 					// Create profiles with deterministic names and shuffle input order
 					const profileData = profileInputs.map(([docs, result], idx) => ({
@@ -507,16 +507,15 @@ describe("Property 24: Multi-profile orchestration isolates status and translati
 					const apply = makeApplyFn();
 
 					// Original order
-					const profilesOriginal: ProfileOrchestrationOptions[] = profileData.map(
-						({ name, documents }) => ({
+					const profilesOriginal: ProfileOrchestrationOptions[] =
+						profileData.map(({ name, documents }) => ({
 							profileName: name,
 							documents,
 							callerContext: { artifactNameHint: name },
 							dryRun: true,
 							collisionPolicy: "error" as CollisionPolicy,
 							destinationRoot: FIXED_ROOT,
-						}),
-					);
+						}));
 
 					// Reversed order
 					const profilesReversed = [...profilesOriginal].reverse();
@@ -535,7 +534,9 @@ describe("Property 24: Multi-profile orchestration isolates status and translati
 					]);
 
 					// Output profiles must be in the same deterministic order (by name)
-					expect(resultOriginal.profiles.length).toBe(resultReversed.profiles.length);
+					expect(resultOriginal.profiles.length).toBe(
+						resultReversed.profiles.length,
+					);
 					for (let i = 0; i < resultOriginal.profiles.length; i++) {
 						expect(resultOriginal.profiles[i].profileName).toBe(
 							resultReversed.profiles[i].profileName,
@@ -569,7 +570,11 @@ describe("Property 24: Multi-profile orchestration isolates status and translati
 						schemaVersion: "1.0",
 						status: "success",
 						registryVersion: "1.0.0",
-						sourceFormat: { formatId: "kanon-canonical", contractVersion: "1.0", lifecycle: "active" },
+						sourceFormat: {
+							formatId: "kanon-canonical",
+							contractVersion: "1.0",
+							lifecycle: "active",
+						},
 						targetFormat: undefined,
 						canonical: undefined,
 						plan: {
@@ -586,7 +591,11 @@ describe("Property 24: Multi-profile orchestration isolates status and translati
 								},
 							],
 							operations: [
-								{ kind: "write-file", relativePath: "knowledge.md", outputFileIndex: 0 },
+								{
+									kind: "write-file",
+									relativePath: "knowledge.md",
+									outputFileIndex: 0,
+								},
 							],
 							applicationState: "eligible",
 							policyDiagnosticCodes: [],
@@ -602,7 +611,11 @@ describe("Property 24: Multi-profile orchestration isolates status and translati
 						schemaVersion: "1.0",
 						status: "failure",
 						registryVersion: "1.0.0",
-						sourceFormat: { formatId: "kanon-canonical", contractVersion: "1.0", lifecycle: "active" },
+						sourceFormat: {
+							formatId: "kanon-canonical",
+							contractVersion: "1.0",
+							lifecycle: "active",
+						},
 						targetFormat: undefined,
 						canonical: undefined,
 						plan: undefined,
@@ -681,7 +694,9 @@ describe("Property 24: Multi-profile orchestration isolates status and translati
 
 					// Profile A's success is NOT blocked by Profile B's failure
 					if (docsA.length > 0) {
-						expect(profileAResult.translation.artifactCount).toBeGreaterThanOrEqual(0);
+						expect(
+							profileAResult.translation.artifactCount,
+						).toBeGreaterThanOrEqual(0);
 						// Application phase ran for profile A (it had an eligible plan)
 						expect(profileAResult.application.status).not.toBe("failure");
 					}
@@ -763,7 +778,9 @@ describe("Property 24: Multi-profile orchestration isolates status and translati
 					const pb = resultWithoutMeta.profiles[0];
 
 					expect(pa.translation.status).toBe(pb.translation.status);
-					expect(pa.translation.artifactCount).toBe(pb.translation.artifactCount);
+					expect(pa.translation.artifactCount).toBe(
+						pb.translation.artifactCount,
+					);
 					expect(pa.translation.blockingDiagnosticCount).toBe(
 						pb.translation.blockingDiagnosticCount,
 					);
@@ -771,7 +788,9 @@ describe("Property 24: Multi-profile orchestration isolates status and translati
 					expect(JSON.stringify(pa.translation.planSummaries)).toBe(
 						JSON.stringify(pb.translation.planSummaries),
 					);
-					expect(resultWithMeta.overallStatus).toBe(resultWithoutMeta.overallStatus);
+					expect(resultWithMeta.overallStatus).toBe(
+						resultWithoutMeta.overallStatus,
+					);
 				},
 			),
 			{ numRuns: 100, verbose: 2 },

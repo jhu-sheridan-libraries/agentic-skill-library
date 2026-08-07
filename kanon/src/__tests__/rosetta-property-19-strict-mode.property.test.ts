@@ -13,23 +13,22 @@
 
 import { describe, expect, it } from "bun:test";
 import fc from "fast-check";
+import {
+	type CompatibilityEvaluation,
+	type EffectiveCompatibilityProfile,
+	evaluateCompatibility,
+	identifyUsedCapabilities,
+	promoteInStrictMode,
+} from "../rosetta/compatibility";
 import type {
 	CanonicalCapability,
 	DegradationStrategy,
 	KnowledgeArtifact,
 	RosettaCompatibilityEntry,
-	RosettaSeverity,
 	TranslationDiagnostic,
 	TranslationPhase,
 } from "../schemas";
 import { CanonicalCapabilitySchema } from "../schemas";
-import {
-	evaluateCompatibility,
-	identifyUsedCapabilities,
-	promoteInStrictMode,
-	type CompatibilityEvaluation,
-	type EffectiveCompatibilityProfile,
-} from "../rosetta/compatibility";
 import { makeArtifact, makeFrontmatter } from "./test-helpers";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -93,7 +92,17 @@ function arbRandomDegradedProfile(): fc.Arbitrary<EffectiveCompatibilityProfile>
 /** Generates a hook entry */
 function arbHook(): fc.Arbitrary<{
 	name: string;
-	event: "file_edited" | "file_created" | "file_deleted" | "agent_stop" | "prompt_submit" | "pre_tool_use" | "post_tool_use" | "pre_task" | "post_task" | "user_triggered";
+	event:
+		| "file_edited"
+		| "file_created"
+		| "file_deleted"
+		| "agent_stop"
+		| "prompt_submit"
+		| "pre_tool_use"
+		| "post_tool_use"
+		| "pre_task"
+		| "post_task"
+		| "user_triggered";
 	action: { type: "run_command"; command: string };
 }> {
 	return fc
@@ -287,35 +296,32 @@ function arbEvaluationWithMixedDiagnostics(): fc.Arbitrary<{
 describe("Property 19: Strict mode promotes compatibility and undeclared loss uniformly", () => {
 	it("promotes all compatibility-phase warning diagnostics to error severity", () => {
 		fc.assert(
-			fc.property(
-				arbEvaluationWithMixedDiagnostics(),
-				({ evaluation }) => {
-					const promoted = promoteInStrictMode(evaluation);
+			fc.property(arbEvaluationWithMixedDiagnostics(), ({ evaluation }) => {
+				const promoted = promoteInStrictMode(evaluation);
 
-					// Every compatibility-phase diagnostic that was a warning should now be an error
-					for (const diagnostic of promoted.diagnostics) {
-						if (diagnostic.phase === "compatibility") {
-							// Find the original diagnostic by matching code + message
-							const original = evaluation.diagnostics.find(
-								(d) =>
-									d.code === diagnostic.code &&
-									d.message === diagnostic.message &&
-									d.phase === "compatibility",
-							);
+				// Every compatibility-phase diagnostic that was a warning should now be an error
+				for (const diagnostic of promoted.diagnostics) {
+					if (diagnostic.phase === "compatibility") {
+						// Find the original diagnostic by matching code + message
+						const original = evaluation.diagnostics.find(
+							(d) =>
+								d.code === diagnostic.code &&
+								d.message === diagnostic.message &&
+								d.phase === "compatibility",
+						);
 
-							if (original && original.severity === "warning") {
-								expect(diagnostic.severity).toBe("error");
-							}
+						if (original && original.severity === "warning") {
+							expect(diagnostic.severity).toBe("error");
 						}
 					}
+				}
 
-					// No compatibility-phase diagnostic should remain as "warning" after promotion
-					const remainingWarnings = promoted.diagnostics.filter(
-						(d) => d.phase === "compatibility" && d.severity === "warning",
-					);
-					expect(remainingWarnings.length).toBe(0);
-				},
-			),
+				// No compatibility-phase diagnostic should remain as "warning" after promotion
+				const remainingWarnings = promoted.diagnostics.filter(
+					(d) => d.phase === "compatibility" && d.severity === "warning",
+				);
+				expect(remainingWarnings.length).toBe(0);
+			}),
 			{ numRuns: 100, verbose: 2 },
 		);
 	});
@@ -358,90 +364,76 @@ describe("Property 19: Strict mode promotes compatibility and undeclared loss un
 
 	it("promoted diagnostics have blocking: true", () => {
 		fc.assert(
-			fc.property(
-				arbEvaluationWithMixedDiagnostics(),
-				({ evaluation }) => {
-					const promoted = promoteInStrictMode(evaluation);
+			fc.property(arbEvaluationWithMixedDiagnostics(), ({ evaluation }) => {
+				const promoted = promoteInStrictMode(evaluation);
 
-					// All compatibility-phase diagnostics that were promoted from warning
-					// should have blocking: true
-					for (const diagnostic of promoted.diagnostics) {
-						if (
-							diagnostic.phase === "compatibility" &&
-							diagnostic.severity === "error"
-						) {
-							expect(diagnostic.blocking).toBe(true);
-						}
+				// All compatibility-phase diagnostics that were promoted from warning
+				// should have blocking: true
+				for (const diagnostic of promoted.diagnostics) {
+					if (
+						diagnostic.phase === "compatibility" &&
+						diagnostic.severity === "error"
+					) {
+						expect(diagnostic.blocking).toBe(true);
 					}
-				},
-			),
+				}
+			}),
 			{ numRuns: 100, verbose: 2 },
 		);
 	});
 
 	it("degradation records are unchanged after promotion", () => {
 		fc.assert(
-			fc.property(
-				arbEvaluationWithMixedDiagnostics(),
-				({ evaluation }) => {
-					const promoted = promoteInStrictMode(evaluation);
+			fc.property(arbEvaluationWithMixedDiagnostics(), ({ evaluation }) => {
+				const promoted = promoteInStrictMode(evaluation);
 
-					// Degradation records should be identical before and after
-					expect(promoted.degradations).toEqual(evaluation.degradations);
-					expect(promoted.degradations.length).toBe(
-						evaluation.degradations.length,
-					);
+				// Degradation records should be identical before and after
+				expect(promoted.degradations).toEqual(evaluation.degradations);
+				expect(promoted.degradations.length).toBe(
+					evaluation.degradations.length,
+				);
 
-					for (let i = 0; i < evaluation.degradations.length; i++) {
-						const before = evaluation.degradations[i];
-						const after = promoted.degradations[i];
-						expect(after.capability).toBe(before.capability);
-						expect(after.action).toBe(before.action);
-						expect(after.affectedValueCount).toBe(before.affectedValueCount);
-						expect(after.canonicalPaths).toEqual(before.canonicalPaths);
-					}
-				},
-			),
+				for (let i = 0; i < evaluation.degradations.length; i++) {
+					const before = evaluation.degradations[i];
+					const after = promoted.degradations[i];
+					expect(after.capability).toBe(before.capability);
+					expect(after.action).toBe(before.action);
+					expect(after.affectedValueCount).toBe(before.affectedValueCount);
+					expect(after.canonicalPaths).toEqual(before.canonicalPaths);
+				}
+			}),
 			{ numRuns: 100, verbose: 2 },
 		);
 	});
 
 	it("affectedCounts are unchanged after promotion", () => {
 		fc.assert(
-			fc.property(
-				arbEvaluationWithMixedDiagnostics(),
-				({ evaluation }) => {
-					const promoted = promoteInStrictMode(evaluation);
+			fc.property(arbEvaluationWithMixedDiagnostics(), ({ evaluation }) => {
+				const promoted = promoteInStrictMode(evaluation);
 
-					// affectedCounts should be identical before and after
-					expect(promoted.affectedCounts).toEqual(evaluation.affectedCounts);
+				// affectedCounts should be identical before and after
+				expect(promoted.affectedCounts).toEqual(evaluation.affectedCounts);
 
-					// Verify each key individually
-					const keys = Object.keys(evaluation.affectedCounts);
-					for (const key of keys) {
-						expect(promoted.affectedCounts[key]).toBe(
-							evaluation.affectedCounts[key],
-						);
-					}
-				},
-			),
+				// Verify each key individually
+				const keys = Object.keys(evaluation.affectedCounts);
+				for (const key of keys) {
+					expect(promoted.affectedCounts[key]).toBe(
+						evaluation.affectedCounts[key],
+					);
+				}
+			}),
 			{ numRuns: 100, verbose: 2 },
 		);
 	});
 
 	it("total diagnostic count is preserved (no diagnostics added or removed)", () => {
 		fc.assert(
-			fc.property(
-				arbEvaluationWithMixedDiagnostics(),
-				({ evaluation }) => {
-					const promoted = promoteInStrictMode(evaluation);
+			fc.property(arbEvaluationWithMixedDiagnostics(), ({ evaluation }) => {
+				const promoted = promoteInStrictMode(evaluation);
 
-					// The total number of diagnostics should be the same
-					expect(promoted.diagnostics.length).toBe(
-						evaluation.diagnostics.length,
-					);
-				},
-			),
+				// The total number of diagnostics should be the same
+				expect(promoted.diagnostics.length).toBe(evaluation.diagnostics.length);
+			}),
 			{ numRuns: 100, verbose: 2 },
 		);
 	});

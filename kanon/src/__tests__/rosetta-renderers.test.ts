@@ -11,15 +11,9 @@
 
 import { describe, expect, test } from "bun:test";
 import type {
-	AppliedDefault,
-	AppliedNormalization,
-	DegradationRecord,
-	InspectionReportEnvelope,
-	TranslationDiagnostic,
-	TranslationRequest,
-} from "../schemas";
-import { InspectionReportEnvelopeSchema } from "../schemas";
-import type { InspectionContext, InspectionReport } from "../rosetta/inspection";
+	InspectionContext,
+	InspectionReport,
+} from "../rosetta/inspection";
 import { buildInspectionReport } from "../rosetta/inspection";
 import {
 	type JsonRenderOptions,
@@ -28,6 +22,14 @@ import {
 	renderJsonObject,
 	stripAnsi,
 } from "../rosetta/renderers";
+import type {
+	AppliedDefault,
+	AppliedNormalization,
+	DegradationRecord,
+	TranslationDiagnostic,
+	TranslationRequest,
+} from "../schemas";
+import { InspectionReportEnvelopeSchema } from "../schemas";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Helpers
@@ -45,7 +47,7 @@ function buildMinimalContext(
 		},
 		format: {
 			formatId: "kiro-power",
-			contractVersion: "1.0.0",
+			contractVersion: "1.0",
 			lifecycle: "active",
 		},
 		options: {
@@ -82,7 +84,7 @@ function buildMinimalJsonOptions(
 			],
 			source: { options: {} },
 			canonical: { emitEmptyAuxiliaryFiles: false },
-			canonicalSchemaVersion: "1.0",
+			canonicalSchemaVersion: "1.0.0",
 			strict: false,
 			callerContext: {},
 		} as TranslationRequest,
@@ -175,9 +177,21 @@ describe("renderHuman", () => {
 	test("shows diagnostics with severity indicators", () => {
 		const report = buildMinimalReport({
 			diagnostics: [
-				makeDiagnostic({ severity: "error", code: "RS_ERR_ONE", message: "Error occurred" }),
-				makeDiagnostic({ severity: "warning", code: "RS_WARN_ONE", message: "Be careful" }),
-				makeDiagnostic({ severity: "info", code: "RS_INFO_ONE", message: "FYI" }),
+				makeDiagnostic({
+					severity: "error",
+					code: "RS_ERR_ONE",
+					message: "Error occurred",
+				}),
+				makeDiagnostic({
+					severity: "warning",
+					code: "RS_WARN_ONE",
+					message: "Be careful",
+				}),
+				makeDiagnostic({
+					severity: "info",
+					code: "RS_INFO_ONE",
+					message: "FYI",
+				}),
 			],
 		});
 		const output = stripAnsi(renderHuman(report));
@@ -194,14 +208,30 @@ describe("renderHuman", () => {
 			plan: {
 				schemaVersion: "1.0",
 				formatId: "kiro",
-				canonicalSchemaVersion: "1.0",
+				canonicalSchemaVersion: "1.0.0",
 				outputFiles: [
-					{ relativePath: "dist/kiro/test/file.md", content: "x", executable: false },
-					{ relativePath: "dist/kiro/test/hooks.yaml", content: "y", executable: false },
+					{
+						relativePath: "dist/kiro/test/file.md",
+						content: "x",
+						executable: false,
+					},
+					{
+						relativePath: "dist/kiro/test/hooks.yaml",
+						content: "y",
+						executable: false,
+					},
 				],
 				operations: [
-					{ kind: "write-file", relativePath: "dist/kiro/test/file.md", outputFileIndex: 0 },
-					{ kind: "write-file", relativePath: "dist/kiro/test/hooks.yaml", outputFileIndex: 1 },
+					{
+						kind: "write-file",
+						relativePath: "dist/kiro/test/file.md",
+						outputFileIndex: 0,
+					},
+					{
+						kind: "write-file",
+						relativePath: "dist/kiro/test/hooks.yaml",
+						outputFileIndex: 1,
+					},
 				],
 				applicationState: "eligible",
 				policyDiagnosticCodes: [],
@@ -252,6 +282,7 @@ describe("renderHuman", () => {
 		const report = buildMinimalReport();
 		const output = renderHuman(report);
 		// Should contain ANSI escape sequences
+		// biome-ignore lint/suspicious/noControlCharactersInRegex: testing ANSI escape output
 		expect(output).toMatch(/\x1b\[/);
 	});
 });
@@ -284,18 +315,24 @@ describe("renderJson", () => {
 
 	test("includes generatedAt timestamp", () => {
 		const report = buildMinimalReport();
-		const json = renderJson(report, buildMinimalJsonOptions({
-			generatedAt: "2024-06-01T12:00:00.000Z",
-		}));
+		const json = renderJson(
+			report,
+			buildMinimalJsonOptions({
+				generatedAt: "2024-06-01T12:00:00.000Z",
+			}),
+		);
 		const parsed = JSON.parse(json);
 		expect(parsed.generatedAt).toBe("2024-06-01T12:00:00.000Z");
 	});
 
 	test("includes registryVersion", () => {
 		const report = buildMinimalReport();
-		const json = renderJson(report, buildMinimalJsonOptions({
-			registryVersion: "2.3.1",
-		}));
+		const json = renderJson(
+			report,
+			buildMinimalJsonOptions({
+				registryVersion: "2.3.1",
+			}),
+		);
 		const parsed = JSON.parse(json);
 		expect(parsed.registryVersion).toBe("2.3.1");
 	});
@@ -311,6 +348,7 @@ describe("renderJson", () => {
 			],
 		});
 		const json = renderJson(report, buildMinimalJsonOptions());
+		// biome-ignore lint/suspicious/noControlCharactersInRegex: testing ANSI escape stripping
 		expect(json).not.toMatch(/\x1b\[/);
 		// Messages should be stripped
 		const parsed = JSON.parse(json);
@@ -332,7 +370,7 @@ describe("renderJson", () => {
 		});
 		const json = renderJson(report, buildMinimalJsonOptions());
 		// Keys should be in code-point (alphabetical) order
-		const lines = json.split("\n");
+		const _lines = json.split("\n");
 		// Find the relevant section and verify ordering
 		expect(json).not.toContain('"zebra"'); // not in envelope (only in inspection)
 		// The envelope itself should have sorted top-level keys
@@ -358,9 +396,21 @@ describe("renderJson", () => {
 	test("diagnostics follow severity/phase/code ordering", () => {
 		const report = buildMinimalReport({
 			diagnostics: [
-				makeDiagnostic({ code: "RS_Z_INFO", severity: "info", phase: "request" }),
-				makeDiagnostic({ code: "RS_A_ERROR", severity: "error", phase: "request" }),
-				makeDiagnostic({ code: "RS_M_WARN", severity: "warning", phase: "detection" }),
+				makeDiagnostic({
+					code: "RS_Z_INFO",
+					severity: "info",
+					phase: "request",
+				}),
+				makeDiagnostic({
+					code: "RS_A_ERROR",
+					severity: "error",
+					phase: "request",
+				}),
+				makeDiagnostic({
+					code: "RS_M_WARN",
+					severity: "warning",
+					phase: "detection",
+				}),
 			],
 		});
 		const json = renderJson(report, buildMinimalJsonOptions());
@@ -376,10 +426,17 @@ describe("renderJson", () => {
 			{ field: "name", value: "test-artifact", rule: "format-default" },
 		];
 		const normalizations: AppliedNormalization[] = [
-			{ ruleId: "trim-whitespace", field: "body", description: "Trimmed trailing whitespace" },
+			{
+				ruleId: "trim-whitespace",
+				field: "body",
+				description: "Trimmed trailing whitespace",
+			},
 		];
 		const report = buildMinimalReport();
-		const json = renderJson(report, buildMinimalJsonOptions({ defaults, normalizations }));
+		const json = renderJson(
+			report,
+			buildMinimalJsonOptions({ defaults, normalizations }),
+		);
 		const parsed = JSON.parse(json);
 		expect(parsed.defaults).toHaveLength(1);
 		expect(parsed.defaults[0].field).toBe("name");
@@ -408,12 +465,20 @@ describe("renderJson", () => {
 			plan: {
 				schemaVersion: "1.0",
 				formatId: "kiro-power",
-				canonicalSchemaVersion: "1.0",
+				canonicalSchemaVersion: "1.0.0",
 				outputFiles: [
-					{ relativePath: "dist/kiro/test/main.md", content: "x", executable: false },
+					{
+						relativePath: "dist/kiro/test/main.md",
+						content: "x",
+						executable: false,
+					},
 				],
 				operations: [
-					{ kind: "write-file", relativePath: "dist/kiro/test/main.md", outputFileIndex: 0 },
+					{
+						kind: "write-file",
+						relativePath: "dist/kiro/test/main.md",
+						outputFileIndex: 0,
+					},
 				],
 				applicationState: "eligible",
 				policyDiagnosticCodes: [],
@@ -464,7 +529,8 @@ describe("stripAnsi", () => {
 	});
 
 	test("handles multiple escape sequences", () => {
-		const input = "\x1b[1m\x1b[34mBold blue\x1b[0m normal \x1b[33myellow\x1b[0m";
+		const input =
+			"\x1b[1m\x1b[34mBold blue\x1b[0m normal \x1b[33myellow\x1b[0m";
 		expect(stripAnsi(input)).toBe("Bold blue normal yellow");
 	});
 
@@ -480,9 +546,7 @@ describe("stripAnsi", () => {
 describe("renderer contract", () => {
 	test("both renderers accept the same InspectionReport", () => {
 		const report = buildMinimalReport({
-			diagnostics: [
-				makeDiagnostic({ code: "RS_TEST_A", severity: "error" }),
-			],
+			diagnostics: [makeDiagnostic({ code: "RS_TEST_A", severity: "error" })],
 			compatibility: {
 				fullCount: 3,
 				partialCount: 1,
@@ -521,6 +585,7 @@ describe("renderer contract", () => {
 		});
 		const json = renderJson(report, buildMinimalJsonOptions());
 		// Absolutely no ANSI in JSON
+		// biome-ignore lint/suspicious/noControlCharactersInRegex: testing ANSI escape stripping
 		expect(json).not.toMatch(/\x1b/);
 	});
 });

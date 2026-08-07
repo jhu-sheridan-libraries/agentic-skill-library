@@ -157,7 +157,7 @@ function shuffle<T>(arr: readonly T[], seed: number): T[] {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /** Generates a detection rule with specific kind that can be meaningfully evaluated */
-function arbTestDetectionRule(index: number): fc.Arbitrary<DetectionRule> {
+function _arbTestDetectionRule(index: number): fc.Arbitrary<DetectionRule> {
 	return fc
 		.tuple(
 			fc.constantFrom("extension", "basename", "path-glob") as fc.Arbitrary<

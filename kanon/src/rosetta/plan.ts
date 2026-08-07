@@ -134,7 +134,7 @@ export function validatePlan(plan: unknown): PlanValidationResult {
 	// 2. Normalize and validate each output file path
 	const normalizedPaths: string[] = [];
 	const pathSet = new Map<string, number>(); // normalized path -> first index
-	let pathErrors = false;
+	let _pathErrors = false;
 
 	for (let i = 0; i < parsed.outputFiles.length; i++) {
 		const file = parsed.outputFiles[i];
@@ -147,7 +147,7 @@ export function validatePlan(plan: unknown): PlanValidationResult {
 					source: { path: file.relativePath },
 				}),
 			);
-			pathErrors = true;
+			_pathErrors = true;
 			normalizedPaths.push(file.relativePath); // keep original for reporting
 		} else {
 			normalizedPaths.push(result.normalized);
@@ -164,7 +164,7 @@ export function validatePlan(plan: unknown): PlanValidationResult {
 					source: { path: np },
 				}),
 			);
-			pathErrors = true;
+			_pathErrors = true;
 		} else {
 			pathSet.set(np, i);
 		}

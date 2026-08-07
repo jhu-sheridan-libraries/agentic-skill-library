@@ -17,12 +17,12 @@ import { describe, expect, test } from "bun:test";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { normalizePlanPath, validatePlan } from "../rosetta/plan";
 import type { TemplateRenderError } from "../rosetta/templates";
 import {
 	InMemoryNunjucksLoader,
 	loadTemplateBundle,
 } from "../template-bundle-loader";
-import { normalizePlanPath, validatePlan } from "../rosetta/plan";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Test Helpers
@@ -44,10 +44,20 @@ function cleanupDir(dir: string): void {
 /**
  * Build a valid plan object for testing.
  */
-function makePlan(overrides: Partial<{
-	outputFiles: Array<{ relativePath: string; content: string; executable?: boolean }>;
-	operations: Array<{ kind: string; relativePath: string; outputFileIndex: number }>;
-}> = {}) {
+function makePlan(
+	overrides: Partial<{
+		outputFiles: Array<{
+			relativePath: string;
+			content: string;
+			executable?: boolean;
+		}>;
+		operations: Array<{
+			kind: string;
+			relativePath: string;
+			outputFileIndex: number;
+		}>;
+	}> = {},
+) {
 	const outputFiles = overrides.outputFiles ?? [
 		{ relativePath: "output.md", content: "hello", executable: false },
 	];
@@ -107,7 +117,7 @@ describe("frozen inputs verification", () => {
 
 			const bundle = loadTemplateBundle(dir);
 			expect(() => {
-				(bundle as Record<string, unknown>).injectedField = "malicious";
+				(bundle as unknown as Record<string, unknown>).injectedField = "malicious";
 			}).toThrow();
 		} finally {
 			cleanupDir(dir);
@@ -140,10 +150,7 @@ describe("template bundle security", () => {
 		try {
 			// Nunjucks does NOT have a built-in system() function.
 			// The call either throws (system is undefined) or renders safely.
-			writeFileSync(
-				join(dir, "malicious.njk"),
-				'{{ system("rm -rf /") }}',
-			);
+			writeFileSync(join(dir, "malicious.njk"), '{{ system("rm -rf /") }}');
 
 			const bundle = loadTemplateBundle(dir);
 			try {
@@ -181,10 +188,7 @@ describe("template bundle security", () => {
 	test("template with __proto__ pollution attempt renders safely", () => {
 		const dir = createTempDir();
 		try {
-			writeFileSync(
-				join(dir, "proto.njk"),
-				"{{ __proto__.constructor }}",
-			);
+			writeFileSync(join(dir, "proto.njk"), "{{ __proto__.constructor }}");
 
 			const bundle = loadTemplateBundle(dir);
 			const result = bundle.render("proto.njk", {});
@@ -275,7 +279,11 @@ describe("plan path safety — validatePlan rejects unsafe paths", () => {
 				{ relativePath: "../etc/passwd", content: "evil", executable: false },
 			],
 			operations: [
-				{ kind: "write-file", relativePath: "../etc/passwd", outputFileIndex: 0 },
+				{
+					kind: "write-file",
+					relativePath: "../etc/passwd",
+					outputFileIndex: 0,
+				},
 			],
 		});
 		const validation = validatePlan(plan);
@@ -355,7 +363,10 @@ describe("target translator exception handling", () => {
 		const dir = createTempDir();
 		try {
 			// A template that references an undefined variable in strict mode
-			writeFileSync(join(dir, "broken.njk"), "{{ undefinedVar | noSuchFilter }}");
+			writeFileSync(
+				join(dir, "broken.njk"),
+				"{{ undefinedVar | noSuchFilter }}",
+			);
 
 			const bundle = loadTemplateBundle(dir);
 
@@ -482,7 +493,11 @@ describe("plan validation", () => {
 	test("valid plan passes validation", () => {
 		const plan = makePlan({
 			outputFiles: [
-				{ relativePath: "output.md", content: "hello world", executable: false },
+				{
+					relativePath: "output.md",
+					content: "hello world",
+					executable: false,
+				},
 			],
 			operations: [
 				{ kind: "write-file", relativePath: "output.md", outputFileIndex: 0 },

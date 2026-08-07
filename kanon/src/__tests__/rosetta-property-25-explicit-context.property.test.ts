@@ -25,9 +25,9 @@ import fc from "fast-check";
 
 import { KIRO_POWER_CONTRACT } from "../rosetta/builtins/contracts";
 import { translateKiroPower } from "../rosetta/builtins/sources/kiro-power";
-import { guardRequest } from "../rosetta/request-guard";
 import type { SourceTranslatorContext } from "../rosetta/registry";
-import type { NormalizedRelativePath, SourceDocument } from "../schemas";
+import { guardRequest } from "../rosetta/request-guard";
+import type { JsonValue, NormalizedRelativePath, SourceDocument } from "../schemas";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Constants
@@ -167,7 +167,7 @@ function arbHostStateChange(): fc.Arbitrary<{
  * Build a SourceTranslatorContext with the given callerContext.
  */
 function buildContext(
-	callerContext: Record<string, unknown>,
+	callerContext: Record<string, JsonValue>,
 ): SourceTranslatorContext {
 	return {
 		format: KIRO_POWER_CONTRACT,
@@ -181,7 +181,9 @@ function buildContext(
  * Serialize translation output to a stable JSON string for comparison.
  * Sorts diagnostic arrays for deterministic comparison.
  */
-function serializeOutput(output: ReturnType<typeof translateKiroPower>): string {
+function serializeOutput(
+	output: ReturnType<typeof translateKiroPower>,
+): string {
 	const normalized = {
 		candidate: output.candidate,
 		diagnostics: [...output.diagnostics].sort((a, b) =>
@@ -256,7 +258,7 @@ describe("Property 25: Translation depends only on explicit context", () => {
 					// The artifact name in the candidate should reflect the hint
 					// when the frontmatter name isn't available or is overridden
 					const candidateA = resultA.candidate as Record<string, unknown>;
-					const candidateB = resultB.candidate as Record<string, unknown>;
+					const _candidateB = resultB.candidate as Record<string, unknown>;
 
 					// The outputs should differ when the effective context value differs.
 					// The artifactNameHint affects the resolved artifact name in the candidate.
@@ -273,7 +275,9 @@ describe("Property 25: Translation depends only on explicit context", () => {
 					if (serializedA === serializedB) {
 						// If outputs are identical despite different hints, the frontmatter
 						// must contain a name field that takes precedence
-						const fmA = candidateA.frontmatter as Record<string, unknown> | undefined;
+						const fmA = candidateA.frontmatter as
+							| Record<string, unknown>
+							| undefined;
 						expect(fmA?.name).toBeDefined();
 					}
 				},
@@ -301,7 +305,8 @@ describe("Property 25: Translation depends only on explicit context", () => {
 						sourceDocuments: [
 							{
 								path: "POWER.md",
-								content: '---\nname: "test"\ndescription: "test"\nkeywords:\n  - test\n---\n\nTest body',
+								content:
+									'---\nname: "test"\ndescription: "test"\nkeywords:\n  - test\n---\n\nTest body',
 								executable: false,
 							},
 						],
@@ -345,9 +350,15 @@ describe("Property 25: Translation depends only on explicit context", () => {
 					});
 
 					// Call translator three times with identical explicit inputs
-					const result1 = serializeOutput(translateKiroPower(documents, context));
-					const result2 = serializeOutput(translateKiroPower(documents, context));
-					const result3 = serializeOutput(translateKiroPower(documents, context));
+					const result1 = serializeOutput(
+						translateKiroPower(documents, context),
+					);
+					const result2 = serializeOutput(
+						translateKiroPower(documents, context),
+					);
+					const result3 = serializeOutput(
+						translateKiroPower(documents, context),
+					);
 
 					// All three must be byte-identical
 					expect(result2).toBe(result1);
@@ -379,8 +390,12 @@ describe("Property 25: Translation depends only on explicit context", () => {
 						artifactNameHint: fixedHint,
 					});
 
-					const resultA = serializeOutput(translateKiroPower(documents, contextA));
-					const resultB = serializeOutput(translateKiroPower(documents, contextB));
+					const resultA = serializeOutput(
+						translateKiroPower(documents, contextA),
+					);
+					const resultB = serializeOutput(
+						translateKiroPower(documents, contextB),
+					);
 
 					// Output must be identical when the effective context value
 					// (artifactNameHint) is the same, regardless of other callerContext

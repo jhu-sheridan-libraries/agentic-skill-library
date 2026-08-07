@@ -15,24 +15,21 @@
 import { describe, expect, it } from "bun:test";
 import fc from "fast-check";
 import {
-	CanonicalCapabilitySchema,
-	RosettaCompatibilityEntrySchema,
-	type CanonicalCapability,
-	type FormatContract,
-	type KnowledgeArtifact,
-} from "../schemas";
-import {
-	evaluateCompatibility,
-	resolveEffectiveProfile,
-	type EffectiveCompatibilityProfile,
-} from "../rosetta/compatibility";
-import {
-	BUILTIN_FORMAT_CONTRACTS,
-} from "../rosetta/builtins/contracts";
-import {
 	getAllBuiltinProfileKeys,
 	getBuiltinProfile,
 } from "../rosetta/builtins/compatibility-profiles";
+import { BUILTIN_FORMAT_CONTRACTS } from "../rosetta/builtins/contracts";
+import {
+	evaluateCompatibility,
+	resolveEffectiveProfile,
+} from "../rosetta/compatibility";
+import {
+	type CanonicalCapability,
+	CanonicalCapabilitySchema,
+	type FormatContract,
+	type KnowledgeArtifact,
+	RosettaCompatibilityEntrySchema,
+} from "../schemas";
 import { makeArtifact } from "./test-helpers";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -97,7 +94,10 @@ function arbMinimalArtifact(): fc.Arbitrary<KnowledgeArtifact> {
 								{
 									name: "test-hook",
 									event: "file_edited" as const,
-									action: { type: "run_command" as const, command: "echo test" },
+									action: {
+										type: "run_command" as const,
+										command: "echo test",
+									},
 								},
 							]
 						: [],
@@ -124,9 +124,7 @@ function arbMinimalArtifact(): fc.Arbitrary<KnowledgeArtifact> {
 					bodyOverrides: hasBodyOverrides
 						? { kiro: "# Kiro-specific body" }
 						: {},
-					extraFields: hasExtraFields
-						? { "custom.field": "value" }
-						: {},
+					extraFields: hasExtraFields ? { "custom.field": "value" } : {},
 				}),
 		);
 }
@@ -148,7 +146,9 @@ describe("Property 17: Compatibility profiles are complete and internally valid"
 
 				// Exactly 19 capabilities covered
 				const profileCaps = Object.keys(profile);
-				expect(profileCaps.length).toBeGreaterThanOrEqual(ALL_CAPABILITIES.length);
+				expect(profileCaps.length).toBeGreaterThanOrEqual(
+					ALL_CAPABILITIES.length,
+				);
 			}),
 			{ numRuns: 100, verbose: 2 },
 		);
@@ -194,8 +194,7 @@ describe("Property 17: Compatibility profiles are complete and internally valid"
 					}
 
 					// Validate against the Zod schema directly
-					const parseResult =
-						RosettaCompatibilityEntrySchema.safeParse(entry);
+					const parseResult = RosettaCompatibilityEntrySchema.safeParse(entry);
 					expect(parseResult.success).toBe(true);
 				}
 			}),
@@ -239,30 +238,26 @@ describe("Property 17: Compatibility profiles are complete and internally valid"
 
 	it("getAllBuiltinProfileKeys returns entries for every harness profile", () => {
 		fc.assert(
-			fc.property(
-				fc.constantFrom(...getAllBuiltinProfileKeys()),
-				(key) => {
-					// Parse key into format and optional variant
-					const [formatId, variant] = key.split(":");
-					const profile = getBuiltinProfile(formatId, variant);
+			fc.property(fc.constantFrom(...getAllBuiltinProfileKeys()), (key) => {
+				// Parse key into format and optional variant
+				const [formatId, variant] = key.split(":");
+				const profile = getBuiltinProfile(formatId, variant);
 
-					// Profile must exist
-					expect(profile).toBeDefined();
+				// Profile must exist
+				expect(profile).toBeDefined();
 
-					// Profile must be complete
-					for (const cap of ALL_CAPABILITIES) {
-						expect(cap in profile!).toBe(true);
-					}
+				// Profile must be complete
+				for (const cap of ALL_CAPABILITIES) {
+					expect(cap in profile!).toBe(true);
+				}
 
-					// Every entry must be schema-valid
-					for (const cap of ALL_CAPABILITIES) {
-						const entry = (profile as Record<string, unknown>)[cap];
-						const parseResult =
-							RosettaCompatibilityEntrySchema.safeParse(entry);
-						expect(parseResult.success).toBe(true);
-					}
-				},
-			),
+				// Every entry must be schema-valid
+				for (const cap of ALL_CAPABILITIES) {
+					const entry = (profile as Record<string, unknown>)[cap];
+					const parseResult = RosettaCompatibilityEntrySchema.safeParse(entry);
+					expect(parseResult.success).toBe(true);
+				}
+			}),
 			{ numRuns: 100, verbose: 2 },
 		);
 	});

@@ -15,24 +15,29 @@
 
 import { describe, expect, it } from "bun:test";
 import fc from "fast-check";
-
-import type { FormatContract, KnowledgeArtifact, TranslationPlan } from "../schemas";
-import type { ImmutableTemplateBundle } from "../rosetta/templates";
-import type { TargetTranslatorContext, TargetTranslator } from "../rosetta/registry";
-import { normalizePlanPath } from "../rosetta/plan";
-import { makeArtifact, makeFrontmatter } from "./test-helpers";
-
-import { TARGET_TRANSLATORS } from "../rosetta/builtins/targets";
 import {
-	KIRO_CONTRACT,
 	CLAUDE_CODE_CONTRACT,
+	CLINE_CONTRACT,
 	CODEX_CONTRACT,
 	COPILOT_CONTRACT,
 	CURSOR_CONTRACT,
-	WINDSURF_CONTRACT,
-	CLINE_CONTRACT,
+	KIRO_CONTRACT,
 	QDEVELOPER_CONTRACT,
+	WINDSURF_CONTRACT,
 } from "../rosetta/builtins/contracts";
+import { TARGET_TRANSLATORS } from "../rosetta/builtins/targets";
+import { normalizePlanPath } from "../rosetta/plan";
+import type {
+	TargetTranslator,
+	TargetTranslatorContext,
+} from "../rosetta/registry";
+import type { ImmutableTemplateBundle } from "../rosetta/templates";
+import type {
+	FormatContract,
+	KnowledgeArtifact,
+	TranslationPlan,
+} from "../schemas";
+import { makeArtifact, makeFrontmatter } from "./test-helpers";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Mock Template Bundle
@@ -124,10 +129,12 @@ function arbArtifactName(): fc.Arbitrary<string> {
 
 /** Generates a valid body string (non-empty markdown-ish content) */
 function arbBody(): fc.Arbitrary<string> {
-	return fc.tuple(
-		fc.stringMatching(/^[A-Z][a-z]{2,12}$/),
-		fc.string({ minLength: 10, maxLength: 100 }),
-	).map(([title, content]) => `# ${title}\n\n${content}`);
+	return fc
+		.tuple(
+			fc.stringMatching(/^[A-Z][a-z]{2,12}$/),
+			fc.string({ minLength: 10, maxLength: 100 }),
+		)
+		.map(([title, content]) => `# ${title}\n\n${content}`);
 }
 
 /** Generates optional hooks (0-2) */
@@ -138,7 +145,10 @@ function arbHooks(): fc.Arbitrary<KnowledgeArtifact["hooks"]> {
 			event: fc.constantFrom("file_edited", "agent_stop", "file_created"),
 			description: fc.string({ minLength: 0, maxLength: 40 }),
 			condition: fc.constant({}),
-			action: fc.constant({ type: "run_command" as const, command: "echo test" }),
+			action: fc.constant({
+				type: "run_command" as const,
+				command: "echo test",
+			}),
 		}),
 		{ minLength: 0, maxLength: 2 },
 	) as fc.Arbitrary<KnowledgeArtifact["hooks"]>;
@@ -149,6 +159,7 @@ function arbMcpServers(): fc.Arbitrary<KnowledgeArtifact["mcpServers"]> {
 	return fc.array(
 		fc.record({
 			name: fc.stringMatching(/^[a-z][a-z0-9-]{1,12}$/),
+			transport: fc.constant("stdio" as const),
 			command: fc.constant("npx"),
 			args: fc.constant(["-y", "test-server"]),
 			env: fc.constant({ API_KEY: "${API_KEY}" }),
@@ -160,13 +171,12 @@ function arbMcpServers(): fc.Arbitrary<KnowledgeArtifact["mcpServers"]> {
 /** Generates optional workflows (0-2) */
 function arbWorkflows(): fc.Arbitrary<KnowledgeArtifact["workflows"]> {
 	return fc.array(
-		fc.tuple(
-			fc.integer({ min: 1, max: 5 }),
-			fc.stringMatching(/^[a-z]{3,10}$/),
-		).map(([num, name]) => ({
-			filename: `phase-${String(num).padStart(2, "0")}-${name}.md`,
-			content: `# Phase ${num}: ${name}\n\nInstructions here.`,
-		})),
+		fc
+			.tuple(fc.integer({ min: 1, max: 5 }), fc.stringMatching(/^[a-z]{3,10}$/))
+			.map(([num, name]) => ({
+				filename: `phase-${String(num).padStart(2, "0")}-${name}.md`,
+				content: `# Phase ${num}: ${name}\n\nInstructions here.`,
+			})),
 		{ minLength: 0, maxLength: 2 },
 	) as fc.Arbitrary<KnowledgeArtifact["workflows"]>;
 }

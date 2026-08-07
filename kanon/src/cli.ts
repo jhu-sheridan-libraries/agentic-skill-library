@@ -21,7 +21,6 @@ import {
 } from "./collection-builder";
 import { evalCommand } from "./eval";
 import { registerGuildCommands } from "./guild/cli";
-import { registerRosettaCommands } from "./rosetta-cli";
 import { commandMetaRegistry } from "./help/metadata";
 import {
 	type RootCommand,
@@ -35,6 +34,7 @@ import { importCommand as multiHarnessImportCommand } from "./importers/index";
 import { installCommand } from "./install";
 import { newCommand } from "./new";
 import { publishCommand } from "./publish";
+import { registerRosettaCommands } from "./rosetta-cli";
 import type { HarnessName } from "./schemas";
 import { SUPPORTED_HARNESSES } from "./schemas";
 import {

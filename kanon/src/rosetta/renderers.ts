@@ -25,8 +25,8 @@ import type {
 	TranslationRequest,
 } from "../schemas";
 import { InspectionReportEnvelopeSchema } from "../schemas";
-import type { InspectionReport } from "./inspection";
 import { codePointCompare, stableJsonStringify } from "./contracts";
+import type { InspectionReport } from "./inspection";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ANSI Color Helpers (human renderer only)
@@ -77,9 +77,7 @@ export function renderHuman(report: InspectionReport): string {
 	const lines: string[] = [];
 
 	// Header
-	lines.push(
-		color("Rosetta Stone Inspection Report", ANSI.bold, ANSI.cyan),
-	);
+	lines.push(color("Rosetta Stone Inspection Report", ANSI.bold, ANSI.cyan));
 	lines.push(color("─".repeat(40), ANSI.dim));
 	lines.push("");
 
@@ -144,8 +142,7 @@ export function renderHuman(report: InspectionReport): string {
 		lines.push(`  Harnesses: ${report.canonical.harnesses.join(", ")}`);
 	}
 	const counts = [
-		report.canonical.hookCount > 0 &&
-			`${report.canonical.hookCount} hook(s)`,
+		report.canonical.hookCount > 0 && `${report.canonical.hookCount} hook(s)`,
 		report.canonical.mcpServerCount > 0 &&
 			`${report.canonical.mcpServerCount} MCP server(s)`,
 		report.canonical.workflowCount > 0 &&
@@ -168,7 +165,9 @@ export function renderHuman(report: InspectionReport): string {
 		`  Full: ${report.compatibility.fullCount}  Partial: ${report.compatibility.partialCount}  None: ${report.compatibility.noneCount}  (${totalCaps} total)`,
 	);
 	if (report.compatibility.strictPromoted) {
-		lines.push(color("  Strict mode promoted degradations to errors", ANSI.yellow));
+		lines.push(
+			color("  Strict mode promoted degradations to errors", ANSI.yellow),
+		);
 	}
 	const degradationEntries = Object.entries(report.compatibility.degradations);
 	if (degradationEntries.length > 0) {
@@ -199,10 +198,7 @@ export function renderHuman(report: InspectionReport): string {
 	);
 	if (report.diagnostics.blocking.length > 0) {
 		lines.push(
-			color(
-				`  Blocking: ${report.diagnostics.blocking.join(", ")}`,
-				ANSI.red,
-			),
+			color(`  Blocking: ${report.diagnostics.blocking.join(", ")}`, ANSI.red),
 		);
 	}
 	for (const diag of report.diagnostics.diagnostics) {
@@ -445,7 +441,9 @@ function buildEnvelope(
 			: undefined;
 
 	// Safe diagnostics — strip any ANSI from messages/remediations
-	const diagnostics = report.diagnostics.diagnostics.map(stripAnsiFromDiagnostic);
+	const diagnostics = report.diagnostics.diagnostics.map(
+		stripAnsiFromDiagnostic,
+	);
 
 	// Sort defaults deterministically
 	const defaults = [...options.defaults].sort((a, b) =>
@@ -506,7 +504,34 @@ function buildCompatibilityCounts(
 	const counts: Record<string, { support: string; affectedValues: number }> =
 		{};
 
-	// Use degradation entries from the compatibility summary
+	// Initialize all canonical capabilities with "full" support
+	const ALL_CAPABILITIES = [
+		"frontmatter",
+		"body",
+		"hooks",
+		"mcp-servers",
+		"workflows",
+		"body-overrides",
+		"extra-fields",
+		"path-scoping",
+		"toggleable-rules",
+		"file-match-inclusion",
+		"system-prompt-merging",
+		"skill",
+		"power",
+		"rule",
+		"workflow",
+		"agent",
+		"prompt",
+		"template",
+		"reference-pack",
+	];
+
+	for (const cap of ALL_CAPABILITIES) {
+		counts[cap] = { support: "full", affectedValues: 0 };
+	}
+
+	// Override with degradation entries from the compatibility summary
 	for (const [capability, action] of Object.entries(
 		report.compatibility.degradations,
 	)) {
@@ -523,6 +548,7 @@ function buildCompatibilityCounts(
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /** Regex matching ANSI escape sequences */
+// biome-ignore lint/suspicious/noControlCharactersInRegex: intentionally matching ANSI escape sequences
 const ANSI_REGEX = /\x1b\[[0-9;]*[A-Za-z]/g;
 
 /** Strip all ANSI escape sequences from a string */

@@ -13,6 +13,11 @@
 
 import { describe, expect, it } from "bun:test";
 import fc from "fast-check";
+import {
+	type EffectiveCompatibilityProfile,
+	evaluateCompatibility,
+	identifyUsedCapabilities,
+} from "../rosetta/compatibility";
 import type {
 	CanonicalCapability,
 	DegradationStrategy,
@@ -20,11 +25,6 @@ import type {
 	RosettaCompatibilityEntry,
 } from "../schemas";
 import { CanonicalCapabilitySchema } from "../schemas";
-import {
-	evaluateCompatibility,
-	identifyUsedCapabilities,
-	type EffectiveCompatibilityProfile,
-} from "../rosetta/compatibility";
 import { makeArtifact, makeFrontmatter } from "./test-helpers";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -52,7 +52,9 @@ function arbDegradationStrategy(): fc.Arbitrary<DegradationStrategy> {
  * Generates a compatibility profile where specific capabilities are degraded
  * (partial or none) and the rest are full.
  */
-function arbProfileWithDegradation(degradedCaps: CanonicalCapability[]): fc.Arbitrary<EffectiveCompatibilityProfile> {
+function arbProfileWithDegradation(
+	degradedCaps: CanonicalCapability[],
+): fc.Arbitrary<EffectiveCompatibilityProfile> {
 	// Generate degradation entries for each degraded capability
 	return fc
 		.tuple(
@@ -105,7 +107,17 @@ function arbRandomDegradedProfile(): fc.Arbitrary<{
 /** Generates a hook entry */
 function arbHook(): fc.Arbitrary<{
 	name: string;
-	event: "file_edited" | "file_created" | "file_deleted" | "agent_stop" | "prompt_submit" | "pre_tool_use" | "post_tool_use" | "pre_task" | "post_task" | "user_triggered";
+	event:
+		| "file_edited"
+		| "file_created"
+		| "file_deleted"
+		| "agent_stop"
+		| "prompt_submit"
+		| "pre_tool_use"
+		| "post_tool_use"
+		| "pre_task"
+		| "post_task"
+		| "user_triggered";
 	action: { type: "run_command"; command: string };
 }> {
 	return fc
@@ -126,18 +138,31 @@ function arbHook(): fc.Arbitrary<{
 }
 
 /** Generates an MCP server entry */
-function arbMcpServer(): fc.Arbitrary<{ name: string; transport: "stdio"; command: string; args: string[]; env: Record<string, string> }> {
+function arbMcpServer(): fc.Arbitrary<{
+	name: string;
+	transport: "stdio";
+	command: string;
+	args: string[];
+	env: Record<string, string>;
+}> {
 	return fc.record({
 		name: fc.stringMatching(/^[a-z]{3,10}$/),
 		transport: fc.constant("stdio" as const),
 		command: fc.stringMatching(/^[a-z]{3,10}$/),
-		args: fc.array(fc.stringMatching(/^[a-z]{2,6}$/), { minLength: 0, maxLength: 2 }),
+		args: fc.array(fc.stringMatching(/^[a-z]{2,6}$/), {
+			minLength: 0,
+			maxLength: 2,
+		}),
 		env: fc.constant({} as Record<string, string>),
 	});
 }
 
 /** Generates a workflow entry */
-function arbWorkflow(): fc.Arbitrary<{ name: string; filename: string; content: string }> {
+function arbWorkflow(): fc.Arbitrary<{
+	name: string;
+	filename: string;
+	content: string;
+}> {
 	return fc
 		.tuple(
 			fc.stringMatching(/^[a-z]{3,8}$/),

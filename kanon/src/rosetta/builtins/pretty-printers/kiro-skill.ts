@@ -17,9 +17,12 @@ import type {
 	SourceDocument,
 	TranslationDiagnostic,
 } from "../../../schemas";
-import { codePointCompare } from "../../contracts";
 import { renderDeterministicYaml } from "../../canonical";
-import type { SourcePrintOutput, SourceTranslatorContext } from "../../registry";
+import { codePointCompare } from "../../contracts";
+import type {
+	SourcePrintOutput,
+	SourceTranslatorContext,
+} from "../../registry";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Pretty-Printer
@@ -41,7 +44,12 @@ export function prettyPrintKiroSkill(
 
 	const fm = (artifact.frontmatter ?? {}) as Record<string, unknown>;
 	const body = (artifact.body as string) ?? "";
-	const workflows = (artifact.workflows as Array<{ name: string; filename: string; content: string }>) ?? [];
+	const workflows =
+		(artifact.workflows as Array<{
+			name: string;
+			filename: string;
+			content: string;
+		}>) ?? [];
 
 	// Build SKILL.md frontmatter
 	const skillFm: Record<string, unknown> = {};

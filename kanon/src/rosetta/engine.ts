@@ -17,13 +17,13 @@
  */
 
 import {
-	KnowledgeArtifactSchema,
 	type AppliedDefault,
 	type AppliedNormalization,
 	type DegradationRecord,
 	type FormatContract,
 	type FormatIdentifier,
 	type KnowledgeArtifact,
+	KnowledgeArtifactSchema,
 	type TranslationDiagnostic,
 	type TranslationPlan,
 	type TranslationRequest,
@@ -36,6 +36,8 @@ import {
 	promoteInStrictMode,
 	resolveEffectiveProfile,
 } from "./compatibility";
+import type { DetectionRequest, DetectionResult } from "./detector";
+import { detect } from "./detector";
 import {
 	convertInternalError,
 	createDiagnostic,
@@ -43,15 +45,13 @@ import {
 	hasBlockingDiagnostics,
 	sortDiagnostics,
 } from "./diagnostics";
-import { detect } from "./detector";
-import type { DetectionRequest, DetectionResult } from "./detector";
-import { buildInspectionReport } from "./inspection";
 import type { InspectionContext, InspectionReport } from "./inspection";
+import { buildInspectionReport } from "./inspection";
 import { validatePlan } from "./plan";
 import type {
 	SourceTranslatorContext,
-	TargetTranslatorContext,
 	TargetTranslationOutput,
+	TargetTranslatorContext,
 	TranslationRegistrySnapshot,
 } from "./registry";
 import { guardRequest } from "./request-guard";
@@ -124,7 +124,7 @@ export class RosettaEngine implements RosettaStone {
 		let canonical: KnowledgeArtifact | undefined;
 		let sourceFormatContract: FormatContract | undefined;
 		let targetFormatContract: FormatContract | undefined;
-		let detectionResult: DetectionResult | undefined;
+		let _detectionResult: DetectionResult | undefined;
 
 		try {
 			// ─── Phase 1: Guard the request ───────────────────────────────
@@ -132,9 +132,14 @@ export class RosettaEngine implements RosettaStone {
 			if (!guardResult.ok) {
 				diagnostics.push(...guardResult.diagnostics);
 				return this.buildResult(
-					diagnostics, defaults, normalizations,
-					degradations, plan, canonical,
-					sourceFormatContract, targetFormatContract,
+					diagnostics,
+					defaults,
+					normalizations,
+					degradations,
+					plan,
+					canonical,
+					sourceFormatContract,
+					targetFormatContract,
 				);
 			}
 			const guarded = guardResult.request;
@@ -144,13 +149,18 @@ export class RosettaEngine implements RosettaStone {
 				const sourceResolution = this.resolveSourceFormat(guarded);
 				diagnostics.push(...sourceResolution.diagnostics);
 				if (sourceResolution.detection) {
-					detectionResult = sourceResolution.detection;
+					_detectionResult = sourceResolution.detection;
 				}
 				if (!sourceResolution.contract) {
 					return this.buildResult(
-						diagnostics, defaults, normalizations,
-						degradations, plan, canonical,
-						sourceFormatContract, targetFormatContract,
+						diagnostics,
+						defaults,
+						normalizations,
+						degradations,
+						plan,
+						canonical,
+						sourceFormatContract,
+						targetFormatContract,
 					);
 				}
 				sourceFormatContract = sourceResolution.contract;
@@ -164,9 +174,14 @@ export class RosettaEngine implements RosettaStone {
 				if (!targetResolution.ok) {
 					diagnostics.push(...targetResolution.diagnostics);
 					return this.buildResult(
-						diagnostics, defaults, normalizations,
-						degradations, plan, canonical,
-						sourceFormatContract, targetFormatContract,
+						diagnostics,
+						defaults,
+						normalizations,
+						degradations,
+						plan,
+						canonical,
+						sourceFormatContract,
+						targetFormatContract,
 					);
 				}
 				diagnostics.push(...targetResolution.diagnostics);
@@ -179,15 +194,21 @@ export class RosettaEngine implements RosettaStone {
 				sourceFormatContract
 			) {
 				const sourceResult = this.runSourceTranslation(
-					guarded, sourceFormatContract,
+					guarded,
+					sourceFormatContract,
 				);
 				diagnostics.push(...sourceResult.diagnostics);
 
 				if (hasBlockingDiagnostics(sourceResult.diagnostics)) {
 					return this.buildResult(
-						diagnostics, defaults, normalizations,
-						degradations, plan, canonical,
-						sourceFormatContract, targetFormatContract,
+						diagnostics,
+						defaults,
+						normalizations,
+						degradations,
+						plan,
+						canonical,
+						sourceFormatContract,
+						targetFormatContract,
 					);
 				}
 
@@ -200,9 +221,14 @@ export class RosettaEngine implements RosettaStone {
 
 					if (hasBlockingDiagnostics(canonicalResult.diagnostics)) {
 						return this.buildResult(
-							diagnostics, defaults, normalizations,
-							degradations, plan, canonical,
-							sourceFormatContract, targetFormatContract,
+							diagnostics,
+							defaults,
+							normalizations,
+							degradations,
+							plan,
+							canonical,
+							sourceFormatContract,
+							targetFormatContract,
 						);
 					}
 					canonical = canonicalResult.artifact;
@@ -222,30 +248,44 @@ export class RosettaEngine implements RosettaStone {
 			) {
 				// Evaluate compatibility
 				const compatResult = this.runCompatibility(
-					canonical, targetFormatContract, guarded.strict,
+					canonical,
+					targetFormatContract,
+					guarded.strict,
 				);
 				diagnostics.push(...compatResult.diagnostics);
 				degradations.push(...compatResult.degradations);
 
 				if (hasBlockingDiagnostics(compatResult.diagnostics)) {
 					return this.buildResult(
-						diagnostics, defaults, normalizations,
-						degradations, plan, canonical,
-						sourceFormatContract, targetFormatContract,
+						diagnostics,
+						defaults,
+						normalizations,
+						degradations,
+						plan,
+						canonical,
+						sourceFormatContract,
+						targetFormatContract,
 					);
 				}
 
 				// Run target translation
 				const targetResult = this.runTargetTranslation(
-					canonical, guarded, targetFormatContract,
+					canonical,
+					guarded,
+					targetFormatContract,
 				);
 				diagnostics.push(...targetResult.diagnostics);
 
 				if (hasBlockingDiagnostics(targetResult.diagnostics)) {
 					return this.buildResult(
-						diagnostics, defaults, normalizations,
-						degradations, plan, canonical,
-						sourceFormatContract, targetFormatContract,
+						diagnostics,
+						defaults,
+						normalizations,
+						degradations,
+						plan,
+						canonical,
+						sourceFormatContract,
+						targetFormatContract,
 					);
 				}
 
@@ -266,17 +306,27 @@ export class RosettaEngine implements RosettaStone {
 
 			// ─── Phase 6: Determine application state ─────────────────────
 			return this.buildResult(
-				diagnostics, defaults, normalizations,
-				degradations, plan, canonical,
-				sourceFormatContract, targetFormatContract,
+				diagnostics,
+				defaults,
+				normalizations,
+				degradations,
+				plan,
+				canonical,
+				sourceFormatContract,
+				targetFormatContract,
 			);
 		} catch (error: unknown) {
 			// Unexpected implementation failure — convert to redacted diagnostic
 			diagnostics.push(convertInternalError(error, "request"));
 			return this.buildResult(
-				diagnostics, defaults, normalizations,
-				degradations, plan, canonical,
-				sourceFormatContract, targetFormatContract,
+				diagnostics,
+				defaults,
+				normalizations,
+				degradations,
+				plan,
+				canonical,
+				sourceFormatContract,
+				targetFormatContract,
 			);
 		}
 	}
@@ -351,7 +401,8 @@ export class RosettaEngine implements RosettaStone {
 
 		// Resolve the selected format from the registry
 		const resolution = this.registry.resolve(
-			detectionResult.selected, "source",
+			detectionResult.selected,
+			"source",
 		);
 		if (!resolution.ok) {
 			return {
@@ -366,10 +417,7 @@ export class RosettaEngine implements RosettaStone {
 
 		return {
 			contract: resolution.contract,
-			diagnostics: [
-				...detectionResult.diagnostics,
-				...resolution.diagnostics,
-			],
+			diagnostics: [...detectionResult.diagnostics, ...resolution.diagnostics],
 			detection: detectionResult,
 		};
 	}
@@ -380,7 +428,10 @@ export class RosettaEngine implements RosettaStone {
 	private runSourceTranslation(
 		request: TranslationRequest,
 		contract: FormatContract,
-	): { candidate?: Record<string, unknown>; diagnostics: TranslationDiagnostic[] } {
+	): {
+		candidate?: Record<string, unknown>;
+		diagnostics: TranslationDiagnostic[];
+	} {
 		if (request.mode !== "inbound" && request.mode !== "transcode") {
 			return { diagnostics: [] };
 		}
@@ -420,15 +471,17 @@ export class RosettaEngine implements RosettaStone {
 	/**
 	 * Validate a candidate against the canonical schema using the canonical parser.
 	 */
-	private validateCanonical(
-		candidate: Record<string, unknown>,
-	): { artifact: KnowledgeArtifact | undefined; diagnostics: TranslationDiagnostic[] } {
+	private validateCanonical(candidate: Record<string, unknown>): {
+		artifact: KnowledgeArtifact | undefined;
+		diagnostics: TranslationDiagnostic[];
+	} {
 		try {
 			const result = KnowledgeArtifactSchema.safeParse(candidate);
 			if (!result.success) {
-				const artifactName = typeof candidate.name === "string" && candidate.name.length > 0
-					? candidate.name
-					: "unknown";
+				const artifactName =
+					typeof candidate.name === "string" && candidate.name.length > 0
+						? candidate.name
+						: "unknown";
 				const diagnostics: TranslationDiagnostic[] = result.error.issues.map(
 					(issue) =>
 						createDiagnostic("RS_CANONICAL_INVALID", {
@@ -457,12 +510,17 @@ export class RosettaEngine implements RosettaStone {
 		artifact: KnowledgeArtifact,
 		contract: FormatContract,
 		strict: boolean,
-	): { diagnostics: TranslationDiagnostic[]; degradations: DegradationRecord[] } {
+	): {
+		diagnostics: TranslationDiagnostic[];
+		degradations: DegradationRecord[];
+	} {
 		try {
 			const profile = resolveEffectiveProfile(contract);
 			const usedCapabilities = identifyUsedCapabilities(artifact);
 			let evaluation = evaluateCompatibility(
-				profile, usedCapabilities, artifact,
+				profile,
+				usedCapabilities,
+				artifact,
 			);
 
 			if (strict) {
@@ -642,31 +700,28 @@ export class RosettaEngine implements RosettaStone {
 						hookCount: result.canonical.hooks.length,
 						mcpServerCount: result.canonical.mcpServers.length,
 						workflowCount: result.canonical.workflows.length,
-						bodyOverrideCount: Object.keys(
-							result.canonical.bodyOverrides,
-						).length,
+						bodyOverrideCount: Object.keys(result.canonical.bodyOverrides)
+							.length,
 					}
 				: undefined,
 			options: { effective: {}, origins: {}, defaults: {} },
-			compatibility: result.degradations.length > 0
-				? {
-						fullCount: 0,
-						partialCount: result.degradations.filter(
-							(d) => d.action !== "omit",
-						).length,
-						noneCount: result.degradations.filter(
-							(d) => d.action === "omit",
-						).length,
-						degradations: result.degradations,
-						strictPromoted: request.strict,
-					}
-				: undefined,
+			compatibility:
+				result.degradations.length > 0
+					? {
+							fullCount: 0,
+							partialCount: result.degradations.filter(
+								(d) => d.action !== "omit",
+							).length,
+							noneCount: result.degradations.filter((d) => d.action === "omit")
+								.length,
+							degradations: result.degradations,
+							strictPromoted: request.strict,
+						}
+					: undefined,
 			diagnostics: result.diagnostics,
 			plan: result.plan,
 			previewAvailable: result.plan !== undefined,
-			previewUnavailableReason: result.plan
-				? undefined
-				: "No plan produced",
+			previewUnavailableReason: result.plan ? undefined : "No plan produced",
 		};
 	}
 }

@@ -21,8 +21,8 @@ import {
 	getAllBuiltinProfileKeys,
 	getBuiltinProfile,
 } from "../rosetta/builtins/compatibility-profiles";
-import { CanonicalCapabilitySchema } from "../schemas";
 import type { CanonicalCapability, HarnessName } from "../schemas";
+import { CanonicalCapabilitySchema } from "../schemas";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Constants
@@ -146,100 +146,190 @@ describe("Capability classification snapshot", () => {
 	 */
 	const EXPECTED_SNAPSHOTS: Record<
 		HarnessName,
-		{ full: CanonicalCapability[]; partial: CanonicalCapability[]; none: CanonicalCapability[] }
+		{
+			full: CanonicalCapability[];
+			partial: CanonicalCapability[];
+			none: CanonicalCapability[];
+		}
 	> = {
 		kiro: {
 			full: [
-				"body", "body-overrides", "extra-fields", "file-match-inclusion",
-				"frontmatter", "hooks", "mcp-servers", "path-scoping", "power",
-				"prompt", "reference-pack", "rule", "skill", "system-prompt-merging",
-				"template", "toggleable-rules", "workflow", "workflows",
+				"body",
+				"body-overrides",
+				"extra-fields",
+				"file-match-inclusion",
+				"frontmatter",
+				"hooks",
+				"mcp-servers",
+				"path-scoping",
+				"power",
+				"prompt",
+				"reference-pack",
+				"rule",
+				"skill",
+				"system-prompt-merging",
+				"template",
+				"toggleable-rules",
+				"workflow",
+				"workflows",
 			],
 			partial: ["agent"],
 			none: [],
 		},
 		"claude-code": {
 			full: [
-				"body", "body-overrides", "extra-fields", "frontmatter",
-				"mcp-servers", "power", "prompt", "reference-pack", "rule",
-				"skill", "system-prompt-merging", "template",
+				"body",
+				"body-overrides",
+				"extra-fields",
+				"frontmatter",
+				"mcp-servers",
+				"power",
+				"prompt",
+				"reference-pack",
+				"rule",
+				"skill",
+				"system-prompt-merging",
+				"template",
 			],
 			partial: ["hooks", "workflow"],
 			none: [
-				"agent", "file-match-inclusion", "path-scoping",
-				"toggleable-rules", "workflows",
+				"agent",
+				"file-match-inclusion",
+				"path-scoping",
+				"toggleable-rules",
+				"workflows",
 			],
 		},
 		codex: {
 			full: [
-				"body", "body-overrides", "extra-fields", "frontmatter",
-				"mcp-servers", "power", "prompt", "reference-pack", "rule",
-				"skill", "system-prompt-merging", "template", "workflow",
+				"body",
+				"body-overrides",
+				"extra-fields",
+				"frontmatter",
+				"mcp-servers",
+				"power",
+				"prompt",
+				"reference-pack",
+				"rule",
+				"skill",
+				"system-prompt-merging",
+				"template",
+				"workflow",
 				"workflows",
 			],
 			partial: ["agent"],
 			none: [
-				"file-match-inclusion", "hooks", "path-scoping",
+				"file-match-inclusion",
+				"hooks",
+				"path-scoping",
 				"toggleable-rules",
 			],
 		},
 		copilot: {
 			full: [
-				"agent", "body", "body-overrides", "extra-fields",
-				"file-match-inclusion", "frontmatter", "path-scoping", "power",
-				"prompt", "reference-pack", "rule", "skill", "workflow",
+				"agent",
+				"body",
+				"body-overrides",
+				"extra-fields",
+				"file-match-inclusion",
+				"frontmatter",
+				"path-scoping",
+				"power",
+				"prompt",
+				"reference-pack",
+				"rule",
+				"skill",
+				"workflow",
 			],
 			partial: ["template"],
 			none: [
-				"hooks", "mcp-servers", "system-prompt-merging",
-				"toggleable-rules", "workflows",
+				"hooks",
+				"mcp-servers",
+				"system-prompt-merging",
+				"toggleable-rules",
+				"workflows",
 			],
 		},
 		cursor: {
 			full: [
-				"body", "body-overrides", "extra-fields", "file-match-inclusion",
-				"frontmatter", "mcp-servers", "path-scoping", "power", "prompt",
-				"reference-pack", "rule", "skill", "toggleable-rules",
+				"body",
+				"body-overrides",
+				"extra-fields",
+				"file-match-inclusion",
+				"frontmatter",
+				"mcp-servers",
+				"path-scoping",
+				"power",
+				"prompt",
+				"reference-pack",
+				"rule",
+				"skill",
+				"toggleable-rules",
 			],
 			partial: ["template", "workflow"],
-			none: [
-				"agent", "hooks", "system-prompt-merging", "workflows",
-			],
+			none: ["agent", "hooks", "system-prompt-merging", "workflows"],
 		},
 		windsurf: {
 			full: [
-				"body", "body-overrides", "extra-fields", "file-match-inclusion",
-				"frontmatter", "mcp-servers", "path-scoping", "power", "prompt",
-				"reference-pack", "rule", "skill", "workflows",
+				"body",
+				"body-overrides",
+				"extra-fields",
+				"file-match-inclusion",
+				"frontmatter",
+				"mcp-servers",
+				"path-scoping",
+				"power",
+				"prompt",
+				"reference-pack",
+				"rule",
+				"skill",
+				"workflows",
 			],
 			partial: ["template", "workflow"],
-			none: [
-				"agent", "hooks", "system-prompt-merging", "toggleable-rules",
-			],
+			none: ["agent", "hooks", "system-prompt-merging", "toggleable-rules"],
 		},
 		cline: {
 			full: [
-				"body", "body-overrides", "extra-fields", "frontmatter",
-				"mcp-servers", "power", "prompt", "reference-pack", "rule",
+				"body",
+				"body-overrides",
+				"extra-fields",
+				"frontmatter",
+				"mcp-servers",
+				"power",
+				"prompt",
+				"reference-pack",
+				"rule",
 				"skill",
 			],
 			partial: ["hooks", "template", "workflow"],
 			none: [
-				"agent", "file-match-inclusion", "path-scoping",
-				"system-prompt-merging", "toggleable-rules", "workflows",
+				"agent",
+				"file-match-inclusion",
+				"path-scoping",
+				"system-prompt-merging",
+				"toggleable-rules",
+				"workflows",
 			],
 		},
 		qdeveloper: {
 			full: [
-				"agent", "body", "body-overrides", "extra-fields",
-				"file-match-inclusion", "frontmatter", "mcp-servers",
-				"path-scoping", "power", "prompt", "reference-pack", "rule",
-				"skill", "workflow",
+				"agent",
+				"body",
+				"body-overrides",
+				"extra-fields",
+				"file-match-inclusion",
+				"frontmatter",
+				"mcp-servers",
+				"path-scoping",
+				"power",
+				"prompt",
+				"reference-pack",
+				"rule",
+				"skill",
+				"workflow",
 			],
 			partial: ["template"],
-			none: [
-				"hooks", "system-prompt-merging", "toggleable-rules", "workflows",
-			],
+			none: ["hooks", "system-prompt-merging", "toggleable-rules", "workflows"],
 		},
 	};
 
@@ -248,7 +338,11 @@ describe("Capability classification snapshot", () => {
 			const profile = buildCompatibilityProfile(harness);
 
 			// Derive actual classification from the profile
-			const actual: { full: CanonicalCapability[]; partial: CanonicalCapability[]; none: CanonicalCapability[] } = {
+			const actual: {
+				full: CanonicalCapability[];
+				partial: CanonicalCapability[];
+				none: CanonicalCapability[];
+			} = {
 				full: [],
 				partial: [],
 				none: [],
@@ -266,15 +360,21 @@ describe("Capability classification snapshot", () => {
 			}
 
 			test("full capabilities match snapshot", () => {
-				expect(actual.full.sort()).toEqual(EXPECTED_SNAPSHOTS[harness].full.sort());
+				expect(actual.full.sort()).toEqual(
+					EXPECTED_SNAPSHOTS[harness].full.sort(),
+				);
 			});
 
 			test("partial capabilities match snapshot", () => {
-				expect(actual.partial.sort()).toEqual(EXPECTED_SNAPSHOTS[harness].partial.sort());
+				expect(actual.partial.sort()).toEqual(
+					EXPECTED_SNAPSHOTS[harness].partial.sort(),
+				);
 			});
 
 			test("none capabilities match snapshot", () => {
-				expect(actual.none.sort()).toEqual(EXPECTED_SNAPSHOTS[harness].none.sort());
+				expect(actual.none.sort()).toEqual(
+					EXPECTED_SNAPSHOTS[harness].none.sort(),
+				);
 			});
 		});
 	}
@@ -327,8 +427,7 @@ describe("Consistency with legacy compatibility", () => {
 					CAPABILITY_MATRIX_TO_CANONICAL,
 				)) {
 					test(`structural capability "${canonicalCap}" (matrix key: ${matrixKey}) matches CAPABILITY_MATRIX`, () => {
-						const matrixEntry =
-							capRow[matrixKey as HarnessCapabilityName];
+						const matrixEntry = capRow[matrixKey as HarnessCapabilityName];
 						const profileEntry = (
 							profile as Record<string, { support: string }>
 						)[canonicalCap];

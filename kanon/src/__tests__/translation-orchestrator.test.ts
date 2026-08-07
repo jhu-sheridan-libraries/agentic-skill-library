@@ -9,7 +9,6 @@ import { mkdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
-	type AllowedRoot,
 	groupDocumentsForTranslation,
 	isWithinRoot,
 	readArtifactDocuments,

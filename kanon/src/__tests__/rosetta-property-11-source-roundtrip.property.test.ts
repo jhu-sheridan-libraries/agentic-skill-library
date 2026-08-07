@@ -15,21 +15,19 @@
 
 import { describe, expect, it } from "bun:test";
 import fc from "fast-check";
-
-import type {
-	FormatIdentifier,
-	NormalizedRelativePath,
-	SourceDocument,
-} from "../schemas";
-import { KIRO_POWER_CONTRACT, BUILTIN_FORMAT_CONTRACTS } from "../rosetta/builtins/contracts";
-import { translateKiroPower } from "../rosetta/builtins/sources/kiro-power";
-import { prettyPrintKiroPower } from "../rosetta/builtins/pretty-printers/kiro-power";
-import { PRETTY_PRINTERS } from "../rosetta/builtins/pretty-printers";
 import {
-	PATH_BASED_SOURCE_TRANSLATORS,
+	BUILTIN_FORMAT_CONTRACTS,
+	KIRO_POWER_CONTRACT,
+} from "../rosetta/builtins/contracts";
+import { PRETTY_PRINTERS } from "../rosetta/builtins/pretty-printers";
+import { prettyPrintKiroPower } from "../rosetta/builtins/pretty-printers/kiro-power";
+import {
 	HARNESS_NATIVE_SOURCE_TRANSLATORS,
+	PATH_BASED_SOURCE_TRANSLATORS,
 } from "../rosetta/builtins/sources";
+import { translateKiroPower } from "../rosetta/builtins/sources/kiro-power";
 import type { SourceTranslatorContext } from "../rosetta/registry";
+import type { NormalizedRelativePath, SourceDocument } from "../schemas";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Test Context
@@ -105,57 +103,67 @@ function arbKiroPowerDocumentSet(): fc.Arbitrary<SourceDocument[]> {
 				maxLength: 2,
 			}), // globs
 			arbBody(),
-			fc.array(
-				fc.tuple(arbSteeringName(), arbSteeringContent()),
-				{ minLength: 0, maxLength: 3 },
-			),
+			fc.array(fc.tuple(arbSteeringName(), arbSteeringContent()), {
+				minLength: 0,
+				maxLength: 3,
+			}),
 		)
-		.map(([name, description, keywords, alwaysApply, globs, body, steeringPairs]) => {
-			// Build POWER.md frontmatter
-			const fmLines: string[] = [];
-			fmLines.push(`name: "${name}"`);
-			fmLines.push(`description: "${description}"`);
-			if (keywords.length === 0) {
-				fmLines.push("keywords: []");
-			} else {
-				fmLines.push("keywords:");
-				for (const kw of keywords) {
-					fmLines.push(`  - ${kw}`);
+		.map(
+			([
+				name,
+				description,
+				keywords,
+				alwaysApply,
+				globs,
+				body,
+				steeringPairs,
+			]) => {
+				// Build POWER.md frontmatter
+				const fmLines: string[] = [];
+				fmLines.push(`name: "${name}"`);
+				fmLines.push(`description: "${description}"`);
+				if (keywords.length === 0) {
+					fmLines.push("keywords: []");
+				} else {
+					fmLines.push("keywords:");
+					for (const kw of keywords) {
+						fmLines.push(`  - ${kw}`);
+					}
 				}
-			}
-			if (alwaysApply) fmLines.push("alwaysApply: true");
-			if (globs.length > 0) {
-				fmLines.push("globs:");
-				for (const g of globs) {
-					fmLines.push(`  - ${g}`);
+				if (alwaysApply) fmLines.push("alwaysApply: true");
+				if (globs.length > 0) {
+					fmLines.push("globs:");
+					for (const g of globs) {
+						fmLines.push(`  - ${g}`);
+					}
 				}
-			}
 
-			const powerContent = `---\n${fmLines.join("\n")}\n---\n\n${body}`;
+				const powerContent = `---\n${fmLines.join("\n")}\n---\n\n${body}`;
 
-			const documents: SourceDocument[] = [
-				{
-					path: "POWER.md" as NormalizedRelativePath,
-					content: powerContent,
-					executable: false,
-				},
-			];
-
-			// Deduplicate steering names and add steering docs
-			const seenNames = new Set<string>();
-			for (const [sName, sContent] of steeringPairs) {
-				if (!seenNames.has(sName)) {
-					seenNames.add(sName);
-					documents.push({
-						path: `steering/${sName}.md` as NormalizedRelativePath,
-						content: sContent,
+				const documents: SourceDocument[] = [
+					{
+						path: "POWER.md" as NormalizedRelativePath,
+						content: powerContent,
 						executable: false,
-					});
-				}
-			}
+					},
+				];
 
-			return documents;
-		});
+				// Deduplicate steering names and add steering docs
+				const seenNames = new Set<string>();
+				for (const [sName, sContent] of steeringPairs) {
+					if (!seenNames.has(sName)) {
+						seenNames.add(sName);
+						documents.push({
+							path: `steering/${sName}.md` as NormalizedRelativePath,
+							content: sContent,
+							executable: false,
+						});
+					}
+				}
+
+				return documents;
+			},
+		);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -199,8 +207,12 @@ function assertCoreEquivalence(
 	expect(wfB.length).toEqual(wfA.length);
 
 	// Sort by name for deterministic comparison
-	const sortedA = [...wfA].sort((x, y) => (x.name < y.name ? -1 : x.name > y.name ? 1 : 0));
-	const sortedB = [...wfB].sort((x, y) => (x.name < y.name ? -1 : x.name > y.name ? 1 : 0));
+	const sortedA = [...wfA].sort((x, y) =>
+		x.name < y.name ? -1 : x.name > y.name ? 1 : 0,
+	);
+	const sortedB = [...wfB].sort((x, y) =>
+		x.name < y.name ? -1 : x.name > y.name ? 1 : 0,
+	);
 
 	for (let i = 0; i < sortedA.length; i++) {
 		expect(sortedB[i].name).toEqual(sortedA[i].name);
@@ -256,9 +268,7 @@ describe("Property 11: Every source parser and pretty-printer round-trips", () =
 				const printed = prettyPrintKiroPower(parsed.candidate!, BASE_CONTEXT);
 
 				// Must contain POWER.md
-				const powerDoc = printed.documents.find(
-					(d) => d.path === "POWER.md",
-				);
+				const powerDoc = printed.documents.find((d) => d.path === "POWER.md");
 				expect(powerDoc).toBeDefined();
 				expect(typeof powerDoc!.content).toBe("string");
 				expect((powerDoc!.content as string).startsWith("---")).toBe(true);
@@ -337,17 +347,13 @@ describe("Property 11: Source format inventory coverage", () => {
 		]);
 
 		for (const formatId of formatsRequiringRoundTrip) {
-			expect(
-				allSourceTranslators.has(formatId),
-			).toBe(true);
+			expect(allSourceTranslators.has(formatId)).toBe(true);
 		}
 	});
 
 	it("every source-capable format (except kanon-canonical) has a registered pretty-printer", () => {
 		for (const formatId of formatsRequiringRoundTrip) {
-			expect(
-				PRETTY_PRINTERS.has(formatId),
-			).toBe(true);
+			expect(PRETTY_PRINTERS.has(formatId)).toBe(true);
 		}
 	});
 
@@ -358,9 +364,7 @@ describe("Property 11: Source format inventory coverage", () => {
 		]);
 
 		for (const [formatId] of allSourceTranslators) {
-			expect(
-				PRETTY_PRINTERS.has(formatId),
-			).toBe(true);
+			expect(PRETTY_PRINTERS.has(formatId)).toBe(true);
 		}
 	});
 
@@ -371,9 +375,7 @@ describe("Property 11: Source format inventory coverage", () => {
 		]);
 
 		for (const [formatId] of PRETTY_PRINTERS) {
-			expect(
-				allSourceTranslators.has(formatId),
-			).toBe(true);
+			expect(allSourceTranslators.has(formatId)).toBe(true);
 		}
 	});
 });

@@ -12,21 +12,20 @@
 
 import { describe, expect, it } from "bun:test";
 import fc from "fast-check";
-
-import type {
-	FormatContract,
-	NormalizedRelativePath,
-	SourceDocument,
-} from "../schemas";
-import type { SourceTranslatorContext } from "../rosetta/registry";
-import { translateKiroPower } from "../rosetta/builtins/sources/kiro-power";
-import { translateKiroSkill } from "../rosetta/builtins/sources/kiro-skill";
-import { translateSuperpowers } from "../rosetta/builtins/sources/superpowers";
 import {
 	KIRO_POWER_CONTRACT,
 	KIRO_SKILL_CONTRACT,
 	SUPERPOWERS_CONTRACT,
 } from "../rosetta/builtins/contracts";
+import { translateKiroPower } from "../rosetta/builtins/sources/kiro-power";
+import { translateKiroSkill } from "../rosetta/builtins/sources/kiro-skill";
+import { translateSuperpowers } from "../rosetta/builtins/sources/superpowers";
+import type { SourceTranslatorContext } from "../rosetta/registry";
+import type {
+	FormatContract,
+	NormalizedRelativePath,
+	SourceDocument,
+} from "../schemas";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Generators
@@ -59,9 +58,7 @@ function arbPathSegment(): fc.Arbitrary<string> {
 }
 
 /** Generates extra document paths that won't collide with known paths */
-function arbExtraDocPath(
-	excludePrefixes: string[],
-): fc.Arbitrary<string> {
+function arbExtraDocPath(excludePrefixes: string[]): fc.Arbitrary<string> {
 	return fc
 		.tuple(arbPathSegment(), arbPathSegment())
 		.map(([dir, file]) => `${dir}/${file}`)

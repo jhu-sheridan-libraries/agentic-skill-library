@@ -296,6 +296,7 @@ export const DIAGNOSTIC_CODE_REGISTRY: Readonly<
 		messageTemplate:
 			"A sensitive-value reference does not match any approved reference pattern.",
 		remediationTemplate:
+			// biome-ignore lint/suspicious/noTemplateCurlyInString: literal ${ENV_VAR} in user-facing message
 			"Use an approved reference syntax such as ${ENV_VAR} declared in the format contract.",
 	},
 	RS_PLAN_WITHHELD: {

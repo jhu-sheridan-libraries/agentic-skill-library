@@ -48,20 +48,14 @@ function arbUncPath(): fc.Arbitrary<string> {
 /** Generates paths containing NUL characters */
 function arbNulPath(): fc.Arbitrary<string> {
 	return fc
-		.tuple(
-			fc.stringMatching(/^[a-z]{2,6}$/),
-			fc.stringMatching(/^[a-z]{2,6}$/),
-		)
+		.tuple(fc.stringMatching(/^[a-z]{2,6}$/), fc.stringMatching(/^[a-z]{2,6}$/))
 		.map(([a, b]) => `${a}\0${b}`);
 }
 
 /** Generates paths with `..` traversal segments */
 function arbTraversalPath(): fc.Arbitrary<string> {
 	return fc
-		.tuple(
-			fc.stringMatching(/^[a-z]{2,6}$/),
-			fc.stringMatching(/^[a-z]{2,6}$/),
-		)
+		.tuple(fc.stringMatching(/^[a-z]{2,6}$/), fc.stringMatching(/^[a-z]{2,6}$/))
 		.chain(([prefix, suffix]) =>
 			fc
 				.constantFrom(
@@ -78,10 +72,7 @@ function arbTraversalPath(): fc.Arbitrary<string> {
 /** Generates paths with empty segments (consecutive `/` or trailing `/`) */
 function arbEmptySegmentPath(): fc.Arbitrary<string> {
 	return fc
-		.tuple(
-			fc.stringMatching(/^[a-z]{2,6}$/),
-			fc.stringMatching(/^[a-z]{2,6}$/),
-		)
+		.tuple(fc.stringMatching(/^[a-z]{2,6}$/), fc.stringMatching(/^[a-z]{2,6}$/))
 		.chain(([a, b]) =>
 			fc.constantFrom(`${a}//${b}`, `//${a}/${b}`, `${a}/${b}/`, `${a}///`),
 		);
@@ -113,10 +104,7 @@ function arbUnicodeNormalizationPair(): fc.Arbitrary<{
 	];
 
 	return fc
-		.tuple(
-			fc.constantFrom(...decomposable),
-			fc.stringMatching(/^[a-z]{2,6}$/),
-		)
+		.tuple(fc.constantFrom(...decomposable), fc.stringMatching(/^[a-z]{2,6}$/))
 		.map(([char, suffix]) => ({
 			nfd: `${char.nfd}${suffix}`,
 			nfc: `${char.nfc}${suffix}`,
@@ -278,7 +266,9 @@ describe("Property 26: Path normalization is safe and collision-free", () => {
 					// Both should normalize to the same NFC string
 					expect(nfdResult.normalized).toBe(nfcResult.normalized);
 					// The normalized form should be NFC
-					expect(nfdResult.normalized).toBe(nfdResult.normalized.normalize("NFC"));
+					expect(nfdResult.normalized).toBe(
+						nfdResult.normalized.normalize("NFC"),
+					);
 				}
 			}),
 			{ numRuns: 100 },

@@ -15,10 +15,9 @@
 
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import {
-	chmod,
 	mkdir,
-	readFile,
 	readdir,
+	readFile,
 	rm,
 	stat,
 	symlink,
@@ -26,15 +25,18 @@ import {
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { SourceDocument, TranslationPlan, TranslationResult } from "../schemas";
+import type {
+	SourceDocument,
+	TranslationPlan,
+	TranslationResult,
+} from "../schemas";
 import {
-	type AllowedRoot,
 	type ApplyFn,
-	type TranslateFn,
 	isWithinRoot,
 	orchestrateProfile,
 	resolveAllowedRoot,
 	scanForArtifacts,
+	type TranslateFn,
 } from "../translation-orchestrator";
 import { applyPlan } from "../translation-plan-applier";
 
@@ -60,7 +62,9 @@ afterEach(async () => {
 // Helpers
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function makePlan(files: Array<{ path: string; content: string; executable?: boolean }>): TranslationPlan {
+function makePlan(
+	files: Array<{ path: string; content: string; executable?: boolean }>,
+): TranslationPlan {
 	return {
 		schemaVersion: "1.0" as const,
 		formatId: "kiro",
@@ -103,7 +107,10 @@ describe("in-root scanning", () => {
 		// Create a valid artifact directory inside the root
 		const artifactDir = join(tempDir, "my-artifact");
 		await mkdir(artifactDir, { recursive: true });
-		await writeFile(join(artifactDir, "knowledge.md"), "---\nname: test\n---\n# Body");
+		await writeFile(
+			join(artifactDir, "knowledge.md"),
+			"---\nname: test\n---\n# Body",
+		);
 		await writeFile(join(artifactDir, "hooks.yaml"), "hooks: []");
 
 		const root = await resolveAllowedRoot(tempDir);
@@ -113,7 +120,9 @@ describe("in-root scanning", () => {
 		expect(groups[0].artifactName).toBe("my-artifact");
 		expect(groups[0].documents.length).toBeGreaterThanOrEqual(1);
 		// Verify the knowledge.md document is present
-		const knowledgeDoc = groups[0].documents.find((d) => d.path === "knowledge.md");
+		const knowledgeDoc = groups[0].documents.find(
+			(d) => d.path === "knowledge.md",
+		);
 		expect(knowledgeDoc).toBeDefined();
 		expect(knowledgeDoc!.content).toContain("# Body");
 	});
@@ -121,7 +130,10 @@ describe("in-root scanning", () => {
 	test("accepts nested subdirectory within root", async () => {
 		const nested = join(tempDir, "nested-art");
 		await mkdir(nested, { recursive: true });
-		await writeFile(join(nested, "knowledge.md"), "---\nname: nested\n---\n# Nested");
+		await writeFile(
+			join(nested, "knowledge.md"),
+			"---\nname: nested\n---\n# Nested",
+		);
 
 		const root = await resolveAllowedRoot(tempDir);
 		const within = await isWithinRoot(nested, root);
@@ -131,7 +143,10 @@ describe("in-root scanning", () => {
 	test("accepts symlink that points within the root", async () => {
 		const realDir = join(tempDir, "real-artifact");
 		await mkdir(realDir, { recursive: true });
-		await writeFile(join(realDir, "knowledge.md"), "---\nname: linked\n---\n# Linked");
+		await writeFile(
+			join(realDir, "knowledge.md"),
+			"---\nname: linked\n---\n# Linked",
+		);
 
 		const linkDir = join(tempDir, "link-artifact");
 		await symlink(realDir, linkDir);
@@ -155,7 +170,10 @@ describe("escaping symlinks", () => {
 			`outside-${Date.now()}-${Math.random().toString(36).slice(2)}`,
 		);
 		await mkdir(outsideDir, { recursive: true });
-		await writeFile(join(outsideDir, "knowledge.md"), "---\nname: evil\n---\n# Escape");
+		await writeFile(
+			join(outsideDir, "knowledge.md"),
+			"---\nname: evil\n---\n# Escape",
+		);
 	});
 
 	afterEach(async () => {
@@ -185,7 +203,9 @@ describe("escaping symlinks", () => {
 		try {
 			const groups = await scanForArtifacts({ root });
 			// If it didn't throw, the escaping artifact must not be in the results
-			const escapingGroup = groups.find((g) => g.artifactName === "escape-artifact");
+			const escapingGroup = groups.find(
+				(g) => g.artifactName === "escape-artifact",
+			);
 			expect(escapingGroup).toBeUndefined();
 		} catch (error) {
 			// If it throws, the error must mention "escapes allowed root"
@@ -240,7 +260,10 @@ describe("destination parent resolution", () => {
 		expect(report.outcomes[0].action).toBe("written");
 
 		// Verify the file was actually created with correct content
-		const content = await readFile(join(tempDir, "deep/nested/dir/output.md"), "utf-8");
+		const content = await readFile(
+			join(tempDir, "deep/nested/dir/output.md"),
+			"utf-8",
+		);
 		expect(content).toBe("# Deep file");
 	});
 
@@ -260,7 +283,9 @@ describe("destination parent resolution", () => {
 		});
 
 		expect(report.completedSuccessfully).toBe(true);
-		expect(report.outcomes.filter((o) => o.action === "written").length).toBe(3);
+		expect(report.outcomes.filter((o) => o.action === "written").length).toBe(
+			3,
+		);
 
 		// Verify all files exist
 		const first = await readFile(join(tempDir, "a/b/first.md"), "utf-8");
@@ -374,7 +399,10 @@ describe("staging and atomicity", () => {
 	test("written files appear atomically at final destination", async () => {
 		const root = await resolveAllowedRoot(tempDir);
 		const plan = makePlan([
-			{ path: "artifact/knowledge.md", content: "---\nname: test\n---\n# Test" },
+			{
+				path: "artifact/knowledge.md",
+				content: "---\nname: test\n---\n# Test",
+			},
 			{ path: "artifact/hooks.yaml", content: "hooks: []" },
 		]);
 
@@ -388,7 +416,10 @@ describe("staging and atomicity", () => {
 		expect(report.completedSuccessfully).toBe(true);
 
 		// Both files exist at final destination
-		const knowledge = await readFile(join(tempDir, "artifact/knowledge.md"), "utf-8");
+		const knowledge = await readFile(
+			join(tempDir, "artifact/knowledge.md"),
+			"utf-8",
+		);
 		expect(knowledge).toContain("# Test");
 		const hooks = await readFile(join(tempDir, "artifact/hooks.yaml"), "utf-8");
 		expect(hooks).toBe("hooks: []");
@@ -396,9 +427,7 @@ describe("staging and atomicity", () => {
 
 	test("no temporary staging files remain after successful application", async () => {
 		const root = await resolveAllowedRoot(tempDir);
-		const plan = makePlan([
-			{ path: "output.md", content: "content" },
-		]);
+		const plan = makePlan([{ path: "output.md", content: "content" }]);
 
 		await applyPlan({
 			plan,
@@ -539,7 +568,14 @@ describe("dry-run applier spies", () => {
 			return {
 				operationId: "test-op",
 				timestamp: new Date().toISOString(),
-				outcomes: [{ path: "output.md", action: "written" as const, bytesWritten: 8, executable: false }],
+				outcomes: [
+					{
+						path: "output.md",
+						action: "written" as const,
+						bytesWritten: 8,
+						executable: false,
+					},
+				],
 				completedSuccessfully: true,
 			};
 		};
@@ -547,7 +583,13 @@ describe("dry-run applier spies", () => {
 		const result = await orchestrateProfile(
 			{
 				profileName: "dry-run-test",
-				documents: [{ path: "knowledge.md", content: "---\nname: t\n---\n# T", executable: false }],
+				documents: [
+					{
+						path: "knowledge.md",
+						content: "---\nname: t\n---\n# T",
+						executable: false,
+					},
+				],
 				callerContext: { artifactNameHint: "test-artifact" },
 				dryRun: true,
 				collisionPolicy: "error",
@@ -566,7 +608,7 @@ describe("dry-run applier spies", () => {
 		let translateInvoked = false;
 		const root = await resolveAllowedRoot(tempDir);
 
-		const translate: TranslateFn = (docs, ctx) => {
+		const translate: TranslateFn = (_docs, _ctx) => {
 			translateInvoked = true;
 			const plan = makePlan([{ path: "output.md", content: "# Output" }]);
 			return makeTranslationResult(plan);
@@ -582,7 +624,13 @@ describe("dry-run applier spies", () => {
 		await orchestrateProfile(
 			{
 				profileName: "dry-run-translate",
-				documents: [{ path: "knowledge.md", content: "---\nname: t\n---\n# T", executable: false }],
+				documents: [
+					{
+						path: "knowledge.md",
+						content: "---\nname: t\n---\n# T",
+						executable: false,
+					},
+				],
 				callerContext: { artifactNameHint: "test-artifact" },
 				dryRun: true,
 				collisionPolicy: "error",
@@ -606,13 +654,26 @@ describe("dry-run applier spies", () => {
 		const apply: ApplyFn = async () => ({
 			operationId: "test-op",
 			timestamp: new Date().toISOString(),
-			outcomes: [{ path: "out.md", action: "written" as const, bytesWritten: 5, executable: false }],
+			outcomes: [
+				{
+					path: "out.md",
+					action: "written" as const,
+					bytesWritten: 5,
+					executable: false,
+				},
+			],
 			completedSuccessfully: true,
 		});
 
 		const sharedOpts = {
 			profileName: "equivalence",
-			documents: [{ path: "knowledge.md", content: "---\nname: t\n---\n# T", executable: false }] as SourceDocument[],
+			documents: [
+				{
+					path: "knowledge.md",
+					content: "---\nname: t\n---\n# T",
+					executable: false,
+				},
+			] as SourceDocument[],
 			callerContext: { artifactNameHint: "equiv" },
 			collisionPolicy: "replace" as const,
 			destinationRoot: root,
@@ -631,8 +692,12 @@ describe("dry-run applier spies", () => {
 
 		// Translation phase results are identical
 		expect(dryResult.translation.status).toBe(writeResult.translation.status);
-		expect(dryResult.translation.artifactCount).toBe(writeResult.translation.artifactCount);
-		expect(dryResult.translation.planSummaries).toEqual(writeResult.translation.planSummaries);
+		expect(dryResult.translation.artifactCount).toBe(
+			writeResult.translation.artifactCount,
+		);
+		expect(dryResult.translation.planSummaries).toEqual(
+			writeResult.translation.planSummaries,
+		);
 
 		// Application status differs: skipped vs success
 		expect(dryResult.application.status).toBe("skipped");
@@ -660,7 +725,13 @@ describe("dry-run applier spies", () => {
 		await orchestrateProfile(
 			{
 				profileName: "no-write",
-				documents: [{ path: "knowledge.md", content: "---\nname: t\n---\n# T", executable: false }],
+				documents: [
+					{
+						path: "knowledge.md",
+						content: "---\nname: t\n---\n# T",
+						executable: false,
+					},
+				],
 				callerContext: { artifactNameHint: "no-write" },
 				dryRun: true,
 				collisionPolicy: "error",

@@ -20,19 +20,16 @@ import fc from "fast-check";
 
 import type {
 	SourceDocument,
-	TranslationDiagnostic,
 	TranslationPlan,
 	TranslationResult,
 } from "../schemas";
+import type { CollisionPolicy } from "../translation-application-policy";
 import type {
+	AllowedRoot,
 	ApplyFn,
-	ProfileOrchestrationOptions,
-	ProfileOrchestrationResult,
 	TranslateFn,
 } from "../translation-orchestrator";
 import { orchestrateProfile } from "../translation-orchestrator";
-import type { AllowedRoot } from "../translation-orchestrator";
-import type { CollisionPolicy } from "../translation-application-policy";
 import type { ApplicationReport } from "../translation-plan-applier";
 import {
 	arbFormatIdentifier,
@@ -75,11 +72,16 @@ function arbCallerContext(): fc.Arbitrary<Record<string, string>> {
 
 /** Generates a CollisionPolicy value */
 function arbCollisionPolicy(): fc.Arbitrary<CollisionPolicy> {
-	return fc.constantFrom("error", "skip", "replace", "reconcile") as fc.Arbitrary<CollisionPolicy>;
+	return fc.constantFrom(
+		"error",
+		"skip",
+		"replace",
+		"reconcile",
+	) as fc.Arbitrary<CollisionPolicy>;
 }
 
 /** Generates a valid TranslationPlan with eligible state (so applier is invoked in write mode) */
-function arbEligiblePlan(): fc.Arbitrary<TranslationPlan> {
+function _arbEligiblePlan(): fc.Arbitrary<TranslationPlan> {
 	return fc
 		.array(arbNormalizedRelativePath(), { minLength: 1, maxLength: 4 })
 		.chain((rawPaths) => {
@@ -134,7 +136,10 @@ function arbPlan(): fc.Arbitrary<TranslationPlan> {
 					relativePath: p,
 					outputFileIndex: idx,
 				})),
-				applicationState: applicationState as "eligible" | "policy-required" | "withheld",
+				applicationState: applicationState as
+					| "eligible"
+					| "policy-required"
+					| "withheld",
 				policyDiagnosticCodes: [],
 			};
 		});
@@ -177,9 +182,15 @@ function mockAllowedRoot(): AllowedRoot {
  */
 function createTrackedTranslateFn(result: TranslationResult): {
 	translate: TranslateFn;
-	calls: Array<{ documents: readonly SourceDocument[]; callerContext: Record<string, string> }>;
+	calls: Array<{
+		documents: readonly SourceDocument[];
+		callerContext: Record<string, string>;
+	}>;
 } {
-	const calls: Array<{ documents: readonly SourceDocument[]; callerContext: Record<string, string> }> = [];
+	const calls: Array<{
+		documents: readonly SourceDocument[];
+		callerContext: Record<string, string>;
+	}> = [];
 	const translate: TranslateFn = (documents, callerContext) => {
 		calls.push({ documents, callerContext });
 		return result;
@@ -201,8 +212,9 @@ function createTrackedApplyFn(): {
 			operationId: "apply-test-1",
 			timestamp: new Date().toISOString(),
 			outcomes: (options.plan?.outputFiles ?? []).map((f) => ({
-				relativePath: f.relativePath,
+				path: f.relativePath,
 				action: "written" as const,
+				executable: false,
 			})),
 			completedSuccessfully: true,
 		};
@@ -223,7 +235,12 @@ describe("Property 21: Dry-run and write-enabled analysis are pre-application eq
 				arbCallerContext(),
 				arbTranslationResult(),
 				arbCollisionPolicy(),
-				async (documents, callerContext, translationResult, collisionPolicy) => {
+				async (
+					documents,
+					callerContext,
+					translationResult,
+					collisionPolicy,
+				) => {
 					const destRoot = mockAllowedRoot();
 
 					// Create two independent tracked translate functions returning the same result
@@ -261,28 +278,46 @@ describe("Property 21: Dry-run and write-enabled analysis are pre-application eq
 					);
 
 					// Translation status must be equivalent (pre-application path is identical)
-					expect(dryRunResult.translation.status).toBe(writeResult.translation.status);
-					expect(dryRunResult.translation.artifactCount).toBe(writeResult.translation.artifactCount);
+					expect(dryRunResult.translation.status).toBe(
+						writeResult.translation.status,
+					);
+					expect(dryRunResult.translation.artifactCount).toBe(
+						writeResult.translation.artifactCount,
+					);
 					expect(dryRunResult.translation.blockingDiagnosticCount).toBe(
 						writeResult.translation.blockingDiagnosticCount,
 					);
-					expect(dryRunResult.translation.warningCount).toBe(writeResult.translation.warningCount);
+					expect(dryRunResult.translation.warningCount).toBe(
+						writeResult.translation.warningCount,
+					);
 
 					// Plan summaries must be equivalent
 					expect(dryRunResult.translation.planSummaries.length).toBe(
 						writeResult.translation.planSummaries.length,
 					);
-					for (let i = 0; i < dryRunResult.translation.planSummaries.length; i++) {
+					for (
+						let i = 0;
+						i < dryRunResult.translation.planSummaries.length;
+						i++
+					) {
 						const drySummary = dryRunResult.translation.planSummaries[i];
 						const writeSummary = writeResult.translation.planSummaries[i];
 						expect(drySummary.artifactName).toBe(writeSummary.artifactName);
-						expect(drySummary.outputFileCount).toBe(writeSummary.outputFileCount);
-						expect(drySummary.applicationState).toBe(writeSummary.applicationState);
+						expect(drySummary.outputFileCount).toBe(
+							writeSummary.outputFileCount,
+						);
+						expect(drySummary.applicationState).toBe(
+							writeSummary.applicationState,
+						);
 					}
 
 					// Acquisition status must also be equivalent
-					expect(dryRunResult.acquisition.status).toBe(writeResult.acquisition.status);
-					expect(dryRunResult.acquisition.documentCount).toBe(writeResult.acquisition.documentCount);
+					expect(dryRunResult.acquisition.status).toBe(
+						writeResult.acquisition.status,
+					);
+					expect(dryRunResult.acquisition.documentCount).toBe(
+						writeResult.acquisition.documentCount,
+					);
 				},
 			),
 			{ numRuns: 100, verbose: 2 },
@@ -296,7 +331,12 @@ describe("Property 21: Dry-run and write-enabled analysis are pre-application eq
 				arbCallerContext(),
 				arbTranslationResult(),
 				arbCollisionPolicy(),
-				async (documents, callerContext, translationResult, collisionPolicy) => {
+				async (
+					documents,
+					callerContext,
+					translationResult,
+					collisionPolicy,
+				) => {
 					const destRoot = mockAllowedRoot();
 					const tracker = createTrackedTranslateFn(translationResult);
 					const applyTracker = createTrackedApplyFn();
@@ -335,7 +375,12 @@ describe("Property 21: Dry-run and write-enabled analysis are pre-application eq
 				arbCallerContext(),
 				arbTranslationResult(),
 				arbCollisionPolicy(),
-				async (documents, callerContext, translationResult, collisionPolicy) => {
+				async (
+					documents,
+					callerContext,
+					translationResult,
+					collisionPolicy,
+				) => {
 					const destRoot = mockAllowedRoot();
 					const dryRunTracker = createTrackedTranslateFn(translationResult);
 					const writeTracker = createTrackedTranslateFn(translationResult);
@@ -380,7 +425,9 @@ describe("Property 21: Dry-run and write-enabled analysis are pre-application eq
 					expect(dryCall.documents.length).toBe(writeCall.documents.length);
 					for (let i = 0; i < dryCall.documents.length; i++) {
 						expect(dryCall.documents[i].path).toBe(writeCall.documents[i].path);
-						expect(dryCall.documents[i].content).toBe(writeCall.documents[i].content);
+						expect(dryCall.documents[i].content).toBe(
+							writeCall.documents[i].content,
+						);
 					}
 
 					// Same caller context
@@ -398,7 +445,12 @@ describe("Property 21: Dry-run and write-enabled analysis are pre-application eq
 				arbCallerContext(),
 				arbTranslationResult(),
 				arbCollisionPolicy(),
-				async (documents, callerContext, translationResult, collisionPolicy) => {
+				async (
+					documents,
+					callerContext,
+					translationResult,
+					collisionPolicy,
+				) => {
 					const destRoot = mockAllowedRoot();
 					const tracker = createTrackedTranslateFn(translationResult);
 					const applyTracker = createTrackedApplyFn();
@@ -423,14 +475,18 @@ describe("Property 21: Dry-run and write-enabled analysis are pre-application eq
 					const expectedWarnings = translationResult.diagnostics.filter(
 						(d) => d.severity === "warning",
 					).length;
-					expect(result.translation.blockingDiagnosticCount).toBe(expectedErrors);
+					expect(result.translation.blockingDiagnosticCount).toBe(
+						expectedErrors,
+					);
 					expect(result.translation.warningCount).toBe(expectedWarnings);
 
 					// Plan summaries must faithfully project the plan
 					if (translationResult.plan) {
 						expect(result.translation.planSummaries.length).toBe(1);
 						const summary = result.translation.planSummaries[0];
-						expect(summary.outputFileCount).toBe(translationResult.plan.outputFiles.length);
+						expect(summary.outputFileCount).toBe(
+							translationResult.plan.outputFiles.length,
+						);
 						expect(summary.applicationState).toBe(
 							translationResult.plan.applicationState ?? "withheld",
 						);
@@ -458,7 +514,12 @@ describe("Property 21: Dry-run and write-enabled analysis are pre-application eq
 				arbCallerContext(),
 				arbTranslationResult(),
 				arbCollisionPolicy(),
-				async (documents, callerContext, translationResult, collisionPolicy) => {
+				async (
+					documents,
+					callerContext,
+					translationResult,
+					collisionPolicy,
+				) => {
 					const destRoot = mockAllowedRoot();
 					const tracker = createTrackedTranslateFn(translationResult);
 					const applyTracker = createTrackedApplyFn();

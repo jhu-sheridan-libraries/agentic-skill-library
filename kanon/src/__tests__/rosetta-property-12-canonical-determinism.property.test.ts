@@ -52,19 +52,17 @@ function arbExtraFields(): fc.Arbitrary<Record<string, unknown>> {
 			maxLength: 3,
 		}),
 	);
-	return fc
-		.uniqueArray(arbKey, { minLength: 2, maxLength: 5 })
-		.chain((keys) =>
-			fc
-				.array(arbValue, { minLength: keys.length, maxLength: keys.length })
-				.map((values) => {
-					const obj: Record<string, unknown> = {};
-					for (let i = 0; i < keys.length; i++) {
-						obj[keys[i]] = values[i];
-					}
-					return obj;
-				}),
-		);
+	return fc.uniqueArray(arbKey, { minLength: 2, maxLength: 5 }).chain((keys) =>
+		fc
+			.array(arbValue, { minLength: keys.length, maxLength: keys.length })
+			.map((values) => {
+				const obj: Record<string, unknown> = {};
+				for (let i = 0; i < keys.length; i++) {
+					obj[keys[i]] = values[i];
+				}
+				return obj;
+			}),
+	);
 }
 
 /**
@@ -118,9 +116,9 @@ function arbWorkflows(): fc.Arbitrary<WorkflowFile[]> {
 			})
 			.map((contents) =>
 				filenames.map((filename, i) => ({
-					name: filename.replace(/\.md$/, "").replace(/\b\w/g, (c) =>
-						c.toUpperCase(),
-					),
+					name: filename
+						.replace(/\.md$/, "")
+						.replace(/\b\w/g, (c) => c.toUpperCase()),
 					filename,
 					content: contents[i],
 				})),

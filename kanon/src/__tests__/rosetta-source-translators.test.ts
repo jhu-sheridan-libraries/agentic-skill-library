@@ -4,7 +4,13 @@
  * Requirements: 2.9, 4.1, 4.2, 4.3, 4.5, 13.7, 14.3
  */
 import { describe, expect, test } from "bun:test";
-
+import {
+	PATH_BASED_SOURCE_TRANSLATORS,
+	translateKiroPower,
+	translateKiroSkill,
+	translateSuperpowers,
+} from "../rosetta/builtins/sources";
+import type { SourceTranslatorContext } from "../rosetta/registry";
 import type {
 	FormatContract,
 	Frontmatter,
@@ -13,13 +19,6 @@ import type {
 	SourceDocument,
 	WorkflowFile,
 } from "../schemas";
-import type { SourceTranslatorContext } from "../rosetta/registry";
-import {
-	PATH_BASED_SOURCE_TRANSLATORS,
-	translateKiroPower,
-	translateKiroSkill,
-	translateSuperpowers,
-} from "../rosetta/builtins/sources";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Test Helpers
@@ -42,22 +41,22 @@ function makeContext(
 }
 
 /** Type-safe accessor for the candidate as a KnowledgeArtifact */
-function getCandidate(
-	result: { candidate?: Record<string, unknown> },
-): KnowledgeArtifact {
+function getCandidate(result: {
+	candidate?: Record<string, unknown>;
+}): KnowledgeArtifact {
 	return result.candidate as unknown as KnowledgeArtifact;
 }
 
-function getFrontmatter(
-	result: { candidate?: Record<string, unknown> },
-): Frontmatter & Record<string, unknown> {
+function getFrontmatter(result: {
+	candidate?: Record<string, unknown>;
+}): Frontmatter & Record<string, unknown> {
 	const candidate = getCandidate(result);
 	return candidate.frontmatter as Frontmatter & Record<string, unknown>;
 }
 
-function getWorkflows(
-	result: { candidate?: Record<string, unknown> },
-): WorkflowFile[] {
+function getWorkflows(result: {
+	candidate?: Record<string, unknown>;
+}): WorkflowFile[] {
 	const candidate = getCandidate(result);
 	return candidate.workflows as WorkflowFile[];
 }

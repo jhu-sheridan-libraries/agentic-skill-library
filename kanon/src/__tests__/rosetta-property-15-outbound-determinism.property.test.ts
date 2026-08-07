@@ -11,35 +11,32 @@
 
 import { describe, expect, it } from "bun:test";
 import fc from "fast-check";
-
-import type { FormatContract, KnowledgeArtifact } from "../schemas";
-import type { ImmutableTemplateBundle } from "../rosetta/templates";
+import {
+	CLAUDE_CODE_CONTRACT,
+	CLINE_CONTRACT,
+	CODEX_CONTRACT,
+	COPILOT_CONTRACT,
+	CURSOR_CONTRACT,
+	KIRO_CONTRACT,
+	QDEVELOPER_CONTRACT,
+	WINDSURF_CONTRACT,
+} from "../rosetta/builtins/contracts";
+import { translateClaudeCodeTarget } from "../rosetta/builtins/targets/claude-code";
+import { translateClineTarget } from "../rosetta/builtins/targets/cline";
+import { translateCodexTarget } from "../rosetta/builtins/targets/codex";
+import { translateCopilotTarget } from "../rosetta/builtins/targets/copilot";
+import { translateCursorTarget } from "../rosetta/builtins/targets/cursor";
+import { translateKiroTarget } from "../rosetta/builtins/targets/kiro";
+import { translateQDeveloperTarget } from "../rosetta/builtins/targets/qdeveloper";
+import { translateWindsurfTarget } from "../rosetta/builtins/targets/windsurf";
 import type {
 	TargetTranslationOutput,
 	TargetTranslator,
 	TargetTranslatorContext,
 } from "../rosetta/registry";
+import type { ImmutableTemplateBundle } from "../rosetta/templates";
+import type { FormatContract, KnowledgeArtifact } from "../schemas";
 import { makeArtifact, makeFrontmatter } from "./test-helpers";
-
-import { translateKiroTarget } from "../rosetta/builtins/targets/kiro";
-import { translateClaudeCodeTarget } from "../rosetta/builtins/targets/claude-code";
-import { translateCodexTarget } from "../rosetta/builtins/targets/codex";
-import { translateCopilotTarget } from "../rosetta/builtins/targets/copilot";
-import { translateCursorTarget } from "../rosetta/builtins/targets/cursor";
-import { translateWindsurfTarget } from "../rosetta/builtins/targets/windsurf";
-import { translateClineTarget } from "../rosetta/builtins/targets/cline";
-import { translateQDeveloperTarget } from "../rosetta/builtins/targets/qdeveloper";
-
-import {
-	KIRO_CONTRACT,
-	CLAUDE_CODE_CONTRACT,
-	CODEX_CONTRACT,
-	COPILOT_CONTRACT,
-	CURSOR_CONTRACT,
-	WINDSURF_CONTRACT,
-	CLINE_CONTRACT,
-	QDEVELOPER_CONTRACT,
-} from "../rosetta/builtins/contracts";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Mock Template Bundle
@@ -59,8 +56,7 @@ const mockTemplates: ImmutableTemplateBundle = {
 		// Produce stable output from the template name and artifact body
 		const body =
 			(ctx.body as string) || (ctx.artifact as { body: string })?.body || "";
-		const artName =
-			(ctx.artifact as { name: string })?.name || "unknown";
+		const artName = (ctx.artifact as { name: string })?.name || "unknown";
 		return `<!-- ${name} -->\n<!-- artifact: ${artName} -->\n${body}\n`;
 	},
 	has: () => true,
@@ -77,15 +73,51 @@ interface TranslatorEntry {
 }
 
 const TARGET_ENTRIES: readonly TranslatorEntry[] = [
-	{ contract: KIRO_CONTRACT, translator: translateKiroTarget, variant: "steering" },
-	{ contract: KIRO_CONTRACT, translator: translateKiroTarget, variant: "power" },
-	{ contract: CLAUDE_CODE_CONTRACT, translator: translateClaudeCodeTarget, variant: "claude-md" },
-	{ contract: CODEX_CONTRACT, translator: translateCodexTarget, variant: "agents-md" },
-	{ contract: COPILOT_CONTRACT, translator: translateCopilotTarget, variant: "instructions" },
-	{ contract: CURSOR_CONTRACT, translator: translateCursorTarget, variant: "rule" },
-	{ contract: WINDSURF_CONTRACT, translator: translateWindsurfTarget, variant: "rule" },
-	{ contract: CLINE_CONTRACT, translator: translateClineTarget, variant: "rule" },
-	{ contract: QDEVELOPER_CONTRACT, translator: translateQDeveloperTarget, variant: "rule" },
+	{
+		contract: KIRO_CONTRACT,
+		translator: translateKiroTarget,
+		variant: "steering",
+	},
+	{
+		contract: KIRO_CONTRACT,
+		translator: translateKiroTarget,
+		variant: "power",
+	},
+	{
+		contract: CLAUDE_CODE_CONTRACT,
+		translator: translateClaudeCodeTarget,
+		variant: "claude-md",
+	},
+	{
+		contract: CODEX_CONTRACT,
+		translator: translateCodexTarget,
+		variant: "agents-md",
+	},
+	{
+		contract: COPILOT_CONTRACT,
+		translator: translateCopilotTarget,
+		variant: "instructions",
+	},
+	{
+		contract: CURSOR_CONTRACT,
+		translator: translateCursorTarget,
+		variant: "rule",
+	},
+	{
+		contract: WINDSURF_CONTRACT,
+		translator: translateWindsurfTarget,
+		variant: "rule",
+	},
+	{
+		contract: CLINE_CONTRACT,
+		translator: translateClineTarget,
+		variant: "rule",
+	},
+	{
+		contract: QDEVELOPER_CONTRACT,
+		translator: translateQDeveloperTarget,
+		variant: "rule",
+	},
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -188,6 +220,7 @@ function arbMcpServer(): fc.Arbitrary<KnowledgeArtifact["mcpServers"][number]> {
 		)
 		.map(([name, command, args]) => ({
 			name,
+			transport: "stdio" as const,
 			command,
 			args,
 			env: {},
@@ -203,6 +236,7 @@ function arbWorkflow(): fc.Arbitrary<KnowledgeArtifact["workflows"][number]> {
 			fc.stringMatching(/^[a-zA-Z0-9 .,;:!?\n()#-]{10,80}$/),
 		)
 		.map(([phase, name, content]) => ({
+			name: `phase-${String(phase).padStart(2, "0")}-${name}`,
 			filename: `phase-${String(phase).padStart(2, "0")}-${name}.md`,
 			content: `# Phase ${phase}: ${name}\n\n${content}`,
 		}));
@@ -224,14 +258,15 @@ function arbBodyOverrides(): fc.Arbitrary<Record<string, string>> {
 		.subarray(harnesses, { minLength: 0, maxLength: 4 })
 		.chain((selectedHarnesses) =>
 			fc
-				.array(
-					fc.stringMatching(/^[a-zA-Z0-9 .,;:!?\n()#-]{10,60}$/),
-					{ minLength: selectedHarnesses.length, maxLength: selectedHarnesses.length },
-				)
+				.array(fc.stringMatching(/^[a-zA-Z0-9 .,;:!?\n()#-]{10,60}$/), {
+					minLength: selectedHarnesses.length,
+					maxLength: selectedHarnesses.length,
+				})
 				.map((bodies) => {
 					const overrides: Record<string, string> = {};
 					for (let i = 0; i < selectedHarnesses.length; i++) {
-						overrides[selectedHarnesses[i]] = `# ${selectedHarnesses[i]} Override\n\n${bodies[i]}`;
+						overrides[selectedHarnesses[i]] =
+							`# ${selectedHarnesses[i]} Override\n\n${bodies[i]}`;
 					}
 					return overrides;
 				}),
@@ -263,7 +298,7 @@ function buildContext(
 function assertOutputsIdentical(
 	a: TargetTranslationOutput,
 	b: TargetTranslationOutput,
-	label: string,
+	_label: string,
 ): void {
 	// Plan must be identical
 	expect(JSON.stringify(a.plan)).toBe(JSON.stringify(b.plan));
@@ -336,17 +371,23 @@ describe("Property 15: Outbound translation is extensional and deterministic", (
 					// Create two "canonically equivalent" representations by
 					// constructing the artifact record from the same source values
 					// but with different object identity (fresh construction)
-					const art1 = JSON.parse(
-						JSON.stringify(artifact),
-					) as Record<string, unknown>;
-					const art2 = JSON.parse(
-						JSON.stringify(artifact),
-					) as Record<string, unknown>;
+					const art1 = JSON.parse(JSON.stringify(artifact)) as Record<
+						string,
+						unknown
+					>;
+					const art2 = JSON.parse(JSON.stringify(artifact)) as Record<
+						string,
+						unknown
+					>;
 
 					const result1 = entry.translator(art1, context);
 					const result2 = entry.translator(art2, context);
 
-					assertOutputsIdentical(result1, result2, `${entry.contract.id}/${entry.variant}`);
+					assertOutputsIdentical(
+						result1,
+						result2,
+						`${entry.contract.id}/${entry.variant}`,
+					);
 				},
 			),
 			{ numRuns: 100, verbose: 2 },
@@ -376,7 +417,11 @@ describe("Property 15: Outbound translation is extensional and deterministic", (
 					const result1 = entry.translator(original, context);
 					const result2 = entry.translator(reordered, context);
 
-					assertOutputsIdentical(result1, result2, `${entry.contract.id}/${entry.variant}`);
+					assertOutputsIdentical(
+						result1,
+						result2,
+						`${entry.contract.id}/${entry.variant}`,
+					);
 				},
 			),
 			{ numRuns: 100, verbose: 2 },

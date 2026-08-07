@@ -56,7 +56,7 @@ export class InMemoryNunjucksLoader extends nunjucks.Loader {
 			: "";
 
 		// Join parent dir with the relative reference and normalize
-		const segments = (parentDir ? parentDir + "/" + name : name).split("/");
+		const segments = (parentDir ? `${parentDir}/${name}` : name).split("/");
 		const resolved: string[] = [];
 		for (const seg of segments) {
 			if (seg === "" || seg === ".") continue;
@@ -106,7 +106,9 @@ function extractTemplateReferences(source: string): string[] {
 	let match: RegExpExecArray | null;
 	// Reset lastIndex for fresh search
 	NUNJUCKS_REF_PATTERN.lastIndex = 0;
-	while ((match = NUNJUCKS_REF_PATTERN.exec(source)) !== null) {
+	while (true) {
+		match = NUNJUCKS_REF_PATTERN.exec(source);
+		if (match === null) break;
 		refs.push(match[1]);
 	}
 	return refs;

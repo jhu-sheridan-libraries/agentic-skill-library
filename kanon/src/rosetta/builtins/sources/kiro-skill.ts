@@ -114,9 +114,7 @@ export function translateKiroSkill(
 
 	// Collect references/ files as workflows
 	const refDocs = documents
-		.filter(
-			(d) => d.path.startsWith("references/") && d.path.endsWith(".md"),
-		)
+		.filter((d) => d.path.startsWith("references/") && d.path.endsWith(".md"))
 		.sort((a, b) => codePointCompare(a.path, b.path));
 
 	const workflows = refDocs.map((doc) => {

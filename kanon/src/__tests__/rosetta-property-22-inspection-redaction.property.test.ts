@@ -14,14 +14,14 @@
 
 import { describe, expect, it } from "bun:test";
 import fc from "fast-check";
+import { createDiagnostic } from "../rosetta/diagnostics";
+import type { RedactionProof, SensitiveLocation } from "../rosetta/redaction";
 import {
 	computeFingerprint,
 	createRedactor,
 	RedactionRegistry,
 	suppressOnIncompleteRedaction,
 } from "../rosetta/redaction";
-import type { SensitiveLocation, RedactionProof } from "../rosetta/redaction";
-import { createDiagnostic } from "../rosetta/diagnostics";
 import type { TranslationDiagnostic } from "../schemas";
 import { arbSensitiveCanary } from "./rosetta-arbitraries";
 
@@ -87,17 +87,17 @@ function arbSensitiveLocationWithContent(): fc.Arbitrary<{
 }
 
 /** Generates multiple sensitive locations for incomplete redaction scenarios */
-function arbMultipleSensitiveLocations(): fc.Arbitrary<{
+function _arbMultipleSensitiveLocations(): fc.Arbitrary<{
 	locations: SensitiveLocation[];
 	knownSecrets: string[];
 	unknownSecret: string;
 }> {
 	return fc
 		.tuple(
-			fc.array(
-				fc.tuple(arbFilePath(), arbFieldName(), arbDetectableSecret()),
-				{ minLength: 1, maxLength: 3 },
-			),
+			fc.array(fc.tuple(arbFilePath(), arbFieldName(), arbDetectableSecret()), {
+				minLength: 1,
+				maxLength: 3,
+			}),
 			arbDetectableSecret(),
 		)
 		.map(([entries, unknownSecret]) => {
@@ -117,7 +117,7 @@ function arbMultipleSensitiveLocations(): fc.Arbitrary<{
 }
 
 /** Generates content containing an embedded canary secret surrounded by benign text */
-function arbContentWithSecret(): fc.Arbitrary<{
+function _arbContentWithSecret(): fc.Arbitrary<{
 	secret: string;
 	content: string;
 	prefix: string;
@@ -148,17 +148,21 @@ function arbCompleteRedactorScenario(): fc.Arbitrary<{
 	secrets: string[];
 }> {
 	return fc
-		.array(
-			fc.tuple(arbFilePath(), arbFieldName(), arbDetectableSecret()),
-			{ minLength: 1, maxLength: 3 },
-		)
+		.array(fc.tuple(arbFilePath(), arbFieldName(), arbDetectableSecret()), {
+			minLength: 1,
+			maxLength: 3,
+		})
 		.map((entries) => {
 			const locations: SensitiveLocation[] = [];
 			const secrets: string[] = [];
 			const contentParts: string[] = [];
 
 			for (const [path, field, secret] of entries) {
-				locations.push({ path, field, fingerprint: computeFingerprint(secret) });
+				locations.push({
+					path,
+					field,
+					fingerprint: computeFingerprint(secret),
+				});
 				secrets.push(secret);
 				contentParts.push(`${field}: ${secret}`);
 			}
@@ -184,10 +188,10 @@ function arbIncompleteRedactorScenario(): fc.Arbitrary<{
 	return fc
 		.tuple(
 			// Present secrets (will be in content)
-			fc.array(
-				fc.tuple(arbFilePath(), arbFieldName(), arbDetectableSecret()),
-				{ minLength: 0, maxLength: 2 },
-			),
+			fc.array(fc.tuple(arbFilePath(), arbFieldName(), arbDetectableSecret()), {
+				minLength: 0,
+				maxLength: 2,
+			}),
 			// Missing secret (registered but not in content)
 			fc.tuple(arbFilePath(), arbFieldName()),
 		)
@@ -197,7 +201,11 @@ function arbIncompleteRedactorScenario(): fc.Arbitrary<{
 			const contentParts: string[] = [];
 
 			for (const [path, field, secret] of presentEntries) {
-				locations.push({ path, field, fingerprint: computeFingerprint(secret) });
+				locations.push({
+					path,
+					field,
+					fingerprint: computeFingerprint(secret),
+				});
 				presentSecrets.push(secret);
 				contentParts.push(`${field}: ${secret}`);
 			}
@@ -251,29 +259,32 @@ function arbMixedDiagnostics(): fc.Arbitrary<TranslationDiagnostic[]> {
 describe("Property 22: Inspection redaction fails closed and is content-noninterfering", () => {
 	it("complete redactor proves coverage and retains field/location metadata", () => {
 		fc.assert(
-			fc.property(arbCompleteRedactorScenario(), ({ locations, content, secrets }) => {
-				const redactor = createRedactor(locations);
-				const redacted = redactor.redactContent(content);
+			fc.property(
+				arbCompleteRedactorScenario(),
+				({ locations, content, secrets }) => {
+					const redactor = createRedactor(locations);
+					const redacted = redactor.redactContent(content);
 
-				// Content must NOT contain any raw secret
-				for (const secret of secrets) {
-					expect(redacted).not.toContain(secret);
-				}
+					// Content must NOT contain any raw secret
+					for (const secret of secrets) {
+						expect(redacted).not.toContain(secret);
+					}
 
-				// Proof must be complete
-				const proof = redactor.proveCompleteness();
-				expect(proof).not.toBeNull();
-				expect(proof!.complete).toBe(true);
-				expect(proof!.coveredLocations).toBe(locations.length);
-				expect(proof!.totalLocations).toBe(locations.length);
+					// Proof must be complete
+					const proof = redactor.proveCompleteness();
+					expect(proof).not.toBeNull();
+					expect(proof!.complete).toBe(true);
+					expect(proof!.coveredLocations).toBe(locations.length);
+					expect(proof!.totalLocations).toBe(locations.length);
 
-				// Field/location metadata is retained (locations still accessible)
-				for (const loc of locations) {
-					expect(loc.path).toBeDefined();
-					expect(loc.field).toBeDefined();
-					expect(loc.fingerprint).toBeDefined();
-				}
-			}),
+					// Field/location metadata is retained (locations still accessible)
+					for (const loc of locations) {
+						expect(loc.path).toBeDefined();
+						expect(loc.field).toBeDefined();
+						expect(loc.fingerprint).toBeDefined();
+					}
+				},
+			),
 			{ numRuns: 100 },
 		);
 	});
@@ -283,7 +294,7 @@ describe("Property 22: Inspection redaction fails closed and is content-noninter
 			fc.property(
 				arbIncompleteRedactorScenario(),
 				arbMixedDiagnostics(),
-				({ locations, content, missingPaths }, diagnostics) => {
+				({ locations, content, missingPaths: _missingPaths }, diagnostics) => {
 					const redactor = createRedactor(locations);
 					redactor.redactContent(content);
 
@@ -309,15 +320,21 @@ describe("Property 22: Inspection redaction fails closed and is content-noninter
 
 					// RS_REDACTION_UNSAFE diagnostic present
 					expect(
-						suppressed!.diagnostics.some((d) => d.code === "RS_REDACTION_UNSAFE"),
+						suppressed!.diagnostics.some(
+							(d) => d.code === "RS_REDACTION_UNSAFE",
+						),
 					).toBe(true);
 
 					// Content-derived diagnostics are absent (source-translation phase)
 					expect(
-						suppressed!.diagnostics.some((d) => d.phase === "source-translation"),
+						suppressed!.diagnostics.some(
+							(d) => d.phase === "source-translation",
+						),
 					).toBe(false);
 					expect(
-						suppressed!.diagnostics.some((d) => d.phase === "target-translation"),
+						suppressed!.diagnostics.some(
+							(d) => d.phase === "target-translation",
+						),
 					).toBe(false);
 				},
 			),
@@ -341,7 +358,9 @@ describe("Property 22: Inspection redaction fails closed and is content-noninter
 					expect(suppressed!.content).toBeNull();
 					expect(suppressed!.plan).toBeNull();
 					expect(
-						suppressed!.diagnostics.some((d) => d.code === "RS_REDACTION_UNSAFE"),
+						suppressed!.diagnostics.some(
+							(d) => d.code === "RS_REDACTION_UNSAFE",
+						),
 					).toBe(true);
 				},
 			),
@@ -433,11 +452,7 @@ describe("Property 22: Inspection redaction fails closed and is content-noninter
 	it("suppressed report retains only safe-phase diagnostics (request, registry, detection)", () => {
 		fc.assert(
 			fc.property(
-				fc.tuple(
-					fc.boolean(),
-					fc.boolean(),
-					fc.boolean(),
-				),
+				fc.tuple(fc.boolean(), fc.boolean(), fc.boolean()),
 				([hasRequest, hasRegistry, hasDetection]) => {
 					const diagnostics: TranslationDiagnostic[] = [];
 

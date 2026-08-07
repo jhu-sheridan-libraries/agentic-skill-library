@@ -28,7 +28,6 @@ import {
 	type McpServerDefinition,
 	McpServersFileSchema,
 	type OutputFile,
-	type SourceDocument,
 	type SourceDocumentInput,
 	type TranslationDiagnostic,
 	type TranslationPlan,
@@ -192,7 +191,7 @@ export function parseCanonical(
 	}
 
 	// Extract harness-config before validation
-	const harnessConfig: Record<string, unknown> =
+	const _harnessConfig: Record<string, unknown> =
 		rawData["harness-config"] ?? {};
 
 	// Validate frontmatter against schema

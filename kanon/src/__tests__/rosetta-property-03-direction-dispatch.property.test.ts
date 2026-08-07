@@ -23,7 +23,7 @@ import {
 	type TargetTranslator,
 } from "../rosetta/registry";
 import type { Direction, FormatContract } from "../schemas";
-import { arbFormatContract, arbFormatIdentifier } from "./rosetta-arbitraries";
+import { arbFormatContract } from "./rosetta-arbitraries";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Stub Translators

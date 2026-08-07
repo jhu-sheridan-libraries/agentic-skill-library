@@ -388,11 +388,9 @@ describe("ForgeConfigSchema kiro.progressiveSteering", () => {
 // ── Profile Validation (Req 10.3–10.8, 13.12) ─────────────────────────────────
 
 import {
-	type ProfileValidationResult,
-	validateProfiles,
 	normalizeUpstreams,
 	normalizeUpstreamsWithDiagnostics,
-	type UpstreamNormalizationResult,
+	validateProfiles,
 } from "../config";
 
 describe("validateProfiles", () => {
@@ -428,7 +426,7 @@ describe("validateProfiles", () => {
 	test("rejects non-kebab-case acquisition profile key", () => {
 		const config: ForgeConfig = {
 			acquisitions: {
-				"Not_Valid": {
+				Not_Valid: {
 					repo: "https://example.com/repo.git",
 					branch: "main",
 					remote: "origin",
@@ -446,7 +444,7 @@ describe("validateProfiles", () => {
 	test("rejects non-kebab-case translation profile key", () => {
 		const config: ForgeConfig = {
 			translations: {
-				"camelCase": {
+				camelCase: {
 					collections: [],
 					strict: false,
 					options: {},
@@ -472,8 +470,12 @@ describe("validateProfiles", () => {
 		const knownFormatIds = new Set(["kiro-power", "kiro-skill", "superpowers"]);
 		const result = validateProfiles(config, { knownFormatIds });
 		expect(result.valid).toBe(false);
-		expect(result.diagnostics[0].path).toBe("translations.my-upstream.sourceFormat");
-		expect(result.diagnostics[0].message).toContain('unknown format "bad-format"');
+		expect(result.diagnostics[0].path).toBe(
+			"translations.my-upstream.sourceFormat",
+		);
+		expect(result.diagnostics[0].message).toContain(
+			'unknown format "bad-format"',
+		);
 	});
 
 	test("reports unknown target format when registry is provided", () => {
@@ -490,8 +492,12 @@ describe("validateProfiles", () => {
 		const knownFormatIds = new Set(["kiro-power", "kiro-skill"]);
 		const result = validateProfiles(config, { knownFormatIds });
 		expect(result.valid).toBe(false);
-		expect(result.diagnostics[0].path).toBe("translations.my-build.targetFormat");
-		expect(result.diagnostics[0].message).toContain('unknown format "nonexistent-harness"');
+		expect(result.diagnostics[0].path).toBe(
+			"translations.my-build.targetFormat",
+		);
+		expect(result.diagnostics[0].message).toContain(
+			'unknown format "nonexistent-harness"',
+		);
 	});
 
 	test("does not validate format IDs when no registry is provided", () => {
@@ -523,7 +529,9 @@ describe("validateProfiles", () => {
 		};
 		const result = validateProfiles(config);
 		expect(result.valid).toBe(false);
-		expect(result.diagnostics[0].path).toBe("translations.my-upstream.canonicalDestination");
+		expect(result.diagnostics[0].path).toBe(
+			"translations.my-upstream.canonicalDestination",
+		);
 		expect(result.diagnostics[0].message).toContain("traversal");
 	});
 
@@ -572,7 +580,9 @@ describe("validateProfiles", () => {
 		};
 		const result = validateProfiles(config);
 		expect(result.valid).toBe(false);
-		expect(result.diagnostics[0].path).toBe("acquisitions.my-repo.credentialReference");
+		expect(result.diagnostics[0].path).toBe(
+			"acquisitions.my-repo.credentialReference",
+		);
 		expect(result.diagnostics[0].message).toContain("literal credential");
 		expect(result.diagnostics[0].message).toContain("${ENV_VAR}");
 	});
@@ -596,7 +606,7 @@ describe("validateProfiles", () => {
 	test("accumulates multiple diagnostics across profiles", () => {
 		const config: ForgeConfig = {
 			acquisitions: {
-				"Bad_Key": {
+				Bad_Key: {
 					repo: "https://example.com/repo.git",
 					branch: "main",
 					remote: "origin",
@@ -727,7 +737,6 @@ describe("ForgeConfigSchema acquisitions and translations", () => {
 	});
 });
 
-
 // ── normalizeUpstreams (Req 10.6, 10.7, 13.12, 14.8) ──────────────────────────
 
 describe("normalizeUpstreamsWithDiagnostics", () => {
@@ -853,9 +862,7 @@ describe("normalizeUpstreamsWithDiagnostics", () => {
 		expect(result.config.acquisitions?.["kiro-powers"]?.repo).toBe(
 			"https://custom.example.com/powers.git",
 		);
-		expect(result.config.acquisitions?.["kiro-powers"]?.branch).toBe(
-			"develop",
-		);
+		expect(result.config.acquisitions?.["kiro-powers"]?.branch).toBe("develop");
 	});
 
 	test("does NOT overwrite existing translation profile", () => {
@@ -1132,7 +1139,9 @@ describe("absent options default correctly (Req 10.3, 10.8)", () => {
 		});
 		expect(result.success).toBe(true);
 		if (!result.success) throw new Error("parse failed");
-		expect(result.data.translations?.["my-build"]?.targetVariant).toBeUndefined();
+		expect(
+			result.data.translations?.["my-build"]?.targetVariant,
+		).toBeUndefined();
 	});
 
 	test("translation profile with explicit targetVariant preserves it", () => {
@@ -1166,7 +1175,9 @@ describe("field-addressed error reporting (Req 10.4, 10.7)", () => {
 		const knownFormatIds = new Set(["kiro-power", "kiro-skill"]);
 		const result = validateProfiles(config, { knownFormatIds });
 		expect(result.valid).toBe(false);
-		expect(result.diagnostics[0].path).toBe("translations.my-upstream.sourceFormat");
+		expect(result.diagnostics[0].path).toBe(
+			"translations.my-upstream.sourceFormat",
+		);
 	});
 
 	test("path traversal → diagnostic path is translations.<key>.canonicalDestination", () => {
@@ -1182,7 +1193,9 @@ describe("field-addressed error reporting (Req 10.4, 10.7)", () => {
 		};
 		const result = validateProfiles(config);
 		expect(result.valid).toBe(false);
-		expect(result.diagnostics[0].path).toBe("translations.escape-attempt.canonicalDestination");
+		expect(result.diagnostics[0].path).toBe(
+			"translations.escape-attempt.canonicalDestination",
+		);
 	});
 
 	test("credential in acquisition → diagnostic path is acquisitions.<key>.<field>", () => {
@@ -1198,7 +1211,9 @@ describe("field-addressed error reporting (Req 10.4, 10.7)", () => {
 		};
 		const result = validateProfiles(config);
 		expect(result.valid).toBe(false);
-		expect(result.diagnostics[0].path).toBe("acquisitions.my-private.credentialReference");
+		expect(result.diagnostics[0].path).toBe(
+			"acquisitions.my-private.credentialReference",
+		);
 	});
 
 	test("multiple validation errors accumulate with distinct addressed paths", () => {
@@ -1259,13 +1274,13 @@ describe("field-addressed error reporting (Req 10.4, 10.7)", () => {
 
 describe("legacy upstream normalization edge cases (Req 14.8)", () => {
 	test("upstream with only repo field creates acquisition with defaults (branch=main, remote=key)", () => {
-		const config: ForgeConfig = {
+		const config = {
 			upstreams: {
 				"minimal-upstream": {
 					repo: "https://github.com/org/repo.git",
 				},
 			},
-		};
+		} as unknown as ForgeConfig;
 		const result = normalizeUpstreamsWithDiagnostics(config);
 
 		const acq = result.config.acquisitions?.["minimal-upstream"];
@@ -1277,13 +1292,13 @@ describe("legacy upstream normalization edge cases (Req 14.8)", () => {
 	});
 
 	test("upstream with only repo field creates translation with empty defaults", () => {
-		const config: ForgeConfig = {
+		const config = {
 			upstreams: {
 				"minimal-upstream": {
 					repo: "https://github.com/org/repo.git",
 				},
 			},
-		};
+		} as unknown as ForgeConfig;
 		const result = normalizeUpstreamsWithDiagnostics(config);
 
 		const trans = result.config.translations?.["minimal-upstream"];
@@ -1353,8 +1368,12 @@ describe("legacy upstream normalization edge cases (Req 14.8)", () => {
 		expect(result.config.acquisitions?.["shared-key"]?.repo).toBe(
 			"https://custom.example.com/repo.git",
 		);
-		expect(result.config.acquisitions?.["shared-key"]?.branch).toBe("custom-branch");
-		expect(result.config.acquisitions?.["shared-key"]?.remote).toBe("custom-remote");
+		expect(result.config.acquisitions?.["shared-key"]?.branch).toBe(
+			"custom-branch",
+		);
+		expect(result.config.acquisitions?.["shared-key"]?.remote).toBe(
+			"custom-remote",
+		);
 	});
 
 	test("existing translation profile NOT overwritten by upstream with same key", () => {
@@ -1380,8 +1399,12 @@ describe("legacy upstream normalization edge cases (Req 14.8)", () => {
 		const result = normalizeUpstreamsWithDiagnostics(config);
 
 		// Existing translation profile values remain unchanged
-		expect(result.config.translations?.["shared-key"]?.sourceFormat).toBe("kiro-skill");
-		expect(result.config.translations?.["shared-key"]?.collections).toEqual(["custom-col"]);
+		expect(result.config.translations?.["shared-key"]?.sourceFormat).toBe(
+			"kiro-skill",
+		);
+		expect(result.config.translations?.["shared-key"]?.collections).toEqual([
+			"custom-col",
+		]);
 		expect(result.config.translations?.["shared-key"]?.strict).toBe(true);
 	});
 
@@ -1442,8 +1465,12 @@ describe("legacy upstream normalization edge cases (Req 14.8)", () => {
 		expect(result.config.translations?.["upstream-c"]).toBeDefined();
 
 		// Each mapped correctly
-		expect(result.config.translations?.["upstream-a"]?.sourceFormat).toBe("kiro-power");
-		expect(result.config.translations?.["upstream-b"]?.sourceSubpath).toBe("src/skills");
+		expect(result.config.translations?.["upstream-a"]?.sourceFormat).toBe(
+			"kiro-power",
+		);
+		expect(result.config.translations?.["upstream-b"]?.sourceSubpath).toBe(
+			"src/skills",
+		);
 		expect(result.config.translations?.["upstream-c"]?.collections).toEqual([]);
 	});
 });
@@ -1463,8 +1490,12 @@ describe("normalizeUpstreamsWithDiagnostics output verification (Req 10.3, 14.8)
 
 		expect(result.config.acquisitions).toBeDefined();
 		expect(result.config.translations).toBeDefined();
-		expect(Object.keys(result.config.acquisitions!).length).toBeGreaterThanOrEqual(1);
-		expect(Object.keys(result.config.translations!).length).toBeGreaterThanOrEqual(1);
+		expect(
+			Object.keys(result.config.acquisitions!).length,
+		).toBeGreaterThanOrEqual(1);
+		expect(
+			Object.keys(result.config.translations!).length,
+		).toBeGreaterThanOrEqual(1);
 	});
 
 	test("deprecation warning is emitted for any upstream", () => {

@@ -204,7 +204,10 @@ export { detect } from "./detector";
 // Diagnostics — Structured diagnostic creation and utilities
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export type { CreateDiagnosticOptions, DiagnosticCodeMetadata } from "./diagnostics";
+export type {
+	CreateDiagnosticOptions,
+	DiagnosticCodeMetadata,
+} from "./diagnostics";
 export {
 	convertInternalError,
 	createDiagnostic,
@@ -227,7 +230,10 @@ export { guardRequest } from "./request-guard";
 // Canonical — Parser and serializer
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export type { CanonicalParserContext, CanonicalParserOutput } from "./canonical";
+export type {
+	CanonicalParserContext,
+	CanonicalParserOutput,
+} from "./canonical";
 export { getKnownFrontmatterKeys, parseCanonical } from "./canonical";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -341,4 +347,9 @@ export { computeBundleDigest } from "./templates";
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export type { JsonRenderOptions } from "./renderers";
-export { renderHuman, renderJson, renderJsonObject, stripAnsi } from "./renderers";
+export {
+	renderHuman,
+	renderJson,
+	renderJsonObject,
+	stripAnsi,
+} from "./renderers";

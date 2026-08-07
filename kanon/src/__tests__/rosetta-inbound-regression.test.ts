@@ -10,27 +10,26 @@
  */
 
 import { describe, expect, it } from "bun:test";
-
+import {
+	CLAUDE_CODE_CONTRACT,
+	CODEX_CONTRACT,
+	KIRO_CONTRACT,
+	KIRO_POWER_CONTRACT,
+	KIRO_SKILL_CONTRACT,
+	SUPERPOWERS_CONTRACT,
+} from "../rosetta/builtins/contracts";
+import { translateClaudeCodeNative } from "../rosetta/builtins/sources/claude-code-native";
+import { translateCodexNative } from "../rosetta/builtins/sources/codex-native";
+import { translateKiroNative } from "../rosetta/builtins/sources/kiro-native";
+import { translateKiroPower } from "../rosetta/builtins/sources/kiro-power";
+import { translateKiroSkill } from "../rosetta/builtins/sources/kiro-skill";
+import { translateSuperpowers } from "../rosetta/builtins/sources/superpowers";
+import type { SourceTranslatorContext } from "../rosetta/registry";
 import type {
 	FormatContract,
 	NormalizedRelativePath,
 	SourceDocument,
 } from "../schemas";
-import type { SourceTranslatorContext } from "../rosetta/registry";
-import { translateKiroPower } from "../rosetta/builtins/sources/kiro-power";
-import { translateKiroSkill } from "../rosetta/builtins/sources/kiro-skill";
-import { translateSuperpowers } from "../rosetta/builtins/sources/superpowers";
-import { translateKiroNative } from "../rosetta/builtins/sources/kiro-native";
-import { translateClaudeCodeNative } from "../rosetta/builtins/sources/claude-code-native";
-import { translateCodexNative } from "../rosetta/builtins/sources/codex-native";
-import {
-	KIRO_POWER_CONTRACT,
-	KIRO_SKILL_CONTRACT,
-	SUPERPOWERS_CONTRACT,
-	KIRO_CONTRACT,
-	CLAUDE_CODE_CONTRACT,
-	CODEX_CONTRACT,
-} from "../rosetta/builtins/contracts";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Helpers
@@ -184,7 +183,7 @@ Follow these rules when coding.`,
 		".claude/mcp.json",
 		JSON.stringify({
 			mcpServers: {
-				"context7": {
+				context7: {
 					command: "npx",
 					args: ["-y", "@context7/mcp"],
 					env: {},

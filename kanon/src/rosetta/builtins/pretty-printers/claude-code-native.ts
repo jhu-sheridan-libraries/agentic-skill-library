@@ -21,7 +21,10 @@ import type {
 	TranslationDiagnostic,
 } from "../../../schemas";
 import { codePointCompare, stableJsonStringify } from "../../contracts";
-import type { SourcePrintOutput, SourceTranslatorContext } from "../../registry";
+import type {
+	SourcePrintOutput,
+	SourceTranslatorContext,
+} from "../../registry";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Pretty-Printer

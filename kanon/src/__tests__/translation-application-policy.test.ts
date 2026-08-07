@@ -8,17 +8,16 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import type { TranslationPlan } from "../schemas";
 import {
 	type ApplicationPolicy,
-	type CollisionEntry,
-	type CollisionPolicy,
-	type LabeledPlan,
 	analyzeCollisions,
 	applyCollisionPolicy,
+	type CollisionEntry,
 	evaluateApplicationPolicy,
+	type LabeledPlan,
 } from "../translation-application-policy";
 import type { AllowedRoot } from "../translation-orchestrator";
-import type { TranslationPlan } from "../schemas";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Test Helpers
@@ -160,7 +159,10 @@ describe("analyzeCollisions", () => {
 	let root: AllowedRoot;
 
 	beforeEach(async () => {
-		tempDir = join(tmpdir(), `policy-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+		tempDir = join(
+			tmpdir(),
+			`policy-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+		);
 		await mkdir(tempDir, { recursive: true });
 		root = { resolvedPath: tempDir, label: "test-root" };
 	});
@@ -178,7 +180,11 @@ describe("analyzeCollisions", () => {
 						{ relativePath: "a/file1.md", content: "a1", executable: false },
 					],
 					operations: [
-						{ kind: "write-file", relativePath: "a/file1.md", outputFileIndex: 0 },
+						{
+							kind: "write-file",
+							relativePath: "a/file1.md",
+							outputFileIndex: 0,
+						},
 					],
 				}),
 			},
@@ -189,7 +195,11 @@ describe("analyzeCollisions", () => {
 						{ relativePath: "b/file1.md", content: "b1", executable: false },
 					],
 					operations: [
-						{ kind: "write-file", relativePath: "b/file1.md", outputFileIndex: 0 },
+						{
+							kind: "write-file",
+							relativePath: "b/file1.md",
+							outputFileIndex: 0,
+						},
 					],
 				}),
 			},
@@ -210,7 +220,11 @@ describe("analyzeCollisions", () => {
 						{ relativePath: "shared/file.md", content: "a", executable: false },
 					],
 					operations: [
-						{ kind: "write-file", relativePath: "shared/file.md", outputFileIndex: 0 },
+						{
+							kind: "write-file",
+							relativePath: "shared/file.md",
+							outputFileIndex: 0,
+						},
 					],
 				}),
 			},
@@ -221,7 +235,11 @@ describe("analyzeCollisions", () => {
 						{ relativePath: "shared/file.md", content: "b", executable: false },
 					],
 					operations: [
-						{ kind: "write-file", relativePath: "shared/file.md", outputFileIndex: 0 },
+						{
+							kind: "write-file",
+							relativePath: "shared/file.md",
+							outputFileIndex: 0,
+						},
 					],
 				}),
 			},
@@ -244,10 +262,18 @@ describe("analyzeCollisions", () => {
 				label: "plan-a",
 				plan: makePlan({
 					outputFiles: [
-						{ relativePath: "existing/file.md", content: "new", executable: false },
+						{
+							relativePath: "existing/file.md",
+							content: "new",
+							executable: false,
+						},
 					],
 					operations: [
-						{ kind: "write-file", relativePath: "existing/file.md", outputFileIndex: 0 },
+						{
+							kind: "write-file",
+							relativePath: "existing/file.md",
+							outputFileIndex: 0,
+						},
 					],
 				}),
 			},
@@ -269,10 +295,18 @@ describe("analyzeCollisions", () => {
 				label: "plan-a",
 				plan: makePlan({
 					outputFiles: [
-						{ relativePath: "existing/file.md", content: "new", executable: false },
+						{
+							relativePath: "existing/file.md",
+							content: "new",
+							executable: false,
+						},
 					],
 					operations: [
-						{ kind: "write-file", relativePath: "existing/file.md", outputFileIndex: 0 },
+						{
+							kind: "write-file",
+							relativePath: "existing/file.md",
+							outputFileIndex: 0,
+						},
 					],
 				}),
 			},

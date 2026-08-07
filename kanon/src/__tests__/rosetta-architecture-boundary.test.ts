@@ -11,7 +11,7 @@
  */
 
 import { describe, expect, test } from "bun:test";
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -137,9 +137,7 @@ describe("Architecture boundary: src/rosetta/ import purity", () => {
 					if (line.trimStart().startsWith("//")) continue;
 					if (line.trimStart().startsWith("*")) continue;
 					if (regex.test(line)) {
-						violations.push(
-							`Line ${i + 1}: ${description} — ${line.trim()}`,
-						);
+						violations.push(`Line ${i + 1}: ${description} — ${line.trim()}`);
 					}
 				}
 			}
@@ -157,18 +155,16 @@ describe("Architecture boundary: src/rosetta/ import purity", () => {
 // Section 2: Frozen Inputs — Source and Target Translators
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import type { SourceDocument, FormatIdentifier } from "../schemas";
-import type {
-	SourceTranslator,
-	SourceTranslatorContext,
-	TargetTranslator,
-	TargetTranslatorContext,
-} from "../rosetta/registry";
 import {
-	PATH_BASED_SOURCE_TRANSLATORS,
 	HARNESS_NATIVE_SOURCE_TRANSLATORS,
+	PATH_BASED_SOURCE_TRANSLATORS,
 } from "../rosetta/builtins/sources";
 import { TARGET_TRANSLATORS } from "../rosetta/builtins/targets";
+import type {
+	SourceTranslatorContext,
+	TargetTranslatorContext,
+} from "../rosetta/registry";
+import type { FormatIdentifier, HarnessName, SourceDocument } from "../schemas";
 import { makeArtifact, makeFrontmatter } from "./test-helpers";
 
 /**
@@ -177,10 +173,10 @@ import { makeArtifact, makeFrontmatter } from "./test-helpers";
 function makeFrozenSourceDocuments(): readonly SourceDocument[] {
 	const docs: SourceDocument[] = [
 		{
-			relativePath: "knowledge.md" as any,
+			path: "knowledge.md",
 			content:
 				"---\nname: test-artifact\ntype: skill\nversion: 1.0.0\nharnesses:\n  - kiro\nmaturity: draft\ntrust: community\ncollections: []\n---\n\n# Test Artifact\n\nBody content.",
-			encoding: "utf-8",
+			executable: false,
 		},
 	];
 	return Object.freeze(docs.map((d) => Object.freeze(d)));
@@ -276,7 +272,7 @@ describe("Frozen inputs: target translators do not mutate inputs", () => {
 				}),
 			);
 
-			const ctx: TargetTranslatorContext = Object.freeze({
+			const ctx = Object.freeze({
 				format: Object.freeze({
 					id: formatId as FormatIdentifier,
 					contractVersion: "1.0",
@@ -305,9 +301,8 @@ describe("Frozen inputs: target translators do not mutate inputs", () => {
 				options: Object.freeze({}),
 				callerContext: Object.freeze({}),
 				variant: "default",
-				templateBundle: null as any,
-				compatibilityProfile: Object.freeze({}) as any,
-			}) as TargetTranslatorContext;
+				templates: Object.freeze({ sources: {}, hash: "test" }) as any,
+			}) as unknown as TargetTranslatorContext;
 
 			try {
 				const result = translator(artifact, ctx);
@@ -334,11 +329,11 @@ describe("Frozen inputs: target translators do not mutate inputs", () => {
 // Section 3: Registry Synchronization
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { BUILTIN_FORMAT_CONTRACTS } from "../rosetta/builtins/contracts";
-import { importerRegistry } from "../importers/index";
-import { HARNESS_FORMAT_REGISTRY } from "../format-registry";
-import { ASSET_HARNESS_COMPATIBILITY } from "../compatibility";
 import { CAPABILITY_MATRIX } from "../adapters/capabilities";
+import { ASSET_HARNESS_COMPATIBILITY } from "../compatibility";
+import { HARNESS_FORMAT_REGISTRY } from "../format-registry";
+import { importerRegistry } from "../importers/index";
+import { BUILTIN_FORMAT_CONTRACTS } from "../rosetta/builtins/contracts";
 import { SUPPORTED_HARNESSES } from "../schemas";
 
 describe("Registry synchronization: built-in contracts cover all legacy registries", () => {
@@ -355,14 +350,12 @@ describe("Registry synchronization: built-in contracts cover all legacy registri
 	/**
 	 * Extract all format identifiers from built-in contracts.
 	 */
-	const builtinFormatIds = new Set(
-		BUILTIN_FORMAT_CONTRACTS.map((c) => c.id),
-	);
+	const builtinFormatIds = new Set(BUILTIN_FORMAT_CONTRACTS.map((c) => c.id));
 
 	/**
 	 * Extract source-capable format identifiers from built-in contracts.
 	 */
-	const builtinSourceIds = new Set(
+	const _builtinSourceIds = new Set(
 		BUILTIN_FORMAT_CONTRACTS.filter(
 			(c) => c.direction === "source" || c.direction === "bidirectional",
 		).map((c) => c.id),
@@ -389,9 +382,7 @@ describe("Registry synchronization: built-in contracts cover all legacy registri
 	});
 
 	test("every HARNESS_FORMAT_REGISTRY harness has a corresponding built-in target contract", () => {
-		const formatHarnesses = Object.keys(
-			HARNESS_FORMAT_REGISTRY,
-		) as string[];
+		const formatHarnesses = Object.keys(HARNESS_FORMAT_REGISTRY) as string[];
 		const missing: string[] = [];
 
 		for (const harness of formatHarnesses) {
@@ -458,7 +449,7 @@ describe("Registry synchronization: built-in contracts cover all legacy registri
 		const mismatches: string[] = [];
 
 		for (const harness of Object.keys(HARNESS_FORMAT_REGISTRY) as string[]) {
-			const registryEntry = HARNESS_FORMAT_REGISTRY[harness as any];
+			const registryEntry = HARNESS_FORMAT_REGISTRY[harness as HarnessName];
 			if (!registryEntry) continue;
 
 			const contract = BUILTIN_FORMAT_CONTRACTS.find(
@@ -487,7 +478,7 @@ describe("Registry synchronization: built-in contracts cover all legacy registri
 		const mismatches: string[] = [];
 
 		for (const harness of Object.keys(HARNESS_FORMAT_REGISTRY) as string[]) {
-			const registryEntry = HARNESS_FORMAT_REGISTRY[harness as any];
+			const registryEntry = HARNESS_FORMAT_REGISTRY[harness as HarnessName];
 			if (!registryEntry) continue;
 
 			const contract = BUILTIN_FORMAT_CONTRACTS.find(
@@ -559,9 +550,7 @@ describe("Registry synchronization: built-in contracts cover all legacy registri
 // ═══════════════════════════════════════════════════════════════════════════════
 
 describe("Template isolation: target translators use only in-memory bundle", () => {
-	const targetFiles = collectTsFiles(
-		join(ROSETTA_DIR, "builtins", "targets"),
-	);
+	const targetFiles = collectTsFiles(join(ROSETTA_DIR, "builtins", "targets"));
 
 	for (const filePath of targetFiles) {
 		const relPath = relative(join(import.meta.dir, ".."), filePath);
@@ -598,9 +587,7 @@ describe("Template isolation: target translators use only in-memory bundle", () 
 						!line.trimStart().startsWith("//") &&
 						!line.trimStart().startsWith("*")
 					) {
-						violations.push(
-							`Direct readFile call: ${line.trim()}`,
-						);
+						violations.push(`Direct readFile call: ${line.trim()}`);
 					}
 				}
 			}

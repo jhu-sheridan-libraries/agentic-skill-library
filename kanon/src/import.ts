@@ -13,18 +13,17 @@
 import { exists, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { basename, extname, join } from "node:path";
 import chalk from "chalk";
-
+import { translateKiroPower } from "./rosetta/builtins/sources/kiro-power";
+import { translateKiroSkill } from "./rosetta/builtins/sources/kiro-skill";
+import { translateSuperpowers } from "./rosetta/builtins/sources/superpowers";
+import { serializeCanonical } from "./rosetta/canonical";
+import type { SourceTranslatorContext } from "./rosetta/registry";
 import type {
 	FormatIdentifier,
 	KnowledgeArtifact,
 	NormalizedRelativePath,
 	SourceDocument,
 } from "./schemas";
-import type { SourceTranslatorContext } from "./rosetta/registry";
-import { translateKiroPower } from "./rosetta/builtins/sources/kiro-power";
-import { translateKiroSkill } from "./rosetta/builtins/sources/kiro-skill";
-import { translateSuperpowers } from "./rosetta/builtins/sources/superpowers";
-import { serializeCanonical } from "./rosetta/canonical";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Public Types (preserved for backward compatibility)
@@ -174,13 +173,21 @@ function translateViaRosetta(
 ): {
 	artifact: KnowledgeArtifact | undefined;
 	plan:
-		| { outputFiles: Array<{ relativePath: string; content: string | Uint8Array; executable: boolean }> }
+		| {
+				outputFiles: Array<{
+					relativePath: string;
+					content: string | Uint8Array;
+					executable: boolean;
+				}>;
+		  }
 		| undefined;
 	diagnostics: Array<{ severity: string; message: string }>;
 } {
 	// Build translator context
 	const context: SourceTranslatorContext = {
-		format: { id: format as FormatIdentifier } as SourceTranslatorContext["format"],
+		format: {
+			id: format as FormatIdentifier,
+		} as SourceTranslatorContext["format"],
 		canonicalSchemaVersion: "1.0.0",
 		options: {},
 		callerContext: { artifactNameHint },

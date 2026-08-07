@@ -137,7 +137,10 @@ describe("Property 4: Requests are closed, validated values before dispatch", ()
 					// The returned request must be frozen
 					expect(Object.isFrozen(result.request)).toBe(true);
 					// Nested objects should also be frozen (deep freeze)
-					if (result.request.mode === "inbound" && result.request.sourceDocuments.length > 0) {
+					if (
+						result.request.mode === "inbound" &&
+						result.request.sourceDocuments.length > 0
+					) {
 						expect(Object.isFrozen(result.request.sourceDocuments)).toBe(true);
 						expect(Object.isFrozen(result.request.sourceDocuments[0])).toBe(
 							true,

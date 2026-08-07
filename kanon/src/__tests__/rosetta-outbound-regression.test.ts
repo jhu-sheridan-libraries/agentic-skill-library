@@ -9,32 +9,28 @@
  */
 
 import { describe, expect, test } from "bun:test";
-
-import type { FormatContract, TranslationPlan } from "../schemas";
-import type { ImmutableTemplateBundle } from "../rosetta/templates";
-import type { TargetTranslatorContext } from "../rosetta/registry";
-import { makeArtifact, makeFrontmatter } from "./test-helpers";
-
-import { translateKiroTarget } from "../rosetta/builtins/targets/kiro";
-import { translateClaudeCodeTarget } from "../rosetta/builtins/targets/claude-code";
-import { translateCodexTarget } from "../rosetta/builtins/targets/codex";
-import { translateCopilotTarget } from "../rosetta/builtins/targets/copilot";
-import { translateCursorTarget } from "../rosetta/builtins/targets/cursor";
-import { translateWindsurfTarget } from "../rosetta/builtins/targets/windsurf";
-import { translateClineTarget } from "../rosetta/builtins/targets/cline";
-import { translateQDeveloperTarget } from "../rosetta/builtins/targets/qdeveloper";
-
 import {
-	KIRO_CONTRACT,
 	CLAUDE_CODE_CONTRACT,
+	CLINE_CONTRACT,
 	CODEX_CONTRACT,
 	COPILOT_CONTRACT,
 	CURSOR_CONTRACT,
-	WINDSURF_CONTRACT,
-	CLINE_CONTRACT,
+	KIRO_CONTRACT,
 	QDEVELOPER_CONTRACT,
+	WINDSURF_CONTRACT,
 } from "../rosetta/builtins/contracts";
-
+import { translateClaudeCodeTarget } from "../rosetta/builtins/targets/claude-code";
+import { translateClineTarget } from "../rosetta/builtins/targets/cline";
+import { translateCodexTarget } from "../rosetta/builtins/targets/codex";
+import { translateCopilotTarget } from "../rosetta/builtins/targets/copilot";
+import { translateCursorTarget } from "../rosetta/builtins/targets/cursor";
+import { translateKiroTarget } from "../rosetta/builtins/targets/kiro";
+import { translateQDeveloperTarget } from "../rosetta/builtins/targets/qdeveloper";
+import { translateWindsurfTarget } from "../rosetta/builtins/targets/windsurf";
+import type { TargetTranslatorContext } from "../rosetta/registry";
+import type { ImmutableTemplateBundle } from "../rosetta/templates";
+import type { FormatContract, TranslationPlan } from "../schemas";
+import { makeArtifact, makeFrontmatter } from "./test-helpers";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Mock Template Bundle
@@ -110,6 +106,7 @@ const FIXTURE_ARTIFACT = makeArtifact({
 	mcpServers: [
 		{
 			name: "test-server",
+			transport: "stdio",
 			command: "npx",
 			args: ["-y", "test-mcp-server"],
 			env: { API_KEY: "${API_KEY}" },
@@ -117,10 +114,12 @@ const FIXTURE_ARTIFACT = makeArtifact({
 	],
 	workflows: [
 		{
+			name: "phase-01-setup",
 			filename: "phase-01-setup.md",
 			content: "# Phase 1: Setup\n\nSetup instructions.",
 		},
 		{
+			name: "phase-02-build",
 			filename: "phase-02-build.md",
 			content: "# Phase 2: Build\n\nBuild instructions.",
 		},
@@ -136,7 +135,6 @@ const FIXTURE_ARTIFACT = makeArtifact({
 		qdeveloper: "# QDeveloper Override\n\nQDeveloper-specific body content.",
 	},
 });
-
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Context Builder Helper
@@ -175,7 +173,6 @@ function assertPlanBasics(plan: TranslationPlan): void {
 function getOutputPaths(plan: TranslationPlan): string[] {
 	return plan.outputFiles.map((f) => f.relativePath);
 }
-
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Kiro Target — Steering Variant
@@ -216,7 +213,6 @@ describe("Outbound Regression: Kiro steering variant", () => {
 		}
 	});
 });
-
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Kiro Target — Power Variant
@@ -269,7 +265,6 @@ describe("Outbound Regression: Kiro power variant", () => {
 	});
 });
 
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // Claude Code Target
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -318,7 +313,6 @@ describe("Outbound Regression: Claude Code claude-md variant", () => {
 	});
 });
 
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // Codex Target — agents-md Variant
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -361,7 +355,6 @@ describe("Outbound Regression: Codex agents-md variant", () => {
 	});
 });
 
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // Codex Target — skill Variant
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -382,9 +375,7 @@ describe("Outbound Regression: Codex skill variant", () => {
 
 	test("produces skill SKILL.md under .codex/skills/", () => {
 		const paths = getOutputPaths(plan);
-		expect(paths).toContain(
-			".codex/skills/regression-fixture/SKILL.md",
-		);
+		expect(paths).toContain(".codex/skills/regression-fixture/SKILL.md");
 	});
 
 	test("produces AGENTS.md pointer", () => {
@@ -413,7 +404,6 @@ describe("Outbound Regression: Codex skill variant", () => {
 		}
 	});
 });
-
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Copilot Target — instructions Variant
@@ -445,7 +435,6 @@ describe("Outbound Regression: Copilot instructions variant", () => {
 	});
 });
 
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // Cursor Target — rule Variant
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -475,7 +464,6 @@ describe("Outbound Regression: Cursor rule variant", () => {
 		}
 	});
 });
-
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Windsurf Target — rule Variant
@@ -507,7 +495,6 @@ describe("Outbound Regression: Windsurf rule variant", () => {
 	});
 });
 
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // Cline Target — rule Variant
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -538,7 +525,6 @@ describe("Outbound Regression: Cline rule variant", () => {
 	});
 });
 
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // Q Developer Target — rule Variant
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -568,7 +554,6 @@ describe("Outbound Regression: Q Developer rule variant", () => {
 		}
 	});
 });
-
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Cross-target Regression: Path Patterns

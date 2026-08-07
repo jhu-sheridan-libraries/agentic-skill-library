@@ -24,7 +24,6 @@ import {
 	parseCanonical,
 } from "../rosetta/canonical";
 import type { SourceDocumentInput } from "../schemas";
-import { makeFrontmatter } from "./test-helpers";
 
 /**
  * Build a minimal valid knowledge.md SourceDocument with frontmatter + body.
@@ -138,9 +137,7 @@ describe("canonical parser", () => {
 			expect(result.artifact).toBeUndefined();
 			expect(result.diagnostics.length).toBeGreaterThan(0);
 			expect(
-				result.diagnostics.some(
-					(d) => d.code === "RS_CANONICAL_INVALID_YAML",
-				),
+				result.diagnostics.some((d) => d.code === "RS_CANONICAL_INVALID_YAML"),
 			).toBe(true);
 		});
 
@@ -156,9 +153,7 @@ describe("canonical parser", () => {
 			expect(result.artifact).toBeUndefined();
 			expect(result.diagnostics.length).toBeGreaterThan(0);
 			expect(
-				result.diagnostics.some(
-					(d) => d.code === "RS_CANONICAL_INVALID_YAML",
-				),
+				result.diagnostics.some((d) => d.code === "RS_CANONICAL_INVALID_YAML"),
 			).toBe(true);
 		});
 	});
@@ -176,7 +171,7 @@ describe("canonical parser", () => {
 			const result = parseCanonical(docs);
 			expect(result.diagnostics.filter((d) => d.blocking)).toHaveLength(0);
 			expect(result.artifact).toBeDefined();
-			expect(result.artifact!.hooks).toEqual([]);
+			expect(result.artifact?.hooks).toEqual([]);
 		});
 
 		test("empty mcp-servers.yaml (null content) parses as empty array", () => {
@@ -187,7 +182,7 @@ describe("canonical parser", () => {
 			const result = parseCanonical(docs);
 			expect(result.diagnostics.filter((d) => d.blocking)).toHaveLength(0);
 			expect(result.artifact).toBeDefined();
-			expect(result.artifact!.mcpServers).toEqual([]);
+			expect(result.artifact?.mcpServers).toEqual([]);
 		});
 
 		test("hooks.yaml with [] parses as empty array", () => {
@@ -198,7 +193,7 @@ describe("canonical parser", () => {
 			const result = parseCanonical(docs);
 			expect(result.diagnostics.filter((d) => d.blocking)).toHaveLength(0);
 			expect(result.artifact).toBeDefined();
-			expect(result.artifact!.hooks).toEqual([]);
+			expect(result.artifact?.hooks).toEqual([]);
 		});
 	});
 
@@ -241,12 +236,8 @@ describe("canonical parser", () => {
 				),
 			).toBe(true);
 			if (result.artifact) {
-				expect(result.artifact.bodyOverrides["kiro"]).toBe(
-					"Valid kiro body",
-				);
-				expect(
-					result.artifact.bodyOverrides["not-a-harness"],
-				).toBeUndefined();
+				expect(result.artifact.bodyOverrides.kiro).toBe("Valid kiro body");
+				expect(result.artifact.bodyOverrides["not-a-harness"]).toBeUndefined();
 			}
 		});
 	});
@@ -275,12 +266,10 @@ describe("canonical parser", () => {
 			const result = parseCanonical(docs);
 			expect(result.diagnostics.filter((d) => d.blocking)).toHaveLength(0);
 			expect(result.artifact).toBeDefined();
-			expect(result.artifact!.workflows).toHaveLength(3);
+			expect(result.artifact?.workflows).toHaveLength(3);
 
 			// Filenames should be relative to workflows/
-			const filenames = result.artifact!.workflows.map(
-				(w) => w.filename,
-			);
+			const filenames = result.artifact?.workflows.map((w) => w.filename);
 			expect(filenames).toContain("phase-1/step-1.md");
 			expect(filenames).toContain("phase-1/step-2.md");
 			expect(filenames).toContain("phase-2/setup.md");
@@ -345,9 +334,7 @@ describe("canonical parser", () => {
 				expect(result.artifact.frontmatter.description).toBe(
 					"A proper description",
 				);
-				expect(
-					result.artifact.extraFields["description"],
-				).toBeUndefined();
+				expect(result.artifact.extraFields.description).toBeUndefined();
 			}
 		});
 
@@ -371,8 +358,7 @@ describe("canonical parser", () => {
 		test("uses artifactNameHint when frontmatter has no name", () => {
 			const doc: SourceDocumentInput = {
 				path: "knowledge.md",
-				content:
-					"---\ndescription: A nameless artifact\n---\n# Body",
+				content: "---\ndescription: A nameless artifact\n---\n# Body",
 			};
 			const ctx: CanonicalParserContext = {
 				artifactNameHint: "inferred-name",
@@ -386,8 +372,7 @@ describe("canonical parser", () => {
 		test("uses 'unknown' default when neither name nor hint is provided", () => {
 			const doc: SourceDocumentInput = {
 				path: "knowledge.md",
-				content:
-					"---\ndescription: No name anywhere\n---\n# Body",
+				content: "---\ndescription: No name anywhere\n---\n# Body",
 			};
 			const result = parseCanonical([doc]);
 			// Either parses with "unknown" or fails schema validation
@@ -408,16 +393,13 @@ describe("canonical parser", () => {
 		test("frontmatter with invalid type emits RS_CANONICAL_INVALID", () => {
 			const doc: SourceDocumentInput = {
 				path: "knowledge.md",
-				content:
-					'---\nname: test\ntype: not-a-valid-type\n---\n# Body',
+				content: "---\nname: test\ntype: not-a-valid-type\n---\n# Body",
 			};
 			const result = parseCanonical([doc]);
 			expect(result.artifact).toBeUndefined();
 			expect(result.diagnostics.length).toBeGreaterThan(0);
 			expect(
-				result.diagnostics.some(
-					(d) => d.code === "RS_CANONICAL_INVALID",
-				),
+				result.diagnostics.some((d) => d.code === "RS_CANONICAL_INVALID"),
 			).toBe(true);
 		});
 	});

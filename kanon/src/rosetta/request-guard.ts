@@ -12,12 +12,7 @@
  * Requirements: 1.3, 1.4, 3.6, 3.7, 8.1, 12.6, 12.7, 13.1, 13.2
  */
 
-import type {
-	FormatIdentifier,
-	NormalizedRelativePath,
-	TranslationDiagnostic,
-	TranslationRequest,
-} from "../schemas";
+import type { TranslationDiagnostic, TranslationRequest } from "../schemas";
 import { FormatIdentifierSchema, TranslationRequestSchema } from "../schemas";
 import { deepFreeze } from "./contracts";
 import { createDiagnostic } from "./diagnostics";

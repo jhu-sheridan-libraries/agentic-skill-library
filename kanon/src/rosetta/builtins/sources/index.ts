@@ -45,11 +45,11 @@ export { translateKiroNative } from "./kiro-native";
 // Re-exports — Harness-native source translators (task 6.4)
 // ═══════════════════════════════════════════════════════════════════════════════
 
+export { translateClineNative } from "./cline-native";
 export { translateCopilotNative } from "./copilot-native";
 export { translateCursorNative } from "./cursor-native";
-export { translateWindsurfNative } from "./windsurf-native";
-export { translateClineNative } from "./cline-native";
 export { translateQDeveloperNative } from "./qdeveloper-native";
+export { translateWindsurfNative } from "./windsurf-native";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Path-Based Source Translator Map

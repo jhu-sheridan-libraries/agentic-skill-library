@@ -120,9 +120,7 @@ export function translateKiroPower(
 
 	// Collect steering/ files as workflows
 	const steeringDocs = documents
-		.filter(
-			(d) => d.path.startsWith("steering/") && d.path.endsWith(".md"),
-		)
+		.filter((d) => d.path.startsWith("steering/") && d.path.endsWith(".md"))
 		.sort((a, b) => codePointCompare(a.path, b.path));
 
 	const workflows = steeringDocs.map((doc) => {

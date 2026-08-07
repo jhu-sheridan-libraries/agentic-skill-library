@@ -9,20 +9,19 @@
  * Requirements: 14.1, 14.2, 14.3, 14.4, 14.10, 14.11, 16.7, 16.8
  */
 
-import { describe, expect, it, beforeEach, afterEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import {
-	mkdtemp,
-	rm,
-	mkdir,
-	writeFile,
-	readFile,
 	exists,
+	mkdir,
+	mkdtemp,
+	readFile,
+	rm,
+	writeFile,
 } from "node:fs/promises";
-import { join } from "node:path";
 import { tmpdir } from "node:os";
-
-import { importCommand } from "../import";
+import { join } from "node:path";
 import type { ImportFormat } from "../import";
+import { importCommand } from "../import";
 import { importerRegistry } from "../importers/index";
 import type { ImportedFile } from "../importers/types";
 
@@ -165,10 +164,7 @@ describe("Legacy Inbound Regression: Import Facade Canonical Output", () => {
 			const targetPath = join(knowledgeDir, "reg-power");
 			expect(await exists(targetPath)).toBe(true);
 
-			const content = await readFile(
-				join(targetPath, "knowledge.md"),
-				"utf-8",
-			);
+			const content = await readFile(join(targetPath, "knowledge.md"), "utf-8");
 			// Canonical shape assertions
 			expect(content).toContain("name: reg-power");
 			expect(content).toContain("type: skill");
@@ -206,9 +202,9 @@ describe("Legacy Inbound Regression: Import Facade Canonical Output", () => {
 			});
 
 			const targetPath = join(knowledgeDir, "wf-power");
-			expect(
-				await exists(join(targetPath, "workflows", "guide.md")),
-			).toBe(true);
+			expect(await exists(join(targetPath, "workflows", "guide.md"))).toBe(
+				true,
+			);
 			const wfContent = await readFile(
 				join(targetPath, "workflows", "guide.md"),
 				"utf-8",
@@ -249,9 +245,7 @@ describe("Legacy Inbound Regression: Import Facade Canonical Output", () => {
 			});
 
 			expect(
-				await exists(
-					join(knowledgeDir, "ref-skill", "workflows", "api.md"),
-				),
+				await exists(join(knowledgeDir, "ref-skill", "workflows", "api.md")),
 			).toBe(true);
 		});
 	});
@@ -334,8 +328,7 @@ Follow these guidelines for the project.
 `,
 			);
 
-			const result: ImportedFile =
-				await importerRegistry.kiro.parse(filePath);
+			const result: ImportedFile = await importerRegistry.kiro.parse(filePath);
 
 			// Kiro importer derives artifact name from filename
 			expect(result.artifactName).toBe("my-rule-md");
@@ -376,7 +369,7 @@ Always write tests before implementation.
 				await importerRegistry["claude-code"].parse(filePath);
 
 			expect(result.hooks.length).toBeGreaterThanOrEqual(2);
-			const commands = result.hooks.map((h) => h.action.command);
+			const commands = result.hooks.map((h) => (h.action as { type: "run_command"; command: string }).command);
 			expect(commands).toContain("bun run lint");
 			expect(commands).toContain("bun test");
 		});
@@ -392,8 +385,7 @@ Use Bun for all tasks.
 `,
 			);
 
-			const result: ImportedFile =
-				await importerRegistry.codex.parse(filePath);
+			const result: ImportedFile = await importerRegistry.codex.parse(filePath);
 
 			expect(result.artifactName).toBe("codex-agents");
 			expect(result.body).toContain("Use Bun for all tasks");
@@ -410,8 +402,7 @@ args = ["analyze.py"]
 `,
 			);
 
-			const result: ImportedFile =
-				await importerRegistry.codex.parse(filePath);
+			const result: ImportedFile = await importerRegistry.codex.parse(filePath);
 
 			expect(result.artifactName).toBe("codex-mcp");
 			expect(result.mcpServers.length).toBeGreaterThanOrEqual(1);
@@ -490,8 +481,7 @@ No console.log in production code.
 `,
 			);
 
-			const result: ImportedFile =
-				await importerRegistry.cline.parse(filePath);
+			const result: ImportedFile = await importerRegistry.cline.parse(filePath);
 
 			expect(result.artifactName).toBe("project-rules");
 			expect(result.body).toContain("No console.log in production code");
@@ -540,9 +530,7 @@ describe("Legacy Inbound Regression: Collision Behavior", () => {
 
 		// No knowledge.md should have been written (was skipped)
 		expect(
-			await exists(
-				join(knowledgeDir, "collision-power", "knowledge.md"),
-			),
+			await exists(join(knowledgeDir, "collision-power", "knowledge.md")),
 		).toBe(false);
 	});
 
@@ -562,14 +550,12 @@ describe("Legacy Inbound Regression: Collision Behavior", () => {
 
 		// existing-one was skipped (no knowledge.md)
 		expect(
-			await exists(
-				join(knowledgeDir, "existing-one", "knowledge.md"),
-			),
+			await exists(join(knowledgeDir, "existing-one", "knowledge.md")),
 		).toBe(false);
 		// new-one was imported successfully
-		expect(
-			await exists(join(knowledgeDir, "new-one", "knowledge.md")),
-		).toBe(true);
+		expect(await exists(join(knowledgeDir, "new-one", "knowledge.md"))).toBe(
+			true,
+		);
 	});
 });
 
@@ -662,9 +648,9 @@ describe("Legacy Inbound Regression: Format Auto-Detection", () => {
 
 		await importCommand(sourceDir, { knowledgeDir });
 
-		expect(
-			await exists(join(knowledgeDir, "auto-skill", "knowledge.md")),
-		).toBe(true);
+		expect(await exists(join(knowledgeDir, "auto-skill", "knowledge.md"))).toBe(
+			true,
+		);
 	});
 
 	it("skips directories without recognizable format markers", async () => {
@@ -739,9 +725,7 @@ describe("Legacy Inbound Regression: Deprecation and Aliases", () => {
 
 		// Should detect as kiro-power via auto and produce output
 		expect(
-			await exists(
-				join(knowledgeDir, "auto-fmt-power", "knowledge.md"),
-			),
+			await exists(join(knowledgeDir, "auto-fmt-power", "knowledge.md")),
 		).toBe(true);
 	});
 

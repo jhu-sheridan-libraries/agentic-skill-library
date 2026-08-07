@@ -13,13 +13,18 @@
  * Requirements: 14.1, 14.3, 14.4, 14.10, 14.11
  */
 
-import { describe, expect, it, beforeEach, afterEach } from "bun:test";
-import { mkdtemp, rm, mkdir, writeFile, readFile, exists } from "node:fs/promises";
-import { join } from "node:path";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
+import {
+	exists,
+	mkdir,
+	mkdtemp,
+	readFile,
+	rm,
+	writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
-
+import { join } from "node:path";
 import { importCommand } from "../import";
-import type { ImportFormat, ImportOptions, ImportResult } from "../import";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Helpers
@@ -154,7 +159,10 @@ describe("Import Facade — kiro-power format", () => {
 		expect(await exists(join(targetPath, "mcp-servers.yaml"))).toBe(true);
 
 		// Verify content is canonical
-		const knowledgeMd = await readFile(join(targetPath, "knowledge.md"), "utf-8");
+		const knowledgeMd = await readFile(
+			join(targetPath, "knowledge.md"),
+			"utf-8",
+		);
 		expect(knowledgeMd).toContain("name: my-power");
 		expect(knowledgeMd).toContain("type: skill");
 		expect(knowledgeMd).toContain("harness-config:");
@@ -180,7 +188,10 @@ describe("Import Facade — kiro-power format", () => {
 		expect(await exists(join(targetPath, "workflows", "guide.md"))).toBe(true);
 		expect(await exists(join(targetPath, "workflows", "setup.md"))).toBe(true);
 
-		const guideContent = await readFile(join(targetPath, "workflows", "guide.md"), "utf-8");
+		const guideContent = await readFile(
+			join(targetPath, "workflows", "guide.md"),
+			"utf-8",
+		);
 		expect(guideContent).toContain("# Guide");
 	});
 
@@ -198,7 +209,9 @@ describe("Import Facade — kiro-power format", () => {
 		});
 
 		// The existing directory should remain empty (no knowledge.md written)
-		expect(await exists(join(knowledgeDir, "existing-power", "knowledge.md"))).toBe(false);
+		expect(
+			await exists(join(knowledgeDir, "existing-power", "knowledge.md")),
+		).toBe(false);
 	});
 });
 
@@ -215,7 +228,10 @@ describe("Import Facade — kiro-skill format", () => {
 		const targetPath = join(knowledgeDir, "my-skill");
 		expect(await exists(targetPath)).toBe(true);
 
-		const knowledgeMd = await readFile(join(targetPath, "knowledge.md"), "utf-8");
+		const knowledgeMd = await readFile(
+			join(targetPath, "knowledge.md"),
+			"utf-8",
+		);
 		expect(knowledgeMd).toContain("name: my-skill");
 		expect(knowledgeMd).toContain("type: skill");
 		expect(knowledgeMd).toContain("Skill body content.");
@@ -233,7 +249,9 @@ describe("Import Facade — kiro-skill format", () => {
 		});
 
 		const targetPath = join(knowledgeDir, "skill-with-refs");
-		expect(await exists(join(targetPath, "workflows", "api-ref.md"))).toBe(true);
+		expect(await exists(join(targetPath, "workflows", "api-ref.md"))).toBe(
+			true,
+		);
 	});
 });
 
@@ -250,7 +268,10 @@ describe("Import Facade — superpowers format", () => {
 		const targetPath = join(knowledgeDir, "my-superpowers-skill");
 		expect(await exists(targetPath)).toBe(true);
 
-		const knowledgeMd = await readFile(join(targetPath, "knowledge.md"), "utf-8");
+		const knowledgeMd = await readFile(
+			join(targetPath, "knowledge.md"),
+			"utf-8",
+		);
 		expect(knowledgeMd).toContain("name: my-superpowers-skill");
 		expect(knowledgeMd).toContain("type: skill");
 		expect(knowledgeMd).toContain("Superpowers body content.");
@@ -284,7 +305,10 @@ describe("Import Facade — auto detection", () => {
 
 		const targetPath = join(knowledgeDir, "auto-detected-power");
 		expect(await exists(targetPath)).toBe(true);
-		const knowledgeMd = await readFile(join(targetPath, "knowledge.md"), "utf-8");
+		const knowledgeMd = await readFile(
+			join(targetPath, "knowledge.md"),
+			"utf-8",
+		);
 		expect(knowledgeMd).toContain("harness-config:");
 		expect(knowledgeMd).toContain("format: power");
 	});
@@ -359,7 +383,10 @@ describe("Import Facade — collections injection", () => {
 		});
 
 		const targetPath = join(knowledgeDir, "collection-power");
-		const knowledgeMd = await readFile(join(targetPath, "knowledge.md"), "utf-8");
+		const knowledgeMd = await readFile(
+			join(targetPath, "knowledge.md"),
+			"utf-8",
+		);
 		expect(knowledgeMd).toContain("neon-caravan");
 		expect(knowledgeMd).toContain("dev-tools");
 	});
@@ -375,6 +402,8 @@ describe("Import Facade — destination override", () => {
 			format: "kiro-power",
 		});
 
-		expect(await exists(join(customDir, "custom-dest-power", "knowledge.md"))).toBe(true);
+		expect(
+			await exists(join(customDir, "custom-dest-power", "knowledge.md")),
+		).toBe(true);
 	});
 });

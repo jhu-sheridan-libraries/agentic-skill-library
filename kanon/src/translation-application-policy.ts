@@ -262,6 +262,7 @@ export async function analyzeCollisions(
 				: file.relativePath;
 
 			if (pathOwnership.has(normalizedPath)) {
+				// biome-ignore lint/style/noNonNullAssertion: guarded by .has() check above
 				const existingOwner = pathOwnership.get(normalizedPath)!;
 				collisions.push({
 					path: normalizedPath,
@@ -442,8 +443,7 @@ export function applyCollisionPolicy(
 					blockedFiles.push({
 						path,
 						action: "block",
-						reason:
-							"Cross-plan collision cannot be resolved by replace policy",
+						reason: "Cross-plan collision cannot be resolved by replace policy",
 					});
 				} else if (isFilesystem) {
 					// Replace existing files

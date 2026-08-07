@@ -284,7 +284,9 @@ function findSecretsInContent(content: string): SecretFinding[] {
 		let match: RegExpExecArray | null;
 		// Reset lastIndex for global patterns
 		pattern.lastIndex = 0;
-		while ((match = pattern.exec(content)) !== null) {
+		while (true) {
+			match = pattern.exec(content);
+			if (match === null) break;
 			findings.push({ value: match[0], offset: match.index });
 		}
 	}
@@ -292,11 +294,13 @@ function findSecretsInContent(content: string): SecretFinding[] {
 	// Also check for high-entropy tokens (word boundaries)
 	const tokenPattern = /\b[A-Za-z0-9_\-/+=]{16,}\b/g;
 	let tokenMatch: RegExpExecArray | null;
-	while ((tokenMatch = tokenPattern.exec(content)) !== null) {
+	while (true) {
+		tokenMatch = tokenPattern.exec(content);
+		if (tokenMatch === null) break;
 		const token = tokenMatch[0];
 		if (
 			shannonEntropy(token) >= HIGH_ENTROPY_THRESHOLD &&
-			!findings.some((f) => f.offset === tokenMatch!.index)
+			!findings.some((f) => f.offset === tokenMatch?.index)
 		) {
 			findings.push({ value: token, offset: tokenMatch.index });
 		}
@@ -433,7 +437,7 @@ export function suppressOnIncompleteRedaction(
 	proof: RedactionProof | null,
 ): SuppressedResult | null {
 	// If proof is complete, no suppression needed
-	if (proof !== null && proof.complete) {
+	if (proof?.complete) {
 		return null;
 	}
 

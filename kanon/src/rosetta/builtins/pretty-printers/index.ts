@@ -17,17 +17,17 @@
 
 import type { FormatIdentifier } from "../../../schemas";
 import type { PrettyPrinter } from "../../registry";
-import { prettyPrintKiroPower } from "./kiro-power";
-import { prettyPrintKiroSkill } from "./kiro-skill";
-import { prettyPrintSuperpowers } from "./superpowers";
-import { prettyPrintKiroNative } from "./kiro-native";
 import { prettyPrintClaudeCodeNative } from "./claude-code-native";
+import { prettyPrintClineNative } from "./cline-native";
 import { prettyPrintCodexNative } from "./codex-native";
 import { prettyPrintCopilotNative } from "./copilot-native";
 import { prettyPrintCursorNative } from "./cursor-native";
-import { prettyPrintWindsurfNative } from "./windsurf-native";
-import { prettyPrintClineNative } from "./cline-native";
+import { prettyPrintKiroNative } from "./kiro-native";
+import { prettyPrintKiroPower } from "./kiro-power";
+import { prettyPrintKiroSkill } from "./kiro-skill";
 import { prettyPrintQDeveloperNative } from "./qdeveloper-native";
+import { prettyPrintSuperpowers } from "./superpowers";
+import { prettyPrintWindsurfNative } from "./windsurf-native";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Re-exports — Path-based format pretty-printers
@@ -41,19 +41,19 @@ export { prettyPrintSuperpowers } from "./superpowers";
 // Re-exports — Harness-native pretty-printers
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export { prettyPrintKiroNative } from "./kiro-native";
 export { prettyPrintClaudeCodeNative } from "./claude-code-native";
 export { prettyPrintCodexNative } from "./codex-native";
+export { prettyPrintKiroNative } from "./kiro-native";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Re-exports — Simple harness pretty-printers
 // ═══════════════════════════════════════════════════════════════════════════════
 
+export { prettyPrintClineNative } from "./cline-native";
 export { prettyPrintCopilotNative } from "./copilot-native";
 export { prettyPrintCursorNative } from "./cursor-native";
-export { prettyPrintWindsurfNative } from "./windsurf-native";
-export { prettyPrintClineNative } from "./cline-native";
 export { prettyPrintQDeveloperNative } from "./qdeveloper-native";
+export { prettyPrintWindsurfNative } from "./windsurf-native";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Pretty-Printer Lookup Map

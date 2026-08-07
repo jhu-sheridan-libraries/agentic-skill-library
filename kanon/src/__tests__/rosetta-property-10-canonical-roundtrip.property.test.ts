@@ -14,12 +14,12 @@
 import { describe, expect, it } from "bun:test";
 import fc from "fast-check";
 import {
+	getKnownFrontmatterKeys,
 	parseCanonical,
 	serializeCanonical,
-	getKnownFrontmatterKeys,
 } from "../rosetta/canonical";
 import type { SourceDocument } from "../schemas";
-import { makeArtifact, makeFrontmatter } from "./test-helpers";
+import { makeArtifact } from "./test-helpers";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Arbitraries for artifact mutations
@@ -83,7 +83,17 @@ function arbWorkflow(): fc.Arbitrary<{
 /** Generates a valid canonical hook */
 function arbHook(): fc.Arbitrary<{
 	name: string;
-	event: "file_edited" | "file_created" | "file_deleted" | "agent_stop" | "prompt_submit" | "pre_tool_use" | "post_tool_use" | "pre_task" | "post_task" | "user_triggered";
+	event:
+		| "file_edited"
+		| "file_created"
+		| "file_deleted"
+		| "agent_stop"
+		| "prompt_submit"
+		| "pre_tool_use"
+		| "post_tool_use"
+		| "pre_task"
+		| "post_task"
+		| "user_triggered";
 	action: { type: "ask_agent"; prompt: string };
 }> {
 	return fc
@@ -229,12 +239,8 @@ describe("Property 10: Canonical serialization and parsing preserve canonical me
 					// Step 4: Compare canonical fields
 
 					// Frontmatter core fields
-					expect(parsed.frontmatter.name).toEqual(
-						artifact.frontmatter.name,
-					);
-					expect(parsed.frontmatter.type).toEqual(
-						artifact.frontmatter.type,
-					);
+					expect(parsed.frontmatter.name).toEqual(artifact.frontmatter.name);
+					expect(parsed.frontmatter.type).toEqual(artifact.frontmatter.type);
 					expect(parsed.frontmatter.description).toEqual(
 						artifact.frontmatter.description,
 					);
@@ -255,17 +261,13 @@ describe("Property 10: Canonical serialization and parsing preserve canonical me
 					expect(parsed.mcpServers).toEqual(artifact.mcpServers);
 
 					// Workflows (content equality per filename)
-					expect(parsed.workflows.length).toEqual(
-						artifact.workflows.length,
-					);
+					expect(parsed.workflows.length).toEqual(artifact.workflows.length);
 					for (const origWf of artifact.workflows) {
 						const parsedWf = parsed.workflows.find(
 							(w) => w.filename === origWf.filename,
 						);
 						expect(parsedWf).toBeDefined();
-						expect(parsedWf!.content.trim()).toEqual(
-							origWf.content.trim(),
-						);
+						expect(parsedWf!.content.trim()).toEqual(origWf.content.trim());
 					}
 
 					// Body overrides (deep equality)

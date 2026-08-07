@@ -10,13 +10,8 @@
 
 import { describe, expect, it } from "bun:test";
 import type { ForgeConfig } from "../config";
-import {
-	validateProfiles,
-	normalizeUpstreamsWithDiagnostics,
-} from "../config";
-import {
-	BUILTIN_FORMAT_CONTRACTS,
-} from "../rosetta/index";
+import { normalizeUpstreamsWithDiagnostics, validateProfiles } from "../config";
+import { BUILTIN_FORMAT_CONTRACTS } from "../rosetta/index";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Helpers — build a known format ID set for validation
@@ -336,9 +331,7 @@ describe("rosetta profiles legacy upstream normalization", () => {
 		});
 		expect(validation.valid).toBe(false);
 		expect(
-			validation.diagnostics.some((d) =>
-				d.message.includes("unknown format"),
-			),
+			validation.diagnostics.some((d) => d.message.includes("unknown format")),
 		).toBe(true);
 	});
 });

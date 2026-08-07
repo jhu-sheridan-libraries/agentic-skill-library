@@ -13,15 +13,17 @@
  */
 
 import { describe, expect, test } from "bun:test";
-import type { SourceDocument, TranslationPlan, TranslationResult } from "../schemas";
+import type {
+	SourceDocument,
+	TranslationPlan,
+	TranslationResult,
+} from "../schemas";
 import {
 	type AllowedRoot,
 	type ApplyFn,
-	type OrchestrationResult,
-	type ProfileOrchestrationOptions,
-	type TranslateFn,
 	orchestrateProfile,
 	orchestrateProfiles,
+	type TranslateFn,
 } from "../translation-orchestrator";
 import type { ApplicationReport } from "../translation-plan-applier";
 
@@ -171,7 +173,7 @@ describe("dry-run mode", () => {
 
 	test("runs pre-application path even in dry-run", async () => {
 		let translateCalled = false;
-		const translate: TranslateFn = (docs, ctx) => {
+		const translate: TranslateFn = (_docs, _ctx) => {
 			translateCalled = true;
 			return makeTranslationResult({ plan: makePlan() });
 		};
@@ -331,7 +333,11 @@ describe("pre-application path equivalence", () => {
 		// Run dry-run
 		await orchestrateProfile({ ...sharedOpts, dryRun: true }, translate, apply);
 		// Run write
-		await orchestrateProfile({ ...sharedOpts, dryRun: false }, translate, apply);
+		await orchestrateProfile(
+			{ ...sharedOpts, dryRun: false },
+			translate,
+			apply,
+		);
 
 		expect(translateCalls.length).toBe(2);
 		// Same documents and context passed to both
@@ -381,10 +387,13 @@ describe("pre-application path equivalence", () => {
 describe("per-profile status isolation", () => {
 	test("one profile failure does not block other profiles", async () => {
 		let callCount = 0;
-		const translate: TranslateFn = (docs, ctx) => {
+		const translate: TranslateFn = (_docs, ctx) => {
 			callCount++;
 			if (ctx.artifactNameHint === "failing") {
-				return makeTranslationResult({ status: "failure", hasBlockingErrors: true });
+				return makeTranslationResult({
+					status: "failure",
+					hasBlockingErrors: true,
+				});
 			}
 			return makeTranslationResult({ plan: makePlan() });
 		};
@@ -559,7 +568,10 @@ describe("plan combination after validation", () => {
 				return makeTranslationResult({ plan: makePlan({ fileCount: 3 }) });
 			}
 			// Second profile: failure
-			return makeTranslationResult({ status: "failure", hasBlockingErrors: true });
+			return makeTranslationResult({
+				status: "failure",
+				hasBlockingErrors: true,
+			});
 		};
 		const apply: ApplyFn = async () => makeSuccessReport(3);
 

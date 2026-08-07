@@ -20,7 +20,7 @@
 
 import { describe, expect, it } from "bun:test";
 import fc from "fast-check";
-import { type DetectionRequest, detect } from "../rosetta/detector";
+import { detect } from "../rosetta/detector";
 import {
 	createRegistryBuilder,
 	type RegistryExtension,
@@ -33,7 +33,6 @@ import type {
 	FormatContract,
 	SourceDocument,
 } from "../schemas";
-import { arbFormatIdentifier } from "./rosetta-arbitraries";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Stub Translators
@@ -156,7 +155,7 @@ function buildRegistry(contracts: FormatContract[]) {
 /**
  * Arbitrary for generating a unique format ID that won't collide.
  */
-function arbUniqueId(prefix: string): fc.Arbitrary<string> {
+function _arbUniqueId(prefix: string): fc.Arbitrary<string> {
 	return fc.stringMatching(/^[a-z]{2,6}$/).map((s) => `${prefix}-${s}`);
 }
 

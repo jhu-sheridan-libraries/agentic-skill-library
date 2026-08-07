@@ -94,22 +94,18 @@ describe("Build pipeline: Kiro inclusion summary and threshold warning", () => {
 	 */
 	test("mixed inclusion modes produce correct summary shape", async () => {
 		const opts = makeBuildOptions();
-		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await mkdir(opts.knowledgeDir!, { recursive: true });
 		await mkdir(opts.mcpServersDir, { recursive: true });
 
-		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await writeKiroArtifact(opts.knowledgeDir!, {
 			name: "always-skill",
 			inclusion: "always",
 		});
-		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await writeKiroArtifact(opts.knowledgeDir!, {
 			name: "filematch-skill",
 			inclusion: "fileMatch",
 			fileMatchPattern: "src/**/*.ts",
 		});
-		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await writeKiroArtifact(opts.knowledgeDir!, {
 			name: "manual-skill",
 			inclusion: "manual",
@@ -120,7 +116,6 @@ describe("Build pipeline: Kiro inclusion summary and threshold warning", () => {
 		expect(result.errors).toEqual([]);
 		expect(result.kiroInclusionSummary).toBeDefined();
 
-		// biome-ignore lint/style/noNonNullAssertion: asserted defined above
 		const summary = result.kiroInclusionSummary!;
 		expect(summary.total).toBe(3);
 		expect(summary.byMode.always).toBe(1);
@@ -146,16 +141,13 @@ describe("Build pipeline: Kiro inclusion summary and threshold warning", () => {
 	 */
 	test("all-always ≥2 artifacts triggers threshold warning", async () => {
 		const opts = makeBuildOptions();
-		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await mkdir(opts.knowledgeDir!, { recursive: true });
 		await mkdir(opts.mcpServersDir, { recursive: true });
 
-		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await writeKiroArtifact(opts.knowledgeDir!, {
 			name: "always-one",
 			inclusion: "always",
 		});
-		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await writeKiroArtifact(opts.knowledgeDir!, {
 			name: "always-two",
 			inclusion: "always",
@@ -188,16 +180,13 @@ describe("Build pipeline: Kiro inclusion summary and threshold warning", () => {
 	 */
 	test("all-always with strict mode promotes threshold warning to errors", async () => {
 		const opts = makeBuildOptions({ strict: true });
-		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir is set
 		await mkdir(opts.knowledgeDir!, { recursive: true });
 		await mkdir(opts.mcpServersDir, { recursive: true });
 
-		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await writeKiroArtifact(opts.knowledgeDir!, {
 			name: "strict-always-one",
 			inclusion: "always",
 		});
-		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await writeKiroArtifact(opts.knowledgeDir!, {
 			name: "strict-always-two",
 			inclusion: "always",
@@ -235,16 +224,13 @@ describe("Build pipeline: Kiro inclusion summary and threshold warning", () => {
 	 */
 	test("alwaysWarnThreshold: 1 disables threshold warning", async () => {
 		const opts = makeBuildOptions({ kiroAlwaysWarnThreshold: 1 });
-		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await mkdir(opts.knowledgeDir!, { recursive: true });
 		await mkdir(opts.mcpServersDir, { recursive: true });
 
-		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await writeKiroArtifact(opts.knowledgeDir!, {
 			name: "thresh-always-one",
 			inclusion: "always",
 		});
-		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await writeKiroArtifact(opts.knowledgeDir!, {
 			name: "thresh-always-two",
 			inclusion: "always",
@@ -272,11 +258,9 @@ describe("Build pipeline: Kiro inclusion summary and threshold warning", () => {
 	 */
 	test("no Kiro artifacts produces no inclusion summary", async () => {
 		const opts = makeBuildOptions();
-		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await mkdir(opts.knowledgeDir!, { recursive: true });
 		await mkdir(opts.mcpServersDir, { recursive: true });
 
-		// biome-ignore lint/style/noNonNullAssertion: test helper guarantees knowledgeDir
 		await writeKiroArtifact(opts.knowledgeDir!, {
 			name: "cursor-only-skill",
 			harnesses: ["cursor"],

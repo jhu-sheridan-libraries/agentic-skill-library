@@ -91,7 +91,12 @@ export class SourceAccountant {
 		canonicalField: string,
 		transformed = false,
 	): void {
-		this._mappings.push({ sourcePath, sourceField, canonicalField, transformed });
+		this._mappings.push({
+			sourcePath,
+			sourceField,
+			canonicalField,
+			transformed,
+		});
 	}
 
 	/**
@@ -109,14 +114,18 @@ export class SourceAccountant {
 	 * Returns sorted consumed paths (code-point order).
 	 */
 	getConsumedPaths(): readonly NormalizedRelativePath[] {
-		return [...this._consumed].sort(codePointCompare) as NormalizedRelativePath[];
+		return [...this._consumed].sort(
+			codePointCompare,
+		) as NormalizedRelativePath[];
 	}
 
 	/**
 	 * Returns sorted preserved paths (code-point order).
 	 */
 	getPreservedPaths(): readonly NormalizedRelativePath[] {
-		return [...this._preserved].sort(codePointCompare) as NormalizedRelativePath[];
+		return [...this._preserved].sort(
+			codePointCompare,
+		) as NormalizedRelativePath[];
 	}
 
 	/**

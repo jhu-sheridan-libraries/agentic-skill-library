@@ -350,7 +350,6 @@ describe("Kiro Progressive Steering audit comment properties", () => {
 					);
 					expect(steeringFile).toBeDefined();
 
-					// biome-ignore lint/style/noNonNullAssertion: guarded by toBeDefined() above
 					const content = steeringFile!.content;
 
 					// Regex from the design: match audit comment lines
@@ -423,7 +422,6 @@ describe("Kiro Progressive Steering audit comment properties", () => {
 					);
 					expect(steeringFile).toBeDefined();
 
-					// biome-ignore lint/style/noNonNullAssertion: guarded by toBeDefined() above
 					const content = steeringFile!.content;
 
 					// Regex from the design: match audit comment lines
@@ -598,7 +596,6 @@ describe("Kiro Progressive Steering POWER.md inclusion absence", () => {
 					expect(powerMdFile).toBeDefined();
 
 					// Assert that POWER.md content does NOT contain an inclusion: line
-					// biome-ignore lint/style/noNonNullAssertion: guarded by toBeDefined() above
 					const hasInclusionLine = /^inclusion:/m.test(powerMdFile!.content);
 					expect(hasInclusionLine).toBeFalse();
 				},
@@ -661,7 +658,6 @@ describe("Kiro Progressive Steering power-format steering file properties", () =
 				expect(steeringFile).toBeDefined();
 
 				// Parse the emitted file's YAML frontmatter
-				// biome-ignore lint/style/noNonNullAssertion: guarded by toBeDefined() above
 				const parsed = matter(steeringFile!.content);
 				const emittedInclusion = parsed.data.inclusion;
 				const emittedFileMatchPattern = parsed.data.fileMatchPattern;
@@ -736,7 +732,6 @@ describe("Kiro Progressive Steering fileMatchPattern suppression properties", ()
 					expect(steeringFile).toBeDefined();
 
 					// Parse the emitted YAML frontmatter
-					// biome-ignore lint/style/noNonNullAssertion: guarded by toBeDefined() above
 					const parsed = matter(steeringFile!.content);
 
 					// Assert: fileMatchPattern key is NOT present in the emitted frontmatter

@@ -36,7 +36,7 @@ function sentParams(callIndex = 0): URLSearchParams {
 	return new URLSearchParams(call[1].body);
 }
 
-// biome-ignore lint/style/useConst: assigned in beforeEach for sentParams()
+// eslint-disable-next-line -- assigned in beforeEach for sentParams()
 let fetchSpyRef: ReturnType<typeof spyOn>;
 
 // ---------------------------------------------------------------------------

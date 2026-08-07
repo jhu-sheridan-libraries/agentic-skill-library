@@ -8,22 +8,20 @@
  */
 
 import { describe, expect, test } from "bun:test";
-import type { FormatContract, FormatOptionDefinition } from "../schemas";
 import {
-	type OptionResolutionContext,
-	type VariantResolutionContext,
 	listValidChoices,
+	type OptionResolutionContext,
 	resolveOptions,
 	resolveVariant,
+	type VariantResolutionContext,
 } from "../rosetta/resolution";
+import type { FormatContract } from "../schemas";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Helpers
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function makeContract(
-	overrides: Partial<FormatContract> = {},
-): FormatContract {
+function makeContract(overrides: Partial<FormatContract> = {}): FormatContract {
 	return {
 		id: "kiro",
 		contractVersion: "1.0.0",
@@ -32,12 +30,26 @@ function makeContract(
 		aliases: [],
 		lifecycle: { status: "active" },
 		canonicalVersions: { min: "1.0.0", max: "1.0.0" },
-		schemaReference: { type: "zod", module: "schemas.ts", export: "KnowledgeArtifactSchema" },
+		schemaReference: {
+			type: "zod",
+			module: "schemas.ts",
+			export: "KnowledgeArtifactSchema",
+		},
 		pathConventions: [],
 		detection: { threshold: 0.5, rules: [] },
 		variants: {
-			steering: { id: "steering", pathConventions: [], defaults: {}, optionOverrides: {} },
-			power: { id: "power", pathConventions: [], defaults: {}, optionOverrides: {} },
+			steering: {
+				id: "steering",
+				pathConventions: [],
+				defaults: {},
+				optionOverrides: {},
+			},
+			power: {
+				id: "power",
+				pathConventions: [],
+				defaults: {},
+				optionOverrides: {},
+			},
 		},
 		defaultVariant: "steering",
 		optionDefinitions: {},
@@ -51,10 +63,25 @@ function makeContract(
 
 function makeFullProfile() {
 	const capabilities = [
-		"frontmatter", "body", "hooks", "mcp-servers", "workflows",
-		"body-overrides", "extra-fields", "path-scoping", "toggleable-rules",
-		"file-match-inclusion", "system-prompt-merging", "skill", "power",
-		"rule", "workflow", "agent", "prompt", "template", "reference-pack",
+		"frontmatter",
+		"body",
+		"hooks",
+		"mcp-servers",
+		"workflows",
+		"body-overrides",
+		"extra-fields",
+		"path-scoping",
+		"toggleable-rules",
+		"file-match-inclusion",
+		"system-prompt-merging",
+		"skill",
+		"power",
+		"rule",
+		"workflow",
+		"agent",
+		"prompt",
+		"template",
+		"reference-pack",
 	];
 	const profile: Record<string, { support: string }> = {};
 	for (const cap of capabilities) {
@@ -225,7 +252,13 @@ describe("resolveOptions", () => {
 	test("explicit options win over all other layers", () => {
 		const contract = makeContract({
 			optionDefinitions: {
-				emitEmpty: { type: "boolean", description: "Emit empty files", required: false, defaultValue: true, effective: true },
+				emitEmpty: {
+					type: "boolean",
+					description: "Emit empty files",
+					required: false,
+					defaultValue: true,
+					effective: true,
+				},
 			},
 		});
 		const context: OptionResolutionContext = {
@@ -243,7 +276,13 @@ describe("resolveOptions", () => {
 	test("profile options win when explicit is absent", () => {
 		const contract = makeContract({
 			optionDefinitions: {
-				emitEmpty: { type: "boolean", description: "Emit empty files", required: false, defaultValue: true, effective: true },
+				emitEmpty: {
+					type: "boolean",
+					description: "Emit empty files",
+					required: false,
+					defaultValue: true,
+					effective: true,
+				},
 			},
 		});
 		const context: OptionResolutionContext = {
@@ -261,7 +300,13 @@ describe("resolveOptions", () => {
 	test("canonical options win when explicit and profile are absent", () => {
 		const contract = makeContract({
 			optionDefinitions: {
-				emitEmpty: { type: "boolean", description: "Emit empty files", required: false, defaultValue: true, effective: true },
+				emitEmpty: {
+					type: "boolean",
+					description: "Emit empty files",
+					required: false,
+					defaultValue: true,
+					effective: true,
+				},
 			},
 		});
 		const context: OptionResolutionContext = {
@@ -278,7 +323,13 @@ describe("resolveOptions", () => {
 	test("contract defaults are used when all higher layers are absent", () => {
 		const contract = makeContract({
 			optionDefinitions: {
-				emitEmpty: { type: "boolean", description: "Emit empty files", required: false, defaultValue: true, effective: true },
+				emitEmpty: {
+					type: "boolean",
+					description: "Emit empty files",
+					required: false,
+					defaultValue: true,
+					effective: true,
+				},
 			},
 		});
 		const context: OptionResolutionContext = {
@@ -295,7 +346,13 @@ describe("resolveOptions", () => {
 	test("uses option definition defaultValue when no layers provide a value", () => {
 		const contract = makeContract({
 			optionDefinitions: {
-				emitEmpty: { type: "boolean", description: "Emit empty files", required: false, defaultValue: false, effective: true },
+				emitEmpty: {
+					type: "boolean",
+					description: "Emit empty files",
+					required: false,
+					defaultValue: false,
+					effective: true,
+				},
 			},
 		});
 		const context: OptionResolutionContext = {
@@ -327,7 +384,12 @@ describe("resolveOptions", () => {
 		test("emits error for invalid string option", () => {
 			const contract = makeContract({
 				optionDefinitions: {
-					name: { type: "string", description: "Name", required: false, effective: true },
+					name: {
+						type: "string",
+						description: "Name",
+						required: false,
+						effective: true,
+					},
 				},
 			});
 			const context: OptionResolutionContext = {
@@ -343,7 +405,12 @@ describe("resolveOptions", () => {
 		test("emits error for invalid boolean option", () => {
 			const contract = makeContract({
 				optionDefinitions: {
-					emitEmpty: { type: "boolean", description: "Emit", required: false, effective: true },
+					emitEmpty: {
+						type: "boolean",
+						description: "Emit",
+						required: false,
+						effective: true,
+					},
 				},
 			});
 			const context: OptionResolutionContext = {
@@ -359,7 +426,12 @@ describe("resolveOptions", () => {
 		test("emits error for invalid number option", () => {
 			const contract = makeContract({
 				optionDefinitions: {
-					count: { type: "number", description: "Count", required: false, effective: true },
+					count: {
+						type: "number",
+						description: "Count",
+						required: false,
+						effective: true,
+					},
 				},
 			});
 			const context: OptionResolutionContext = {
@@ -375,7 +447,13 @@ describe("resolveOptions", () => {
 		test("emits error for invalid enum option value", () => {
 			const contract = makeContract({
 				optionDefinitions: {
-					mode: { type: "enum", description: "Mode", required: false, enumValues: ["fast", "safe"], effective: true },
+					mode: {
+						type: "enum",
+						description: "Mode",
+						required: false,
+						enumValues: ["fast", "safe"],
+						effective: true,
+					},
 				},
 			});
 			const context: OptionResolutionContext = {
@@ -393,7 +471,13 @@ describe("resolveOptions", () => {
 		test("no error for valid enum option value", () => {
 			const contract = makeContract({
 				optionDefinitions: {
-					mode: { type: "enum", description: "Mode", required: false, enumValues: ["fast", "safe"], effective: true },
+					mode: {
+						type: "enum",
+						description: "Mode",
+						required: false,
+						enumValues: ["fast", "safe"],
+						effective: true,
+					},
 				},
 			});
 			const context: OptionResolutionContext = {
@@ -415,8 +499,18 @@ describe("listValidChoices", () => {
 	test("returns sorted variant IDs for 'variant' field", () => {
 		const contract = makeContract({
 			variants: {
-				steering: { id: "steering", pathConventions: [], defaults: {}, optionOverrides: {} },
-				power: { id: "power", pathConventions: [], defaults: {}, optionOverrides: {} },
+				steering: {
+					id: "steering",
+					pathConventions: [],
+					defaults: {},
+					optionOverrides: {},
+				},
+				power: {
+					id: "power",
+					pathConventions: [],
+					defaults: {},
+					optionOverrides: {},
+				},
 			},
 		});
 
@@ -427,7 +521,13 @@ describe("listValidChoices", () => {
 	test("returns sorted enum values for enum option", () => {
 		const contract = makeContract({
 			optionDefinitions: {
-				mode: { type: "enum", description: "Mode", required: false, enumValues: ["safe", "fast", "auto"], effective: true },
+				mode: {
+					type: "enum",
+					description: "Mode",
+					required: false,
+					enumValues: ["safe", "fast", "auto"],
+					effective: true,
+				},
 			},
 		});
 
@@ -438,7 +538,12 @@ describe("listValidChoices", () => {
 	test("returns ['false', 'true'] for boolean option", () => {
 		const contract = makeContract({
 			optionDefinitions: {
-				emitEmpty: { type: "boolean", description: "Emit", required: false, effective: true },
+				emitEmpty: {
+					type: "boolean",
+					description: "Emit",
+					required: false,
+					effective: true,
+				},
 			},
 		});
 
@@ -449,7 +554,12 @@ describe("listValidChoices", () => {
 	test("returns empty array for string option (not enumerable)", () => {
 		const contract = makeContract({
 			optionDefinitions: {
-				name: { type: "string", description: "Name", required: false, effective: true },
+				name: {
+					type: "string",
+					description: "Name",
+					required: false,
+					effective: true,
+				},
 			},
 		});
 

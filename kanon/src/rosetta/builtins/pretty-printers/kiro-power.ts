@@ -17,9 +17,12 @@ import type {
 	SourceDocument,
 	TranslationDiagnostic,
 } from "../../../schemas";
-import { codePointCompare } from "../../contracts";
 import { renderDeterministicYaml } from "../../canonical";
-import type { SourcePrintOutput, SourceTranslatorContext } from "../../registry";
+import { codePointCompare } from "../../contracts";
+import type {
+	SourcePrintOutput,
+	SourceTranslatorContext,
+} from "../../registry";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Pretty-Printer
@@ -42,7 +45,12 @@ export function prettyPrintKiroPower(
 
 	const fm = (artifact.frontmatter ?? {}) as Record<string, unknown>;
 	const body = (artifact.body as string) ?? "";
-	const workflows = (artifact.workflows as Array<{ name: string; filename: string; content: string }>) ?? [];
+	const workflows =
+		(artifact.workflows as Array<{
+			name: string;
+			filename: string;
+			content: string;
+		}>) ?? [];
 
 	// Build POWER.md frontmatter
 	const powerFm: Record<string, unknown> = {};
@@ -66,7 +74,14 @@ export function prettyPrintKiroPower(
 	}
 
 	// Render POWER.md
-	const POWER_KEY_ORDER = ["name", "description", "keywords", "globs", "alwaysApply", "inclusion"];
+	const POWER_KEY_ORDER = [
+		"name",
+		"description",
+		"keywords",
+		"globs",
+		"alwaysApply",
+		"inclusion",
+	];
 	const frontmatterYaml = renderDeterministicYaml(powerFm, POWER_KEY_ORDER);
 	const powerContent = `---\n${frontmatterYaml}---\n${body}\n`;
 

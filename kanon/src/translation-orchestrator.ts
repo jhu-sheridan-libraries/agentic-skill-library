@@ -506,7 +506,6 @@ async function collectFilesRecursive(
 	return files;
 }
 
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // Per-Profile Status Types
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -616,8 +615,8 @@ export interface OrchestrationResult {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import type { TranslationResult } from "./schemas";
-import type { ApplicationReport } from "./translation-plan-applier";
 import type { CollisionPolicy } from "./translation-application-policy";
+import type { ApplicationReport } from "./translation-plan-applier";
 
 /**
  * Options for a single profile's translation orchestration.
@@ -709,8 +708,7 @@ function runPreApplicationPath(
 
 	if (translationResult.plan) {
 		artifactCount = 1;
-		const artifactName =
-			callerContext.artifactNameHint ?? "unknown";
+		const artifactName = callerContext.artifactNameHint ?? "unknown";
 		planSummaries.push({
 			artifactName,
 			outputFileCount: translationResult.plan.outputFiles.length,
@@ -746,14 +744,23 @@ export async function orchestrateProfile(
 	translate: TranslateFn,
 	apply: ApplyFn,
 ): Promise<ProfileOrchestrationResult> {
-	const { profileName, documents, callerContext, dryRun, collisionPolicy, destinationRoot } = options;
+	const {
+		profileName,
+		documents,
+		callerContext,
+		dryRun,
+		collisionPolicy,
+		destinationRoot,
+	} = options;
 
 	// Build acquisition status from the documents provided
 	const acquisition: AcquisitionStatus = {
 		profileName,
 		status: documents.length > 0 ? "success" : "failure",
 		documentCount: documents.length,
-		...(documents.length === 0 ? { error: "No source documents provided" } : {}),
+		...(documents.length === 0
+			? { error: "No source documents provided" }
+			: {}),
 	};
 
 	// If acquisition failed, skip translation and application

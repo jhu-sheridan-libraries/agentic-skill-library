@@ -9,28 +9,23 @@
  */
 
 import { describe, expect, test } from "bun:test";
-
-import type { FormatContract, HarnessName, TranslationPlan } from "../schemas";
-import { SUPPORTED_HARNESSES } from "../schemas";
 import { adapterRegistry } from "../adapters/index";
+import { HARNESS_FORMAT_REGISTRY, resolveFormat } from "../format-registry";
 import {
-	HARNESS_FORMAT_REGISTRY,
-	resolveFormat,
-	type ResolveFormatResult,
-} from "../format-registry";
-import { createTemplateEnv } from "../template-engine";
-import { makeArtifact, makeFrontmatter } from "./test-helpers";
-import {
-	KIRO_CONTRACT,
+	BUILTIN_FORMAT_CONTRACTS,
 	CLAUDE_CODE_CONTRACT,
+	CLINE_CONTRACT,
 	CODEX_CONTRACT,
 	COPILOT_CONTRACT,
 	CURSOR_CONTRACT,
-	WINDSURF_CONTRACT,
-	CLINE_CONTRACT,
+	KIRO_CONTRACT,
 	QDEVELOPER_CONTRACT,
-	BUILTIN_FORMAT_CONTRACTS,
+	WINDSURF_CONTRACT,
 } from "../rosetta/builtins/contracts";
+import type { FormatContract, HarnessName } from "../schemas";
+import { SUPPORTED_HARNESSES } from "../schemas";
+import { createTemplateEnv } from "../template-engine";
+import { makeArtifact, makeFrontmatter } from "./test-helpers";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Template Environment (real templates for build fixture tests)
@@ -207,6 +202,7 @@ describe("Adapter/Format/Build Regression: Output bytes non-empty", () => {
 		mcpServers: [
 			{
 				name: "test-mcp",
+				transport: "stdio",
 				command: "npx",
 				args: ["-y", "mcp-test"],
 				env: { KEY: "${KEY}" },
@@ -318,6 +314,7 @@ describe("Adapter/Format/Build Regression: Build fixture equivalence", () => {
 		mcpServers: [
 			{
 				name: "fixture-server",
+				transport: "stdio",
 				command: "npx",
 				args: ["-y", "fixture-mcp"],
 				env: { TOKEN: "${TOKEN}" },
@@ -325,6 +322,7 @@ describe("Adapter/Format/Build Regression: Build fixture equivalence", () => {
 		],
 		workflows: [
 			{
+				name: "phase-01-init",
 				filename: "phase-01-init.md",
 				content: "# Phase 1: Init\n\nInitialization steps.",
 			},

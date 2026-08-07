@@ -16,14 +16,12 @@ import chalk from "chalk";
 import type { Command } from "commander";
 import {
 	loadForgeConfig,
-	validateProfiles,
 	type ProfileDiagnostic,
 	type ProfileValidationResult,
+	validateProfiles,
 } from "./config";
+import { BUILTIN_FORMAT_CONTRACTS } from "./rosetta/index";
 import type { AcquisitionProfile, TranslationProfile } from "./schemas";
-import {
-	BUILTIN_FORMAT_CONTRACTS,
-} from "./rosetta/index";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Registry Bootstrap (shared with rosetta-cli.ts)
@@ -111,7 +109,9 @@ interface ProfileListingOutput {
  * List all configured acquisition and translation profiles.
  * Returns profile metadata without credentials or Git handles.
  */
-async function profilesListCommand(options: ProfilesListOptions): Promise<void> {
+async function profilesListCommand(
+	options: ProfilesListOptions,
+): Promise<void> {
 	const config = await loadForgeConfig();
 
 	const listing: ProfileListingOutput = {
@@ -171,14 +171,13 @@ async function profilesListCommand(options: ProfilesListOptions): Promise<void> 
 			for (const [key, value] of Object.entries(
 				profile as Record<string, unknown>,
 			)) {
-				const display =
-					Array.isArray(value)
-						? value.length > 0
-							? value.join(", ")
-							: "(none)"
-						: typeof value === "object" && value !== null
-							? JSON.stringify(value)
-							: String(value);
+				const display = Array.isArray(value)
+					? value.length > 0
+						? value.join(", ")
+						: "(none)"
+					: typeof value === "object" && value !== null
+						? JSON.stringify(value)
+						: String(value);
 				console.log(`    ${key}: ${display}`);
 			}
 			console.log();
@@ -292,9 +291,7 @@ async function profilesValidateCommand(
 		console.log(chalk.bold("Diagnostics:"));
 		for (const diag of result.diagnostics) {
 			const icon =
-				diag.severity === "error"
-					? chalk.red("✗")
-					: chalk.yellow("⚠");
+				diag.severity === "error" ? chalk.red("✗") : chalk.yellow("⚠");
 			console.log(`  ${icon} [${diag.path}] ${diag.message}`);
 		}
 		console.log();
@@ -366,7 +363,5 @@ export function registerProfilesCommands(rosettaCmd: Command): void {
 			"Validate all profiles against the registry (exits nonzero on failure)",
 		)
 		.option("--json", "Output as JSON")
-		.action((opts: ProfilesValidateOptions) =>
-			profilesValidateCommand(opts),
-		);
+		.action((opts: ProfilesValidateOptions) => profilesValidateCommand(opts));
 }

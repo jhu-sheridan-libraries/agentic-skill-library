@@ -16,7 +16,10 @@ import type {
 	SourceDocument,
 	TranslationDiagnostic,
 } from "../../../schemas";
-import type { SourcePrintOutput, SourceTranslatorContext } from "../../registry";
+import type {
+	SourcePrintOutput,
+	SourceTranslatorContext,
+} from "../../registry";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Pretty-Printer

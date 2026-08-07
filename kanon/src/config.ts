@@ -3,13 +3,13 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import yaml from "js-yaml";
 import { z } from "zod";
+import { looksLikeSecret } from "./rosetta/redaction";
 import {
 	type AcquisitionProfile,
 	AcquisitionProfileSchema,
 	type TranslationProfile,
 	TranslationProfileSchema,
 } from "./schemas";
-import { looksLikeSecret } from "./rosetta/redaction";
 
 // --- Legacy Upstream Schema (Req 10.6, 10.7, 14.8) ---
 
@@ -134,20 +134,14 @@ export const ForgeConfigSchema = z.object({
 
 	// --- Rosetta Stone Profiles (Req 10.3–10.8, 13.12) ---
 
-	acquisitions: z
-		.record(z.string(), AcquisitionProfileSchema)
-		.optional(),
+	acquisitions: z.record(z.string(), AcquisitionProfileSchema).optional(),
 
-	translations: z
-		.record(z.string(), TranslationProfileSchema)
-		.optional(),
+	translations: z.record(z.string(), TranslationProfileSchema).optional(),
 
 	// --- Legacy Upstream Support (Req 10.6, 10.7, 14.8) ---
 	// Accepted during migration; normalized into acquisition + translation profiles.
 
-	upstreams: z
-		.record(z.string(), UpstreamConfigSchema)
-		.optional(),
+	upstreams: z.record(z.string(), UpstreamConfigSchema).optional(),
 });
 
 export type ForgeConfig = z.infer<typeof ForgeConfigSchema>;
@@ -346,9 +340,7 @@ export function normalizeUpstreamsWithDiagnostics(
 					? { canonicalDestination: upstream.knowledgeDir }
 					: {}),
 				collections: upstream.collection ? [upstream.collection] : [],
-				...(upstream.skillsPath
-					? { sourceSubpath: upstream.skillsPath }
-					: {}),
+				...(upstream.skillsPath ? { sourceSubpath: upstream.skillsPath } : {}),
 				strict: false,
 				options: {},
 			};
@@ -388,6 +380,7 @@ function scanUpstreamForCredentials(
 			diagnostics.push({
 				path: `upstreams.${key}.${field}`,
 				message:
+					// biome-ignore lint/suspicious/noTemplateCurlyInString: literal ${ENV_VAR} in user message
 					"literal credential detected; use an approved reference (${ENV_VAR}) instead",
 				severity: "error",
 			});
@@ -606,6 +599,7 @@ function scanForCredentials(
 				diagnostics.push({
 					path: `${section}.${profileKey}.${currentPath.join(".")}`,
 					message:
+						// biome-ignore lint/suspicious/noTemplateCurlyInString: literal ${ENV_VAR} in user message
 						"literal credential detected; use an approved reference (${ENV_VAR}) instead",
 					severity: "error",
 				});

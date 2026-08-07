@@ -14,16 +14,14 @@
  */
 
 import { describe, expect, test } from "bun:test";
-import yaml from "js-yaml";
 import {
 	type CanonicalSerializerOptions,
-	getKnownFrontmatterKeys,
 	parseCanonical,
 	renderDeterministicYaml,
 	serializeCanonical,
 } from "../rosetta/canonical";
 import type { KnowledgeArtifact, SourceDocumentInput } from "../schemas";
-import { makeArtifact, makeFrontmatter } from "./test-helpers";
+import { makeArtifact } from "./test-helpers";
 
 describe("serializeCanonical", () => {
 	test("produces a valid TranslationPlan from a valid artifact", () => {
@@ -79,7 +77,7 @@ describe("serializeCanonical", () => {
 		);
 		expect(knowledgeFile).toBeDefined();
 
-		const content = knowledgeFile!.content as string;
+		const content = knowledgeFile?.content as string;
 		expect(content).toContain("custom-field: custom-value");
 		expect(content).toContain("z-field: 42");
 	});
@@ -132,7 +130,7 @@ describe("serializeCanonical", () => {
 		const hooksFile = result.plan!.outputFiles.find(
 			(f) => f.relativePath === "hooks.yaml",
 		);
-		expect((hooksFile!.content as string).trim()).toBe("[]");
+		expect((hooksFile?.content as string).trim()).toBe("[]");
 	});
 
 	test("emitWorkflows: false omits workflow files", () => {
@@ -242,9 +240,7 @@ describe("serializeCanonical", () => {
 		for (const op of result.plan!.operations) {
 			expect(op.kind).toBe("write-file");
 			expect(op.outputFileIndex).toBeGreaterThanOrEqual(0);
-			expect(op.outputFileIndex).toBeLessThan(
-				result.plan!.outputFiles.length,
-			);
+			expect(op.outputFileIndex).toBeLessThan(result.plan!.outputFiles.length);
 		}
 	});
 
@@ -259,7 +255,7 @@ describe("serializeCanonical", () => {
 		const knowledgeFile = result.plan!.outputFiles.find(
 			(f) => f.relativePath === "knowledge.md",
 		);
-		const content = knowledgeFile!.content as string;
+		const content = knowledgeFile?.content as string;
 
 		expect(content.startsWith("---\n")).toBe(true);
 		expect(content).toContain("\n---\n");
@@ -330,10 +326,7 @@ describe("renderDeterministicYaml", () => {
 	});
 
 	test("handles array input", () => {
-		const result = renderDeterministicYaml([
-			{ name: "a" },
-			{ name: "b" },
-		]);
+		const result = renderDeterministicYaml([{ name: "a" }, { name: "b" }]);
 		expect(result).toContain("- name: a");
 		expect(result).toContain("- name: b");
 	});
@@ -365,10 +358,10 @@ describe("serializeCanonical round-trip", () => {
 
 		expect(parseResult.diagnostics).toHaveLength(0);
 		expect(parseResult.artifact).toBeDefined();
-		expect(parseResult.artifact!.name).toBe(artifact.name);
-		expect(parseResult.artifact!.body).toBe(artifact.body);
-		expect(parseResult.artifact!.extraFields["my-custom"]).toBe("value");
-		expect(parseResult.artifact!.workflows).toHaveLength(1);
-		expect(parseResult.artifact!.workflows[0].content).toBe("setup steps");
+		expect(parseResult.artifact?.name).toBe(artifact.name);
+		expect(parseResult.artifact?.body).toBe(artifact.body);
+		expect(parseResult.artifact?.extraFields["my-custom"]).toBe("value");
+		expect(parseResult.artifact?.workflows).toHaveLength(1);
+		expect(parseResult.artifact?.workflows[0].content).toBe("setup steps");
 	});
 });
