@@ -1,0 +1,12 @@
+{
+  "name": "Simplicity and Surgical Change Guard",
+  "version": "1.0.0",
+  "description": "Before writing code, reminds the agent to follow Karpathy Mode principles: think before coding, keep it simple, make surgical changes, and define verifiable success criteria.",
+  "when": {
+    "type": "preToolUse"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Before writing this code, check Karpathy Mode principles:\n1. Think Before Coding — have you stated your assumptions? If multiple\n   approaches exist, did you pick the simplest one?\n2. Simplicity First — is this the minimum code that solves the problem?\n   No speculative features, no abstractions for single-use code.\n3. Surgical Changes — does every changed line trace to the user's request?\n   Don't improve adjacent code, comments, or formatting unless asked.\n4. Goal-Driven — do you have verifiable success criteria? If not, define\n   them before writing.\n\nIf you're about to write 200 lines and it could be 50, stop and simplify."
+  }
+}
