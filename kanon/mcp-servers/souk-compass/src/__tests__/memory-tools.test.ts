@@ -234,7 +234,8 @@ describe("compass_remember", () => {
 		expect(old?.superseded_by).toBe(second.id);
 		expect(old?.valid_until).toBeDefined();
 		expect(Array.isArray(old?.vector)).toBe(true);
-		expect((old?.vector as number[]).length).toBe(EMBEDDING.length);
+		const oldVector = old?.vector as number[] | undefined;
+		expect(oldVector?.length).toBe(EMBEDDING.length);
 	});
 
 	test("writes into a named org tenant's own collection", async () => {
@@ -478,7 +479,8 @@ describe("compass_forget", () => {
 		expect(doc?.valid_until).toBeDefined();
 		expect(doc?.tags).toContain("retracted:wrong-repo");
 		// Still searchable — a retraction that loses the vector loses the record.
-		expect((doc?.vector as number[]).length).toBe(EMBEDDING.length);
+		const docVector = doc?.vector as number[] | undefined;
+		expect(docVector?.length).toBe(EMBEDDING.length);
 	});
 
 	test("retracts every active revision of a logical record", async () => {

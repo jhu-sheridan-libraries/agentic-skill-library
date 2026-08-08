@@ -341,17 +341,13 @@ export const kiroAdapter: HarnessAdapter = (
 			);
 		} else {
 			const auditComment = buildAuditComment(resolved);
-			steeringContent = renderTemplate(
-				templateEnv,
-				"kiro/steering.md.njk",
-				{
-					artifact,
-					harnessConfig: kiroConfig,
-					inclusion: resolved.mode,
-					fileMatchPattern: resolved.fileMatchPattern,
-					auditComment,
-				},
-			);
+			steeringContent = renderTemplate(templateEnv, "kiro/steering.md.njk", {
+				artifact,
+				harnessConfig: kiroConfig,
+				inclusion: resolved.mode,
+				fileMatchPattern: resolved.fileMatchPattern,
+				auditComment,
+			});
 		}
 		files.push({ relativePath: steeringPath, content: steeringContent });
 	}

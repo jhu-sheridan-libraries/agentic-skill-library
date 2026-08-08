@@ -628,7 +628,9 @@ function buildManifest(
 		embedDimensions: ctx.embeddingProvider.dimensions,
 		schemaVersion: MEMORY_SCHEMA_VERSION,
 		configName: CONFIG_NAME,
-		repository: repositoryDescriptor(tenants[0] ?? distinctRepositories(tenants)[0]),
+		repository: repositoryDescriptor(
+			tenants[0] ?? distinctRepositories(tenants)[0],
+		),
 		registry: {
 			defaultTenant: ctx.tenants.defaultTenantId,
 			collectionPrefix: ctx.tenants.collectionPrefix,
