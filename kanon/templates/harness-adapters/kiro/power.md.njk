@@ -1,11 +1,11 @@
 {% extends "../_base/base.md.njk" %}
 {% block frontmatter %}
 ---
-name: {{ artifact.frontmatter.name }}
-displayName: {{ artifact.frontmatter.displayName | default(artifact.frontmatter.name) }}
-description: {{ artifact.frontmatter.description }}
+name: "{{ artifact.frontmatter.name }}"
+displayName: "{{ artifact.frontmatter.displayName | default(artifact.frontmatter.name) }}"
+description: "{{ artifact.frontmatter.description }}"
 keywords: {{ artifact.frontmatter.keywords | dump }}
-author: {{ artifact.frontmatter.author }}
+author: "{{ artifact.frontmatter.author }}"
 ---
 {% endblock %}
 {# Inline workflow content into POWER.md by default. Set harness-config.kiro.inline-workflows: false to keep POWER.md lean and rely on separate steering files (official-power style). #}

@@ -813,10 +813,8 @@ export const KIRO_POWER_CONTRACT: FormatContract = {
 	harness: "kiro",
 	aliases: [],
 	lifecycle: {
-		status: "deprecated",
+		status: "active",
 		introducedIn: "0.1.0",
-		deprecatedIn: "1.0.0",
-		replacement: undefined,
 	},
 	canonicalVersions: { minInclusive: "1.0.0", maxExclusive: "2.0.0" },
 	schemaReference: {
@@ -883,10 +881,8 @@ export const KIRO_SKILL_CONTRACT: FormatContract = {
 	harness: "kiro",
 	aliases: [],
 	lifecycle: {
-		status: "deprecated",
+		status: "active",
 		introducedIn: "0.1.0",
-		deprecatedIn: "1.0.0",
-		replacement: undefined,
 	},
 	canonicalVersions: { minInclusive: "1.0.0", maxExclusive: "2.0.0" },
 	schemaReference: {
