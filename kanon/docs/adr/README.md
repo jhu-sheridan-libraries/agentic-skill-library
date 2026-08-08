@@ -67,6 +67,7 @@ ADRs document significant architectural decisions made during the project's deve
 | [055](0055-publish-solr-compass-as-a-bun-npm-package.md) | Publish Solr Compass as a Bun npm package with independent roots | Accepted | 2026-08-06 |
 | [056](0056-tenant-scoped-durable-memory-records.md) | Tenant-scoped, durable memory records for Solr Compass | Accepted | 2026-08-08 |
 | [057](0057-backup-repositories-as-storage-backends.md) | Solr backup repositories as the storage backend for snapshots | Accepted | 2026-08-08 |
+| [058](0058-aws-platform-profile-and-bun-s3-file-interface.md) | An `aws` platform profile, on Bun's S3File interface | Accepted | 2026-08-08 |
 
 ## Creating a New ADR
 

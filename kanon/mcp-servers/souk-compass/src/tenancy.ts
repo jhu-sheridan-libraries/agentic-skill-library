@@ -171,6 +171,8 @@ export function buildTenantRegistry(
 
 	const tenants = [personal, ...others];
 
+	assertPlatformCoherent(config, tenants);
+
 	const defaultTenantId =
 		parsed.defaultTenant ?? config.defaultTenant ?? PERSONAL_TENANT_ID;
 	if (!tenants.some((t) => t.id === defaultTenantId)) {
@@ -276,22 +278,34 @@ function resolveTenantEntry(
  * index: it survives tearing down the Docker stack because the path is
  * bind-mounted to the host, and it needs no credentials. An org tenant that
  * declares `s3` gets a repository Solr streams to directly.
+ *
+ * On the `aws` platform an org tenant that declares nothing still gets S3,
+ * provided a default bucket is configured — selecting the platform and then
+ * finding org snapshots on one laptop's disk would be the profile failing to
+ * mean anything. The personal tenant is deliberately exempt: its local path is
+ * what makes `docker compose down -v` survivable with no AWS setup at all, and
+ * a platform default should not quietly take that away. Give personal an
+ * explicit `backup.s3` block to move it.
  */
 export function resolveBackupTarget(
-	tenant: Partial<Tenant> & { id: string },
+	tenant: Partial<Tenant> & { id: string; scope?: TenantScope },
 	config: SoukCompassConfig,
 ): ResolvedBackupTarget {
 	const declared = tenant.backup;
+	const s3 = declared?.s3 ?? impliedS3(tenant, config);
 
-	if (declared?.s3) {
-		assertNoCredentialLiterals(tenant.id, declared.s3);
+	if (s3) {
+		assertNoCredentialLiterals(tenant.id, s3);
 		return {
-			repository: declared.repository ?? tenant.id,
+			repository: declared?.repository ?? tenant.id,
 			type: "s3",
 			// Solr keys a backup by name within a location, so tenants sharing a
 			// bucket need distinct prefixes or they overwrite each other.
-			location: declared.location ?? `${tenant.id}/`,
-			s3: declared.s3,
+			location: declared?.location ?? `${tenant.id}/`,
+			// One region for the whole platform. A tenant may still override it —
+			// a bucket in another region is legitimate — but it no longer has to
+			// repeat what the platform already knows.
+			s3: { ...s3, ...(s3.region ? {} : regionOf(config)) },
 		};
 	}
 
@@ -301,6 +315,63 @@ export function resolveBackupTarget(
 		location:
 			declared?.location ?? config.backupLocation ?? DEFAULT_BACKUP_LOCATION,
 	};
+}
+
+/**
+ * S3 coordinates the platform implies for a tenant that declared none.
+ *
+ * Requires a configured bucket: `platform: aws` alone cannot invent one, and
+ * silently falling back to local storage for an org would be the quiet failure
+ * this is meant to prevent — so the absence is surfaced by
+ * `assertPlatformCoherent` at registry-build time instead.
+ */
+function impliedS3(
+	tenant: Partial<Tenant> & { id: string; scope?: TenantScope },
+	config: SoukCompassConfig,
+): S3Repository | undefined {
+	if (config.platform !== "aws") return undefined;
+	if (tenant.scope !== "org") return undefined;
+	if (!config.s3Bucket) return undefined;
+
+	return {
+		bucket: config.s3Bucket,
+		// Each tenant gets its own prefix within the shared bucket, so one org's
+		// snapshots cannot land on another's.
+		prefix: tenant.id,
+		...regionOf(config),
+	};
+}
+
+function regionOf(config: SoukCompassConfig): { region?: string } {
+	return config.region ? { region: config.region } : {};
+}
+
+/**
+ * Refuse a platform selection that cannot be carried out.
+ *
+ * `platform: aws` with org tenants but no bucket would resolve every one of them
+ * to local disk — the profile appearing to work while doing the opposite of what
+ * it says. Naming it at startup costs a restart; discovering it costs whichever
+ * snapshot someone needed.
+ */
+function assertPlatformCoherent(
+	config: SoukCompassConfig,
+	tenants: ResolvedTenant[],
+): void {
+	if (config.platform !== "aws" || config.s3Bucket) return;
+
+	const orphaned = tenants.filter(
+		(t) => t.scope === "org" && t.backup.type === "local",
+	);
+	if (orphaned.length === 0) return;
+
+	throw new SoukCompassError(
+		`Platform "aws" is selected, but no default bucket is configured, so org ` +
+			`tenants ${orphaned.map((t) => `"${t.id}"`).join(", ")} would store ` +
+			"snapshots on local disk rather than in S3. Set SOUK_COMPASS_S3_BUCKET, " +
+			'give each tenant its own backup.s3 block, or use platform "local".',
+		ErrorCodes.CONFIG_INVALID,
+	);
 }
 
 /** Solr repository name for the host-bind-mounted local filesystem backend. */
