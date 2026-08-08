@@ -130,33 +130,33 @@ export async function requireCollection(
 // Durability operations
 // ---------------------------------------------------------------------------
 
-export interface BackupResult {
-	collection: string;
-	backupName: string;
+/**
+ * Parameters selecting a Solr backup repository.
+ *
+ * `repository` names a backend declared in `solr.xml`; omitting it uses Solr's
+ * default. `location` is resolved by Solr rather than by this process — a
+ * container path for the local repository, a bucket key prefix for S3 — and for
+ * the local repository it must appear in `solr.allowPaths` or the Collections
+ * API refuses the request.
+ */
+export interface RepositoryRef {
+	repository?: string;
 	location: string;
-	success: boolean;
-	error?: string;
-	/** Solr's own response, for the request id when run asynchronously. */
-	response?: unknown;
 }
 
 /**
- * Snapshot a collection to `location`.
+ * Build the BACKUP request for a collection.
  *
- * Replication protects against a node failing; it does not protect against a
- * bad reindex, a `delete *:*`, or a schema change applied to the wrong
- * collection — all of which replicate faithfully. A snapshot is the only
- * recovery path for those, so the durability story is incomplete without one.
- *
- * `location` is resolved by Solr, not by this process: on the bundled compose
- * stack it is a path inside the container, and it must appear in Solr's
- * `solr.allowPaths` or the Collections API refuses the request.
+ * Returned as parameters rather than executed, because a backup of any real size
+ * must run through `runAsyncCommand` — a synchronous BACKUP holds the HTTP
+ * connection for minutes and then reports a timeout for an operation that is
+ * still running. Separating construction from execution keeps the parameter
+ * shape testable without a Solr.
  */
-export async function backupCollection(
-	solrUrl: string,
+export function backupParams(
 	collection: string,
-	options: { backupName: string; location: string; async?: string },
-): Promise<BackupResult> {
+	options: RepositoryRef & { backupName: string; incremental?: boolean },
+): URLSearchParams {
 	const params = new URLSearchParams({
 		action: "BACKUP",
 		collection,
@@ -164,77 +164,84 @@ export async function backupCollection(
 		location: options.location,
 		wt: "json",
 	});
-	if (options.async) params.set("async", options.async);
-
-	const base = {
-		collection,
-		backupName: options.backupName,
-		location: options.location,
-	};
-
-	try {
-		const response = await fetch(
-			`${solrUrl}/solr/admin/collections?${params.toString()}`,
-		);
-		const body = await readBody(response);
-		if (!response.ok) {
-			return {
-				...base,
-				success: false,
-				error: `HTTP ${response.status}: ${describe(body)}`,
-			};
-		}
-		return { ...base, success: true, response: body };
-	} catch (err) {
-		return {
-			...base,
-			success: false,
-			error: err instanceof Error ? err.message : String(err),
-		};
-	}
-}
-
-export interface RestoreResult {
-	collection: string;
-	backupName: string;
-	location: string;
-	success: boolean;
-	error?: string;
-	response?: unknown;
+	if (options.repository) params.set("repository", options.repository);
+	if (options.incremental === false) params.set("incremental", "false");
+	return params;
 }
 
 /**
- * Restore a snapshot into `collection`, which must not already exist — Solr
- * refuses to restore over a live collection, and that refusal is a feature: it
- * makes an accidental restore impossible to confuse with a merge.
+ * Build the RESTORE request for a collection.
+ *
+ * Sends the whole topology, not just `replicationFactor`. Solr defaults the
+ * unsent ones, so a collection created with two shards and a tlog replica came
+ * back as a single-shard NRT-only collection that reported success — a silent
+ * downgrade of exactly the durability the snapshot existed to protect.
+ *
+ * `collection.configName` is sent deliberately even though the backup carries
+ * its own configset: naming it makes the backed-up configset upload under the
+ * name this server expects, which is what allows a restore onto a stack whose
+ * ZooKeeper was wiped by `docker compose down -v`.
  */
-export async function restoreCollection(
-	solrUrl: string,
-	options: {
+export function restoreParams(
+	options: RepositoryRef & {
 		backupName: string;
-		location: string;
 		collection: string;
 		durability?: Durability;
-		async?: string;
+		backupId?: number;
 	},
-): Promise<RestoreResult> {
+): URLSearchParams {
 	const durability = options.durability ?? DEFAULT_DURABILITY;
 	const params = new URLSearchParams({
 		action: "RESTORE",
 		name: options.backupName,
 		location: options.location,
 		collection: options.collection,
+		numShards: String(durability.numShards),
 		replicationFactor: String(durability.replicationFactor),
 		"collection.configName": CONFIG_NAME,
 		wt: "json",
 	});
-	if (options.async) params.set("async", options.async);
+	if (options.repository) params.set("repository", options.repository);
+	if (durability.tlogReplicas > 0) {
+		params.set("tlogReplicas", String(durability.tlogReplicas));
+	}
+	if (durability.pullReplicas > 0) {
+		params.set("pullReplicas", String(durability.pullReplicas));
+	}
+	if (options.backupId != null) {
+		params.set("backupId", String(options.backupId));
+	}
+	return params;
+}
 
-	const base = {
-		collection: options.collection,
-		backupName: options.backupName,
+export interface BackupListEntry {
+	backupId: number;
+	/** ISO timestamp Solr recorded for the backup point. */
+	startTime?: string;
+	indexFileCount?: number;
+	indexSizeMB?: number;
+	collection?: string;
+}
+
+/**
+ * List the backup points stored under one name in a repository.
+ *
+ * The authority on what is actually recoverable. A manifest says what was
+ * intended; this says what Solr can still find, and the two disagreeing is
+ * precisely the situation worth surfacing before someone needs the restore.
+ */
+export async function listBackups(
+	solrUrl: string,
+	backupName: string,
+	options: RepositoryRef,
+): Promise<{ backups: BackupListEntry[]; error?: string }> {
+	const params = new URLSearchParams({
+		action: "LISTBACKUP",
+		name: backupName,
 		location: options.location,
-	};
+		wt: "json",
+	});
+	if (options.repository) params.set("repository", options.repository);
 
 	try {
 		const response = await fetch(
@@ -243,18 +250,93 @@ export async function restoreCollection(
 		const body = await readBody(response);
 		if (!response.ok) {
 			return {
-				...base,
+				backups: [],
+				error: `HTTP ${response.status}: ${describe(body)}`,
+			};
+		}
+
+		const raw = (body as { backups?: Record<string, unknown>[] }).backups ?? [];
+		const collection = (body as { collection?: string }).collection;
+
+		return {
+			backups: raw.map((entry) => ({
+				backupId: Number(entry.backupId ?? 0),
+				...(typeof entry.startTime === "string"
+					? { startTime: entry.startTime }
+					: {}),
+				...(typeof entry.indexFileCount === "number"
+					? { indexFileCount: entry.indexFileCount }
+					: {}),
+				...(typeof entry.indexSizeMB === "number"
+					? { indexSizeMB: entry.indexSizeMB }
+					: {}),
+				...(collection ? { collection } : {}),
+			})),
+		};
+	} catch (err) {
+		return {
+			backups: [],
+			error: err instanceof Error ? err.message : String(err),
+		};
+	}
+}
+
+/**
+ * Delete backup points, retaining the most recent `keep`.
+ *
+ * Retention is expressed as "keep N" rather than "delete older than": snapshots
+ * are taken irregularly by hand, so a time rule can leave someone with none at
+ * all after a quiet month.
+ */
+export async function pruneBackups(
+	solrUrl: string,
+	backupName: string,
+	options: RepositoryRef & { keep: number },
+): Promise<{ success: boolean; deleted?: unknown; error?: string }> {
+	const params = new URLSearchParams({
+		action: "DELETEBACKUP",
+		name: backupName,
+		location: options.location,
+		maxNumBackupPoints: String(options.keep),
+		wt: "json",
+	});
+	if (options.repository) params.set("repository", options.repository);
+
+	try {
+		const response = await fetch(
+			`${solrUrl}/solr/admin/collections?${params.toString()}`,
+		);
+		const body = await readBody(response);
+		if (!response.ok) {
+			return {
 				success: false,
 				error: `HTTP ${response.status}: ${describe(body)}`,
 			};
 		}
-		return { ...base, success: true, response: body };
+		return { success: true, deleted: body };
 	} catch (err) {
 		return {
-			...base,
 			success: false,
 			error: err instanceof Error ? err.message : String(err),
 		};
+	}
+}
+
+/**
+ * Is this Solr answering at all?
+ *
+ * `getCollectionInfo` reports an unreachable Solr as `exists: false`, which is
+ * the right call for a status display and the wrong one for a restore
+ * precondition: "the collection is absent" and "I could not tell" must not be
+ * the same answer when the consequence of being wrong is restoring over a live
+ * index.
+ */
+export async function isSolrReachable(solrUrl: string): Promise<boolean> {
+	try {
+		const response = await fetch(`${solrUrl}/solr/admin/info/system?wt=json`);
+		return response.ok;
+	} catch {
+		return false;
 	}
 }
 

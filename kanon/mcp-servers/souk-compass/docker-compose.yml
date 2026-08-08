@@ -8,10 +8,16 @@ services:
     volumes:
       - solr-data:/var/solr
       - ./solr/configset:/opt/solr/server/solr/configsets/souk-compass
-      # Snapshot destination for compass_setup "backup". A named volume rather
-      # than a path under solr-data, so `docker compose down -v` on the index
-      # and discarding the backups are separate decisions.
-      - solr-backups:/var/solr/backups
+      # Snapshot destination — a HOST directory, not a named volume. This is the
+      # line the whole backup design rests on: `docker compose down -v` removes
+      # every volume in the `volumes:` block below, so a snapshot stored in one
+      # is destroyed by the same command that tears down the stack it was taken
+      # to survive. A bind mount is outside Docker's lifecycle entirely.
+      - ${SOUK_COMPASS_BACKUP_DIR:-${HOME}/.souk-compass/backups}:/var/solr/backups
+      # Generated from the tenant registry by compass_setup, and bind-mounted
+      # for the same reason: the stock solr.xml is written into /var/solr on
+      # first boot, so a backup repository configured there dies with the volume.
+      - ${SOUK_COMPASS_HOME:-${HOME}/.souk-compass}/solr.xml:/var/solr/data/solr.xml:ro
     environment:
       ZK_HOST: zoo:2181
       # kNN queries inline the full query vector into the request URI. At
@@ -24,6 +30,17 @@ services:
       # write to any path not listed here, so without it every backup fails
       # with a permission error that reads like a bug rather than a policy.
       SOLR_OPTS: "-Dsolr.jetty.request.header.size=65536 -Dsolr.allowPaths=/var/solr/backups"
+      # S3 backup repositories ship as a Solr module and are not on the
+      # classpath without this. Empty by default: a personal install needs no
+      # module at all, and compass_setup sets it when a tenant declares S3.
+      SOLR_MODULES: "${SOUK_COMPASS_SOLR_MODULES:-}"
+      # Credentials for S3 backup repositories, passed through from the host
+      # environment rather than written down here. Solr performs the transfer
+      # itself, so these belong to the container and never to the registry.
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID:-}"
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY:-}"
+      AWS_SESSION_TOKEN: "${AWS_SESSION_TOKEN:-}"
+      AWS_REGION: "${AWS_REGION:-}"
     depends_on:
       zoo:
         condition: service_healthy
@@ -45,8 +62,10 @@ services:
       timeout: 3s
       retries: 10
 
+# Everything here is removed by `docker compose down -v`. Nothing that must
+# survive a teardown may live in this block — snapshots and solr.xml are host
+# bind mounts above for exactly that reason.
 volumes:
   solr-data:
-  solr-backups:
   zoo-data:
   zoo-datalog:

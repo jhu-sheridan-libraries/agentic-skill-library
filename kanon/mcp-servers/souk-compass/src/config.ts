@@ -42,6 +42,8 @@ export function loadConfig(): SoukCompassConfig {
 			? Number(process.env.SOUK_COMPASS_PULL_REPLICAS)
 			: undefined,
 		backupLocation: process.env.SOUK_COMPASS_BACKUP_LOCATION,
+		backupDir: process.env.SOUK_COMPASS_BACKUP_DIR,
+		stateDir: process.env.SOUK_COMPASS_HOME,
 	};
 
 	// Remove undefined values so Zod defaults apply

@@ -1,3 +1,7 @@
+import {
+	type CollectionFacets,
+	collectionFacets,
+} from "../collection-report.js";
 import { getClusterReplicaHealth } from "../collections.js";
 import { modelIdentity } from "../embedding-provider.js";
 import { MEMORY_SCHEMA_VERSION } from "../memory-model.js";
@@ -5,41 +9,16 @@ import type { CompassStatusInput } from "../schemas.js";
 import { collectionTargets } from "../tenancy.js";
 import type { ToolContext, ToolResult } from "./types.js";
 
-/** Solr returns facets as a flat [value, count, value, count, ...] array. */
-function parseFacet(
-	flat: Array<string | number> | undefined,
-): Record<string, number> {
-	const out: Record<string, number> = {};
-	for (let i = 0; flat && i + 1 < flat.length; i += 2) {
-		out[String(flat[i])] = Number(flat[i + 1]);
-	}
-	return out;
-}
-
-interface CollectionReport {
+interface CollectionReport extends CollectionFacets {
 	name: string;
 	solrUrl: string;
 	partition: string;
 	tenants: string[];
-	docCount: number | null;
-	error?: string;
-	embedProviders?: Record<string, number>;
-	untaggedDocs?: number;
-	/** Per-repository document counts, for a codebase collection. */
-	indexedRoots?: Record<string, number>;
-	/** Documents predating index_root; not attributable to any repository. */
-	untrackedRootDocs?: number;
-	/** Per-tenant document counts within this collection. */
-	byTenant?: Record<string, number>;
-	/** Documents with no tenant_id — written before tenancy existed. */
-	untenantedDocs?: number;
-	/** Record lifecycle states present. */
-	byStatus?: Record<string, number>;
-	/** Data model versions present; a mix means a migration is unfinished. */
-	schemaVersions?: Record<string, number>;
 	/** Live replicas on the least-replicated shard. */
 	minActiveReplicas?: number | null;
 	replicationFactor?: number;
+	/** Where this collection's snapshots go. */
+	backupRepository?: string;
 }
 
 export async function handleCompassStatus(
@@ -57,83 +36,19 @@ export async function handleCompassStatus(
 	const collections: CollectionReport[] = [];
 
 	for (const target of targets) {
-		const base = {
+		const owner = ctx.tenants.tenants.find((t) =>
+			target.tenantIds.includes(t.id),
+		);
+
+		collections.push({
 			name: target.collection,
 			solrUrl: target.solrUrl,
 			partition: target.partition,
 			tenants: target.tenantIds,
 			replicationFactor: target.durability.replicationFactor,
-		};
-
-		try {
-			// Facet on embed_provider so a collection built by more than one model
-			// is visible; on tenant_id and schema_version so a partially migrated
-			// or partially attributed collection is visible for the same reason.
-			// Mixed vectors and mixed field semantics both still return results —
-			// faceting is the only way to notice either.
-			const url =
-				`${target.solrUrl}/solr/${encodeURIComponent(target.collection)}/select` +
-				"?q=*:*&rows=0&wt=json&facet=true&facet.mincount=1" +
-				"&facet.field=embed_provider&facet.field=index_root" +
-				"&facet.field=tenant_id&facet.field=status&facet.field=schema_version";
-			const response = await fetch(url);
-			if (!response.ok) {
-				collections.push({
-					...base,
-					docCount: null,
-					error: `HTTP ${response.status}`,
-				});
-				continue;
-			}
-			const body = (await response.json()) as {
-				response?: { numFound?: number };
-				facet_counts?: {
-					facet_fields?: Record<string, Array<string | number>>;
-				};
-			};
-			const docCount = body.response?.numFound ?? 0;
-			const facets = body.facet_counts?.facet_fields ?? {};
-
-			const embedProviders = parseFacet(facets.embed_provider);
-			const tagged = sum(embedProviders);
-
-			const indexedRoots = parseFacet(facets.index_root);
-			const rootTagged = sum(indexedRoots);
-
-			const byTenant = parseFacet(facets.tenant_id);
-			const tenantTagged = sum(byTenant);
-
-			const byStatus = parseFacet(facets.status);
-			const schemaVersions = parseFacet(facets.schema_version);
-
-			collections.push({
-				...base,
-				docCount,
-				...(nonEmpty(embedProviders) ? { embedProviders } : {}),
-				// Documents indexed before provider tagging existed. Their model is
-				// unknowable, so they cannot be trusted against a current query.
-				...(docCount - tagged > 0 ? { untaggedDocs: docCount - tagged } : {}),
-				...(nonEmpty(indexedRoots) ? { indexedRoots } : {}),
-				...(nonEmpty(indexedRoots) && docCount - rootTagged > 0
-					? { untrackedRootDocs: docCount - rootTagged }
-					: {}),
-				...(nonEmpty(byTenant) ? { byTenant } : {}),
-				// Read as belonging to the personal tenant; counted separately so
-				// the size of an unfinished migration is visible rather than
-				// blended into the personal total.
-				...(docCount - tenantTagged > 0
-					? { untenantedDocs: docCount - tenantTagged }
-					: {}),
-				...(nonEmpty(byStatus) ? { byStatus } : {}),
-				...(nonEmpty(schemaVersions) ? { schemaVersions } : {}),
-			});
-		} catch (err) {
-			collections.push({
-				...base,
-				docCount: null,
-				error: err instanceof Error ? err.message : String(err),
-			});
-		}
+			...(owner ? { backupRepository: owner.backup.repository } : {}),
+			...(await collectionFacets(target.solrUrl, target.collection)),
+		});
 	}
 
 	const memoryNotes = await countMemoryNotes(ctx);
@@ -280,12 +195,4 @@ async function countMemoryNotes(
 	}
 
 	return counts;
-}
-
-function sum(counts: Record<string, number>): number {
-	return Object.values(counts).reduce((a, b) => a + b, 0);
-}
-
-function nonEmpty(counts: Record<string, number>): boolean {
-	return Object.keys(counts).length > 0;
 }

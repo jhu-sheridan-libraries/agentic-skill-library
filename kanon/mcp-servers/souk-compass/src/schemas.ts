@@ -61,6 +61,18 @@ export const SoukCompassConfigSchema = z.object({
 	 * `solr.allowPaths` or the Collections API refuses the request.
 	 */
 	backupLocation: z.string().optional(),
+	/**
+	 * Host directory bind-mounted to the container's backup path. This is the
+	 * one that decides whether a snapshot survives `docker compose down -v`: a
+	 * named volume does not, a host directory does. Defaults to
+	 * `~/.souk-compass/backups`.
+	 */
+	backupDir: z.string().optional(),
+	/**
+	 * Host directory holding generated Solr configuration and the tenant
+	 * registry. Defaults to `~/.souk-compass`.
+	 */
+	stateDir: z.string().optional(),
 });
 
 export type SoukCompassConfig = z.infer<typeof SoukCompassConfigSchema>;
@@ -92,6 +104,41 @@ export const DurabilitySchema = z.object({
 	pullReplicas: z.number().int().nonnegative().default(0),
 });
 export type Durability = z.infer<typeof DurabilitySchema>;
+
+/**
+ * S3 coordinates for a tenant's backup repository.
+ *
+ * Field names deliberately mirror kanon's `S3BackendConfigSchema` so the two
+ * config surfaces read the same. Credentials are absent by construction: Solr
+ * performs the transfer using the ambient AWS credential chain passed into its
+ * container, so there is nowhere here for a secret to be written down.
+ */
+export const S3RepositorySchema = z.object({
+	bucket: z.string().min(1),
+	region: z.string().optional(),
+	prefix: z.string().optional(),
+	/** Non-AWS S3 endpoint. Solr supports AWS S3 officially; others may not work. */
+	endpoint: z.string().optional(),
+});
+export type S3Repository = z.infer<typeof S3RepositorySchema>;
+
+/**
+ * Where a tenant's snapshots are stored.
+ *
+ * This names a Solr `BackupRepository`, which is the storage backend: Solr reads
+ * and writes the index itself, because RESTORE has to read the backup and there
+ * is no API for handing Solr bytes. Declaring `s3` makes the repository an
+ * `S3BackupRepository`; omitting it leaves the tenant on the local filesystem
+ * repository, which is bind-mounted to the host and so survives `down -v`.
+ */
+export const TenantBackupSchema = z.object({
+	/** Solr repository name. Defaults to the tenant id, or `personal`. */
+	repository: z.string().min(1).optional(),
+	/** Path within the repository. Relative to the bucket or the local root. */
+	location: z.string().optional(),
+	s3: S3RepositorySchema.optional(),
+});
+export type TenantBackup = z.infer<typeof TenantBackupSchema>;
 
 export const TenantSchema = z.object({
 	/**
@@ -137,6 +184,11 @@ export const TenantSchema = z.object({
 	/** A tenant's index may live on a different SolrCloud than the default. */
 	solrUrl: z.string().url().optional(),
 	durability: DurabilitySchema.partial().optional(),
+	/**
+	 * Snapshot storage. Omitted means the local repository — right for a
+	 * personal index, wrong for one an org shares across machines.
+	 */
+	backup: TenantBackupSchema.optional(),
 });
 export type Tenant = z.infer<typeof TenantSchema>;
 
@@ -146,6 +198,77 @@ export const TenantRegistrySchema = z.object({
 	tenants: z.array(TenantSchema).default([]),
 });
 export type TenantRegistryInput = z.input<typeof TenantRegistrySchema>;
+
+// ---------------------------------------------------------------------------
+// 1d. Snapshot manifest
+// ---------------------------------------------------------------------------
+
+/**
+ * What was captured for one collection, and what it should look like again.
+ *
+ * The counts are not bookkeeping — they are the post-restore assertion. Solr
+ * reports a RESTORE as successful the moment the collection exists, which is
+ * some distance from "holds what it held", so the only way to know a restore
+ * worked is to have written down what to compare against.
+ */
+export const SnapshotCollectionSchema = z.object({
+	tenant: z.string(),
+	partition: PartitionSchema,
+	collection: z.string(),
+	/** Solr backup name within the repository location. */
+	backupName: z.string(),
+	solrUrl: z.string(),
+	docCount: z.number().int().nonnegative().nullable(),
+	durability: DurabilitySchema,
+	/** Facet snapshots, for verifying a restore rather than assuming one. */
+	embedProviders: z.record(z.string(), z.number()).optional(),
+	byTenant: z.record(z.string(), z.number()).optional(),
+	schemaVersions: z.record(z.string(), z.number()).optional(),
+});
+export type SnapshotCollection = z.infer<typeof SnapshotCollectionSchema>;
+
+export const SnapshotRepositorySchema = z.object({
+	name: z.string(),
+	type: z.enum(["local", "s3"]),
+	location: z.string(),
+	s3: S3RepositorySchema.optional(),
+});
+export type SnapshotRepository = z.infer<typeof SnapshotRepositorySchema>;
+
+/**
+ * The portable description of a snapshot.
+ *
+ * Solr's own backups are per-collection and know nothing about tenancy, so on a
+ * fresh machine they are three anonymous indexes. This is what turns them back
+ * into someone's library: which collection belonged to which tenant, under which
+ * embedding model, and how to rebuild the registry that names them.
+ */
+export const SnapshotManifestSchema = z.object({
+	/** Manifest format version, independent of the memory record version. */
+	manifestVersion: z.literal(1),
+	snapshotId: z.string().min(1),
+	createdAt: z.string(),
+	/**
+	 * Embedding model and width the vectors were produced with. Restoring onto a
+	 * different model yields an index that answers every query and ranks by
+	 * nothing — the failure this pair exists to refuse.
+	 */
+	embedProvider: z.string(),
+	embedDimensions: z.number().int().positive(),
+	/** Memory record schema version at capture time. */
+	schemaVersion: z.number().int().positive(),
+	/** Solr configset the collections were created against. */
+	configName: z.string(),
+	repository: SnapshotRepositorySchema,
+	/**
+	 * The registry as resolved at capture time. Restoring this is what lets a
+	 * different machine reach the same collections — the personal tenant's names
+	 * come from three environment variables that may not exist there.
+	 */
+	registry: TenantRegistrySchema,
+	collections: z.array(SnapshotCollectionSchema),
+});
+export type SnapshotManifest = z.infer<typeof SnapshotManifestSchema>;
 
 // ---------------------------------------------------------------------------
 // 1c. Memory records
@@ -369,22 +492,16 @@ export const ToolInputSchemas = {
 				"start",
 				"create_collections",
 				"create_collection",
-				"backup",
-				"restore",
 				"stop",
 			])
 			.default("check"),
-		/** Collection to create, back up, or restore into. */
+		/** Collection to create; required for action "create_collection". */
 		name: z.string().optional(),
 		/**
 		 * Provision or verify one tenant instead of all of them. Omit to cover
 		 * every registered tenant.
 		 */
 		tenant: z.string().optional(),
-		/** Snapshot name; required for "backup" and "restore". */
-		backupName: z.string().optional(),
-		/** Overrides `backupLocation`. Resolved by Solr, not by this process. */
-		location: z.string().optional(),
 	}),
 
 	compass_index_artifacts: z.object({
@@ -488,6 +605,29 @@ export const ToolInputSchemas = {
 	compass_tenants: z.object({
 		/** Probe each collection for existence, size, and live replica count. */
 		verify: z.boolean().default(false),
+	}),
+
+	compass_backup: z.object({
+		action: z
+			.enum(["save", "restore", "list", "verify", "prune"])
+			.default("list"),
+		/**
+		 * Snapshot name. Required for save, restore and verify. Reused across a
+		 * tenant's collections, so one id names one recoverable point in time.
+		 */
+		snapshotId: z.string().optional(),
+		/** Act on one tenant. Omit to cover every registered tenant. */
+		tenant: z.string().optional(),
+		/**
+		 * Proceed even when the snapshot's embedding model differs from the
+		 * configured one. The restored index will answer queries and rank by
+		 * nothing, so this is a deliberate override, never a default.
+		 */
+		force: z.boolean().default(false),
+		/** prune: snapshots to retain per collection, oldest deleted first. */
+		keep: z.number().int().positive().optional(),
+		/** Seconds to wait for an async Solr operation. Default 600. */
+		timeoutSeconds: z.number().int().positive().optional(),
 	}),
 
 	compass_profile_workspace: z.object({
@@ -595,6 +735,9 @@ export type CompassForgetInput = z.input<
 >;
 export type CompassTenantsInput = z.input<
 	typeof ToolInputSchemas.compass_tenants
+>;
+export type CompassBackupInput = z.input<
+	typeof ToolInputSchemas.compass_backup
 >;
 export type CompassProfileWorkspaceInput = z.input<
 	typeof ToolInputSchemas.compass_profile_workspace

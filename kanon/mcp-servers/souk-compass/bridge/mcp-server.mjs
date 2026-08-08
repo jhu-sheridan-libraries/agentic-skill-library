@@ -20569,7 +20569,7 @@ function _check2(fn, params) {
   ch._zod.check = fn;
   return ch;
 }
-function describe3(description) {
+function describe4(description) {
   const ch = new $ZodCheck2({ check: "describe" });
   ch._zod.onattach = [
     (inst) => {
@@ -21634,7 +21634,7 @@ __export(exports_core4, {
   extractDefs: () => extractDefs2,
   encodeAsync: () => encodeAsync3,
   encode: () => encode3,
-  describe: () => describe3,
+  describe: () => describe4,
   decodeAsync: () => decodeAsync3,
   decode: () => decode3,
   createToJSONSchemaMethod: () => createToJSONSchemaMethod2,
@@ -22117,7 +22117,7 @@ __export(exports_schemas4, {
   email: () => email4,
   e164: () => e1644,
   discriminatedUnion: () => discriminatedUnion2,
-  describe: () => describe4,
+  describe: () => describe5,
   date: () => date8,
   custom: () => custom2,
   cuid2: () => cuid24,
@@ -22657,7 +22657,7 @@ function json2(params) {
 function preprocess2(fn, schema) {
   return pipe2(transform2(fn), schema);
 }
-var ZodType2, _ZodString2, ZodString2, ZodStringFormat2, ZodEmail2, ZodGUID2, ZodUUID2, ZodURL2, ZodEmoji2, ZodNanoID2, ZodCUID3, ZodCUID22, ZodULID2, ZodXID2, ZodKSUID2, ZodIPv42, ZodMAC2, ZodIPv62, ZodCIDRv42, ZodCIDRv62, ZodBase642, ZodBase64URL2, ZodE1642, ZodJWT2, ZodCustomStringFormat2, ZodNumber2, ZodNumberFormat2, ZodBoolean2, ZodBigInt2, ZodBigIntFormat2, ZodSymbol2, ZodUndefined2, ZodNull2, ZodAny2, ZodUnknown2, ZodNever2, ZodVoid2, ZodDate2, ZodArray2, ZodObject2, ZodUnion2, ZodXor2, ZodDiscriminatedUnion2, ZodIntersection2, ZodTuple2, ZodRecord2, ZodMap2, ZodSet2, ZodEnum2, ZodLiteral2, ZodFile2, ZodTransform2, ZodOptional2, ZodExactOptional2, ZodNullable2, ZodDefault2, ZodPrefault2, ZodNonOptional2, ZodSuccess2, ZodCatch2, ZodNaN2, ZodPipe2, ZodCodec2, ZodReadonly2, ZodTemplateLiteral2, ZodLazy2, ZodPromise2, ZodFunction2, ZodCustom2, describe4, meta4, stringbool2 = (...args) => _stringbool2({
+var ZodType2, _ZodString2, ZodString2, ZodStringFormat2, ZodEmail2, ZodGUID2, ZodUUID2, ZodURL2, ZodEmoji2, ZodNanoID2, ZodCUID3, ZodCUID22, ZodULID2, ZodXID2, ZodKSUID2, ZodIPv42, ZodMAC2, ZodIPv62, ZodCIDRv42, ZodCIDRv62, ZodBase642, ZodBase64URL2, ZodE1642, ZodJWT2, ZodCustomStringFormat2, ZodNumber2, ZodNumberFormat2, ZodBoolean2, ZodBigInt2, ZodBigIntFormat2, ZodSymbol2, ZodUndefined2, ZodNull2, ZodAny2, ZodUnknown2, ZodNever2, ZodVoid2, ZodDate2, ZodArray2, ZodObject2, ZodUnion2, ZodXor2, ZodDiscriminatedUnion2, ZodIntersection2, ZodTuple2, ZodRecord2, ZodMap2, ZodSet2, ZodEnum2, ZodLiteral2, ZodFile2, ZodTransform2, ZodOptional2, ZodExactOptional2, ZodNullable2, ZodDefault2, ZodPrefault2, ZodNonOptional2, ZodSuccess2, ZodCatch2, ZodNaN2, ZodPipe2, ZodCodec2, ZodReadonly2, ZodTemplateLiteral2, ZodLazy2, ZodPromise2, ZodFunction2, ZodCustom2, describe5, meta4, stringbool2 = (...args) => _stringbool2({
   Codec: ZodCodec2,
   Boolean: ZodBoolean2,
   String: ZodString2
@@ -23286,7 +23286,7 @@ var init_schemas2 = __esm(() => {
     ZodType2.init(inst, def);
     inst._zod.processJSONSchema = (ctx, json2, params) => customProcessor2(inst, ctx, json2, params);
   });
-  describe4 = describe3;
+  describe5 = describe4;
   meta4 = meta3;
 });
 
@@ -23949,7 +23949,7 @@ __export(exports_external2, {
   email: () => email4,
   e164: () => e1644,
   discriminatedUnion: () => discriminatedUnion2,
-  describe: () => describe4,
+  describe: () => describe5,
   decodeAsync: () => decodeAsync4,
   decode: () => decode4,
   date: () => date8,
@@ -42047,7 +42047,9 @@ var SoukCompassConfigSchema = exports_external.object({
   replicationFactor: exports_external.number().int().positive().optional(),
   tlogReplicas: exports_external.number().int().nonnegative().optional(),
   pullReplicas: exports_external.number().int().nonnegative().optional(),
-  backupLocation: exports_external.string().optional()
+  backupLocation: exports_external.string().optional(),
+  backupDir: exports_external.string().optional(),
+  stateDir: exports_external.string().optional()
 });
 var TenantScopeSchema = exports_external.enum(["personal", "org"]);
 var PartitionSchema = exports_external.enum(["artifacts", "memory", "codebase"]);
@@ -42056,6 +42058,17 @@ var DurabilitySchema = exports_external.object({
   replicationFactor: exports_external.number().int().positive().default(1),
   tlogReplicas: exports_external.number().int().nonnegative().default(0),
   pullReplicas: exports_external.number().int().nonnegative().default(0)
+});
+var S3RepositorySchema = exports_external.object({
+  bucket: exports_external.string().min(1),
+  region: exports_external.string().optional(),
+  prefix: exports_external.string().optional(),
+  endpoint: exports_external.string().optional()
+});
+var TenantBackupSchema = exports_external.object({
+  repository: exports_external.string().min(1).optional(),
+  location: exports_external.string().optional(),
+  s3: S3RepositorySchema.optional()
 });
 var TenantSchema = exports_external.object({
   id: exports_external.string().min(1).max(48).regex(/^[a-z0-9][a-z0-9-]*$/, "tenant id must be a lowercase slug: [a-z0-9-], starting alphanumeric"),
@@ -42069,12 +42082,43 @@ var TenantSchema = exports_external.object({
     codebase: exports_external.string().min(1).optional()
   }).optional(),
   solrUrl: exports_external.string().url().optional(),
-  durability: DurabilitySchema.partial().optional()
+  durability: DurabilitySchema.partial().optional(),
+  backup: TenantBackupSchema.optional()
 });
 var TenantRegistrySchema = exports_external.object({
   defaultTenant: exports_external.string().optional(),
   collectionPrefix: exports_external.string().optional(),
   tenants: exports_external.array(TenantSchema).default([])
+});
+var SnapshotCollectionSchema = exports_external.object({
+  tenant: exports_external.string(),
+  partition: PartitionSchema,
+  collection: exports_external.string(),
+  backupName: exports_external.string(),
+  solrUrl: exports_external.string(),
+  docCount: exports_external.number().int().nonnegative().nullable(),
+  durability: DurabilitySchema,
+  embedProviders: exports_external.record(exports_external.string(), exports_external.number()).optional(),
+  byTenant: exports_external.record(exports_external.string(), exports_external.number()).optional(),
+  schemaVersions: exports_external.record(exports_external.string(), exports_external.number()).optional()
+});
+var SnapshotRepositorySchema = exports_external.object({
+  name: exports_external.string(),
+  type: exports_external.enum(["local", "s3"]),
+  location: exports_external.string(),
+  s3: S3RepositorySchema.optional()
+});
+var SnapshotManifestSchema = exports_external.object({
+  manifestVersion: exports_external.literal(1),
+  snapshotId: exports_external.string().min(1),
+  createdAt: exports_external.string(),
+  embedProvider: exports_external.string(),
+  embedDimensions: exports_external.number().int().positive(),
+  schemaVersion: exports_external.number().int().positive(),
+  configName: exports_external.string(),
+  repository: SnapshotRepositorySchema,
+  registry: TenantRegistrySchema,
+  collections: exports_external.array(SnapshotCollectionSchema)
 });
 var MemoryTypeSchema = exports_external.enum(["semantic", "episodic", "procedural"]);
 var MemoryCategorySchema = exports_external.enum([
@@ -42189,14 +42233,10 @@ var ToolInputSchemas = {
       "start",
       "create_collections",
       "create_collection",
-      "backup",
-      "restore",
       "stop"
     ]).default("check"),
     name: exports_external.string().optional(),
-    tenant: exports_external.string().optional(),
-    backupName: exports_external.string().optional(),
-    location: exports_external.string().optional()
+    tenant: exports_external.string().optional()
   }),
   compass_index_artifacts: exports_external.object({
     name: exports_external.string().optional(),
@@ -42269,6 +42309,14 @@ var ToolInputSchemas = {
   }),
   compass_tenants: exports_external.object({
     verify: exports_external.boolean().default(false)
+  }),
+  compass_backup: exports_external.object({
+    action: exports_external.enum(["save", "restore", "list", "verify", "prune"]).default("list"),
+    snapshotId: exports_external.string().optional(),
+    tenant: exports_external.string().optional(),
+    force: exports_external.boolean().default(false),
+    keep: exports_external.number().int().positive().optional(),
+    timeoutSeconds: exports_external.number().int().positive().optional()
   }),
   compass_profile_workspace: exports_external.object({
     files: exports_external.array(exports_external.object({ path: exports_external.string(), content: exports_external.string() })),
@@ -42343,7 +42391,9 @@ function loadConfig() {
     replicationFactor: process.env.SOUK_COMPASS_REPLICATION_FACTOR ? Number(process.env.SOUK_COMPASS_REPLICATION_FACTOR) : undefined,
     tlogReplicas: process.env.SOUK_COMPASS_TLOG_REPLICAS ? Number(process.env.SOUK_COMPASS_TLOG_REPLICAS) : undefined,
     pullReplicas: process.env.SOUK_COMPASS_PULL_REPLICAS ? Number(process.env.SOUK_COMPASS_PULL_REPLICAS) : undefined,
-    backupLocation: process.env.SOUK_COMPASS_BACKUP_LOCATION
+    backupLocation: process.env.SOUK_COMPASS_BACKUP_LOCATION,
+    backupDir: process.env.SOUK_COMPASS_BACKUP_DIR,
+    stateDir: process.env.SOUK_COMPASS_HOME
   };
   const cleaned = Object.fromEntries(Object.entries(raw).filter(([, v]) => v !== undefined));
   const result = SoukCompassConfigSchema.safeParse(cleaned);
@@ -42922,11 +42972,58 @@ function resolveTenantEntry(tenant, context) {
     durability: DurabilitySchema.parse({
       ...configDurability,
       ...full.durability ?? {}
-    })
+    }),
+    backup: resolveBackupTarget(full, config2)
   };
 }
+function resolveBackupTarget(tenant, config2) {
+  const declared = tenant.backup;
+  if (declared?.s3) {
+    assertNoCredentialLiterals(tenant.id, declared.s3);
+    return {
+      repository: declared.repository ?? tenant.id,
+      type: "s3",
+      location: declared.location ?? `${tenant.id}/`,
+      s3: declared.s3
+    };
+  }
+  return {
+    repository: declared?.repository ?? LOCAL_REPOSITORY_NAME,
+    type: "local",
+    location: declared?.location ?? config2.backupLocation ?? DEFAULT_BACKUP_LOCATION
+  };
+}
+var LOCAL_REPOSITORY_NAME = "personal";
+var DEFAULT_BACKUP_LOCATION = "/var/solr/backups";
+function assertNoCredentialLiterals(tenantId, s3) {
+  for (const [key, value] of Object.entries(s3)) {
+    if (typeof value !== "string")
+      continue;
+    if (!looksLikeSecret(value))
+      continue;
+    throw new SoukCompassError(`Tenant "${tenantId}" has a credential-like value in backup.s3.${key}. ` + "Backup repositories take no credentials \u2014 Solr uses the AWS credential " + "chain from its own container environment. Remove the value and set " + "AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY in the environment instead.", ErrorCodes.CONFIG_INVALID);
+  }
+}
+function looksLikeSecret(value) {
+  if (/^AKIA[0-9A-Z]{16}$/.test(value))
+    return true;
+  if (/^ASIA[0-9A-Z]{16}$/.test(value))
+    return true;
+  if (/^[A-Za-z0-9/+=]{40,}$/.test(value))
+    return true;
+  return false;
+}
 function defaultTenantRegistryPath() {
-  return join2(homedir2(), ".souk-compass", "tenants.json");
+  return join2(stateDir(), "tenants.json");
+}
+function stateDir(config2) {
+  return config2?.stateDir ?? join2(homedir2(), ".souk-compass");
+}
+function backupDir(config2) {
+  return config2?.backupDir ?? join2(stateDir(config2), "backups");
+}
+function solrXmlPath(config2) {
+  return join2(stateDir(config2), "solr.xml");
 }
 function loadTenantRegistry(config2, env = process.env) {
   const inline = env.SOUK_COMPASS_TENANTS?.trim();
@@ -43011,7 +43108,412 @@ function tenantFilterQuery(tenants) {
   return `(${clause} OR (*:* -tenant_id:[* TO *]))`;
 }
 
-// src/tools/compass-forget.ts
+// src/tools/compass-backup.ts
+import { mkdirSync as mkdirSync3, writeFileSync as writeFileSync2 } from "fs";
+import { dirname as dirname3 } from "path";
+
+// src/backup-store.ts
+init_errors();
+import { spawnSync } from "child_process";
+import { mkdirSync as mkdirSync2, readdirSync, readFileSync as readFileSync2, writeFileSync } from "fs";
+import { join as join3 } from "path";
+var MANIFEST_DIR = "_manifests";
+function hostManifestDir(config2, target) {
+  return target.type === "local" ? join3(backupDir(config2), MANIFEST_DIR) : join3(backupDir(config2), MANIFEST_DIR, target.repository);
+}
+function manifestLocation(config2, target, snapshotId) {
+  const hostPath = join3(hostManifestDir(config2, target), `${snapshotId}.json`);
+  if (target.type !== "s3" || !target.s3)
+    return { hostPath };
+  const prefix = joinS3(target.s3.prefix, target.location);
+  return {
+    hostPath,
+    remoteUri: `s3://${target.s3.bucket}/${joinS3(prefix, `${MANIFEST_DIR}/${snapshotId}.json`)}`
+  };
+}
+function writeManifest(config2, target, manifest) {
+  const location = manifestLocation(config2, target, manifest.snapshotId);
+  mkdirSync2(hostManifestDir(config2, target), { recursive: true });
+  writeFileSync(location.hostPath, `${JSON.stringify(manifest, null, 2)}
+`, {
+    encoding: "utf-8"
+  });
+  if (!location.remoteUri)
+    return { ...location, uploaded: true };
+  const result = awsCli(["s3", "cp", location.hostPath, location.remoteUri], target);
+  return {
+    ...location,
+    uploaded: result.ok,
+    ...result.ok ? {} : { uploadError: result.error }
+  };
+}
+function readManifest(config2, target, snapshotId) {
+  const location = manifestLocation(config2, target, snapshotId);
+  if (location.remoteUri) {
+    const pulled = awsCli(["s3", "cp", location.remoteUri, location.hostPath], target, { mkdir: hostManifestDir(config2, target) });
+    if (pulled.ok) {
+      return { manifest: parseManifest(location.hostPath), source: "remote" };
+    }
+  }
+  return { manifest: parseManifest(location.hostPath), source: "host" };
+}
+function parseManifest(path) {
+  let raw;
+  try {
+    raw = readFileSync2(path, "utf-8");
+  } catch {
+    throw new SoukCompassError(`No snapshot manifest at ${path}. List available snapshots with ` + 'compass_backup({ action: "list" }).', ErrorCodes.RECORD_NOT_FOUND);
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (err) {
+    throw new SoukCompassError(`Snapshot manifest at ${path} is not valid JSON: ${err instanceof Error ? err.message : String(err)}`, ErrorCodes.SERIALIZATION);
+  }
+  const result = SnapshotManifestSchema.safeParse(parsed);
+  if (!result.success) {
+    const issues = result.error.issues.map((i) => `  ${i.path.join(".") || "(root)"}: ${i.message}`).join(`
+`);
+    throw new SoukCompassError(`Snapshot manifest at ${path} does not match the expected shape:
+${issues}`, ErrorCodes.SERIALIZATION);
+  }
+  return result.data;
+}
+function listManifests(config2, target) {
+  const dir = hostManifestDir(config2, target);
+  let entries;
+  try {
+    entries = readdirSync(dir);
+  } catch {
+    return [];
+  }
+  const manifests = entries.filter((name) => name.endsWith(".json")).map((name) => {
+    const snapshotId = name.slice(0, -".json".length);
+    try {
+      const manifest = parseManifest(join3(dir, name));
+      return {
+        snapshotId,
+        createdAt: manifest.createdAt,
+        source: "host"
+      };
+    } catch {
+      return { snapshotId, source: "host" };
+    }
+  });
+  return manifests.sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""));
+}
+function awsCli(args, target, options2 = {}) {
+  if (options2.mkdir) {
+    try {
+      mkdirSync2(options2.mkdir, { recursive: true });
+    } catch {}
+  }
+  const full = [...args];
+  if (target.s3?.region)
+    full.push("--region", target.s3.region);
+  if (target.s3?.endpoint)
+    full.push("--endpoint-url", target.s3.endpoint);
+  try {
+    const result = spawnSync("aws", full, {
+      encoding: "utf-8",
+      timeout: 60000
+    });
+    if (result.error) {
+      const message = result.error.code === "ENOENT" ? "The `aws` CLI is not installed. It is required for S3 backup " + "repositories \u2014 the index itself is transferred by Solr, but the " + "snapshot manifest is transferred by this server." : result.error.message;
+      return { ok: false, error: message };
+    }
+    if (result.status !== 0) {
+      return {
+        ok: false,
+        error: (result.stderr || result.stdout || "").trim() || "aws exited non-zero"
+      };
+    }
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : String(err)
+    };
+  }
+}
+function joinS3(...parts) {
+  return parts.filter((p) => Boolean(p)).map((p) => p.replace(/^\/+|\/+$/g, "")).filter((p) => p.length > 0).join("/");
+}
+
+// src/collection-report.ts
+function parseFacet(flat) {
+  const out = {};
+  for (let i = 0;flat && i + 1 < flat.length; i += 2) {
+    out[String(flat[i])] = Number(flat[i + 1]);
+  }
+  return out;
+}
+async function collectionFacets(solrUrl, collection, fetchImpl = fetch) {
+  const url2 = `${solrUrl}/solr/${encodeURIComponent(collection)}/select` + "?q=*:*&rows=0&wt=json&facet=true&facet.mincount=1" + "&facet.field=embed_provider&facet.field=index_root" + "&facet.field=tenant_id&facet.field=status&facet.field=schema_version";
+  try {
+    const response = await fetchImpl(url2);
+    if (!response.ok) {
+      return { docCount: null, error: `HTTP ${response.status}` };
+    }
+    const body = await response.json();
+    const docCount = body.response?.numFound ?? 0;
+    const facets = body.facet_counts?.facet_fields ?? {};
+    const embedProviders = parseFacet(facets.embed_provider);
+    const indexedRoots = parseFacet(facets.index_root);
+    const byTenant = parseFacet(facets.tenant_id);
+    const byStatus = parseFacet(facets.status);
+    const schemaVersions = parseFacet(facets.schema_version);
+    const tagged = sum(embedProviders);
+    const rootTagged = sum(indexedRoots);
+    const tenantTagged = sum(byTenant);
+    return {
+      docCount,
+      ...nonEmpty(embedProviders) ? { embedProviders } : {},
+      ...docCount - tagged > 0 ? { untaggedDocs: docCount - tagged } : {},
+      ...nonEmpty(indexedRoots) ? { indexedRoots } : {},
+      ...nonEmpty(indexedRoots) && docCount - rootTagged > 0 ? { untrackedRootDocs: docCount - rootTagged } : {},
+      ...nonEmpty(byTenant) ? { byTenant } : {},
+      ...docCount - tenantTagged > 0 ? { untenantedDocs: docCount - tenantTagged } : {},
+      ...nonEmpty(byStatus) ? { byStatus } : {},
+      ...nonEmpty(schemaVersions) ? { schemaVersions } : {}
+    };
+  } catch (err) {
+    return {
+      docCount: null,
+      error: err instanceof Error ? err.message : String(err)
+    };
+  }
+}
+function sum(counts) {
+  return Object.values(counts).reduce((a, b) => a + b, 0);
+}
+function nonEmpty(counts) {
+  return Object.keys(counts).length > 0;
+}
+
+// src/collections.ts
+init_errors();
+var CONFIG_NAME = "souk-compass";
+var DEFAULT_DURABILITY = {
+  numShards: 1,
+  replicationFactor: 1,
+  tlogReplicas: 0,
+  pullReplicas: 0
+};
+async function getCollectionInfo(solrUrl, name) {
+  try {
+    const url2 = `${solrUrl}/solr/${encodeURIComponent(name)}/select?q=*:*&rows=0&wt=json`;
+    const response = await fetch(url2);
+    if (!response.ok)
+      return { name, exists: false, docCount: null };
+    const body = await response.json();
+    return { name, exists: true, docCount: body.response?.numFound ?? 0 };
+  } catch {
+    return { name, exists: false, docCount: null };
+  }
+}
+async function createCollection(solrUrl, name, durability = DEFAULT_DURABILITY) {
+  const params = new URLSearchParams({
+    action: "CREATE",
+    name,
+    numShards: String(durability.numShards),
+    replicationFactor: String(durability.replicationFactor),
+    "collection.configName": CONFIG_NAME,
+    wt: "json"
+  });
+  if (durability.tlogReplicas > 0) {
+    params.set("tlogReplicas", String(durability.tlogReplicas));
+  }
+  if (durability.pullReplicas > 0) {
+    params.set("pullReplicas", String(durability.pullReplicas));
+  }
+  try {
+    const response = await fetch(`${solrUrl}/solr/admin/collections?${params.toString()}`);
+    if (response.ok)
+      return { name, created: true, durability };
+    const body = await response.text();
+    return {
+      name,
+      created: false,
+      durability,
+      error: body.includes("already exists") ? "Collection already exists" : `HTTP ${response.status}: ${body}`
+    };
+  } catch (err) {
+    return {
+      name,
+      created: false,
+      durability,
+      error: err instanceof Error ? err.message : String(err)
+    };
+  }
+}
+async function requireCollection(solrUrl, name) {
+  const info = await getCollectionInfo(solrUrl, name);
+  if (info.exists)
+    return;
+  throw new SoukCompassError(`Collection "${name}" does not exist. Create it with: ` + `compass_setup({ action: "create_collection", name: "${name}" }) \u2014 ` + `or omit the "collection" argument to use the configured default.`, ErrorCodes.CONFIG_INVALID);
+}
+function backupParams(collection, options2) {
+  const params = new URLSearchParams({
+    action: "BACKUP",
+    collection,
+    name: options2.backupName,
+    location: options2.location,
+    wt: "json"
+  });
+  if (options2.repository)
+    params.set("repository", options2.repository);
+  if (options2.incremental === false)
+    params.set("incremental", "false");
+  return params;
+}
+function restoreParams(options2) {
+  const durability = options2.durability ?? DEFAULT_DURABILITY;
+  const params = new URLSearchParams({
+    action: "RESTORE",
+    name: options2.backupName,
+    location: options2.location,
+    collection: options2.collection,
+    numShards: String(durability.numShards),
+    replicationFactor: String(durability.replicationFactor),
+    "collection.configName": CONFIG_NAME,
+    wt: "json"
+  });
+  if (options2.repository)
+    params.set("repository", options2.repository);
+  if (durability.tlogReplicas > 0) {
+    params.set("tlogReplicas", String(durability.tlogReplicas));
+  }
+  if (durability.pullReplicas > 0) {
+    params.set("pullReplicas", String(durability.pullReplicas));
+  }
+  if (options2.backupId != null) {
+    params.set("backupId", String(options2.backupId));
+  }
+  return params;
+}
+async function listBackups(solrUrl, backupName, options2) {
+  const params = new URLSearchParams({
+    action: "LISTBACKUP",
+    name: backupName,
+    location: options2.location,
+    wt: "json"
+  });
+  if (options2.repository)
+    params.set("repository", options2.repository);
+  try {
+    const response = await fetch(`${solrUrl}/solr/admin/collections?${params.toString()}`);
+    const body = await readBody(response);
+    if (!response.ok) {
+      return {
+        backups: [],
+        error: `HTTP ${response.status}: ${describe3(body)}`
+      };
+    }
+    const raw = body.backups ?? [];
+    const collection = body.collection;
+    return {
+      backups: raw.map((entry) => ({
+        backupId: Number(entry.backupId ?? 0),
+        ...typeof entry.startTime === "string" ? { startTime: entry.startTime } : {},
+        ...typeof entry.indexFileCount === "number" ? { indexFileCount: entry.indexFileCount } : {},
+        ...typeof entry.indexSizeMB === "number" ? { indexSizeMB: entry.indexSizeMB } : {},
+        ...collection ? { collection } : {}
+      }))
+    };
+  } catch (err) {
+    return {
+      backups: [],
+      error: err instanceof Error ? err.message : String(err)
+    };
+  }
+}
+async function pruneBackups(solrUrl, backupName, options2) {
+  const params = new URLSearchParams({
+    action: "DELETEBACKUP",
+    name: backupName,
+    location: options2.location,
+    maxNumBackupPoints: String(options2.keep),
+    wt: "json"
+  });
+  if (options2.repository)
+    params.set("repository", options2.repository);
+  try {
+    const response = await fetch(`${solrUrl}/solr/admin/collections?${params.toString()}`);
+    const body = await readBody(response);
+    if (!response.ok) {
+      return {
+        success: false,
+        error: `HTTP ${response.status}: ${describe3(body)}`
+      };
+    }
+    return { success: true, deleted: body };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : String(err)
+    };
+  }
+}
+async function isSolrReachable(solrUrl) {
+  try {
+    const response = await fetch(`${solrUrl}/solr/admin/info/system?wt=json`);
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+async function getClusterReplicaHealth(solrUrl) {
+  const health = new Map;
+  try {
+    const url2 = `${solrUrl}/solr/admin/collections?action=CLUSTERSTATUS&wt=json`;
+    const response = await fetch(url2);
+    if (!response.ok)
+      return health;
+    const body = await response.json();
+    for (const [collection, detail] of Object.entries(body.cluster?.collections ?? {})) {
+      const shards = Object.entries(detail.shards ?? {}).map(([shard, shardDetail]) => {
+        const replicas = Object.values(shardDetail.replicas ?? {});
+        return {
+          shard,
+          replicas: replicas.length,
+          activeReplicas: replicas.filter((r) => r.state === "active").length,
+          leader: replicas.some((r) => r.leader === true || r.leader === "true")
+        };
+      });
+      health.set(collection, {
+        collection,
+        shards,
+        minActiveReplicas: shards.length > 0 ? Math.min(...shards.map((s) => s.activeReplicas)) : null
+      });
+    }
+  } catch {}
+  return health;
+}
+async function getReplicaHealth(solrUrl, collection) {
+  const cluster = await getClusterReplicaHealth(solrUrl);
+  return cluster.get(collection) ?? {
+    collection,
+    shards: [],
+    minActiveReplicas: null,
+    error: "collection not present in cluster status"
+  };
+}
+async function readBody(response) {
+  try {
+    return await response.json();
+  } catch {
+    return;
+  }
+}
+function describe3(body) {
+  if (body == null)
+    return "no response body";
+  const error48 = body.error;
+  return error48?.msg ?? JSON.stringify(body);
+}
+
+// src/tools/compass-backup.ts
 init_errors();
 
 // src/memory-model.ts
@@ -43317,21 +43819,532 @@ function escapePhrase(value) {
   return value.replace(/\\/g, "\\\\").replace(/"/g, "\\\"");
 }
 
+// src/solr-async.ts
+init_errors();
+var defaultSleep2 = (ms) => new Promise((r) => setTimeout(r, ms));
+function asyncRequestId(prefix, discriminator) {
+  const safe = `${prefix}-${discriminator}`.replace(/[^A-Za-z0-9._-]+/g, "-");
+  return safe.slice(0, 120);
+}
+async function runAsyncCommand(solrUrl, params, requestId, options2 = {}) {
+  const fetchImpl = options2.fetchImpl ?? fetch;
+  const now = options2.now ?? Date.now;
+  const started = now();
+  const submit = new URLSearchParams(params);
+  submit.set("async", requestId);
+  const response = await fetchImpl(`${solrUrl}/solr/admin/collections?${submit.toString()}`);
+  if (!response.ok) {
+    const body = await safeText(response);
+    if (body.includes("Task with the same requestid already exists")) {
+      throw new SoukCompassError(`Solr already holds a status for request id "${requestId}". ` + "Clear it with action=DELETESTATUS&requestid=" + `${requestId}, or use a different snapshot id.`, ErrorCodes.SOLR_HTTP, { httpStatus: response.status });
+    }
+    throw new SoukCompassError(`Solr HTTP ${response.status} submitting async request: ${body}`, ErrorCodes.SOLR_HTTP, { httpStatus: response.status });
+  }
+  const result = await awaitRequest(solrUrl, requestId, options2, started);
+  await deleteRequestStatus(solrUrl, requestId, fetchImpl);
+  return result;
+}
+async function awaitRequest(solrUrl, requestId, options2 = {}, startedAt) {
+  const fetchImpl = options2.fetchImpl ?? fetch;
+  const sleep = options2.sleep ?? defaultSleep2;
+  const now = options2.now ?? Date.now;
+  const timeoutMs = options2.timeoutMs ?? 600000;
+  const pollIntervalMs = options2.pollIntervalMs ?? 2000;
+  const started = startedAt ?? now();
+  for (;; ) {
+    const status = await readStatus(solrUrl, requestId, fetchImpl);
+    if (status.state !== "running") {
+      return { requestId, ...status, elapsedMs: now() - started };
+    }
+    if (now() - started >= timeoutMs) {
+      return {
+        requestId,
+        state: "running",
+        message: `Still running after ${Math.round(timeoutMs / 1000)}s. The operation ` + "has not failed \u2014 Solr is still working. Raise timeoutSeconds, or " + `poll action=REQUESTSTATUS&requestid=${requestId}.`,
+        elapsedMs: now() - started
+      };
+    }
+    await sleep(pollIntervalMs);
+  }
+}
+async function readStatus(solrUrl, requestId, fetchImpl) {
+  const url2 = `${solrUrl}/solr/admin/collections?action=REQUESTSTATUS` + `&requestid=${encodeURIComponent(requestId)}&wt=json`;
+  const response = await fetchImpl(url2);
+  if (!response.ok) {
+    throw new SoukCompassError(`Solr HTTP ${response.status} polling request "${requestId}".`, ErrorCodes.SOLR_HTTP, { httpStatus: response.status });
+  }
+  const body = await response.json();
+  const raw = body.status?.state ?? "notfound";
+  const state = raw === "completed" || raw === "failed" || raw === "running" ? raw : raw === "submitted" ? "running" : "notfound";
+  return { state, ...body.status?.msg ? { message: body.status.msg } : {} };
+}
+async function deleteRequestStatus(solrUrl, requestId, fetchImpl = fetch) {
+  try {
+    await fetchImpl(`${solrUrl}/solr/admin/collections?action=DELETESTATUS` + `&requestid=${encodeURIComponent(requestId)}&wt=json`);
+  } catch {}
+}
+async function safeText(response) {
+  try {
+    return await response.text();
+  } catch {
+    return response.statusText;
+  }
+}
+
+// src/tools/compass-backup.ts
+var ALL_PARTITIONS = ["artifacts", "memory", "codebase"];
+var CONFIG_NAME2 = "souk-compass";
+var DEFAULT_TIMEOUT_SECONDS = 600;
+async function handleCompassBackup(input, ctx) {
+  try {
+    switch (input.action ?? "list") {
+      case "save":
+        return await save(input, ctx);
+      case "restore":
+        return await restore(input, ctx);
+      case "list":
+        return await list(input, ctx);
+      case "verify":
+        return await verify(input, ctx);
+      case "prune":
+        return await prune(input, ctx);
+    }
+  } catch (err) {
+    if (err instanceof SoukCompassError) {
+      return jsonResult({ action: input.action, error: err.message });
+    }
+    throw err;
+  }
+}
+async function save(input, ctx) {
+  const snapshotId = requireSnapshotId(input, "save");
+  const tenants = tenantsFor(ctx, input.tenant);
+  const timeoutMs = timeoutMsOf(input);
+  const results = [];
+  const captured = [];
+  for (const tenant of tenants) {
+    if (!await isSolrReachable(tenant.solrUrl)) {
+      results.push({
+        tenant: tenant.id,
+        success: false,
+        error: `Solr at ${tenant.solrUrl} is unreachable.`
+      });
+      continue;
+    }
+    for (const partition of ALL_PARTITIONS) {
+      const collection = tenant.collections[partition];
+      const backupName = backupNameFor(snapshotId, collection);
+      const facets = await collectionFacets(tenant.solrUrl, collection);
+      if (facets.docCount === null) {
+        results.push({
+          tenant: tenant.id,
+          collection,
+          success: false,
+          error: facets.error ?? "collection unreadable"
+        });
+        continue;
+      }
+      const outcome = await runAsyncCommand(tenant.solrUrl, backupParams(collection, {
+        backupName,
+        location: tenant.backup.location,
+        repository: repositoryParam(tenant)
+      }), asyncRequestId("souk-backup", `${snapshotId}-${collection}`), { timeoutMs });
+      const success3 = outcome.state === "completed";
+      results.push({
+        tenant: tenant.id,
+        partition,
+        collection,
+        backupName,
+        repository: tenant.backup.repository,
+        success: success3,
+        state: outcome.state,
+        elapsedMs: outcome.elapsedMs,
+        ...outcome.message ? { message: outcome.message } : {}
+      });
+      if (success3) {
+        captured.push({
+          tenant: tenant.id,
+          partition,
+          collection,
+          backupName,
+          solrUrl: tenant.solrUrl,
+          docCount: facets.docCount,
+          durability: tenant.durability,
+          ...facets.embedProviders ? { embedProviders: facets.embedProviders } : {},
+          ...facets.byTenant ? { byTenant: facets.byTenant } : {},
+          ...facets.schemaVersions ? { schemaVersions: facets.schemaVersions } : {}
+        });
+      }
+    }
+  }
+  if (captured.length === 0) {
+    return jsonResult({
+      action: "save",
+      snapshotId,
+      success: false,
+      results,
+      message: "Nothing was captured, so no manifest was written. A manifest naming " + "zero collections would look like a valid empty snapshot."
+    });
+  }
+  const manifest = buildManifest(snapshotId, ctx, tenants, captured);
+  const written = [];
+  for (const tenant of distinctRepositories(tenants)) {
+    const scoped = {
+      ...manifest,
+      repository: repositoryDescriptor(tenant),
+      collections: captured.filter((c) => tenantsSharingRepository(tenants, tenant).includes(c.tenant))
+    };
+    if (scoped.collections.length === 0)
+      continue;
+    written.push({
+      repository: tenant.backup.repository,
+      ...writeManifest(ctx.config, tenant.backup, scoped)
+    });
+  }
+  const success2 = results.every((r) => r.success === true);
+  return jsonResult({
+    action: "save",
+    snapshotId,
+    success: success2,
+    collectionsCaptured: captured.length,
+    manifests: written,
+    results,
+    nextStep: success2 ? `Restore with compass_backup({ action: "restore", snapshotId: "${snapshotId}" }).` : "Some collections were not captured; the manifest covers only the ones that were."
+  });
+}
+async function restore(input, ctx) {
+  const snapshotId = requireSnapshotId(input, "restore");
+  const tenant = resolveTenant(ctx.tenants, input.tenant);
+  const timeoutMs = timeoutMsOf(input);
+  const { manifest, source } = readManifest(ctx.config, tenant.backup, snapshotId);
+  const configured = modelIdentity(ctx.embeddingProvider);
+  const mismatch = manifest.embedProvider !== configured || manifest.embedDimensions !== ctx.embeddingProvider.dimensions;
+  if (mismatch && !input.force) {
+    return jsonResult({
+      action: "restore",
+      snapshotId,
+      success: false,
+      error: "embedding_mismatch",
+      snapshot: {
+        embedProvider: manifest.embedProvider,
+        embedDimensions: manifest.embedDimensions
+      },
+      configured: {
+        embedProvider: configured,
+        embedDimensions: ctx.embeddingProvider.dimensions
+      },
+      message: "This snapshot was built with a different embedding model. Restoring " + "it would produce an index that answers every query and ranks by " + "nothing, with no error to notice. Configure the original provider, " + "or pass force: true and reindex afterwards."
+    });
+  }
+  if (!await isSolrReachable(tenant.solrUrl)) {
+    return jsonResult({
+      action: "restore",
+      snapshotId,
+      success: false,
+      error: "solr_unreachable",
+      message: `Solr at ${tenant.solrUrl} is not responding. Start it first with ` + 'compass_setup({ action: "initialize" }) \u2014 that also uploads the ' + "configset a restore needs."
+    });
+  }
+  const targets = manifest.collections.filter((c) => !input.tenant || c.tenant === tenant.id);
+  const results = [];
+  for (const target of targets) {
+    const existing = await getCollectionInfo(target.solrUrl, target.collection);
+    if (existing.exists) {
+      results.push({
+        collection: target.collection,
+        success: false,
+        error: "collection_exists",
+        docCount: existing.docCount,
+        message: `Collection "${target.collection}" already exists with ` + `${existing.docCount ?? "?"} documents. Solr restores only into a ` + "collection that does not exist." + (existing.docCount === 0 ? ' It is empty, which usually means compass_setup "initialize" ' + "created it \u2014 that action provisions collections, so a rebuild " + 'you intend to restore into wants "start" instead. Delete the ' + "empty collection and retry." : " Delete it first if you mean to replace it.")
+      });
+      continue;
+    }
+    const outcome = await runAsyncCommand(target.solrUrl, restoreParams({
+      backupName: target.backupName,
+      collection: target.collection,
+      location: manifest.repository.location,
+      repository: repositoryParam(tenant),
+      durability: target.durability
+    }), asyncRequestId("souk-restore", `${snapshotId}-${target.collection}`), { timeoutMs });
+    results.push({
+      tenant: target.tenant,
+      partition: target.partition,
+      collection: target.collection,
+      success: outcome.state === "completed",
+      state: outcome.state,
+      elapsedMs: outcome.elapsedMs,
+      ...outcome.message ? { message: outcome.message } : {}
+    });
+  }
+  const registry2 = restoreRegistry(ctx, manifest);
+  const verification = await verifyAgainst(manifest, targets);
+  const success2 = results.every((r) => r.success === true) && verification.every((v) => v.matches !== false);
+  return jsonResult({
+    action: "restore",
+    snapshotId,
+    success: success2,
+    manifestSource: source,
+    ...mismatch ? { forcedEmbeddingMismatch: true } : {},
+    results,
+    verification,
+    registry: registry2,
+    ...success2 ? {} : {
+      hint: "A restore that reports collection_exists is safe \u2014 nothing was " + "overwritten. Anything else: check compass_status for the live state."
+    }
+  });
+}
+function restoreRegistry(ctx, manifest) {
+  const path = ctx.config.tenantRegistryPath ?? defaultTenantRegistryPath();
+  if (ctx.tenants.sourcePath) {
+    return {
+      written: false,
+      path: ctx.tenants.sourcePath,
+      reason: "a tenant registry is already present and was left untouched"
+    };
+  }
+  if (manifest.registry.tenants.length === 0) {
+    return { written: false, reason: "snapshot declares no explicit tenants" };
+  }
+  try {
+    mkdirSync3(dirname3(path), { recursive: true });
+    writeFileSync2(path, `${JSON.stringify(manifest.registry, null, 2)}
+`, {
+      encoding: "utf-8"
+    });
+    return {
+      written: true,
+      path,
+      tenants: manifest.registry.tenants.map((t) => t.id),
+      note: "Restart the MCP server to pick up the restored registry."
+    };
+  } catch (err) {
+    return {
+      written: false,
+      path,
+      error: err instanceof Error ? err.message : String(err)
+    };
+  }
+}
+async function verify(input, ctx) {
+  const snapshotId = requireSnapshotId(input, "verify");
+  const tenant = resolveTenant(ctx.tenants, input.tenant);
+  const { manifest } = readManifest(ctx.config, tenant.backup, snapshotId);
+  const verification = await verifyAgainst(manifest, manifest.collections);
+  return jsonResult({
+    action: "verify",
+    snapshotId,
+    success: verification.every((v) => v.matches === true),
+    capturedAt: manifest.createdAt,
+    embedProvider: manifest.embedProvider,
+    verification
+  });
+}
+async function verifyAgainst(manifest, targets) {
+  const out = [];
+  for (const target of targets) {
+    const facets = await collectionFacets(target.solrUrl, target.collection);
+    if (facets.docCount === null) {
+      out.push({
+        collection: target.collection,
+        matches: false,
+        expectedDocCount: target.docCount,
+        error: facets.error ?? "unreadable"
+      });
+      continue;
+    }
+    const matches = facets.docCount === target.docCount;
+    out.push({
+      collection: target.collection,
+      tenant: target.tenant,
+      matches,
+      expectedDocCount: target.docCount,
+      actualDocCount: facets.docCount,
+      ...matches ? {} : {
+        note: facets.docCount > (target.docCount ?? 0) ? "More documents than the snapshot recorded \u2014 the collection has been written to since." : "Fewer documents than the snapshot recorded."
+      },
+      expectedProviders: target.embedProviders,
+      actualProviders: facets.embedProviders
+    });
+  }
+  return out;
+}
+async function list(input, ctx) {
+  const tenants = tenantsFor(ctx, input.tenant);
+  const repositories = [];
+  for (const tenant of distinctRepositories(tenants)) {
+    const manifests = listManifests(ctx.config, tenant.backup);
+    const solrBackups = [];
+    if (await isSolrReachable(tenant.solrUrl)) {
+      for (const manifest of manifests) {
+        for (const partition of ALL_PARTITIONS) {
+          const collection = tenant.collections[partition];
+          const found = await listBackups(tenant.solrUrl, backupNameFor(manifest.snapshotId, collection), {
+            location: tenant.backup.location,
+            repository: repositoryParam(tenant)
+          });
+          if (found.backups.length > 0) {
+            solrBackups.push({
+              snapshotId: manifest.snapshotId,
+              collection,
+              points: found.backups.length,
+              latest: found.backups.at(-1)
+            });
+          }
+        }
+      }
+    }
+    repositories.push({
+      repository: tenant.backup.repository,
+      type: tenant.backup.type,
+      location: tenant.backup.location,
+      ...tenant.backup.s3 ? { s3: tenant.backup.s3 } : {},
+      tenants: tenantsSharingRepository(tenants, tenant),
+      snapshots: manifests,
+      ...solrBackups.length > 0 ? { solrBackups } : {}
+    });
+  }
+  return jsonResult({
+    action: "list",
+    repositories,
+    ...repositories.every((r) => r.snapshots.length === 0) ? {
+      message: "No snapshots found. Take one with " + 'compass_backup({ action: "save", snapshotId: "..." }).'
+    } : {}
+  });
+}
+async function prune(input, ctx) {
+  const keep = input.keep;
+  if (!keep) {
+    return jsonResult({
+      action: "prune",
+      error: 'prune requires "keep" \u2014 the number of backup points to retain.'
+    });
+  }
+  const tenants = tenantsFor(ctx, input.tenant);
+  const results = [];
+  for (const tenant of tenants) {
+    for (const partition of ALL_PARTITIONS) {
+      const collection = tenant.collections[partition];
+      for (const manifest of listManifests(ctx.config, tenant.backup)) {
+        const outcome = await pruneBackups(tenant.solrUrl, backupNameFor(manifest.snapshotId, collection), {
+          location: tenant.backup.location,
+          repository: repositoryParam(tenant),
+          keep
+        });
+        if (outcome.success || outcome.error) {
+          results.push({
+            tenant: tenant.id,
+            collection,
+            snapshotId: manifest.snapshotId,
+            ...outcome
+          });
+        }
+      }
+    }
+  }
+  return jsonResult({
+    action: "prune",
+    keep,
+    results,
+    note: "Manifests are left in place; they describe snapshots whose older backup points may now be gone."
+  });
+}
+function backupNameFor(snapshotId, collection) {
+  return `${snapshotId}-${collection}`;
+}
+function buildManifest(snapshotId, ctx, tenants, collections) {
+  return {
+    manifestVersion: 1,
+    snapshotId,
+    createdAt: new Date().toISOString(),
+    embedProvider: modelIdentity(ctx.embeddingProvider),
+    embedDimensions: ctx.embeddingProvider.dimensions,
+    schemaVersion: MEMORY_SCHEMA_VERSION,
+    configName: CONFIG_NAME2,
+    repository: repositoryDescriptor(tenants[0]),
+    registry: {
+      defaultTenant: ctx.tenants.defaultTenantId,
+      collectionPrefix: ctx.tenants.collectionPrefix,
+      tenants: tenants.map((t) => ({
+        id: t.id,
+        scope: t.scope,
+        displayName: t.displayName,
+        access: t.access,
+        precedence: t.precedence,
+        solrUrl: t.solrUrl,
+        collections: t.collections,
+        durability: t.durability,
+        backup: {
+          repository: t.backup.repository,
+          location: t.backup.location,
+          ...t.backup.s3 ? { s3: t.backup.s3 } : {}
+        }
+      }))
+    },
+    collections
+  };
+}
+function repositoryDescriptor(tenant) {
+  return {
+    name: tenant.backup.repository,
+    type: tenant.backup.type,
+    location: tenant.backup.location,
+    ...tenant.backup.s3 ? { s3: tenant.backup.s3 } : {}
+  };
+}
+function repositoryParam(tenant) {
+  return tenant.backup.type === "local" ? undefined : tenant.backup.repository;
+}
+function distinctRepositories(tenants) {
+  const seen = new Set;
+  return tenants.filter((t) => {
+    const key = `${t.backup.repository} ${t.backup.location}`;
+    if (seen.has(key))
+      return false;
+    seen.add(key);
+    return true;
+  });
+}
+function tenantsSharingRepository(tenants, tenant) {
+  return tenants.filter((t) => t.backup.repository === tenant.backup.repository && t.backup.location === tenant.backup.location).map((t) => t.id);
+}
+function tenantsFor(ctx, tenantId) {
+  return tenantId ? [resolveTenant(ctx.tenants, tenantId)] : ctx.tenants.tenants;
+}
+function requireSnapshotId(input, action) {
+  const id = input.snapshotId?.trim();
+  if (!id) {
+    throw new SoukCompassError(`compass_backup ${action} requires a "snapshotId".`, ErrorCodes.CONFIG_INVALID);
+  }
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(id)) {
+    throw new SoukCompassError(`Snapshot id "${id}" must start alphanumeric and contain only letters, ` + "digits, dot, underscore or hyphen \u2014 it becomes both a Solr backup " + "name and a filename.", ErrorCodes.CONFIG_INVALID);
+  }
+  return id;
+}
+function timeoutMsOf(input) {
+  return (input.timeoutSeconds ?? DEFAULT_TIMEOUT_SECONDS) * 1000;
+}
+function jsonResult(data) {
+  return {
+    content: [{ type: "text", text: JSON.stringify(data, null, 2) }]
+  };
+}
+
 // src/tools/compass-forget.ts
+init_errors();
 async function handleCompassForget(input, ctx) {
   try {
     const tenant = requireWritableTenant(ctx.tenants, input.tenant);
     const client = ctx.clientFor(tenant, "memory");
     const now = new Date().toISOString();
     if (!input.id && !input.logicalId) {
-      return jsonResult({
+      return jsonResult2({
         retracted: [],
         error: 'compass_forget requires either "id" or "logicalId".'
       });
     }
     const targets = input.id ? await loadOne(client, input.id) : await loadActiveRevisions(client, input.logicalId);
     if (targets.length === 0) {
-      return jsonResult({
+      return jsonResult2({
         tenant: tenant.id,
         collection: client.collectionName,
         retracted: [],
@@ -43357,7 +44370,7 @@ async function handleCompassForget(input, ctx) {
       }
     }
     await client.commit();
-    return jsonResult({
+    return jsonResult2({
       tenant: tenant.id,
       collection: client.collectionName,
       retractedAt: now,
@@ -43367,7 +44380,7 @@ async function handleCompassForget(input, ctx) {
     });
   } catch (err) {
     if (err instanceof SoukCompassError && (err.code === ErrorCodes.SOLR_CONNECTION || err.code === ErrorCodes.TENANT_UNKNOWN || err.code === ErrorCodes.TENANT_READ_ONLY)) {
-      return jsonResult({ retracted: [], error: err.message });
+      return jsonResult2({ retracted: [], error: err.message });
     }
     throw err;
   }
@@ -43403,7 +44416,7 @@ function readVector(doc2) {
   }
   throw new SoukCompassError(`Stored document ${String(doc2.id)} has no readable vector, so it cannot be rewritten without losing searchability.`, ErrorCodes.SERIALIZATION);
 }
-function jsonResult(data) {
+function jsonResult2(data) {
   return {
     content: [{ type: "text", text: JSON.stringify(data, null, 2) }]
   };
@@ -43447,16 +44460,16 @@ async function checkCollectionExists(solrUrl, collectionName) {
 init_schemas3();
 var import_gray_matter = __toESM(require_gray_matter(), 1);
 import { readFile } from "fs/promises";
-import { join as join3 } from "path";
+import { join as join4 } from "path";
 async function loadCatalog(contentRoot) {
-  const catalogPath = join3(contentRoot, "catalog.json");
+  const catalogPath = join4(contentRoot, "catalog.json");
   const raw = await readFile(catalogPath, "utf-8");
   const parsed = JSON.parse(raw);
   return CatalogSchema.parse(parsed);
 }
 async function readArtifactContent(contentRoot, entry) {
-  const relativePath = entry.path ?? join3("knowledge", entry.name);
-  const filePath = join3(contentRoot, relativePath, "knowledge.md");
+  const relativePath = entry.path ?? join4("knowledge", entry.name);
+  const filePath = join4(contentRoot, relativePath, "knowledge.md");
   const raw = await readFile(filePath, "utf-8");
   const parsed = import_gray_matter.default(raw);
   return { frontmatter: parsed.data, body: parsed.content };
@@ -43640,7 +44653,7 @@ async function handleCompassIndexArtifacts(input, ctx) {
   if (input.all) {
     return indexAll(catalog, ctx, chunked);
   }
-  return jsonResult2({
+  return jsonResult3({
     indexed: 0,
     errors: 0,
     details: [],
@@ -43650,7 +44663,7 @@ async function handleCompassIndexArtifacts(input, ctx) {
 async function indexSingle(name, catalog, ctx, chunked) {
   const entry = catalog.find((e) => e.name === name);
   if (!entry) {
-    return jsonResult2({
+    return jsonResult3({
       indexed: 0,
       errors: 1,
       details: [{ name, error: `Artifact "${name}" not found in catalog.` }]
@@ -43668,7 +44681,7 @@ async function indexSingle(name, catalog, ctx, chunked) {
         await ctx.solrClient.upsert(chunkDoc.id, chunkDoc.text, chunkDoc.vector, extractMetadata(chunkDoc), { commit: false });
       }
       await ctx.solrClient.commit();
-      return jsonResult2({
+      return jsonResult3({
         indexed: chunkDocs.length,
         errors: 0,
         details: [
@@ -43680,7 +44693,7 @@ async function indexSingle(name, catalog, ctx, chunked) {
     const embedding = await ctx.embeddingProvider.embed(embeddingText);
     const doc3 = toSolrDocument(entry, embeddingText, embedding, modelIdentity(ctx.embeddingProvider));
     await ctx.solrClient.upsert(doc3.id, doc3.text, doc3.vector, extractMetadata(doc3));
-    return jsonResult2({
+    return jsonResult3({
       indexed: 1,
       errors: 0,
       details: [{ name: entry.name, status: "indexed" }]
@@ -43731,7 +44744,7 @@ async function indexAll(catalog, ctx, chunked) {
     try {
       await ctx.solrClient.commit();
     } catch (err) {
-      return jsonResult2({
+      return jsonResult3({
         indexed,
         errors: errors5 + 1,
         details,
@@ -43739,7 +44752,7 @@ async function indexAll(catalog, ctx, chunked) {
       });
     }
   }
-  return jsonResult2({ indexed, errors: errors5, details });
+  return jsonResult3({ indexed, errors: errors5, details });
 }
 function extractArtifactMetadata(entry) {
   const meta5 = {};
@@ -43793,7 +44806,7 @@ function extractMetadata(doc3) {
 }
 function handleIndexError(name, err) {
   if (err instanceof SoukCompassError && err.code === ErrorCodes.SOLR_CONNECTION) {
-    return jsonResult2({
+    return jsonResult3({
       indexed: 0,
       errors: 1,
       details: [
@@ -43804,7 +44817,7 @@ function handleIndexError(name, err) {
       ]
     });
   }
-  return jsonResult2({
+  return jsonResult3({
     indexed: 0,
     errors: 1,
     details: [
@@ -43812,7 +44825,7 @@ function handleIndexError(name, err) {
     ]
   });
 }
-function jsonResult2(data) {
+function jsonResult3(data) {
   return {
     content: [{ type: "text", text: JSON.stringify(data, null, 2) }]
   };
@@ -43826,14 +44839,14 @@ async function handleCompassIndexDocument(input, ctx) {
     const doc3 = toUserSolrDocument(input.id, input.text, embedding, input.metadata, modelIdentity(ctx.embeddingProvider));
     const client = input.collection ? new SoukVectorClient(ctx.config.solrUrl, input.collection) : ctx.userSolrClient;
     await client.upsert(doc3.id, doc3.text, doc3.vector, extractMetadata2(doc3));
-    return jsonResult3({
+    return jsonResult4({
       id: input.id,
       indexed: true,
       collection: input.collection ?? ctx.config.userCollection
     });
   } catch (err) {
     if (err instanceof SoukCompassError && err.code === ErrorCodes.SOLR_CONNECTION) {
-      return jsonResult3({
+      return jsonResult4({
         id: input.id,
         indexed: false,
         error: `Solr is unreachable. Ensure Solr is running at the configured URL. ${err.message}`
@@ -43851,7 +44864,7 @@ function extractMetadata2(doc3) {
   }
   return meta5;
 }
-function jsonResult3(data) {
+function jsonResult4(data) {
   return {
     content: [{ type: "text", text: JSON.stringify(data, null, 2) }]
   };
@@ -43859,7 +44872,7 @@ function jsonResult3(data) {
 
 // src/tools/compass-index-folder.ts
 import { readdir, readFile as readFile2, stat } from "fs/promises";
-import { basename as basename3, extname, join as join4, relative, resolve as resolve2 } from "path";
+import { basename as basename3, extname, join as join5, relative, resolve as resolve2 } from "path";
 
 // src/codebase-docs.ts
 import { createHash as createHash3 } from "crypto";
@@ -43946,189 +44959,6 @@ ${chunks[0].text}`,
 ${chunk.text}`,
     relativePath
   }));
-}
-
-// src/collections.ts
-init_errors();
-var CONFIG_NAME = "souk-compass";
-var DEFAULT_DURABILITY = {
-  numShards: 1,
-  replicationFactor: 1,
-  tlogReplicas: 0,
-  pullReplicas: 0
-};
-async function getCollectionInfo(solrUrl, name) {
-  try {
-    const url3 = `${solrUrl}/solr/${encodeURIComponent(name)}/select?q=*:*&rows=0&wt=json`;
-    const response = await fetch(url3);
-    if (!response.ok)
-      return { name, exists: false, docCount: null };
-    const body = await response.json();
-    return { name, exists: true, docCount: body.response?.numFound ?? 0 };
-  } catch {
-    return { name, exists: false, docCount: null };
-  }
-}
-async function createCollection(solrUrl, name, durability = DEFAULT_DURABILITY) {
-  const params = new URLSearchParams({
-    action: "CREATE",
-    name,
-    numShards: String(durability.numShards),
-    replicationFactor: String(durability.replicationFactor),
-    "collection.configName": CONFIG_NAME,
-    wt: "json"
-  });
-  if (durability.tlogReplicas > 0) {
-    params.set("tlogReplicas", String(durability.tlogReplicas));
-  }
-  if (durability.pullReplicas > 0) {
-    params.set("pullReplicas", String(durability.pullReplicas));
-  }
-  try {
-    const response = await fetch(`${solrUrl}/solr/admin/collections?${params.toString()}`);
-    if (response.ok)
-      return { name, created: true, durability };
-    const body = await response.text();
-    return {
-      name,
-      created: false,
-      durability,
-      error: body.includes("already exists") ? "Collection already exists" : `HTTP ${response.status}: ${body}`
-    };
-  } catch (err) {
-    return {
-      name,
-      created: false,
-      durability,
-      error: err instanceof Error ? err.message : String(err)
-    };
-  }
-}
-async function requireCollection(solrUrl, name) {
-  const info = await getCollectionInfo(solrUrl, name);
-  if (info.exists)
-    return;
-  throw new SoukCompassError(`Collection "${name}" does not exist. Create it with: ` + `compass_setup({ action: "create_collection", name: "${name}" }) \u2014 ` + `or omit the "collection" argument to use the configured default.`, ErrorCodes.CONFIG_INVALID);
-}
-async function backupCollection(solrUrl, collection, options2) {
-  const params = new URLSearchParams({
-    action: "BACKUP",
-    collection,
-    name: options2.backupName,
-    location: options2.location,
-    wt: "json"
-  });
-  if (options2.async)
-    params.set("async", options2.async);
-  const base = {
-    collection,
-    backupName: options2.backupName,
-    location: options2.location
-  };
-  try {
-    const response = await fetch(`${solrUrl}/solr/admin/collections?${params.toString()}`);
-    const body = await readBody(response);
-    if (!response.ok) {
-      return {
-        ...base,
-        success: false,
-        error: `HTTP ${response.status}: ${describe5(body)}`
-      };
-    }
-    return { ...base, success: true, response: body };
-  } catch (err) {
-    return {
-      ...base,
-      success: false,
-      error: err instanceof Error ? err.message : String(err)
-    };
-  }
-}
-async function restoreCollection(solrUrl, options2) {
-  const durability = options2.durability ?? DEFAULT_DURABILITY;
-  const params = new URLSearchParams({
-    action: "RESTORE",
-    name: options2.backupName,
-    location: options2.location,
-    collection: options2.collection,
-    replicationFactor: String(durability.replicationFactor),
-    "collection.configName": CONFIG_NAME,
-    wt: "json"
-  });
-  if (options2.async)
-    params.set("async", options2.async);
-  const base = {
-    collection: options2.collection,
-    backupName: options2.backupName,
-    location: options2.location
-  };
-  try {
-    const response = await fetch(`${solrUrl}/solr/admin/collections?${params.toString()}`);
-    const body = await readBody(response);
-    if (!response.ok) {
-      return {
-        ...base,
-        success: false,
-        error: `HTTP ${response.status}: ${describe5(body)}`
-      };
-    }
-    return { ...base, success: true, response: body };
-  } catch (err) {
-    return {
-      ...base,
-      success: false,
-      error: err instanceof Error ? err.message : String(err)
-    };
-  }
-}
-async function getClusterReplicaHealth(solrUrl) {
-  const health = new Map;
-  try {
-    const url3 = `${solrUrl}/solr/admin/collections?action=CLUSTERSTATUS&wt=json`;
-    const response = await fetch(url3);
-    if (!response.ok)
-      return health;
-    const body = await response.json();
-    for (const [collection, detail] of Object.entries(body.cluster?.collections ?? {})) {
-      const shards = Object.entries(detail.shards ?? {}).map(([shard, shardDetail]) => {
-        const replicas = Object.values(shardDetail.replicas ?? {});
-        return {
-          shard,
-          replicas: replicas.length,
-          activeReplicas: replicas.filter((r) => r.state === "active").length,
-          leader: replicas.some((r) => r.leader === true || r.leader === "true")
-        };
-      });
-      health.set(collection, {
-        collection,
-        shards,
-        minActiveReplicas: shards.length > 0 ? Math.min(...shards.map((s) => s.activeReplicas)) : null
-      });
-    }
-  } catch {}
-  return health;
-}
-async function getReplicaHealth(solrUrl, collection) {
-  const cluster = await getClusterReplicaHealth(solrUrl);
-  return cluster.get(collection) ?? {
-    collection,
-    shards: [],
-    minActiveReplicas: null,
-    error: "collection not present in cluster status"
-  };
-}
-async function readBody(response) {
-  try {
-    return await response.json();
-  } catch {
-    return;
-  }
-}
-function describe5(body) {
-  if (body == null)
-    return "no response body";
-  const error95 = body.error;
-  return error95?.msg ?? JSON.stringify(body);
 }
 
 // src/tools/compass-index-folder.ts
@@ -44282,7 +45112,7 @@ async function walkDirectory(dir, include, exclude, maxFileSize, rootDir) {
       return;
     }
     for (const name of entries) {
-      const absolutePath = join4(currentDir, name);
+      const absolutePath = join5(currentDir, name);
       const relativePath = relative(rootDir, absolutePath);
       let fileStat;
       try {
@@ -44323,7 +45153,7 @@ async function handleCompassIndexFolder(input, ctx) {
     try {
       await requireCollection(ctx.config.solrUrl, input.collection);
     } catch (err) {
-      return jsonResult4({
+      return jsonResult5({
         indexed: 0,
         errors: 1,
         message: err instanceof Error ? err.message : String(err)
@@ -44347,14 +45177,14 @@ async function handleCompassIndexFolder(input, ctx) {
   try {
     const folderStat = await stat(folderPath);
     if (!folderStat.isDirectory()) {
-      return jsonResult4({
+      return jsonResult5({
         indexed: 0,
         errors: 1,
         message: `Path "${input.path}" is not a directory.`
       });
     }
   } catch {
-    return jsonResult4({
+    return jsonResult5({
       indexed: 0,
       errors: 1,
       message: `Directory "${input.path}" does not exist or is not accessible.`
@@ -44372,7 +45202,7 @@ async function handleCompassIndexFolder(input, ctx) {
       });
     } catch (err) {
       if (err instanceof SoukCompassError && err.code === ErrorCodes.SOLR_CONNECTION) {
-        return jsonResult4({
+        return jsonResult5({
           indexed: 0,
           errors: 1,
           message: `Solr is unreachable. Ensure Solr is running at ${ctx.config.solrUrl}.`
@@ -44382,7 +45212,7 @@ async function handleCompassIndexFolder(input, ctx) {
   }
   const files = await walkDirectory(folderPath, include, exclude, maxFileSize, folderPath);
   if (files.length === 0) {
-    return jsonResult4({
+    return jsonResult5({
       indexed: 0,
       errors: 0,
       filesScanned: 0,
@@ -44457,7 +45287,7 @@ async function handleCompassIndexFolder(input, ctx) {
   try {
     await codebaseClient.commit();
   } catch (err) {
-    return jsonResult4({
+    return jsonResult5({
       indexed,
       errors: errors5 + 1,
       filesScanned: files.length,
@@ -44481,9 +45311,9 @@ async function handleCompassIndexFolder(input, ctx) {
       result.errorsTruncated = errorDetails.length - 10;
     }
   }
-  return jsonResult4(result);
+  return jsonResult5(result);
 }
-function jsonResult4(data) {
+function jsonResult5(data) {
   return {
     content: [{ type: "text", text: JSON.stringify(data, null, 2) }]
   };
@@ -44555,7 +45385,7 @@ function generateMatchReason(workspaceDescription, artifactKeywords, artifactDes
 // src/tools/compass-profile-workspace.ts
 async function handleCompassProfileWorkspace(input, ctx) {
   if (!input.files || input.files.length === 0) {
-    return jsonResult5({
+    return jsonResult6({
       results: [],
       message: "No files provided. Include key workspace files like package.json, tsconfig.json, README.md for best results."
     });
@@ -44595,14 +45425,14 @@ async function handleCompassProfileWorkspace(input, ctx) {
         await ctx.userSolrClient.upsert(memDoc.id, memDoc.text, memDoc.vector, meta5);
       } catch {}
     }
-    return jsonResult5({
+    return jsonResult6({
       workspaceDescription: description,
       resultCount: results.length,
       results
     });
   } catch (err) {
     if (err instanceof SoukCompassError && err.code === ErrorCodes.SOLR_CONNECTION) {
-      return jsonResult5({
+      return jsonResult6({
         results: [],
         error: `Solr is unreachable. ${err.message}`
       });
@@ -44610,7 +45440,7 @@ async function handleCompassProfileWorkspace(input, ctx) {
     throw err;
   }
 }
-function jsonResult5(data) {
+function jsonResult6(data) {
   return {
     content: [{ type: "text", text: JSON.stringify(data, null, 2) }]
   };
@@ -44640,20 +45470,20 @@ async function handleCompassRecall(input, ctx) {
       rationale: `${r.description ?? ""} (keywords: ${r.collections?.join(", ") ?? "none"})`
     }));
     if (results.length === 0) {
-      return jsonResult6({
+      return jsonResult7({
         context: input.context,
         results: [],
         message: "No relevant artifacts found above the minimum score threshold."
       });
     }
-    return jsonResult6({
+    return jsonResult7({
       context: input.context,
       resultCount: results.length,
       results
     });
   } catch (err) {
     if (err instanceof SoukCompassError && err.code === ErrorCodes.SOLR_CONNECTION) {
-      return jsonResult6({
+      return jsonResult7({
         context: input.context,
         results: [],
         error: `Solr is unreachable. ${err.message}`
@@ -44662,7 +45492,7 @@ async function handleCompassRecall(input, ctx) {
     throw err;
   }
 }
-function jsonResult6(data) {
+function jsonResult7(data) {
   return {
     content: [{ type: "text", text: JSON.stringify(data, null, 2) }]
   };
@@ -44758,7 +45588,7 @@ async function handleCompassRecallMemory(input, ctx) {
         shadowNote: entry.crossTenant ? "A record from a lower-precedence tenant says something different about this subject." : "Earlier revisions of this record."
       } : {}
     }));
-    return jsonResult7({
+    return jsonResult8({
       query: input.query,
       asOf,
       tenants: consulted,
@@ -44767,14 +45597,14 @@ async function handleCompassRecallMemory(input, ctx) {
     });
   } catch (err) {
     if (err instanceof SoukCompassError && err.code === ErrorCodes.SOLR_CONNECTION) {
-      return jsonResult7({
+      return jsonResult8({
         query: input.query,
         results: [],
         error: `Solr is unreachable. ${err.message}`
       });
     }
     if (err instanceof SoukCompassError && err.code === ErrorCodes.TENANT_UNKNOWN) {
-      return jsonResult7({
+      return jsonResult8({
         query: input.query,
         results: [],
         error: err.message
@@ -44819,7 +45649,7 @@ function buildFilterQuery(input, tenants, asOf, includeSuperseded) {
     filters.push(`(${tags})`);
   return filters.join(" AND ");
 }
-function jsonResult7(data) {
+function jsonResult8(data) {
   return {
     content: [{ type: "text", text: JSON.stringify(data, null, 2) }]
   };
@@ -44892,10 +45722,10 @@ async function handleCompassReindex(input, ctx) {
     if (toIndex.length > 0 || removedIds.length > 0) {
       await ctx.solrClient.commit();
     }
-    return jsonResult8({ added, updated, unchanged, removed });
+    return jsonResult9({ added, updated, unchanged, removed });
   } catch (err) {
     if (err instanceof SoukCompassError && err.code === ErrorCodes.SOLR_CONNECTION) {
-      return jsonResult8({
+      return jsonResult9({
         added: 0,
         updated: 0,
         unchanged: 0,
@@ -44947,7 +45777,7 @@ function extractMetadata3(doc3) {
   }
   return meta5;
 }
-function jsonResult8(data) {
+function jsonResult9(data) {
   return {
     content: [{ type: "text", text: JSON.stringify(data, null, 2) }]
   };
@@ -44955,7 +45785,7 @@ function jsonResult8(data) {
 
 // src/tools/compass-reindex-folder.ts
 import { readdir as readdir2, readFile as readFile3, stat as stat2 } from "fs/promises";
-import { basename as basename4, extname as extname2, join as join5, relative as relative2, resolve as resolve3 } from "path";
+import { basename as basename4, extname as extname2, join as join6, relative as relative2, resolve as resolve3 } from "path";
 init_errors();
 var TEXT_EXTENSIONS2 = new Set([
   ".ts",
@@ -45106,7 +45936,7 @@ async function walkDirectory2(dir, include, exclude, maxFileSize, rootDir) {
       return;
     }
     for (const name of entries) {
-      const absolutePath = join5(currentDir, name);
+      const absolutePath = join6(currentDir, name);
       const relativePath = relative2(rootDir, absolutePath);
       let fileStat;
       try {
@@ -45142,7 +45972,7 @@ async function handleCompassReindexFolder(input, ctx) {
     try {
       await requireCollection(ctx.config.solrUrl, input.collection);
     } catch (err) {
-      return jsonResult9({
+      return jsonResult10({
         indexed: 0,
         errors: 1,
         message: err instanceof Error ? err.message : String(err)
@@ -45164,10 +45994,10 @@ async function handleCompassReindexFolder(input, ctx) {
   try {
     const folderStat = await stat2(folderPath);
     if (!folderStat.isDirectory()) {
-      return jsonResult9({ error: `Path "${input.path}" is not a directory.` });
+      return jsonResult10({ error: `Path "${input.path}" is not a directory.` });
     }
   } catch {
-    return jsonResult9({
+    return jsonResult10({
       error: `Directory "${input.path}" does not exist or is not accessible.`
     });
   }
@@ -45177,7 +46007,7 @@ async function handleCompassReindexFolder(input, ctx) {
     existingDocs = await fetchExistingHashes(ctx, collectionName);
   } catch (err) {
     if (err instanceof SoukCompassError && err.code === ErrorCodes.SOLR_CONNECTION) {
-      return jsonResult9({
+      return jsonResult10({
         error: `Solr is unreachable. Ensure Solr is running at ${ctx.config.solrUrl}.`
       });
     }
@@ -45293,7 +46123,7 @@ async function handleCompassReindexFolder(input, ctx) {
   try {
     await codebaseClient.commit();
   } catch (err) {
-    return jsonResult9({
+    return jsonResult10({
       error: `Changes applied but commit failed: ${err instanceof Error ? err.message : String(err)}`,
       added: added.length,
       updated: updated.length,
@@ -45304,7 +46134,7 @@ async function handleCompassReindexFolder(input, ctx) {
       errors: errors5
     });
   }
-  return jsonResult9({
+  return jsonResult10({
     added: new Set(added.map((a) => a.relativePath)).size,
     updated: new Set(updated.map((u) => u.relativePath)).size,
     unchanged,
@@ -45352,7 +46182,7 @@ async function fetchExistingHashes(ctx, collectionName) {
   }
   return docs;
 }
-function jsonResult9(data) {
+function jsonResult10(data) {
   return {
     content: [{ type: "text", text: JSON.stringify(data, null, 2) }]
   };
@@ -45374,7 +46204,7 @@ async function handleCompassRemember(input, ctx) {
     });
     if (plan.unchanged) {
       const current = existing.find((r) => r.revision === plan.revision);
-      return jsonResult10({
+      return jsonResult11({
         tenant: tenant.id,
         collection: client.collectionName,
         logicalId,
@@ -45406,7 +46236,7 @@ async function handleCompassRemember(input, ctx) {
     const superseded = await supersedePrior(client, existing, plan.supersedes, record4.id, now);
     if (plan.supersedes.length > 0)
       await client.commit();
-    return jsonResult10({
+    return jsonResult11({
       tenant: tenant.id,
       tenantScope: tenant.scope,
       collection: client.collectionName,
@@ -45425,10 +46255,10 @@ async function handleCompassRemember(input, ctx) {
     });
   } catch (err) {
     if (err instanceof SoukCompassError && err.code === ErrorCodes.SOLR_CONNECTION) {
-      return jsonResult10({ error: `Solr is unreachable. ${err.message}` });
+      return jsonResult11({ error: `Solr is unreachable. ${err.message}` });
     }
     if (err instanceof SoukCompassError && (err.code === ErrorCodes.TENANT_UNKNOWN || err.code === ErrorCodes.TENANT_READ_ONLY)) {
-      return jsonResult10({ written: false, error: err.message });
+      return jsonResult11({ written: false, error: err.message });
     }
     throw err;
   }
@@ -45489,7 +46319,7 @@ function provenanceFrom(input) {
     ...input.author ? { author: input.author } : {}
   };
 }
-function jsonResult10(data) {
+function jsonResult11(data) {
   return {
     content: [{ type: "text", text: JSON.stringify(data, null, 2) }]
   };
@@ -45599,13 +46429,13 @@ async function handleCompassSearch(input, ctx) {
       } catch {}
     }
     if (results.length === 0) {
-      return jsonResult11({
+      return jsonResult12({
         query: input.query,
         results: [],
         message: "No semantically similar artifacts were found for your query."
       });
     }
-    return jsonResult11({
+    return jsonResult12({
       query: input.query,
       topK: input.topK,
       resultCount: results.length,
@@ -45613,7 +46443,7 @@ async function handleCompassSearch(input, ctx) {
     });
   } catch (err) {
     if (err instanceof SoukCompassError && err.code === ErrorCodes.SOLR_CONNECTION) {
-      return jsonResult11({
+      return jsonResult12({
         query: input.query,
         results: [],
         error: `Solr is unreachable. Ensure Solr is running at the configured URL. ${err.message}`
@@ -45708,7 +46538,7 @@ function parseResults(responses, snippetLength, mode) {
   }
   return results;
 }
-function jsonResult11(data) {
+function jsonResult12(data) {
   return {
     content: [{ type: "text", text: JSON.stringify(data, null, 2) }]
   };
@@ -45761,13 +46591,13 @@ async function handleCompassSearchCodebase(input, ctx) {
     const results = parseCodebaseResults(response, snippetLength, mode);
     const filtered = effectiveMinScore != null && mode !== "vector" ? results.filter((r) => r.score >= effectiveMinScore) : results;
     if (filtered.length === 0) {
-      return jsonResult12({
+      return jsonResult13({
         query: input.query,
         results: [],
         message: "No matching code found. Try a different query or ensure the codebase has been indexed with compass_index_folder."
       });
     }
-    return jsonResult12({
+    return jsonResult13({
       query: input.query,
       mode,
       resultCount: filtered.length,
@@ -45776,7 +46606,7 @@ async function handleCompassSearchCodebase(input, ctx) {
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     if (message.includes("Failed to connect")) {
-      return jsonResult12({
+      return jsonResult13({
         query: input.query,
         results: [],
         error: `Solr is unreachable. Ensure Solr is running and the codebase collection exists.`
@@ -45843,7 +46673,7 @@ function extractString2(value) {
 function escapeForSolr(value) {
   return value.replace(/([+\-&|!(){}[\]^"~*?:\\/])/g, "\\$1");
 }
-function jsonResult12(data) {
+function jsonResult13(data) {
   return {
     content: [{ type: "text", text: JSON.stringify(data, null, 2) }]
   };
@@ -45851,10 +46681,126 @@ function jsonResult12(data) {
 
 // src/tools/compass-setup.ts
 import { exec } from "child_process";
+import { chmodSync, mkdirSync as mkdirSync4, writeFileSync as writeFileSync3 } from "fs";
+import { dirname as dirname4 } from "path";
 import { promisify } from "util";
+
+// src/solr-xml.ts
+function backupRepositories(registry3, options2 = {}) {
+  const byName = new Map;
+  byName.set(LOCAL_REPOSITORY_NAME, {
+    name: LOCAL_REPOSITORY_NAME,
+    type: "local",
+    tenants: []
+  });
+  for (const tenant of registry3.tenants) {
+    const target = tenant.backup;
+    const existing = byName.get(target.repository);
+    if (existing) {
+      assertCompatible(existing, tenant);
+      existing.tenants.push(tenant.id);
+      continue;
+    }
+    byName.set(target.repository, {
+      name: target.repository,
+      type: target.type,
+      tenants: [tenant.id],
+      ...target.s3 ? {
+        bucket: target.s3.bucket,
+        ...target.s3.region ? { region: target.s3.region } : {},
+        ...target.s3.endpoint ? { endpoint: target.s3.endpoint } : {}
+      } : {}
+    });
+  }
+  return [...byName.values()];
+}
+function assertCompatible(existing, tenant) {
+  const target = tenant.backup;
+  const sameType = existing.type === target.type;
+  const sameBucket = existing.bucket === target.s3?.bucket;
+  if (!sameType || target.type === "s3" && !sameBucket) {
+    throw new Error(`Tenants ${[...existing.tenants, tenant.id].join(", ")} declare backup ` + `repository "${existing.name}" with different settings. A repository ` + "name means one storage location; give them distinct names or " + "identical settings.");
+  }
+}
+function renderSolrXml(registry3, options2 = {}) {
+  const localPath = options2.localBackupPath ?? DEFAULT_BACKUP_LOCATION;
+  const repositories = backupRepositories(registry3, options2);
+  const declarations = repositories.map((repo) => renderRepository(repo, localPath)).join(`
+
+`);
+  return `<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  GENERATED by souk-compass from the tenant registry. Edits are overwritten on
+  the next compass_setup start/initialize.
+
+  Declare backup repositories by adding a "backup" block to a tenant in
+  tenants.json, then restart Solr \u2014 repositories are read once, at boot.
+-->
+<solr>
+  <str name="sharedLib">\${solr.sharedLib:}</str>
+  <str name="allowPaths">\${solr.allowPaths:}</str>
+
+  <solrcloud>
+    <str name="host">\${host:}</str>
+    <int name="hostPort">\${solr.port.advertise:0}</int>
+    <str name="hostContext">\${hostContext:solr}</str>
+    <bool name="genericCoreNodeNames">\${genericCoreNodeNames:true}</bool>
+    <int name="zkClientTimeout">\${zkClientTimeout:30000}</int>
+    <int name="distribUpdateSoTimeout">\${distribUpdateSoTimeout:600000}</int>
+    <int name="distribUpdateConnTimeout">\${distribUpdateConnTimeout:60000}</int>
+    <str name="zkCredentialsProvider">\${zkCredentialsProvider:org.apache.solr.common.cloud.DefaultZkCredentialsProvider}</str>
+    <str name="zkACLProvider">\${zkACLProvider:org.apache.solr.common.cloud.DefaultZkACLProvider}</str>
+  </solrcloud>
+
+  <shardHandlerFactory name="shardHandlerFactory"
+    class="HttpShardHandlerFactory">
+    <int name="socketTimeout">\${socketTimeout:600000}</int>
+    <int name="connTimeout">\${connTimeout:60000}</int>
+  </shardHandlerFactory>
+
+  <backup>
+${declarations}
+  </backup>
+</solr>
+`;
+}
+function renderRepository(repo, localPath) {
+  const served = repo.tenants.length > 0 ? `serves: ${repo.tenants.join(", ")}` : "declared but unused";
+  if (repo.type === "s3") {
+    const region = repo.region ? `
+      <str name="s3.region">${escapeXml(repo.region)}</str>` : "";
+    const endpoint = repo.endpoint ? `
+      <str name="s3.endpoint">${escapeXml(repo.endpoint)}</str>` : "";
+    return `    <!-- ${escapeXml(served)}. Credentials come from the AWS credential
+         chain in Solr's own environment, never from this file. -->
+    <repository name="${escapeXml(repo.name)}"
+      class="org.apache.solr.s3.S3BackupRepository">
+      <str name="s3.bucket.name">${escapeXml(repo.bucket ?? "")}</str>${region}${endpoint}
+    </repository>`;
+  }
+  return `    <!-- ${escapeXml(served)}. Bind-mounted to the host, which is what
+         makes a snapshot outlive "docker compose down -v". -->
+    <repository name="${escapeXml(repo.name)}"
+      class="org.apache.solr.core.backup.repository.LocalFileSystemRepository"
+      default="true">
+      <str name="location">${escapeXml(localPath)}</str>
+    </repository>`;
+}
+function escapeXml(value) {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function requiredSolrModules(registry3) {
+  const modules = new Set;
+  for (const tenant of registry3.tenants) {
+    if (tenant.backup.type === "s3")
+      modules.add("s3-repository");
+  }
+  return [...modules];
+}
+
+// src/tools/compass-setup.ts
 var execAsync = promisify(exec);
-var ALL_PARTITIONS = ["artifacts", "memory", "codebase"];
-var DEFAULT_BACKUP_LOCATION = "/var/solr/backups";
+var ALL_PARTITIONS2 = ["artifacts", "memory", "codebase"];
 function composeDirectory(ctx) {
   return ctx.packageRoot;
 }
@@ -45871,16 +46817,12 @@ async function handleCompassSetup(input, ctx) {
       return createCollections(ctx, input.tenant);
     case "create_collection":
       return createNamedCollection(ctx, input.name, input.tenant);
-    case "backup":
-      return backup(ctx, input);
-    case "restore":
-      return restore(ctx, input);
     case "stop":
       return stopSolr(ctx);
   }
 }
 async function checkStatus(ctx, tenantId) {
-  return jsonResult13(await getSetupStatus(ctx, undefined, tenantId));
+  return jsonResult14(await getSetupStatus(ctx, undefined, tenantId));
 }
 async function getSetupStatus(ctx, dockerAvailable, tenantId) {
   const resolvedDockerAvailable = dockerAvailable ?? await isDockerAvailable();
@@ -45933,7 +46875,7 @@ async function getSetupStatus(ctx, dockerAvailable, tenantId) {
 async function initializeSolr(ctx, tenantId) {
   const initialStatus = await getSetupStatus(ctx, undefined, tenantId);
   if (initialStatus.solrReachable && initialStatus.missingCollections.length === 0) {
-    return jsonResult13({
+    return jsonResult14({
       action: "initialize",
       success: true,
       changed: false,
@@ -45948,17 +46890,19 @@ async function initializeSolr(ctx, tenantId) {
     }
     start = await startSolrInfrastructure(ctx);
     if (!start.success) {
-      return jsonResult13({
+      return jsonResult14({
         action: "initialize",
         ...start,
         status: initialStatus
       });
     }
+  } else {
+    start = { ...await uploadConfigset(), success: true, message: "" };
   }
   const collections = await createConfiguredCollections(ctx, tenantId);
   const status = await getSetupStatus(ctx, initialStatus.dockerAvailable, tenantId);
   const success3 = status.solrReachable && status.missingCollections.length === 0;
-  return jsonResult13({
+  return jsonResult14({
     action: "initialize",
     success: success3,
     changed: true,
@@ -45972,15 +46916,17 @@ async function startSolr(ctx) {
   if (!await isDockerAvailable()) {
     return dockerNotInstalledResult("start");
   }
-  return jsonResult13({
+  return jsonResult14({
     action: "start",
     ...await startSolrInfrastructure(ctx)
   });
 }
 async function startSolrInfrastructure(ctx) {
   try {
+    const host = prepareHostState(ctx);
     const { stdout } = await execAsync("docker compose up -d", {
-      cwd: composeDirectory(ctx)
+      cwd: composeDirectory(ctx),
+      env: { ...process.env, ...composeEnv(ctx) }
     });
     const ready = await waitForSolr(ctx, 30);
     if (!ready) {
@@ -45991,20 +46937,13 @@ async function startSolrInfrastructure(ctx) {
         output: stdout.trim()
       };
     }
-    let configsetUploaded = true;
-    let warning;
-    try {
-      await execAsync("docker exec souk-compass-solr solr zk upconfig -n souk-compass -d /opt/solr/server/solr/configsets/souk-compass/conf -z zoo:2181", { timeout: 15000 });
-    } catch (error95) {
-      configsetUploaded = false;
-      warning = `Configset upload was not confirmed: ${error95 instanceof Error ? error95.message : String(error95)}`;
-    }
+    const configset = await uploadConfigset();
     return {
       success: true,
       message: "SolrCloud is running. Docker Compose pulled missing images automatically and the configset upload was attempted.",
       output: stdout.trim(),
-      configsetUploaded,
-      warning
+      ...configset,
+      ...host
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
@@ -46023,7 +46962,7 @@ async function startSolrInfrastructure(ctx) {
   }
 }
 async function createCollections(ctx, tenantId) {
-  return jsonResult13({
+  return jsonResult14({
     action: "create_collections",
     collections: await createConfiguredCollections(ctx, tenantId)
   });
@@ -46041,11 +46980,11 @@ async function createConfiguredCollections(ctx, tenantId) {
 }
 function targetsFor(ctx, tenantId) {
   const tenants = tenantId ? [resolveTenant(ctx.tenants, tenantId)] : ctx.tenants.tenants;
-  return collectionTargets(tenants, ALL_PARTITIONS);
+  return collectionTargets(tenants, ALL_PARTITIONS2);
 }
 async function createNamedCollection(ctx, name, tenantId) {
   if (!name?.trim()) {
-    return jsonResult13({
+    return jsonResult14({
       action: "create_collection",
       success: false,
       error: "missing_name",
@@ -46054,64 +46993,11 @@ async function createNamedCollection(ctx, name, tenantId) {
   }
   const tenant = resolveTenant(ctx.tenants, tenantId);
   const result = await createCollection(tenant.solrUrl, name.trim(), tenant.durability);
-  return jsonResult13({
+  return jsonResult14({
     action: "create_collection",
     tenant: tenant.id,
     ...result
   });
-}
-function backupLocationFor(ctx, override) {
-  return override ?? ctx.config.backupLocation ?? DEFAULT_BACKUP_LOCATION;
-}
-async function backup(ctx, input) {
-  if (!input.backupName?.trim()) {
-    return jsonResult13({
-      action: "backup",
-      success: false,
-      error: "missing_backup_name",
-      message: 'backup requires a "backupName".'
-    });
-  }
-  const location = backupLocationFor(ctx, input.location);
-  const targets = input.name ? [{ solrUrl: ctx.config.solrUrl, collection: input.name.trim() }] : targetsFor(ctx, input.tenant).map((t) => ({
-    solrUrl: t.solrUrl,
-    collection: t.collection
-  }));
-  const results = [];
-  for (const target of targets) {
-    results.push(await backupCollection(target.solrUrl, target.collection, {
-      backupName: `${input.backupName.trim()}-${target.collection}`,
-      location
-    }));
-  }
-  const success3 = results.every((r) => r.success);
-  return jsonResult13({
-    action: "backup",
-    success: success3,
-    location,
-    results,
-    ...success3 ? {} : {
-      hint: "Solr resolves `location` itself and refuses paths outside solr.allowPaths. The bundled compose file allows /var/solr/backups."
-    }
-  });
-}
-async function restore(ctx, input) {
-  if (!input.backupName?.trim() || !input.name?.trim()) {
-    return jsonResult13({
-      action: "restore",
-      success: false,
-      error: "missing_arguments",
-      message: 'restore requires "backupName" and "name" (the collection to restore into, which must not already exist).'
-    });
-  }
-  const tenant = resolveTenant(ctx.tenants, input.tenant);
-  const result = await restoreCollection(tenant.solrUrl, {
-    backupName: input.backupName.trim(),
-    location: backupLocationFor(ctx, input.location),
-    collection: input.name.trim(),
-    durability: tenant.durability
-  });
-  return jsonResult13({ action: "restore", tenant: tenant.id, ...result });
 }
 async function stopSolr(ctx) {
   if (!await isDockerAvailable()) {
@@ -46121,18 +47007,52 @@ async function stopSolr(ctx) {
     const { stdout } = await execAsync("docker compose down", {
       cwd: composeDirectory(ctx)
     });
-    return jsonResult13({
+    return jsonResult14({
       action: "stop",
       success: true,
       message: "Solr container stopped.",
       output: stdout.trim()
     });
   } catch (err) {
-    return jsonResult13({
+    return jsonResult14({
       action: "stop",
       success: false,
       message: `Failed to stop Solr: ${err instanceof Error ? err.message : String(err)}`
     });
+  }
+}
+function prepareHostState(ctx) {
+  const xmlPath = solrXmlPath(ctx.config);
+  const backups = backupDir(ctx.config);
+  mkdirSync4(dirname4(xmlPath), { recursive: true });
+  mkdirSync4(backups, { recursive: true, mode: 511 });
+  try {
+    chmodSync(backups, 511);
+  } catch {}
+  writeFileSync3(xmlPath, renderSolrXml(ctx.tenants, { localBackupPath: DEFAULT_BACKUP_LOCATION }), { encoding: "utf-8" });
+  return {
+    solrXmlPath: xmlPath,
+    backupDir: backups,
+    repositories: backupRepositories(ctx.tenants).map((r) => r.name)
+  };
+}
+function composeEnv(ctx) {
+  const modules = requiredSolrModules(ctx.tenants);
+  return {
+    SOUK_COMPASS_HOME: stateDir(ctx.config),
+    SOUK_COMPASS_BACKUP_DIR: backupDir(ctx.config),
+    ...modules.length > 0 ? { SOUK_COMPASS_SOLR_MODULES: modules.join(",") } : {}
+  };
+}
+async function uploadConfigset() {
+  try {
+    await execAsync("docker exec souk-compass-solr solr zk upconfig -n souk-compass -d /opt/solr/server/solr/configsets/souk-compass/conf -z zoo:2181", { timeout: 15000 });
+    return { configsetUploaded: true };
+  } catch (error95) {
+    return {
+      configsetUploaded: false,
+      warning: `Configset upload was not confirmed: ${error95 instanceof Error ? error95.message : String(error95)}`
+    };
   }
 }
 async function isDockerAvailable() {
@@ -46156,27 +47076,20 @@ async function waitForSolr(ctx, timeoutSeconds) {
   return false;
 }
 function dockerNotInstalledResult(action) {
-  return jsonResult13({
+  return jsonResult14({
     action,
     success: false,
     error: "docker_not_available",
     message: "Docker is not installed or not running. Install Docker Desktop from https://www.docker.com/products/docker-desktop/ and ensure it is running, then retry."
   });
 }
-function jsonResult13(data) {
+function jsonResult14(data) {
   return {
     content: [{ type: "text", text: JSON.stringify(data, null, 2) }]
   };
 }
 
 // src/tools/compass-status.ts
-function parseFacet(flat) {
-  const out = {};
-  for (let i = 0;flat && i + 1 < flat.length; i += 2) {
-    out[String(flat[i])] = Number(flat[i + 1]);
-  }
-  return out;
-}
 async function handleCompassStatus(_input, ctx) {
   const configuredProvider = modelIdentity(ctx.embeddingProvider);
   const targets = collectionTargets(ctx.tenants.tenants, [
@@ -46186,54 +47099,16 @@ async function handleCompassStatus(_input, ctx) {
   ]);
   const collections = [];
   for (const target of targets) {
-    const base = {
+    const owner = ctx.tenants.tenants.find((t) => target.tenantIds.includes(t.id));
+    collections.push({
       name: target.collection,
       solrUrl: target.solrUrl,
       partition: target.partition,
       tenants: target.tenantIds,
-      replicationFactor: target.durability.replicationFactor
-    };
-    try {
-      const url3 = `${target.solrUrl}/solr/${encodeURIComponent(target.collection)}/select` + "?q=*:*&rows=0&wt=json&facet=true&facet.mincount=1" + "&facet.field=embed_provider&facet.field=index_root" + "&facet.field=tenant_id&facet.field=status&facet.field=schema_version";
-      const response = await fetch(url3);
-      if (!response.ok) {
-        collections.push({
-          ...base,
-          docCount: null,
-          error: `HTTP ${response.status}`
-        });
-        continue;
-      }
-      const body = await response.json();
-      const docCount = body.response?.numFound ?? 0;
-      const facets = body.facet_counts?.facet_fields ?? {};
-      const embedProviders = parseFacet(facets.embed_provider);
-      const tagged = sum(embedProviders);
-      const indexedRoots = parseFacet(facets.index_root);
-      const rootTagged = sum(indexedRoots);
-      const byTenant = parseFacet(facets.tenant_id);
-      const tenantTagged = sum(byTenant);
-      const byStatus = parseFacet(facets.status);
-      const schemaVersions = parseFacet(facets.schema_version);
-      collections.push({
-        ...base,
-        docCount,
-        ...nonEmpty(embedProviders) ? { embedProviders } : {},
-        ...docCount - tagged > 0 ? { untaggedDocs: docCount - tagged } : {},
-        ...nonEmpty(indexedRoots) ? { indexedRoots } : {},
-        ...nonEmpty(indexedRoots) && docCount - rootTagged > 0 ? { untrackedRootDocs: docCount - rootTagged } : {},
-        ...nonEmpty(byTenant) ? { byTenant } : {},
-        ...docCount - tenantTagged > 0 ? { untenantedDocs: docCount - tenantTagged } : {},
-        ...nonEmpty(byStatus) ? { byStatus } : {},
-        ...nonEmpty(schemaVersions) ? { schemaVersions } : {}
-      });
-    } catch (err) {
-      collections.push({
-        ...base,
-        docCount: null,
-        error: err instanceof Error ? err.message : String(err)
-      });
-    }
+      replicationFactor: target.durability.replicationFactor,
+      ...owner ? { backupRepository: owner.backup.repository } : {},
+      ...await collectionFacets(target.solrUrl, target.collection)
+    });
   }
   const memoryNotes = await countMemoryNotes(ctx);
   for (const solrUrl of new Set(collections.map((c) => c.solrUrl))) {
@@ -46315,16 +47190,10 @@ async function countMemoryNotes(ctx) {
   }
   return counts;
 }
-function sum(counts) {
-  return Object.values(counts).reduce((a, b) => a + b, 0);
-}
-function nonEmpty(counts) {
-  return Object.keys(counts).length > 0;
-}
 
 // src/tools/compass-tenants.ts
 async function handleCompassTenants(input, ctx) {
-  const verify = input.verify ?? false;
+  const verify2 = input.verify ?? false;
   const tenants = await Promise.all(ctx.tenants.tenants.map(async (tenant) => {
     const base = {
       id: tenant.id,
@@ -46337,7 +47206,7 @@ async function handleCompassTenants(input, ctx) {
       collections: tenant.collections,
       durability: tenant.durability
     };
-    if (!verify)
+    if (!verify2)
       return base;
     const partitions = Object.entries(tenant.collections);
     const health = await Promise.all(partitions.map(async ([partition, collection]) => {
@@ -46444,7 +47313,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         properties: {
           name: {
             type: "string",
-            description: 'Collection name. Required for "create_collection" and for "restore" (the collection to restore into, which must not already exist).'
+            description: 'Collection name to create. Required for action "create_collection".'
           },
           action: {
             type: "string",
@@ -46454,23 +47323,13 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
               "start",
               "create_collections",
               "create_collection",
-              "backup",
-              "restore",
               "stop"
             ],
-            description: "Action to perform. Use 'initialize' for seamless first-run provisioning; default is 'check'. 'backup' snapshots collections; 'restore' recovers one into a new collection."
+            description: "Action to perform. Use 'initialize' for seamless first-run provisioning; default is 'check'. Saving and restoring data is compass_backup, not this tool."
           },
           tenant: {
             type: "string",
             description: "Act on one tenant's collections instead of every registered tenant's."
-          },
-          backupName: {
-            type: "string",
-            description: 'Snapshot name. Required for "backup" and "restore".'
-          },
-          location: {
-            type: "string",
-            description: "Backup directory, resolved by Solr rather than by this process. Must be inside solr.allowPaths. Defaults to /var/solr/backups."
           }
         }
       }
@@ -46787,6 +47646,40 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       }
     },
     {
+      name: "compass_backup",
+      description: "Save and restore indexes and memory to durable storage. Snapshots survive tearing the Docker stack down with `docker compose down -v` and rebuilding it, on the same machine or a different one \u2014 a personal tenant stores them in a host directory, an org tenant in its S3 bucket. Use 'save' before destroying a stack and 'restore' after rebuilding one.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          action: {
+            type: "string",
+            enum: ["save", "restore", "list", "verify", "prune"],
+            description: "save: snapshot every collection. restore: rebuild from a snapshot. list: show available snapshots. verify: compare live collections against a snapshot. prune: delete old backup points. Default: list."
+          },
+          snapshotId: {
+            type: "string",
+            description: "Name of the snapshot. Required for save, restore and verify. Letters, digits, dot, underscore and hyphen only."
+          },
+          tenant: {
+            type: "string",
+            description: "Act on one tenant. Omit to cover every registered tenant."
+          },
+          force: {
+            type: "boolean",
+            description: "Restore even when the snapshot was built with a different embedding model. The restored index will answer queries and rank by nothing, so reindex afterwards (default: false)."
+          },
+          keep: {
+            type: "number",
+            description: "prune only: number of backup points to retain per collection."
+          },
+          timeoutSeconds: {
+            type: "number",
+            description: "How long to wait for an async Solr backup or restore (default: 600)."
+          }
+        }
+      }
+    },
+    {
       name: "compass_profile_workspace",
       description: "Analyze workspace files to find relevant artifacts. Call this when entering a new workspace or when the user asks for project-specific recommendations.",
       inputSchema: {
@@ -46997,6 +47890,9 @@ async function main() {
           break;
         case "compass_tenants":
           result = await handleCompassTenants(args, toolContext);
+          break;
+        case "compass_backup":
+          result = await handleCompassBackup(args, toolContext);
           break;
         case "compass_profile_workspace":
           result = await handleCompassProfileWorkspace(args, toolContext);

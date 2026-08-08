@@ -1,23 +1,32 @@
 import { exec } from "node:child_process";
+import { chmodSync, mkdirSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
 import { promisify } from "node:util";
 import {
-	backupCollection,
 	type CollectionInfo,
 	createCollection,
 	getClusterReplicaHealth,
-	restoreCollection,
 	getCollectionInfo as sharedCollectionInfo,
 } from "../collections.js";
 import type { CompassSetupInput, Partition } from "../schemas.js";
-import { collectionTargets, resolveTenant } from "../tenancy.js";
+import {
+	backupRepositories,
+	renderSolrXml,
+	requiredSolrModules,
+} from "../solr-xml.js";
+import {
+	backupDir,
+	collectionTargets,
+	DEFAULT_BACKUP_LOCATION,
+	resolveTenant,
+	solrXmlPath,
+	stateDir,
+} from "../tenancy.js";
 import type { ToolContext, ToolResult } from "./types.js";
 
 const execAsync = promisify(exec);
 
 const ALL_PARTITIONS: Partition[] = ["artifacts", "memory", "codebase"];
-
-/** Where Solr writes snapshots when nothing overrides it. */
-const DEFAULT_BACKUP_LOCATION = "/var/solr/backups";
 
 function composeDirectory(ctx: ToolContext): string {
 	return ctx.packageRoot;
@@ -69,10 +78,6 @@ export async function handleCompassSetup(
 			return createCollections(ctx, input.tenant);
 		case "create_collection":
 			return createNamedCollection(ctx, input.name, input.tenant);
-		case "backup":
-			return backup(ctx, input);
-		case "restore":
-			return restore(ctx, input);
 		case "stop":
 			return stopSolr(ctx);
 	}
@@ -190,6 +195,13 @@ async function initializeSolr(
 				status: initialStatus,
 			});
 		}
+	} else {
+		// Solr being up does not mean the configset is in ZooKeeper. After a
+		// `docker compose down -v` and a rebuild, Solr comes back reachable with
+		// an empty ZooKeeper — and a restore then fails on a missing configset,
+		// having reported the environment ready. Uploading is idempotent, so the
+		// only cost of doing it unconditionally is a second.
+		start = { ...(await uploadConfigset()), success: true, message: "" };
 	}
 
 	const collections = await createConfiguredCollections(ctx, tenantId);
@@ -229,9 +241,16 @@ async function startSolrInfrastructure(
 	ctx: ToolContext,
 ): Promise<StartOutcome> {
 	try {
+		// Host state must exist before the containers start. Docker creates a
+		// missing bind-mount source itself — as a root-owned directory, or as a
+		// directory where solr.xml should be a file — and either failure surfaces
+		// much later as something that looks unrelated.
+		const host = prepareHostState(ctx);
+
 		// Docker Compose pulls the pinned images automatically when absent.
 		const { stdout } = await execAsync("docker compose up -d", {
 			cwd: composeDirectory(ctx),
+			env: { ...process.env, ...composeEnv(ctx) },
 		});
 
 		const ready = await waitForSolr(ctx, 30);
@@ -245,25 +264,15 @@ async function startSolrInfrastructure(
 			};
 		}
 
-		let configsetUploaded = true;
-		let warning: string | undefined;
-		try {
-			await execAsync(
-				"docker exec souk-compass-solr solr zk upconfig -n souk-compass -d /opt/solr/server/solr/configsets/souk-compass/conf -z zoo:2181",
-				{ timeout: 15000 },
-			);
-		} catch (error) {
-			configsetUploaded = false;
-			warning = `Configset upload was not confirmed: ${error instanceof Error ? error.message : String(error)}`;
-		}
+		const configset = await uploadConfigset();
 
 		return {
 			success: true,
 			message:
 				"SolrCloud is running. Docker Compose pulled missing images automatically and the configset upload was attempted.",
 			output: stdout.trim(),
-			configsetUploaded,
-			warning,
+			...configset,
+			...host,
 		};
 	} catch (err) {
 		const message = err instanceof Error ? err.message : String(err);
@@ -372,103 +381,6 @@ async function createNamedCollection(
 	});
 }
 
-// ---------------------------------------------------------------------------
-// Durability operations
-// ---------------------------------------------------------------------------
-
-function backupLocationFor(ctx: ToolContext, override?: string): string {
-	return override ?? ctx.config.backupLocation ?? DEFAULT_BACKUP_LOCATION;
-}
-
-/**
- * Snapshot collections.
- *
- * Replication survives a node failing; it does not survive a bad reindex or a
- * mistaken delete, both of which replicate perfectly. Without a snapshot the
- * only recovery from those is "reindex from source", which works for code and
- * not at all for memory — memory has no source to reindex from. That asymmetry
- * is the reason this exists.
- */
-async function backup(
-	ctx: ToolContext,
-	input: CompassSetupInput,
-): Promise<ToolResult> {
-	if (!input.backupName?.trim()) {
-		return jsonResult({
-			action: "backup",
-			success: false,
-			error: "missing_backup_name",
-			message: 'backup requires a "backupName".',
-		});
-	}
-
-	const location = backupLocationFor(ctx, input.location);
-	const targets = input.name
-		? [{ solrUrl: ctx.config.solrUrl, collection: input.name.trim() }]
-		: targetsFor(ctx, input.tenant).map((t) => ({
-				solrUrl: t.solrUrl,
-				collection: t.collection,
-			}));
-
-	const results = [];
-	for (const target of targets) {
-		results.push(
-			await backupCollection(target.solrUrl, target.collection, {
-				// Per-collection suffix: Solr keys a backup by name within a
-				// location, so one name across several collections would have each
-				// overwrite the last.
-				backupName: `${input.backupName.trim()}-${target.collection}`,
-				location,
-			}),
-		);
-	}
-
-	const success = results.every((r) => r.success);
-	return jsonResult({
-		action: "backup",
-		success,
-		location,
-		results,
-		...(success
-			? {}
-			: {
-					hint: "Solr resolves `location` itself and refuses paths outside solr.allowPaths. The bundled compose file allows /var/solr/backups.",
-				}),
-	});
-}
-
-/**
- * Restore a snapshot into a collection that does not yet exist.
- *
- * Deliberately not a merge and deliberately not in-place: Solr refuses to
- * restore over a live collection, which makes it impossible to confuse
- * recovering an index with quietly replacing one.
- */
-async function restore(
-	ctx: ToolContext,
-	input: CompassSetupInput,
-): Promise<ToolResult> {
-	if (!input.backupName?.trim() || !input.name?.trim()) {
-		return jsonResult({
-			action: "restore",
-			success: false,
-			error: "missing_arguments",
-			message:
-				'restore requires "backupName" and "name" (the collection to restore into, which must not already exist).',
-		});
-	}
-
-	const tenant = resolveTenant(ctx.tenants, input.tenant);
-	const result = await restoreCollection(tenant.solrUrl, {
-		backupName: input.backupName.trim(),
-		location: backupLocationFor(ctx, input.location),
-		collection: input.name.trim(),
-		durability: tenant.durability,
-	});
-
-	return jsonResult({ action: "restore", tenant: tenant.id, ...result });
-}
-
 async function stopSolr(ctx: ToolContext): Promise<ToolResult> {
 	if (!(await isDockerAvailable())) {
 		return dockerNotInstalledResult("stop");
@@ -490,6 +402,93 @@ async function stopSolr(ctx: ToolContext): Promise<ToolResult> {
 			success: false,
 			message: `Failed to stop Solr: ${err instanceof Error ? err.message : String(err)}`,
 		});
+	}
+}
+
+/**
+ * Create the host state the containers bind-mount, before they start.
+ *
+ * Two traps, both of which fail long after the cause. Docker creates a missing
+ * bind-mount source as a *directory* owned by root — so an absent `solr.xml`
+ * becomes a directory Solr cannot read, and an absent backup directory becomes
+ * one Solr (uid 8983) cannot write, surfacing only when a snapshot is attempted.
+ * Creating both here, with the backup directory group- and world-writable, is
+ * the difference between working and a permission error nobody connects to a
+ * missing directory.
+ */
+function prepareHostState(ctx: ToolContext): {
+	solrXmlPath: string;
+	backupDir: string;
+	repositories: string[];
+} {
+	const xmlPath = solrXmlPath(ctx.config);
+	const backups = backupDir(ctx.config);
+
+	mkdirSync(dirname(xmlPath), { recursive: true });
+	// 0o777 because the writer is this process (the user) and the reader-writer
+	// is Solr inside the container running as uid 8983, which no host-side
+	// ownership can match. Documented in solr/README.md alongside the tighter
+	// `chown 8983:8983` alternative.
+	mkdirSync(backups, { recursive: true, mode: 0o777 });
+	try {
+		chmodSync(backups, 0o777);
+	} catch {
+		/* pre-existing directory owned by someone else; the write will report it */
+	}
+
+	writeFileSync(
+		xmlPath,
+		renderSolrXml(ctx.tenants, { localBackupPath: DEFAULT_BACKUP_LOCATION }),
+		{ encoding: "utf-8" },
+	);
+
+	return {
+		solrXmlPath: xmlPath,
+		backupDir: backups,
+		repositories: backupRepositories(ctx.tenants).map((r) => r.name),
+	};
+}
+
+/**
+ * Environment handed to Docker Compose.
+ *
+ * The compose file interpolates these to locate host state and to enable the
+ * Solr modules the registry's repositories need. Passing them explicitly keeps
+ * the compose file honest for someone running `docker compose up` by hand — the
+ * defaults there match these.
+ */
+function composeEnv(ctx: ToolContext): Record<string, string> {
+	const modules = requiredSolrModules(ctx.tenants);
+	return {
+		SOUK_COMPASS_HOME: stateDir(ctx.config),
+		SOUK_COMPASS_BACKUP_DIR: backupDir(ctx.config),
+		...(modules.length > 0
+			? { SOUK_COMPASS_SOLR_MODULES: modules.join(",") }
+			: {}),
+	};
+}
+
+/**
+ * Upload the configset to ZooKeeper. Idempotent, and cheap enough to run on
+ * every start rather than only on a cold one.
+ */
+async function uploadConfigset(): Promise<{
+	configsetUploaded: boolean;
+	warning?: string;
+}> {
+	try {
+		await execAsync(
+			"docker exec souk-compass-solr solr zk upconfig -n souk-compass -d /opt/solr/server/solr/configsets/souk-compass/conf -z zoo:2181",
+			{ timeout: 15000 },
+		);
+		return { configsetUploaded: true };
+	} catch (error) {
+		return {
+			configsetUploaded: false,
+			warning: `Configset upload was not confirmed: ${
+				error instanceof Error ? error.message : String(error)
+			}`,
+		};
 	}
 }
 

@@ -4,9 +4,9 @@
  * Souk Compass MCP server
  *
  * Provides Solr-backed semantic search over context-bazaar knowledge artifacts
- * and user document collections. Exposes sixteen tools via stdio transport:
+ * and user document collections. Exposes seventeen tools via stdio transport:
  *
- *   compass_setup              — manage Solr, provision collections, back up and restore
+ *   compass_setup              — manage the Solr stack and provision collections
  *   compass_index_artifacts    — index catalog artifacts into Solr
  *   compass_search             — semantic search over indexed artifacts
  *   compass_index_document     — index a user document into Solr
@@ -21,6 +21,7 @@
  *   compass_recall_memory      — recall memory across tenants, reconciled by precedence
  *   compass_forget             — retract a memory record without deleting it
  *   compass_tenants            — list reachable tenants and their collections
+ *   compass_backup             — save and restore indexes to durable storage
  *   compass_profile_workspace  — workspace-aware skill matching
  */
 
@@ -37,6 +38,7 @@ import { createEmbeddingProvider } from "./embedding-provider.js";
 import { SoukCompassError } from "./errors.js";
 import { resolveContentRoot, resolvePackageRoot } from "./roots.js";
 import type {
+	CompassBackupInput,
 	CompassForgetInput,
 	CompassHealthInput,
 	CompassIndexArtifactsInput,
@@ -62,6 +64,7 @@ import {
 	type ResolvedTenant,
 	resolveTenant,
 } from "./tenancy.js";
+import { handleCompassBackup } from "./tools/compass-backup.js";
 import { handleCompassForget } from "./tools/compass-forget.js";
 import { handleCompassHealth } from "./tools/compass-health.js";
 import { handleCompassIndexArtifacts } from "./tools/compass-index.js";
@@ -183,7 +186,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 					name: {
 						type: "string",
 						description:
-							'Collection name. Required for "create_collection" and for "restore" (the collection to restore into, which must not already exist).',
+							'Collection name to create. Required for action "create_collection".',
 					},
 					action: {
 						type: "string",
@@ -193,26 +196,15 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 							"start",
 							"create_collections",
 							"create_collection",
-							"backup",
-							"restore",
 							"stop",
 						],
 						description:
-							"Action to perform. Use 'initialize' for seamless first-run provisioning; default is 'check'. 'backup' snapshots collections; 'restore' recovers one into a new collection.",
+							"Action to perform. Use 'initialize' for seamless first-run provisioning; default is 'check'. Saving and restoring data is compass_backup, not this tool.",
 					},
 					tenant: {
 						type: "string",
 						description:
 							"Act on one tenant's collections instead of every registered tenant's.",
-					},
-					backupName: {
-						type: "string",
-						description: 'Snapshot name. Required for "backup" and "restore".',
-					},
-					location: {
-						type: "string",
-						description:
-							"Backup directory, resolved by Solr rather than by this process. Must be inside solr.allowPaths. Defaults to /var/solr/backups.",
 					},
 				},
 			},
@@ -569,6 +561,47 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 			},
 		},
 		{
+			name: "compass_backup",
+			description:
+				"Save and restore indexes and memory to durable storage. Snapshots survive tearing the Docker stack down with `docker compose down -v` and rebuilding it, on the same machine or a different one — a personal tenant stores them in a host directory, an org tenant in its S3 bucket. Use 'save' before destroying a stack and 'restore' after rebuilding one.",
+			inputSchema: {
+				type: "object" as const,
+				properties: {
+					action: {
+						type: "string",
+						enum: ["save", "restore", "list", "verify", "prune"],
+						description:
+							"save: snapshot every collection. restore: rebuild from a snapshot. list: show available snapshots. verify: compare live collections against a snapshot. prune: delete old backup points. Default: list.",
+					},
+					snapshotId: {
+						type: "string",
+						description:
+							"Name of the snapshot. Required for save, restore and verify. Letters, digits, dot, underscore and hyphen only.",
+					},
+					tenant: {
+						type: "string",
+						description:
+							"Act on one tenant. Omit to cover every registered tenant.",
+					},
+					force: {
+						type: "boolean",
+						description:
+							"Restore even when the snapshot was built with a different embedding model. The restored index will answer queries and rank by nothing, so reindex afterwards (default: false).",
+					},
+					keep: {
+						type: "number",
+						description:
+							"prune only: number of backup points to retain per collection.",
+					},
+					timeoutSeconds: {
+						type: "number",
+						description:
+							"How long to wait for an async Solr backup or restore (default: 600).",
+					},
+				},
+			},
+		},
+		{
 			name: "compass_profile_workspace",
 			description:
 				"Analyze workspace files to find relevant artifacts. Call this when entering a new workspace or when the user asks for project-specific recommendations.",
@@ -851,6 +884,12 @@ async function main() {
 				case "compass_tenants":
 					result = await handleCompassTenants(
 						args as CompassTenantsInput,
+						toolContext,
+					);
+					break;
+				case "compass_backup":
+					result = await handleCompassBackup(
+						args as CompassBackupInput,
 						toolContext,
 					);
 					break;

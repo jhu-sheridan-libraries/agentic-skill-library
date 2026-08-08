@@ -222,7 +222,10 @@ Ensure the remote Solr instance has:
 | `SOUK_COMPASS_REPLICATION_FACTOR` | `1` | NRT replicas per shard, at creation |
 | `SOUK_COMPASS_TLOG_REPLICAS` | `0` | Transaction-log-only replicas |
 | `SOUK_COMPASS_PULL_REPLICAS` | `0` | Read-only replicas |
-| `SOUK_COMPASS_BACKUP_LOCATION` | `/var/solr/backups` | Snapshot directory, resolved by Solr |
+| `SOUK_COMPASS_HOME` | `~/.souk-compass` | Host state: registry, generated solr.xml, backups |
+| `SOUK_COMPASS_BACKUP_DIR` | `~/.souk-compass/backups` | **Host** snapshot directory, bind-mounted into Solr |
+| `SOUK_COMPASS_BACKUP_LOCATION` | `/var/solr/backups` | Container-side path Solr writes snapshots to |
+| `AWS_ACCESS_KEY_ID` etc. | unset | Passed through to Solr for S3 backup repositories |
 
 ## Tenants
 
@@ -313,19 +316,132 @@ correctly right up until that node fails; a document count cannot tell you that.
 
 Replication does not survive a bad reindex or a mistaken delete — both replicate
 faithfully. Code can be reindexed from source afterwards; memory cannot, because
-it has no source. Snapshot it:
+it has no source. That is what snapshots are for.
+
+## Snapshots: save, tear down, rebuild, restore
+
+The supported lifecycle:
+
+```bash
+compass_backup { "action": "save", "snapshotId": "2026-08-08" }
+
+docker compose down -v            # index, ZooKeeper, all cluster state gone
+
+compass_setup  { "action": "start" }
+compass_backup { "action": "restore", "snapshotId": "2026-08-08" }
+compass_backup { "action": "verify",  "snapshotId": "2026-08-08" }
+```
+
+Use `start`, not `initialize`, before a restore. Both bring the containers up and
+upload the configset, but `initialize` also **creates** the collections — and
+Solr restores only into a collection that does not exist, so every restore would
+then be refused. `initialize` is for a first run; `start` is for a rebuild you
+intend to restore into.
+
+This works because snapshots are **not** stored in a Docker volume.
+`docker compose down -v` removes every named volume, so a snapshot kept in one
+is destroyed by the very command it exists to survive. The backup path is a host
+bind mount instead — `~/.souk-compass/backups` by default, or
+`SOUK_COMPASS_BACKUP_DIR`.
+
+Two other things `down -v` destroys are handled for you. ZooKeeper's copy of the
+configset goes with it, but Solr's backup image includes the configset, and
+`RESTORE` re-uploads it. And `compass_setup initialize` now uploads the configset
+even when Solr is already reachable — which it is immediately after a rebuild.
+
+### Storage backends
+
+Each tenant names a Solr **backup repository**. Solr reads and writes the index
+itself, so the repository is the storage backend; this server only transports the
+snapshot manifest.
+
+| Backend | For | Needs |
+|---|---|---|
+| `LocalFileSystemRepository` | personal | nothing — a host directory |
+| `S3BackupRepository` | an org, or a second machine | a bucket, AWS credentials, the `aws` CLI |
+
+Declare an org backend in `~/.souk-compass/tenants.json`:
+
+```json
+{
+  "tenants": [
+    {
+      "id": "acme",
+      "scope": "org",
+      "backup": {
+        "s3": { "bucket": "acme-solr-backups", "region": "us-east-1" }
+      }
+    }
+  ]
+}
+```
+
+`compass_setup start` generates `~/.souk-compass/solr.xml` from the registry and
+bind-mounts it, so you never hand-edit XML — and sets `SOLR_MODULES` to whatever
+the declared repositories need. **Repositories are read once, at boot**: after
+changing the registry, restart Solr.
+
+**Credentials never go in the registry.** Solr uses the AWS credential chain from
+its own container, so `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`,
+`AWS_SESSION_TOKEN` and `AWS_REGION` are passed through from your environment by
+the compose file. A credential-shaped value in the registry is rejected at load
+time.
+
+Solr officially supports AWS S3 only. MinIO is documented as incompatible with
+`S3BackupRepository`; Adobe's S3Mock is the recommended local test double.
+
+### What a snapshot records
+
+Alongside Solr's per-collection backups, each snapshot writes a manifest to
+`<location>/_manifests/<snapshotId>.json` — pushed to the bucket too, for an S3
+repository. It holds the tenant→collection mapping, the resolved tenant registry,
+the embedding provider and dimensions, the memory schema version, and the
+per-collection document counts.
+
+That is what makes a restore on a *different* machine work. Solr's backups are
+three anonymous indexes without it, and `tenants.json` is not otherwise part of
+the snapshot — its absence would degrade silently into personal-only defaults.
+`restore` writes the registry back if none is present, and never overwrites one.
+
+The manifest is also why a restore can be checked. Solr reports RESTORE
+successful the moment the collection exists, which is some way short of "holds
+what it held"; `verify` compares live counts against the recorded ones.
+
+### The embedding-model guard
+
+`restore` refuses a snapshot built with a different embedding provider or vector
+width. Restoring Titan vectors onto the `local` provider yields an index that
+answers every query, raises no error, and ranks by nothing — there is no later
+point at which that becomes visible. Override with `force: true` only if you
+intend to reindex afterwards.
+
+### Retention
 
 ```
-compass_setup { "action": "backup",  "backupName": "2026-08-08" }
-compass_setup { "action": "restore", "backupName": "2026-08-08-context-bazaar-user-docs",
-                "name": "context-bazaar-user-docs-restored" }
+compass_backup { "action": "list" }
+compass_backup { "action": "prune", "keep": 5 }
 ```
 
-Backups are written to `/var/solr/backups` inside the Solr container, which the
-bundled compose file persists as its own named volume and lists in
-`solr.allowPaths`. Solr resolves the path itself and refuses anything outside
-that list. Restore refuses to write over a live collection, so recovering an
-index can never be confused with quietly replacing one.
+Retention is "keep the newest N backup points", not "delete older than" —
+snapshots are taken by hand, and a time rule can leave you with none after a
+quiet month.
+
+### Known trap: bind-mount ownership
+
+Docker creates a missing bind-mount source as a **root-owned** directory, and
+Solr runs as uid 8983 — so backups then fail with a permission error that reads
+like a bug. `compass_setup initialize` creates `~/.souk-compass/backups` itself
+with mode `0777` before starting the containers. If you prefer tighter
+permissions, create it yourself:
+
+```bash
+mkdir -p ~/.souk-compass/backups && sudo chown 8983:8983 ~/.souk-compass/backups
+```
+
+### Not included
+
+`~/.souk-compass/embed-cache.db` is deliberately not snapshotted. It is a pure
+cache keyed by embedding provider; losing it costs re-embedding time, not data.
 
 ## Choosing an Embedding Provider
 

@@ -32,6 +32,7 @@ import {
 	type Durability,
 	DurabilitySchema,
 	type Partition,
+	type S3Repository,
 	type SoukCompassConfig,
 	type Tenant,
 	TenantRegistrySchema,
@@ -58,6 +59,23 @@ export const DEFAULT_PRECEDENCE: Record<TenantScope, number> = {
 	org: 50,
 };
 
+/**
+ * A tenant's snapshot storage, fully resolved.
+ *
+ * `type` decides which Solr `BackupRepository` class serves it. `local` is the
+ * host-bind-mounted filesystem repository — enough to survive tearing the Docker
+ * stack down and rebuilding it. `s3` is the shared one, which is what an org
+ * needs and what a laptop needs to survive being lost.
+ */
+export interface ResolvedBackupTarget {
+	/** Solr repository name, as declared in the generated solr.xml. */
+	repository: string;
+	type: "local" | "s3";
+	/** Location passed to BACKUP/RESTORE, relative to the repository root. */
+	location: string;
+	s3?: S3Repository;
+}
+
 export interface ResolvedTenant {
 	id: string;
 	scope: TenantScope;
@@ -67,6 +85,7 @@ export interface ResolvedTenant {
 	solrUrl: string;
 	collections: Record<Partition, string>;
 	durability: Durability;
+	backup: ResolvedBackupTarget;
 }
 
 export interface TenantRegistry {
@@ -246,7 +265,87 @@ function resolveTenantEntry(
 			...configDurability,
 			...(full.durability ?? {}),
 		}),
+		backup: resolveBackupTarget(full, config),
 	};
+}
+
+/**
+ * Resolve where a tenant's snapshots live.
+ *
+ * The default is the local repository, which is the honest one for a personal
+ * index: it survives tearing down the Docker stack because the path is
+ * bind-mounted to the host, and it needs no credentials. An org tenant that
+ * declares `s3` gets a repository Solr streams to directly.
+ */
+export function resolveBackupTarget(
+	tenant: Partial<Tenant> & { id: string },
+	config: SoukCompassConfig,
+): ResolvedBackupTarget {
+	const declared = tenant.backup;
+
+	if (declared?.s3) {
+		assertNoCredentialLiterals(tenant.id, declared.s3);
+		return {
+			repository: declared.repository ?? tenant.id,
+			type: "s3",
+			// Solr keys a backup by name within a location, so tenants sharing a
+			// bucket need distinct prefixes or they overwrite each other.
+			location: declared.location ?? `${tenant.id}/`,
+			s3: declared.s3,
+		};
+	}
+
+	return {
+		repository: declared?.repository ?? LOCAL_REPOSITORY_NAME,
+		type: "local",
+		location:
+			declared?.location ?? config.backupLocation ?? DEFAULT_BACKUP_LOCATION,
+	};
+}
+
+/** Solr repository name for the host-bind-mounted local filesystem backend. */
+export const LOCAL_REPOSITORY_NAME = "personal";
+
+/**
+ * Path inside the Solr container that the host backup directory is mounted at.
+ * Must appear in Solr's `solr.allowPaths` or the Collections API refuses to
+ * write there.
+ */
+export const DEFAULT_BACKUP_LOCATION = "/var/solr/backups";
+
+/**
+ * Refuse anything secret-shaped in a repository declaration.
+ *
+ * The registry is a file people copy between machines and paste into issues, and
+ * S3 needs no credentials here at all — Solr uses the ambient AWS chain from its
+ * own container. So a secret-looking value in this block is always a mistake,
+ * and catching it at load time is the difference between a mistake and a leak.
+ */
+function assertNoCredentialLiterals(tenantId: string, s3: S3Repository): void {
+	for (const [key, value] of Object.entries(s3)) {
+		if (typeof value !== "string") continue;
+		if (!looksLikeSecret(value)) continue;
+		throw new SoukCompassError(
+			`Tenant "${tenantId}" has a credential-like value in backup.s3.${key}. ` +
+				"Backup repositories take no credentials — Solr uses the AWS credential " +
+				"chain from its own container environment. Remove the value and set " +
+				"AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY in the environment instead.",
+			ErrorCodes.CONFIG_INVALID,
+		);
+	}
+}
+
+/**
+ * Heuristic for a literal secret. Deliberately shallow: it exists to catch the
+ * obvious paste, not to be a scanner, and every field it guards has a legitimate
+ * short value (a bucket name, a region) that must not trip it.
+ */
+function looksLikeSecret(value: string): boolean {
+	if (/^AKIA[0-9A-Z]{16}$/.test(value)) return true; // AWS access key id
+	if (/^ASIA[0-9A-Z]{16}$/.test(value)) return true; // AWS temporary key id
+	// A long high-entropy base64-ish run, as an AWS secret key is.
+	if (/^[A-Za-z0-9/+=]{40,}$/.test(value)) return true;
+	return false;
 }
 
 // ---------------------------------------------------------------------------
@@ -254,7 +353,29 @@ function resolveTenantEntry(
 // ---------------------------------------------------------------------------
 
 export function defaultTenantRegistryPath(): string {
-	return join(homedir(), ".souk-compass", "tenants.json");
+	return join(stateDir(), "tenants.json");
+}
+
+/**
+ * Host directory holding everything that must outlive the containers: the
+ * tenant registry, the generated `solr.xml`, and the local snapshot repository.
+ *
+ * This is the boundary the whole backup design turns on. Anything inside a
+ * Docker named volume is removed by `docker compose down -v`; anything here is
+ * not.
+ */
+export function stateDir(config?: SoukCompassConfig): string {
+	return config?.stateDir ?? join(homedir(), ".souk-compass");
+}
+
+/** Host directory bind-mounted to the container's local backup repository. */
+export function backupDir(config?: SoukCompassConfig): string {
+	return config?.backupDir ?? join(stateDir(config), "backups");
+}
+
+/** Host path of the generated `solr.xml`, bind-mounted into the container. */
+export function solrXmlPath(config?: SoukCompassConfig): string {
+	return join(stateDir(config), "solr.xml");
 }
 
 /**

@@ -83,6 +83,58 @@ A note has an identity and a lifecycle, not just an insertion point:
 - Observations and decisions lose ranking weight with age; conventions,
   preferences, constraints, and workflows do not, and `pinned` records never do.
 
+## Snapshots — save, tear down, rebuild, restore
+
+```text
+compass_backup { "action": "save", "snapshotId": "2026-08-08" }
+```
+
+```bash
+docker compose down -v          # index, ZooKeeper, all cluster state gone
+```
+
+```text
+compass_setup  { "action": "start" }
+compass_backup { "action": "restore", "snapshotId": "2026-08-08" }
+compass_backup { "action": "verify",  "snapshotId": "2026-08-08" }
+```
+
+Use `start` rather than `initialize` before a restore: both start the stack and
+upload the configset, but `initialize` also creates the collections, and Solr
+restores only into a collection that does not exist.
+
+This works because snapshots live in a **host directory**
+(`~/.souk-compass/backups`), not a Docker volume — `down -v` removes every named
+volume, so a snapshot kept in one would be destroyed by the command it exists to
+survive.
+
+Each tenant names a Solr backup repository, which is the storage backend. A
+personal tenant uses the local filesystem repository and needs no credentials. An
+org tenant declares a bucket and Solr streams directly to it:
+
+```json
+{
+  "tenants": [
+    {
+      "id": "acme",
+      "scope": "org",
+      "backup": { "s3": { "bucket": "acme-solr-backups", "region": "us-east-1" } }
+    }
+  ]
+}
+```
+
+Credentials never appear in the registry — Solr uses the AWS credential chain
+from its own container. `compass_setup` generates `solr.xml` from the registry,
+so no XML is hand-edited; restart Solr after changing a repository.
+
+A snapshot carries a manifest recording the tenant→collection mapping, the
+registry, the embedding model, and the document counts. That is what lets a
+*different* machine restore, and what lets `verify` check that a restore actually
+recovered the documents rather than merely creating collections. Restoring a
+snapshot built with a different embedding model is refused: it would produce an
+index that answers every query and ranks by nothing.
+
 ## Durability
 
 `SOUK_COMPASS_REPLICATION_FACTOR`, `_NUM_SHARDS`, `_TLOG_REPLICAS`, and
@@ -91,16 +143,13 @@ changed afterwards. `compass_status` compares live replica counts against what
 was requested and reports `underReplicated`.
 
 Replication survives a node failing; it does not survive a bad reindex or a
-mistaken delete. Code can be reindexed from source afterwards, memory cannot:
+mistaken delete, both of which replicate faithfully. Code can be reindexed from
+source afterwards; memory cannot, which is why snapshots exist.
 
-```text
-compass_setup { "action": "backup",  "backupName": "2026-08-08" }
-compass_setup { "action": "restore", "backupName": "...", "name": "new-collection" }
-```
-
-See [`solr/README.md`](./solr/README.md) for the full configuration reference and
+See [`solr/README.md`](./solr/README.md) for the full configuration reference,
 [ADR-0056](../../docs/adr/0056-tenant-scoped-durable-memory-records.md) for the
-design rationale.
+memory model and [ADR-0057](../../docs/adr/0057-backup-repositories-as-storage-backends.md)
+for the backup design.
 
 ## Development
 
