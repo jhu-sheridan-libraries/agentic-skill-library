@@ -26,6 +26,24 @@ export function loadConfig(): SoukCompassConfig {
 		filteredSearchThreshold: process.env.SOUK_COMPASS_FILTERED_SEARCH_THRESHOLD
 			? Number(process.env.SOUK_COMPASS_FILTERED_SEARCH_THRESHOLD)
 			: undefined,
+		tenantRegistryPath: process.env.SOUK_COMPASS_TENANT_REGISTRY,
+		collectionPrefix: process.env.SOUK_COMPASS_COLLECTION_PREFIX,
+		defaultTenant: process.env.SOUK_COMPASS_DEFAULT_TENANT,
+		numShards: process.env.SOUK_COMPASS_NUM_SHARDS
+			? Number(process.env.SOUK_COMPASS_NUM_SHARDS)
+			: undefined,
+		replicationFactor: process.env.SOUK_COMPASS_REPLICATION_FACTOR
+			? Number(process.env.SOUK_COMPASS_REPLICATION_FACTOR)
+			: undefined,
+		tlogReplicas: process.env.SOUK_COMPASS_TLOG_REPLICAS
+			? Number(process.env.SOUK_COMPASS_TLOG_REPLICAS)
+			: undefined,
+		pullReplicas: process.env.SOUK_COMPASS_PULL_REPLICAS
+			? Number(process.env.SOUK_COMPASS_PULL_REPLICAS)
+			: undefined,
+		backupLocation: process.env.SOUK_COMPASS_BACKUP_LOCATION,
+		backupDir: process.env.SOUK_COMPASS_BACKUP_DIR,
+		stateDir: process.env.SOUK_COMPASS_HOME,
 	};
 
 	// Remove undefined values so Zod defaults apply

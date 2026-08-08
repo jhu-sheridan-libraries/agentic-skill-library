@@ -1,16 +1,24 @@
+import {
+	type CollectionFacets,
+	collectionFacets,
+} from "../collection-report.js";
+import { getClusterReplicaHealth } from "../collections.js";
 import { modelIdentity } from "../embedding-provider.js";
+import { MEMORY_SCHEMA_VERSION } from "../memory-model.js";
 import type { CompassStatusInput } from "../schemas.js";
+import { collectionTargets } from "../tenancy.js";
 import type { ToolContext, ToolResult } from "./types.js";
 
-/** Solr returns facets as a flat [value, count, value, count, ...] array. */
-function parseFacet(
-	flat: Array<string | number> | undefined,
-): Record<string, number> {
-	const out: Record<string, number> = {};
-	for (let i = 0; flat && i + 1 < flat.length; i += 2) {
-		out[String(flat[i])] = Number(flat[i + 1]);
-	}
-	return out;
+interface CollectionReport extends CollectionFacets {
+	name: string;
+	solrUrl: string;
+	partition: string;
+	tenants: string[];
+	/** Live replicas on the least-replicated shard. */
+	minActiveReplicas?: number | null;
+	replicationFactor?: number;
+	/** Where this collection's snapshots go. */
+	backupRepository?: string;
 }
 
 export async function handleCompassStatus(
@@ -19,108 +27,45 @@ export async function handleCompassStatus(
 ): Promise<ToolResult> {
 	const configuredProvider = modelIdentity(ctx.embeddingProvider);
 
-	const collections: Array<{
-		name: string;
-		docCount: number | null;
-		error?: string;
-		embedProviders?: Record<string, number>;
-		untaggedDocs?: number;
-		/** Per-repository document counts, for the shared codebase collection. */
-		indexedRoots?: Record<string, number>;
-		/** Documents predating index_root; not attributable to any repository. */
-		untrackedRootDocs?: number;
-	}> = [];
+	const targets = collectionTargets(ctx.tenants.tenants, [
+		"artifacts",
+		"memory",
+		"codebase",
+	]);
 
-	for (const { name } of [
-		{ name: ctx.config.solrCollection },
-		{ name: ctx.config.userCollection },
-		{ name: ctx.config.codebaseCollection },
-	]) {
-		try {
-			// Facet on embed_provider so a collection built by more than one model
-			// is visible. Mixed vectors still return scores; the scores are just
-			// meaningless, so this is the only way to notice.
-			const url = `${ctx.config.solrUrl}/solr/${encodeURIComponent(name)}/select?q=*:*&rows=0&wt=json&facet=true&facet.field=embed_provider&facet.field=index_root&facet.mincount=1`;
-			const response = await fetch(url);
-			if (!response.ok) {
-				collections.push({
-					name,
-					docCount: null,
-					error: `HTTP ${response.status}`,
-				});
-				continue;
-			}
-			const body = (await response.json()) as {
-				response?: { numFound?: number };
-				facet_counts?: {
-					facet_fields?: {
-						embed_provider?: Array<string | number>;
-						index_root?: Array<string | number>;
-					};
-				};
-			};
-			const docCount = body.response?.numFound ?? 0;
+	const collections: CollectionReport[] = [];
 
-			const embedProviders = parseFacet(
-				body.facet_counts?.facet_fields?.embed_provider,
-			);
-			const tagged = Object.values(embedProviders).reduce((a, b) => a + b, 0);
+	for (const target of targets) {
+		const owner = ctx.tenants.tenants.find((t) =>
+			target.tenantIds.includes(t.id),
+		);
 
-			// Which repositories are in this collection, and how much of each.
-			// Once the codebase collection is shared, this is the only way to see
-			// what has been indexed.
-			const indexedRoots = parseFacet(
-				body.facet_counts?.facet_fields?.index_root,
-			);
-			const rootTagged = Object.values(indexedRoots).reduce((a, b) => a + b, 0);
+		collections.push({
+			name: target.collection,
+			solrUrl: target.solrUrl,
+			partition: target.partition,
+			tenants: target.tenantIds,
+			replicationFactor: target.durability.replicationFactor,
+			...(owner ? { backupRepository: owner.backup.repository } : {}),
+			...(await collectionFacets(target.solrUrl, target.collection)),
+		});
+	}
 
-			collections.push({
-				name,
-				docCount,
-				...(Object.keys(embedProviders).length > 0 ? { embedProviders } : {}),
-				// Documents indexed before provider tagging existed. Their model is
-				// unknowable, so they cannot be trusted against a current query.
-				...(docCount - tagged > 0 ? { untaggedDocs: docCount - tagged } : {}),
-				...(Object.keys(indexedRoots).length > 0 ? { indexedRoots } : {}),
-				...(Object.keys(indexedRoots).length > 0 && docCount - rootTagged > 0
-					? { untrackedRootDocs: docCount - rootTagged }
-					: {}),
-			});
-		} catch (err) {
-			collections.push({
-				name,
-				docCount: null,
-				error: err instanceof Error ? err.message : String(err),
-			});
+	const memoryNotes = await countMemoryNotes(ctx);
+
+	// One cluster-status call per Solr, after the counts. Redundancy detail is
+	// the least important part of this report and the most likely to be
+	// unavailable, so it never stands between the caller and the counts.
+	for (const solrUrl of new Set(collections.map((c) => c.solrUrl))) {
+		const cluster = await getClusterReplicaHealth(solrUrl);
+		for (const collection of collections) {
+			if (collection.solrUrl !== solrUrl) continue;
+			const replicas = cluster.get(collection.name);
+			if (replicas) collection.minActiveReplicas = replicas.minActiveReplicas;
 		}
 	}
 
-	const totalDocs = collections.reduce((sum, c) => sum + (c.docCount ?? 0), 0);
-
-	// Count memory notes in user collection
-	let memoryNoteCount = 0;
-	try {
-		const memUrl = `${ctx.config.solrUrl}/solr/${encodeURIComponent(ctx.config.userCollection)}/select?q=doc_source:"memory"&rows=0&wt=json`;
-		const memResponse = await fetch(memUrl);
-		if (memResponse.ok) {
-			const memBody = (await memResponse.json()) as {
-				response?: { numFound?: number };
-			};
-			memoryNoteCount = memBody.response?.numFound ?? 0;
-		}
-	} catch {
-		/* ignore — Solr may be unreachable */
-	}
-
-	// Check if embeddingProvider has getStats() (CachedEmbeddingProvider)
-	const cacheStats =
-		"getStats" in ctx.embeddingProvider
-			? (
-					ctx.embeddingProvider as unknown as {
-						getStats: () => Record<string, unknown>;
-					}
-				).getStats()
-			: null;
+	const totalDocs = collections.reduce((s, c) => s + (c.docCount ?? 0), 0);
 
 	// A collection is only queryable with the model that built it. Surface any
 	// collection holding vectors from a different model, or from none recorded.
@@ -134,12 +79,56 @@ export async function handleCompassStatus(
 		)
 		.map((c) => c.name);
 
+	// Replication that is not actually running is the failure this whole design
+	// is meant to rule out, and nothing else reports it.
+	const underReplicated = collections
+		.filter(
+			(c) =>
+				c.minActiveReplicas != null &&
+				c.replicationFactor != null &&
+				c.minActiveReplicas < c.replicationFactor,
+		)
+		.map((c) => ({
+			collection: c.name,
+			requested: c.replicationFactor,
+			active: c.minActiveReplicas,
+		}));
+
+	// Field semantics differ between versions; a mixed collection answers some
+	// queries with typed fields and others with the legacy metadata_* strings.
+	const unmigrated = collections
+		.filter(
+			(c) =>
+				(c.untenantedDocs ?? 0) > 0 ||
+				Object.keys(c.schemaVersions ?? {}).some(
+					(v) => Number(v) < MEMORY_SCHEMA_VERSION,
+				),
+		)
+		.map((c) => c.name);
+
+	const cacheStats =
+		"getStats" in ctx.embeddingProvider
+			? (
+					ctx.embeddingProvider as unknown as {
+						getStats: () => Record<string, unknown>;
+					}
+				).getStats()
+			: null;
+
 	const result: Record<string, unknown> = {
+		tenants: ctx.tenants.tenants.map((t) => ({
+			id: t.id,
+			scope: t.scope,
+			access: t.access,
+			precedence: t.precedence,
+		})),
+		defaultTenant: ctx.tenants.defaultTenantId,
 		collections,
 		totalDocs,
-		memoryNotes: memoryNoteCount,
+		memoryNotes,
 		embedProvider: configuredProvider,
 		embedDimensions: ctx.embeddingProvider.dimensions,
+		schemaVersion: MEMORY_SCHEMA_VERSION,
 	};
 	if (staleCollections.length > 0) {
 		result.providerMismatch = {
@@ -150,16 +139,60 @@ export async function handleCompassStatus(
 				"Similarity against them is not meaningful — reindex them.",
 		};
 	}
+	if (underReplicated.length > 0) {
+		result.underReplicated = {
+			collections: underReplicated,
+			warning:
+				"Fewer replicas are active than were requested at creation. These " +
+				"collections are answering queries correctly and are one node " +
+				"failure from not existing.",
+		};
+	}
+	if (unmigrated.length > 0) {
+		result.unmigratedCollections = {
+			collections: unmigrated,
+			currentVersion: MEMORY_SCHEMA_VERSION,
+			warning:
+				"These collections hold documents written before the current data " +
+				"model. They are read through the legacy fallback — attributed to " +
+				"the personal tenant, treated as active and open-ended — which is " +
+				"correct but coarse.",
+		};
+	}
 	if (cacheStats) {
 		result.cache = cacheStats;
 	}
 
 	return {
-		content: [
-			{
-				type: "text",
-				text: JSON.stringify(result, null, 2),
-			},
-		],
+		content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
 	};
+}
+
+/** Memory notes per tenant, across every memory collection. */
+async function countMemoryNotes(
+	ctx: ToolContext,
+): Promise<Record<string, number | null>> {
+	const counts: Record<string, number | null> = {};
+
+	for (const tenant of ctx.tenants.tenants) {
+		try {
+			const url =
+				`${tenant.solrUrl}/solr/${encodeURIComponent(tenant.collections.memory)}/select` +
+				`?q=doc_source:%22memory%22&rows=0&wt=json` +
+				`&fq=${encodeURIComponent(`tenant_id:"${tenant.id}"`)}`;
+			const response = await fetch(url);
+			if (!response.ok) {
+				counts[tenant.id] = null;
+				continue;
+			}
+			const body = (await response.json()) as {
+				response?: { numFound?: number };
+			};
+			counts[tenant.id] = body.response?.numFound ?? 0;
+		} catch {
+			counts[tenant.id] = null;
+		}
+	}
+
+	return counts;
 }

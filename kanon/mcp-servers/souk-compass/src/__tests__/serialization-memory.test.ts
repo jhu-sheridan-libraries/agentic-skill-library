@@ -13,11 +13,38 @@ import {
 describe("toMemoryDocument", () => {
 	const embedding = [0.1, 0.2, 0.3, 0.4];
 
-	test("generates a valid UUID v4 for id", () => {
+	// Ids are derived from the tenant and the note rather than random. A random
+	// id makes every restatement a new record; a derived one makes restating the
+	// same thing land on the same logical record, which is what supersession
+	// needs in order to have anything to supersede.
+	test("derives a tenant-scoped, revision-suffixed id", () => {
 		const doc = toMemoryDocument("test note", embedding, "preference");
-		const uuidV4Regex =
-			/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-		expect(doc.id).toMatch(uuidV4Regex);
+		expect(doc.id).toMatch(/^mem:personal:[0-9a-f]{16}::r1$/);
+	});
+
+	test("gives the same id to the same note", () => {
+		const first = toMemoryDocument("Use Biome.", embedding, "convention");
+		const second = toMemoryDocument("use  biome", embedding, "convention");
+		expect(second.id).toBe(first.id);
+	});
+
+	test("gives different ids to different notes", () => {
+		const first = toMemoryDocument("use Biome", embedding, "convention");
+		const second = toMemoryDocument("use Prettier", embedding, "convention");
+		expect(second.id).not.toBe(first.id);
+	});
+
+	test("writes typed lifecycle fields alongside the legacy mirrors", () => {
+		const doc = toMemoryDocument("note", embedding, "decision", [
+			"arch",
+		]) as Record<string, unknown>;
+		expect(doc.status).toBe("active");
+		expect(doc.revision).toBe(1);
+		expect(doc.tenant_id).toBe("personal");
+		expect(doc.memory_type).toBe("episodic");
+		expect(doc.category).toBe("decision");
+		expect(doc.tags).toEqual(["arch"]);
+		expect(doc.schema_version).toBe(2);
 	});
 
 	test("sets doc_source to 'memory'", () => {

@@ -24,6 +24,7 @@ import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
 import type { SoukCompassConfig } from "../schemas.js";
 import type { SoukVectorClient } from "../solr-client.js";
 import type { ToolContext, ToolResult } from "../tools/types.js";
+import { completeToolContext } from "./test-support.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -65,7 +66,7 @@ function makeMockSolrClient(
 }
 
 function makeCtx(overrides: Partial<ToolContext> = {}): ToolContext {
-	return {
+	return completeToolContext({
 		solrClient: makeMockSolrClient(),
 		userSolrClient: makeMockSolrClient(),
 		codebaseSolrClient: makeMockSolrClient(),
@@ -79,7 +80,7 @@ function makeCtx(overrides: Partial<ToolContext> = {}): ToolContext {
 		packageRoot: "/fake/package/root",
 		contentRoot: "/fake/content/root",
 		...overrides,
-	};
+	});
 }
 
 async function importSetup() {

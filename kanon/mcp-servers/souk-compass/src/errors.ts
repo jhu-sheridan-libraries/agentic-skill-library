@@ -12,6 +12,9 @@ export const ErrorCodes = {
 	CACHE_INIT: "CACHE_INIT",
 	CHUNKER: "CHUNKER",
 	REINDEX: "REINDEX",
+	TENANT_UNKNOWN: "TENANT_UNKNOWN",
+	TENANT_READ_ONLY: "TENANT_READ_ONLY",
+	RECORD_NOT_FOUND: "RECORD_NOT_FOUND",
 } as const;
 
 export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
