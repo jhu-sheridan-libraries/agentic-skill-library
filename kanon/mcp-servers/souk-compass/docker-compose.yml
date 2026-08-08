@@ -8,6 +8,10 @@ services:
     volumes:
       - solr-data:/var/solr
       - ./solr/configset:/opt/solr/server/solr/configsets/souk-compass
+      # Snapshot destination for compass_setup "backup". A named volume rather
+      # than a path under solr-data, so `docker compose down -v` on the index
+      # and discarding the backups are separate decisions.
+      - solr-backups:/var/solr/backups
     environment:
       ZK_HOST: zoo:2181
       # kNN queries inline the full query vector into the request URI. At
@@ -15,7 +19,11 @@ services:
       # Jetty's 8192-byte default, which fails every vector and hybrid search
       # with HTTP 414. Headroom is for larger topK, filter queries, and any
       # future dimension increase.
-      SOLR_OPTS: "-Dsolr.jetty.request.header.size=65536"
+      #
+      # solr.allowPaths is required for BACKUP and RESTORE: Solr refuses to
+      # write to any path not listed here, so without it every backup fails
+      # with a permission error that reads like a bug rather than a policy.
+      SOLR_OPTS: "-Dsolr.jetty.request.header.size=65536 -Dsolr.allowPaths=/var/solr/backups"
     depends_on:
       zoo:
         condition: service_healthy
@@ -39,5 +47,6 @@ services:
 
 volumes:
   solr-data:
+  solr-backups:
   zoo-data:
   zoo-datalog:

@@ -40,6 +40,68 @@ Docker Compose and the Solr configset resolve from the installed package. Catalo
 
 Codebase search, user documents, and memory do not require catalog content.
 
+## Tenants
+
+Records belong to a **tenant**: `personal` for you, one entry per org you share
+an index with. With no configuration there is exactly one — `personal` — using
+the same collection names as before, so an existing index needs no migration.
+
+Declare orgs in `~/.souk-compass/tenants.json` (or `SOUK_COMPASS_TENANTS`):
+
+```json
+{
+  "tenants": [
+    { "id": "acme", "scope": "org" },
+    { "id": "upstream", "scope": "org", "access": "read" }
+  ]
+}
+```
+
+Each tenant owns its own Solr collections, so backup, replication, and Solr's
+per-collection authorization apply per tenant rather than to one shared pile. A
+tenant may live on a different SolrCloud; reads federate across clusters.
+
+```text
+compass_tenants       { "verify": true }
+compass_remember      { "note": "...", "category": "convention", "tenant": "acme" }
+compass_recall_memory { "query": "...", "tenants": "all" }
+```
+
+When a personal record and an org record disagree, the higher-precedence one
+wins — personal by default — and the other comes back as `shadowed` rather than
+disappearing.
+
+## Memory records
+
+A note has an identity and a lifecycle, not just an insertion point:
+
+- Restating something already recorded is a no-op; a changed statement becomes
+  the next revision and marks the previous one `superseded`, retained.
+- `compass_forget` marks a record `retracted` rather than deleting it.
+- `validFrom` / `validUntil` bound when a record was true;
+  `compass_recall_memory { asOf }` asks what was believed at a past instant.
+- Observations and decisions lose ranking weight with age; conventions,
+  preferences, constraints, and workflows do not, and `pinned` records never do.
+
+## Durability
+
+`SOUK_COMPASS_REPLICATION_FACTOR`, `_NUM_SHARDS`, `_TLOG_REPLICAS`, and
+`_PULL_REPLICAS` set collection topology at creation — `numShards` cannot be
+changed afterwards. `compass_status` compares live replica counts against what
+was requested and reports `underReplicated`.
+
+Replication survives a node failing; it does not survive a bad reindex or a
+mistaken delete. Code can be reindexed from source afterwards, memory cannot:
+
+```text
+compass_setup { "action": "backup",  "backupName": "2026-08-08" }
+compass_setup { "action": "restore", "backupName": "...", "name": "new-collection" }
+```
+
+See [`solr/README.md`](./solr/README.md) for the full configuration reference and
+[ADR-0056](../../docs/adr/0056-tenant-scoped-durable-memory-records.md) for the
+design rationale.
+
 ## Development
 
 Run commands from this directory:

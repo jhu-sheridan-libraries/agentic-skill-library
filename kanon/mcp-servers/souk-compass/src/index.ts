@@ -4,9 +4,9 @@
  * Souk Compass MCP server
  *
  * Provides Solr-backed semantic search over context-bazaar knowledge artifacts
- * and user document collections. Exposes fourteen tools via stdio transport:
+ * and user document collections. Exposes sixteen tools via stdio transport:
  *
- *   compass_setup              — manage local Solr instance
+ *   compass_setup              — manage Solr, provision collections, back up and restore
  *   compass_index_artifacts    — index catalog artifacts into Solr
  *   compass_search             — semantic search over indexed artifacts
  *   compass_index_document     — index a user document into Solr
@@ -14,11 +14,13 @@
  *   compass_search_codebase    — semantic search over indexed codebase
  *   compass_reindex_folder     — incremental re-index of a folder
  *   compass_reindex            — detect and re-index changed artifacts
- *   compass_status             — document counts and collection status
+ *   compass_status             — document counts, tenancy, and durability status
  *   compass_health             — Solr connectivity check
  *   compass_recall             — proactive contextual skill recall
- *   compass_remember           — persist memory notes for cross-session recall
- *   compass_recall_memory      — search stored memory notes by meaning
+ *   compass_remember           — write a memory record, superseding what it replaces
+ *   compass_recall_memory      — recall memory across tenants, reconciled by precedence
+ *   compass_forget             — retract a memory record without deleting it
+ *   compass_tenants            — list reachable tenants and their collections
  *   compass_profile_workspace  — workspace-aware skill matching
  */
 
@@ -35,6 +37,7 @@ import { createEmbeddingProvider } from "./embedding-provider.js";
 import { SoukCompassError } from "./errors.js";
 import { resolveContentRoot, resolvePackageRoot } from "./roots.js";
 import type {
+	CompassForgetInput,
 	CompassHealthInput,
 	CompassIndexArtifactsInput,
 	CompassIndexDocumentInput,
@@ -49,8 +52,17 @@ import type {
 	CompassSearchInput,
 	CompassSetupInput,
 	CompassStatusInput,
+	CompassTenantsInput,
+	Partition,
 } from "./schemas.js";
+import { MemoryCategorySchema } from "./schemas.js";
 import { SoukVectorClient } from "./solr-client.js";
+import {
+	loadTenantRegistry,
+	type ResolvedTenant,
+	resolveTenant,
+} from "./tenancy.js";
+import { handleCompassForget } from "./tools/compass-forget.js";
 import { handleCompassHealth } from "./tools/compass-health.js";
 import { handleCompassIndexArtifacts } from "./tools/compass-index.js";
 import { handleCompassIndexDocument } from "./tools/compass-index-doc.js";
@@ -65,6 +77,7 @@ import { handleCompassSearch } from "./tools/compass-search.js";
 import { handleCompassSearchCodebase } from "./tools/compass-search-codebase.js";
 import { handleCompassSetup } from "./tools/compass-setup.js";
 import { handleCompassStatus } from "./tools/compass-status.js";
+import { handleCompassTenants } from "./tools/compass-tenants.js";
 import type { ToolContext, ToolResult } from "./tools/types.js";
 
 // ---------------------------------------------------------------------------
@@ -74,40 +87,53 @@ import type { ToolContext, ToolResult } from "./tools/types.js";
 const PACKAGE_ROOT = resolvePackageRoot();
 const CONTENT_ROOT = resolveContentRoot();
 
+/**
+ * Kept in step with `MemoryCategorySchema` by deriving the JSON-Schema enum from
+ * the Zod one — two hand-maintained copies of a taxonomy drift, and the drift
+ * shows up as a validation error the model cannot see from its tool definition.
+ */
+const MEMORY_CATEGORIES = MemoryCategorySchema.options;
+
 // ---------------------------------------------------------------------------
 // Bootstrap (async)
 // ---------------------------------------------------------------------------
 
 async function bootstrap() {
 	const config = loadConfig();
+	const tenants = loadTenantRegistry(config);
+	const defaultTenant = resolveTenant(tenants, tenants.defaultTenantId);
 
 	const rawProvider = await createEmbeddingProvider(config);
 
-	const solrClient = new SoukVectorClient(
-		config.solrUrl,
-		config.solrCollection,
-		{
-			efSearchScaleFactor: config.efSearchScaleFactor,
-			filteredSearchThreshold: config.filteredSearchThreshold,
-		},
-	);
-	const userSolrClient = new SoukVectorClient(
-		config.solrUrl,
-		config.userCollection,
-		{
-			efSearchScaleFactor: config.efSearchScaleFactor,
-			filteredSearchThreshold: config.filteredSearchThreshold,
-		},
-	);
+	const clientOptions = {
+		efSearchScaleFactor: config.efSearchScaleFactor,
+		filteredSearchThreshold: config.filteredSearchThreshold,
+	};
 
-	const codebaseSolrClient = new SoukVectorClient(
-		config.solrUrl,
-		config.codebaseCollection,
-		{
-			efSearchScaleFactor: config.efSearchScaleFactor,
-			filteredSearchThreshold: config.filteredSearchThreshold,
-		},
-	);
+	// One client per (Solr URL, collection). The set of collections is now a
+	// function of the registry rather than three fixed names, and a federated
+	// read may touch several — so they are built on demand and cached rather
+	// than constructed up front.
+	const clientCache = new Map<string, SoukVectorClient>();
+	const clientFor = (tenant: ResolvedTenant, partition: Partition) => {
+		const collection = tenant.collections[partition];
+		const key = `${tenant.solrUrl} ${collection}`;
+		const cached = clientCache.get(key);
+		if (cached) return cached;
+		const client = new SoukVectorClient(
+			tenant.solrUrl,
+			collection,
+			clientOptions,
+		);
+		clientCache.set(key, client);
+		return client;
+	};
+
+	// The three legacy handles stay bound to the default tenant, so every tool
+	// that has not been made tenant-aware keeps behaving exactly as before.
+	const solrClient = clientFor(defaultTenant, "artifacts");
+	const userSolrClient = clientFor(defaultTenant, "memory");
+	const codebaseSolrClient = clientFor(defaultTenant, "codebase");
 
 	const embeddingProvider = new CachedEmbeddingProvider({
 		inner: rawProvider,
@@ -125,6 +151,8 @@ async function bootstrap() {
 		config,
 		packageRoot: PACKAGE_ROOT,
 		contentRoot: CONTENT_ROOT,
+		tenants,
+		clientFor,
 	};
 
 	return { toolContext, server };
@@ -155,7 +183,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 					name: {
 						type: "string",
 						description:
-							'Collection name to create. Required for action "create_collection".',
+							'Collection name. Required for "create_collection" and for "restore" (the collection to restore into, which must not already exist).',
 					},
 					action: {
 						type: "string",
@@ -165,10 +193,26 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 							"start",
 							"create_collections",
 							"create_collection",
+							"backup",
+							"restore",
 							"stop",
 						],
 						description:
-							"Action to perform. Use 'initialize' for seamless first-run provisioning; default is 'check'.",
+							"Action to perform. Use 'initialize' for seamless first-run provisioning; default is 'check'. 'backup' snapshots collections; 'restore' recovers one into a new collection.",
+					},
+					tenant: {
+						type: "string",
+						description:
+							"Act on one tenant's collections instead of every registered tenant's.",
+					},
+					backupName: {
+						type: "string",
+						description: 'Snapshot name. Required for "backup" and "restore".',
+					},
+					location: {
+						type: "string",
+						description:
+							"Backup directory, resolved by Solr rather than by this process. Must be inside solr.allowPaths. Defaults to /var/solr/backups.",
 					},
 				},
 			},
@@ -353,38 +397,74 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 		{
 			name: "compass_remember",
 			description:
-				"Store a memory note (preference, convention, recommendation, observation, or workflow) for cross-session recall. Call this when discovering user preferences, project conventions, or useful observations.",
+				"Store a memory note for cross-session recall. Restating something already recorded is a no-op; a changed statement about the same subject becomes a new revision and supersedes the old one, which is retained. Call this when discovering user preferences, project conventions, decisions, or constraints.",
 			inputSchema: {
 				type: "object" as const,
 				required: ["note", "category"],
 				properties: {
 					note: {
 						type: "string",
-						description: "The observation or preference to remember.",
+						description:
+							"The observation, decision, or preference to remember.",
 					},
 					category: {
 						type: "string",
-						enum: [
-							"preference",
-							"convention",
-							"recommendation",
-							"observation",
-							"workflow",
-						],
-						description: "Category of the memory note.",
+						enum: MEMORY_CATEGORIES,
+						description: "What the note is about.",
 					},
 					tags: {
 						type: "array",
 						items: { type: "string" },
-						description: "Optional tags for filtering.",
+						description:
+							"Tags for exact-match filtering. Lowercased and deduplicated.",
 					},
+					tenant: {
+						type: "string",
+						description:
+							"Tenant to write to (default: the configured default tenant, normally 'personal'). List tenants with compass_tenants.",
+					},
+					memoryType: {
+						type: "string",
+						enum: ["semantic", "episodic", "procedural"],
+						description:
+							"Overrides the type inferred from category. Episodic records lose ranking weight with age; semantic and procedural do not.",
+					},
+					logicalId: {
+						type: "string",
+						description:
+							"Revise a specific record instead of deriving identity from the note text. Use when the wording changes but the subject does not.",
+					},
+					validFrom: {
+						type: "string",
+						description:
+							"ISO-8601 instant the record became true (default: now). Use for backfilling a past decision.",
+					},
+					validUntil: {
+						type: "string",
+						description:
+							"ISO-8601 instant the record stops being true. Omit for open-ended.",
+					},
+					confidence: {
+						type: "number",
+						description:
+							"0–1. Scales the record's ranking weight (default: 1).",
+					},
+					pinned: {
+						type: "boolean",
+						description:
+							"Pinned records never decay and are never auto-superseded (default: false).",
+					},
+					sessionId: { type: "string", description: "Provenance: session." },
+					agent: { type: "string", description: "Provenance: agent." },
+					repo: { type: "string", description: "Provenance: repository." },
+					author: { type: "string", description: "Provenance: author." },
 				},
 			},
 		},
 		{
 			name: "compass_recall_memory",
 			description:
-				"Search stored memory notes by meaning. Call this at session start to recall user preferences and past observations.",
+				"Search stored memory notes by meaning, across one or more tenants. Returns only records valid at the query time; when a personal note and an org note disagree about the same subject, the higher-precedence one wins and the other is reported as shadowed. Call this at session start to recall preferences, conventions, and past decisions.",
 			inputSchema: {
 				type: "object" as const,
 				required: ["query"],
@@ -395,16 +475,95 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 					},
 					category: {
 						type: "string",
-						description: "Filter by memory note category.",
+						enum: MEMORY_CATEGORIES,
+						description: "Filter by category.",
+					},
+					memoryType: {
+						type: "string",
+						enum: ["semantic", "episodic", "procedural"],
+						description: "Filter by memory type.",
 					},
 					tags: {
 						type: "array",
 						items: { type: "string" },
-						description: "Filter by tags.",
+						description:
+							"Filter by tags. Exact match; every tag must be present.",
 					},
 					topK: {
 						type: "number",
 						description: "Number of results to return (default: 5).",
+					},
+					tenant: {
+						type: "string",
+						description:
+							"Search one tenant. Shorthand for a single-element 'tenants'.",
+					},
+					tenants: {
+						anyOf: [
+							{ type: "string", enum: ["all"] },
+							{ type: "array", items: { type: "string" } },
+						],
+						description:
+							"Tenants to span. 'all' spans personal plus every registered org. Default: the configured default tenant only.",
+					},
+					asOf: {
+						type: "string",
+						description:
+							"ISO-8601 instant to evaluate validity at (default: now). Use to ask what was known at a past point in time.",
+					},
+					includeSuperseded: {
+						type: "boolean",
+						description:
+							"Include replaced revisions (default: false). Retracted records stay excluded either way.",
+					},
+					decayHalfLifeDays: {
+						type: "number",
+						description:
+							"Override the episodic decay half-life in days (default: 90).",
+					},
+				},
+			},
+		},
+		{
+			name: "compass_forget",
+			description:
+				"Retract a memory note that was wrong. The record is marked retracted and excluded from recall, not deleted — so the mistake stays auditable and cannot be silently resurrected by a later reindex. Use compass_remember to record a changed fact; that supersedes rather than retracts.",
+			inputSchema: {
+				type: "object" as const,
+				properties: {
+					id: {
+						type: "string",
+						description: "Retract one specific revision, by document id.",
+					},
+					logicalId: {
+						type: "string",
+						description:
+							"Retract every active revision of a logical record. One of id or logicalId is required.",
+					},
+					tenant: {
+						type: "string",
+						description:
+							"Tenant holding the record (default: the default tenant).",
+					},
+					reason: {
+						type: "string",
+						description:
+							"Why it was retracted. Recorded as a tag on the record.",
+					},
+				},
+			},
+		},
+		{
+			name: "compass_tenants",
+			description:
+				"List the tenants this server can reach — personal and any registered orgs — with their collections, write access, conflict precedence, and durability settings. Call this before writing to a tenant you have not used, or to find out which tenants a recall can span.",
+			inputSchema: {
+				type: "object" as const,
+				properties: {
+					verify: {
+						type: "boolean",
+						description:
+							"Probe each collection for existence, document count, and live replica count (default: false).",
 					},
 				},
 			},
@@ -680,6 +839,18 @@ async function main() {
 				case "compass_recall_memory":
 					result = await handleCompassRecallMemory(
 						args as CompassRecallMemoryInput,
+						toolContext,
+					);
+					break;
+				case "compass_forget":
+					result = await handleCompassForget(
+						args as CompassForgetInput,
+						toolContext,
+					);
+					break;
+				case "compass_tenants":
+					result = await handleCompassTenants(
+						args as CompassTenantsInput,
 						toolContext,
 					);
 					break;

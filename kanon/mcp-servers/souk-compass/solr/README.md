@@ -214,6 +214,118 @@ Ensure the remote Solr instance has:
 | `SOUK_COMPASS_DEFAULT_MIN_SCORE` | unset | Default similarity floor, 0–1 |
 | `SOUK_COMPASS_EF_SEARCH_SCALE` | `1.0` | HNSW candidate multiplier |
 | `SOUK_COMPASS_FILTERED_SEARCH_THRESHOLD` | unset | ACORN threshold, integer 0–100 |
+| `SOUK_COMPASS_TENANTS` | unset | Tenant registry as inline JSON. Wins over the file |
+| `SOUK_COMPASS_TENANT_REGISTRY` | `~/.souk-compass/tenants.json` | Tenant registry path |
+| `SOUK_COMPASS_DEFAULT_TENANT` | `personal` | Tenant used when a call names none |
+| `SOUK_COMPASS_COLLECTION_PREFIX` | `souk` | Prefix for derived collection names |
+| `SOUK_COMPASS_NUM_SHARDS` | `1` | Shards per collection, at creation |
+| `SOUK_COMPASS_REPLICATION_FACTOR` | `1` | NRT replicas per shard, at creation |
+| `SOUK_COMPASS_TLOG_REPLICAS` | `0` | Transaction-log-only replicas |
+| `SOUK_COMPASS_PULL_REPLICAS` | `0` | Read-only replicas |
+| `SOUK_COMPASS_BACKUP_LOCATION` | `/var/solr/backups` | Snapshot directory, resolved by Solr |
+
+## Tenants
+
+A **tenant** is the unit of ownership: `personal` for you, one entry per org you
+share an index with. Each owns up to three collections, one per partition
+(`artifacts`, `memory`, `codebase`).
+
+With no configuration there is exactly one tenant — `personal` — mapped to the
+three `context-bazaar*` collection names above. An existing index needs no
+migration.
+
+Declare orgs in `~/.souk-compass/tenants.json`:
+
+```json
+{
+  "tenants": [
+    { "id": "acme", "scope": "org", "displayName": "Acme Platform" },
+    { "id": "upstream", "scope": "org", "access": "read" },
+    { "id": "policy", "scope": "org", "precedence": 500,
+      "durability": { "replicationFactor": 3 } }
+  ]
+}
+```
+
+- `id` is a lowercase slug. It becomes part of collection names
+  (`souk-acme-memory`) and part of Solr filter queries, which is why it is
+  constrained.
+- `access: "read"` refuses writes at the tool boundary — the shape of an org
+  index you consume and someone else curates.
+- `precedence` decides who wins when two tenants disagree. Personal defaults to
+  100 and org to 50, so a local decision outranks an org default. Raise an org
+  above 100 when it publishes binding policy rather than suggestions.
+- `solrUrl` lets a tenant's index live on a different SolrCloud entirely; reads
+  federate across clusters.
+- `collections` names a partition's collection explicitly. Two tenants may
+  deliberately share one — `compass_tenants` flags that, because there the
+  `tenant_id` filter is the only thing separating them.
+
+Isolation is by collection rather than by a filter over one shared collection,
+because backup, replication factor, and Solr's per-collection authorization are
+all properties of a collection (see
+[ADR-0056](../../../docs/adr/0056-tenant-scoped-durable-memory-records.md)).
+
+```
+compass_tenants { "verify": true }                       # who is reachable, and how healthy
+compass_remember { "note": "...", "category": "convention", "tenant": "acme" }
+compass_recall_memory { "query": "...", "tenants": "all" }   # personal + every org
+```
+
+## Memory records
+
+A memory note is a record with an identity and a lifecycle, not an insert.
+
+- **Revisions.** Restating something already recorded is a no-op. A changed
+  statement about the same subject becomes revision *n+1* and marks the previous
+  one `superseded` — retained, pointing forward at its replacement.
+- **Retraction.** `compass_forget` marks a record `retracted` rather than
+  deleting it, so a mistake stays auditable and cannot be resurrected by a later
+  reindex.
+- **Validity.** `validFrom` / `validUntil` bound when a record was true.
+  `compass_recall_memory { asOf }` asks what was believed at a past instant.
+- **Decay.** Episodic records (observations, decisions) lose ranking weight with
+  age — 90-day half-life by default. Semantic and procedural records do not, and
+  `pinned` records never do. Decay changes ranking only; nothing is dropped.
+- **Conflicts.** When two tenants disagree, the higher-precedence record wins and
+  the loser is returned as `shadowed` rather than silently dropped.
+- **Provenance.** Session, agent, repository, and author are recorded per record.
+
+Pre-v2 notes keep working: absent `status` and `valid_from` read as "active,
+valid from the beginning of time", and untagged documents belong to `personal`.
+`compass_status` reports `unmigratedCollections` so an unfinished migration is
+visible rather than blended into the personal totals.
+
+## Durability
+
+Replication is configured at creation and cannot be changed afterwards for
+`numShards`, so it is worth setting before the first index:
+
+```bash
+export SOUK_COMPASS_REPLICATION_FACTOR=3
+compass_setup { "action": "create_collections" }
+```
+
+`compass_status` and `compass_setup { "action": "check" }` compare *live* replica
+counts against the requested `replicationFactor` and report `underReplicated`. A
+collection created with three replicas and running on one answers every query
+correctly right up until that node fails; a document count cannot tell you that.
+
+Replication does not survive a bad reindex or a mistaken delete — both replicate
+faithfully. Code can be reindexed from source afterwards; memory cannot, because
+it has no source. Snapshot it:
+
+```
+compass_setup { "action": "backup",  "backupName": "2026-08-08" }
+compass_setup { "action": "restore", "backupName": "2026-08-08-context-bazaar-user-docs",
+                "name": "context-bazaar-user-docs-restored" }
+```
+
+Backups are written to `/var/solr/backups` inside the Solr container, which the
+bundled compose file persists as its own named volume and lists in
+`solr.allowPaths`. Solr resolves the path itself and refuses anything outside
+that list. Restore refuses to write over a live collection, so recovering an
+index can never be confused with quietly replacing one.
 
 ## Choosing an Embedding Provider
 

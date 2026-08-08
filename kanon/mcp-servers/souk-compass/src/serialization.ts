@@ -1,8 +1,14 @@
-import { randomUUID } from "node:crypto";
 import type { CatalogEntry } from "../../../src/schemas.js";
 import { contentHash } from "./embed-cache.js";
 import { ErrorCodes, SoukCompassError } from "./errors.js";
 import {
+	buildMemoryRecord,
+	MEMORY_SCHEMA_VERSION,
+	toMemoryDocumentFields,
+} from "./memory-model.js";
+import {
+	type MemoryCategory,
+	type Partition,
 	type SearchResult,
 	SearchResultSchema,
 	type SolrDocument,
@@ -29,6 +35,7 @@ export function toSolrDocument(
 	text: string,
 	embedding: number[],
 	embedProvider?: string,
+	tenant?: DocumentTenant,
 ): SolrDocument {
 	const doc: SolrDocument = {
 		id: entry.name,
@@ -45,9 +52,36 @@ export function toSolrDocument(
 		doc_source: "artifact",
 		content_hash: contentHash(text),
 		...(embedProvider ? { embed_provider: embedProvider } : {}),
+		...tenantFields(tenant, "artifacts"),
 	};
 
 	return SolrDocumentSchema.parse(doc);
+}
+
+/**
+ * Tenant attribution to stamp onto a document.
+ *
+ * Optional throughout, because a document written without it is not wrong — it
+ * is a personal document written by a server that was never told about tenancy,
+ * and that is exactly how untagged documents are read back.
+ */
+export interface DocumentTenant {
+	id: string;
+	scope: "personal" | "org";
+}
+
+/** Tenancy and data-model-version fields common to every document kind. */
+export function tenantFields(
+	tenant: DocumentTenant | undefined,
+	partition: Partition,
+): Record<string, unknown> {
+	if (!tenant) return {};
+	return {
+		tenant_id: tenant.id,
+		tenant_scope: tenant.scope,
+		partition,
+		schema_version: MEMORY_SCHEMA_VERSION,
+	};
 }
 
 /**
@@ -88,6 +122,14 @@ export function fromSolrDocument(doc: Record<string, unknown>): SearchResult {
 		chunkIndex:
 			typeof doc.chunk_index === "number" ? doc.chunk_index : undefined,
 		parentArtifact: extractString(doc.parent_artifact),
+		// Untagged documents predate tenancy; they are left unattributed rather
+		// than assigned a tenant here, so a caller can tell "personal" from
+		// "written before tenancy existed".
+		tenantId: extractString(doc.tenant_id),
+		tenantScope: extractString(doc.tenant_scope) as
+			| "personal"
+			| "org"
+			| undefined,
 	};
 
 	try {
@@ -118,6 +160,7 @@ export function toUserSolrDocument(
 	embedding: number[],
 	metadata?: Record<string, string>,
 	embedProvider?: string,
+	tenant?: DocumentTenant,
 ): SolrDocument {
 	const doc: Record<string, unknown> = {
 		id,
@@ -125,6 +168,7 @@ export function toUserSolrDocument(
 		vector: embedding,
 		doc_source: "user",
 		...(embedProvider ? { embed_provider: embedProvider } : {}),
+		...tenantFields(tenant, "memory"),
 	};
 
 	if (metadata) {
@@ -137,9 +181,14 @@ export function toUserSolrDocument(
 }
 
 /**
- * Convert a memory note into Solr JSON format with doc_source set to "memory".
- * Generates a UUID for the document id and stores category, tags, created_at,
- * and optional session_id as metadata fields.
+ * Convert a memory note into a Solr document, without lifecycle context.
+ *
+ * Retained as the untenanted path: it builds a revision-1 record for the
+ * personal tenant and produces both the typed fields and their pre-v2
+ * `metadata_*` mirrors. Callers that can supply a tenant, prior revisions, or a
+ * validity window should build the record directly — `buildMemoryRecord` plus
+ * `toMemoryDocumentFields` — because supersession cannot be decided from a note
+ * and a category alone.
  */
 export function toMemoryDocument(
 	note: string,
@@ -149,20 +198,14 @@ export function toMemoryDocument(
 	sessionId?: string,
 	embedProvider?: string,
 ): SolrDocument {
-	const doc: Record<string, unknown> = {
-		id: randomUUID(),
-		text: note,
-		vector: embedding,
-		doc_source: "memory",
-		...(embedProvider ? { embed_provider: embedProvider } : {}),
-		metadata_category: category,
-		metadata_tags: tags?.join(",") ?? "",
-		metadata_created_at: new Date().toISOString(),
-	};
+	const record = buildMemoryRecord({
+		note,
+		category: category as MemoryCategory,
+		tenantId: "personal",
+		tenantScope: "personal",
+		tags,
+		...(sessionId ? { provenance: { sessionId } } : {}),
+	});
 
-	if (sessionId) {
-		doc.metadata_session_id = sessionId;
-	}
-
-	return SolrDocumentSchema.parse(doc) as SolrDocument;
+	return toMemoryDocumentFields(record, embedding, embedProvider);
 }
