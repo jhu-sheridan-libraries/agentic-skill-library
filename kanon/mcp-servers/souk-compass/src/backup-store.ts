@@ -420,8 +420,12 @@ function awsCli(
 	}
 
 	const full = [...args];
-	if (target.s3?.region) full.push("--region", target.s3.region);
-	if (target.s3?.endpoint) full.push("--endpoint-url", target.s3.endpoint);
+	if (target.s3?.region && /^[a-z0-9-]+$/.test(target.s3.region)) {
+		full.push("--region", target.s3.region);
+	}
+	if (target.s3?.endpoint && /^https?:\/\/.+$/.test(target.s3.endpoint)) {
+		full.push("--endpoint-url", target.s3.endpoint);
+	}
 
 	try {
 		const result = spawnSync("aws", full, {
