@@ -1,6 +1,6 @@
 import { exists, mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import * as yaml from "js-yaml";
+import yaml from "js-yaml";
 import { generateCatalog } from "./catalog";
 import {
 	type CatalogEntry,
@@ -113,7 +113,7 @@ export function serializeFrontmatter(
 	const yamlStr = yaml.dump(frontmatter, {
 		lineWidth: -1,
 		noRefs: true,
-		quoteStyle: "single",
+		quotingType: "'",
 	});
 	return `---\n${yamlStr}---\n${body}`;
 }

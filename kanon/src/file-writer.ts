@@ -1,6 +1,6 @@
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import * as yaml from "js-yaml";
+import yaml from "js-yaml";
 import type { CanonicalHook, McpServerDefinition } from "./schemas";
 import type { WizardResult } from "./wizard";
 

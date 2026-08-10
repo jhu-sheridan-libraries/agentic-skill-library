@@ -1,5 +1,8 @@
 name: Eval – Kiro Progressive Steering
 
+# This rubric is a deterministic grader over compiled output — it makes no LLM
+# calls and costs only runner minutes, so it stays a PR gate (Red fails the
+# build). The paid LLM eval suite is manual dispatch in eval.yml.
 on:
   pull_request:
     paths:
@@ -10,6 +13,7 @@ on:
       - 'kanon/src/wizard.ts'
       - 'kanon/src/eval/rubrics/kiro-progressive-steering.ts'
       - 'kanon/fixtures/eval/kiro-progressive-steering/**'
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -22,18 +26,19 @@ concurrency:
 jobs:
   eval-kiro-progressive-steering:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: kanon
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: "1.3.12"
 
       - name: Cache Bun dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.bun/install/cache

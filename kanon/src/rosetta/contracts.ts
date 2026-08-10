@@ -116,8 +116,8 @@ export type ImmutableContext = Readonly<Record<string, JsonValue>>;
 export function codePointCompare(a: string, b: string): number {
 	const minLen = Math.min(a.length, b.length);
 	for (let i = 0; i < minLen; i++) {
-		const aCode = a.codePointAt(i)!;
-		const bCode = b.codePointAt(i)!;
+		const aCode = a.codePointAt(i) as number;
+		const bCode = b.codePointAt(i) as number;
 		if (aCode !== bCode) {
 			return aCode - bCode;
 		}

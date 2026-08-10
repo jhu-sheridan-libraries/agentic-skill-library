@@ -1,6 +1,6 @@
 import { exists, readdir, readFile, unlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import * as yaml from "js-yaml";
+import yaml from "js-yaml";
 import {
 	type CatalogEntry,
 	type Collection,
@@ -80,7 +80,7 @@ export function serializeCollection(
 	return yaml.dump(collection, {
 		lineWidth: -1,
 		noRefs: true,
-		quoteStyle: "single",
+		quotingType: "'",
 	});
 }
 

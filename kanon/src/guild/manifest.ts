@@ -1,4 +1,4 @@
-import * as yaml from "js-yaml";
+import yaml from "js-yaml";
 import { z } from "zod";
 import { SUPPORTED_HARNESSES } from "../schemas";
 

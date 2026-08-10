@@ -52,7 +52,11 @@ async function createTestArtifact(
 			},
 		];
 		const yaml = await import("js-yaml");
-		await writeFile(join(artifactDir, "hooks.yaml"), yaml.dump(hooks), "utf-8");
+		await writeFile(
+			join(artifactDir, "hooks.yaml"),
+			yaml.default.dump(hooks),
+			"utf-8",
+		);
 	}
 
 	if (opts.mcpServers) {
@@ -67,7 +71,7 @@ async function createTestArtifact(
 		const yaml = await import("js-yaml");
 		await writeFile(
 			join(artifactDir, "mcp-servers.yaml"),
-			yaml.dump(servers),
+			yaml.default.dump(servers),
 			"utf-8",
 		);
 	}

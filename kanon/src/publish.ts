@@ -272,7 +272,7 @@ async function publishToS3(
 ): Promise<void> {
 	// S3 publishing is configuration-driven; delegate to aws CLI
 	const s3Config = config.install?.backends?.internal;
-	if (!s3Config || s3Config.type !== "s3") {
+	if (s3Config?.type !== "s3") {
 		throw new Error(
 			"No S3 backend configured. Add an 's3' backend to kanon.config.yaml",
 		);

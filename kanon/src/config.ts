@@ -1,7 +1,7 @@
 import { exists, readFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import * as yaml from "js-yaml";
+import yaml from "js-yaml";
 import { z } from "zod";
 import { looksLikeSecret } from "./rosetta/redaction";
 import {

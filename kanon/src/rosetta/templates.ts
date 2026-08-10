@@ -115,7 +115,7 @@ export function computeBundleDigest(
 
 	let combined = "";
 	for (const name of sortedNames) {
-		combined += `${name}\0${sources.get(name)!}\0`;
+		combined += `${name}\0${sources.get(name) as string}\0`;
 	}
 
 	// Use two rounds of FNV-1a on different portions for a 64-bit-equivalent digest

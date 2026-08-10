@@ -424,11 +424,30 @@ describe("Kiro Progressive Steering audit comment properties", () => {
 
 					const content = steeringFile!.content;
 
-					// Power-format uses plain Markdown without audit comments
-					// (the official Kiro powers format has no frontmatter or HTML comments)
-					const auditCommentRegex = /^<!-- forge:kiro-inclusion: /gm;
+					// Regex from the design: match audit comment lines
+					const auditCommentRegex =
+						/^<!-- forge:kiro-inclusion: (always|fileMatch|manual)( fileMatchPattern=.+)? -->$/gm;
 					const matches = [...content.matchAll(auditCommentRegex)];
-					expect(matches.length).toBe(0);
+
+					// Assert exactly ONE match
+					expect(matches.length).toBe(1);
+
+					const match = matches[0];
+					const capturedMode = match[1];
+					const capturedFmpPart = match[2]; // e.g. " fileMatchPattern=src/**"
+
+					// Assert captured mode equals resolveKiroInclusion result
+					const resolved = resolveKiroInclusion(artifact);
+					expect(capturedMode).toBe(resolved.mode);
+
+					// Assert captured fileMatchPattern when present
+					if (resolved.fileMatchPattern) {
+						expect(capturedFmpPart).toBe(
+							` fileMatchPattern=${resolved.fileMatchPattern}`,
+						);
+					} else {
+						expect(capturedFmpPart).toBeUndefined();
+					}
 				},
 			),
 			{ numRuns: 100 },
@@ -596,7 +615,7 @@ describe("Kiro Progressive Steering power-format steering file properties", () =
 	 * the file emitted at steering/<artifact-name>.md has the same inclusion and (conditional) fileMatchPattern
 	 * as Property 2 demands for the steering-format path.
 	 */
-	test("Property 4: power-format steering file is plain Markdown without frontmatter or inclusion", () => {
+	test("Property 4: power-format steering file round-trip preserves inclusion and fileMatchPattern", () => {
 		const modeArb = fc.oneof(
 			fc.constant("always" as const),
 			fc.constant("fileMatch" as const),
@@ -638,16 +657,20 @@ describe("Kiro Progressive Steering power-format steering file properties", () =
 				);
 				expect(steeringFile).toBeDefined();
 
-				const content = steeringFile!.content;
+				// Parse the emitted file's YAML frontmatter
+				const parsed = matter(steeringFile!.content);
+				const emittedInclusion = parsed.data.inclusion;
+				const emittedFileMatchPattern = parsed.data.fileMatchPattern;
 
-				// Power-format produces plain Markdown: no YAML frontmatter delimiters
-				expect(content).not.toContain("---");
-				// No inclusion metadata embedded
-				expect(content).not.toMatch(/^inclusion:/m);
-				// No fileMatchPattern metadata embedded
-				expect(content).not.toMatch(/^fileMatchPattern:/m);
-				// Body content is present
-				expect(content.trim().length).toBeGreaterThan(0);
+				// Assert: inclusion === mode
+				expect(emittedInclusion).toBe(mode);
+
+				// Assert: fileMatchPattern present iff mode === "fileMatch"
+				if (mode === "fileMatch") {
+					expect(emittedFileMatchPattern).toBe(fileMatchPattern);
+				} else {
+					expect(emittedFileMatchPattern).toBeUndefined();
+				}
 			}),
 			{ numRuns: 100 },
 		);

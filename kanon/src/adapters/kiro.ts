@@ -322,22 +322,33 @@ export const kiroAdapter: HarnessAdapter = (
 	const emitMainSteering =
 		format !== "power" || kiroConfig["main-steering"] !== false;
 	if (emitMainSteering) {
-		const auditComment = buildAuditComment(resolved);
-		const steeringContent = renderTemplate(
-			templateEnv,
-			"kiro/steering.md.njk",
-			{
+		const steeringPath =
+			format === "power"
+				? `steering/${artifact.name}.md`
+				: `${artifact.name}.md`;
+
+		let steeringContent: string;
+		if (format === "power") {
+			// Power steering files use plain Markdown without frontmatter
+			// to match the official Kiro powers format
+			steeringContent = renderTemplate(
+				templateEnv,
+				"kiro/power-steering.md.njk",
+				{
+					artifact,
+					harnessConfig: kiroConfig,
+				},
+			);
+		} else {
+			const auditComment = buildAuditComment(resolved);
+			steeringContent = renderTemplate(templateEnv, "kiro/steering.md.njk", {
 				artifact,
 				harnessConfig: kiroConfig,
 				inclusion: resolved.mode,
 				fileMatchPattern: resolved.fileMatchPattern,
 				auditComment,
-			},
-		);
-		const steeringPath =
-			format === "power"
-				? `steering/${artifact.name}.md`
-				: `${artifact.name}.md`;
+			});
+		}
 		files.push({ relativePath: steeringPath, content: steeringContent });
 	}
 

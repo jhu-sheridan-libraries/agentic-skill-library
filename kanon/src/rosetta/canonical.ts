@@ -16,7 +16,7 @@
  */
 
 import matter from "gray-matter";
-import * as yaml from "js-yaml";
+import yaml from "js-yaml";
 import {
 	type CanonicalHook,
 	type Frontmatter,
@@ -223,8 +223,7 @@ export function parseCanonical(
 
 		let hooksParsed: unknown;
 		try {
-			hooksParsed =
-				hooksContent.trim().length === 0 ? null : yaml.load(hooksContent);
+			hooksParsed = yaml.load(hooksContent);
 		} catch (e: unknown) {
 			const msg = e instanceof Error ? e.message : String(e);
 			diagnostics.push(
@@ -272,7 +271,7 @@ export function parseCanonical(
 
 		let mcpParsed: unknown;
 		try {
-			mcpParsed = mcpContent.trim().length === 0 ? null : yaml.load(mcpContent);
+			mcpParsed = yaml.load(mcpContent);
 		} catch (e: unknown) {
 			const msg = e instanceof Error ? e.message : String(e);
 			diagnostics.push(
@@ -534,6 +533,7 @@ export function renderDeterministicYaml(
 
 	const result = yaml.dump(data, {
 		sortKeys: sortKeysFn,
+		noCompatMode: true,
 		lineWidth: 80,
 		noRefs: true,
 	});

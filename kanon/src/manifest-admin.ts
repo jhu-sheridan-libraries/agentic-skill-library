@@ -1,5 +1,5 @@
 import { readFile, writeFile } from "node:fs/promises";
-import * as yaml from "js-yaml";
+import yaml from "js-yaml";
 import type { Manifest, ManifestEntry } from "./guild/manifest";
 import {
 	ArtifactManifestEntrySchema,

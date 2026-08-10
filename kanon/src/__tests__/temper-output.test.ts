@@ -82,7 +82,11 @@ async function createTestArtifact(
 				action: { type: "run_command", command: "bun run lint" },
 			},
 		];
-		await writeFile(join(artifactDir, "hooks.yaml"), yaml.dump(hooks), "utf-8");
+		await writeFile(
+			join(artifactDir, "hooks.yaml"),
+			yaml.default.dump(hooks),
+			"utf-8",
+		);
 	}
 }
 

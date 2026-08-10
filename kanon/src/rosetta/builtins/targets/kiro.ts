@@ -102,13 +102,10 @@ export function translateKiroTarget(
 		// Main steering .md file (unless suppressed)
 		const emitMainSteering = kiroConfig["main-steering"] !== false;
 		if (emitMainSteering) {
-			const steeringContent = templates.render("kiro/steering.md.njk", {
+			const steeringContent = templates.render("kiro/power-steering.md.njk", {
 				artifact: art,
 				harnessConfig: kiroConfig,
 				body,
-				inclusion: "manual",
-				fileMatchPattern: undefined,
-				auditComment: `<!-- forge:kiro-inclusion: manual -->`,
 			});
 			outputFiles.push({
 				relativePath: `steering/${art.name}.md`,

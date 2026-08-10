@@ -9,7 +9,7 @@ import {
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import * as yaml from "js-yaml";
+import yaml from "js-yaml";
 import type { HarnessName, WorkspaceConfig } from "../schemas";
 
 let tempDir: string;
