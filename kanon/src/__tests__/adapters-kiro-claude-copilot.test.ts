@@ -804,10 +804,11 @@ describe("kiroAdapter — progressive steering", () => {
 
 	/**
 	 * Validates: Requirement 2.6
-	 * Power-format applies the same inclusion precedence for each mode.
+	 * Power-format uses plain Markdown without frontmatter, matching the
+	 * official Kiro powers format. Inclusion is not embedded in the file.
 	 */
 	describe("power-format with each mode", () => {
-		test('power-format: mode "always" → steering/<name>.md has inclusion: always', () => {
+		test('power-format: mode "always" → steering/<name>.md is plain Markdown (no frontmatter)', () => {
 			const artifact = makeArtifact({
 				name: "my-power",
 				frontmatter: makeFrontmatter({
@@ -825,10 +826,11 @@ describe("kiroAdapter — progressive steering", () => {
 				(f) => f.relativePath === "steering/my-power.md",
 			);
 			expect(steeringFile).toBeDefined();
-			expect(steeringFile?.content).toContain("inclusion: always");
+			expect(steeringFile?.content).not.toContain("---");
+			expect(steeringFile?.content).toContain("test content");
 		});
 
-		test('power-format: mode "fileMatch" → steering/<name>.md has correct frontmatter', () => {
+		test('power-format: mode "fileMatch" → steering/<name>.md is plain Markdown (no frontmatter)', () => {
 			const artifact = makeArtifact({
 				name: "my-power",
 				frontmatter: makeFrontmatter({
@@ -850,11 +852,12 @@ describe("kiroAdapter — progressive steering", () => {
 				(f) => f.relativePath === "steering/my-power.md",
 			);
 			expect(steeringFile).toBeDefined();
-			expect(steeringFile?.content).toContain("inclusion: fileMatch");
-			expect(steeringFile?.content).toContain('fileMatchPattern: "**/*.py"');
+			expect(steeringFile?.content).not.toContain("---");
+			expect(steeringFile?.content).not.toContain("inclusion");
+			expect(steeringFile?.content).not.toContain("fileMatchPattern");
 		});
 
-		test('power-format: mode "manual" → steering/<name>.md has inclusion: manual', () => {
+		test('power-format: mode "manual" → steering/<name>.md is plain Markdown (no frontmatter)', () => {
 			const artifact = makeArtifact({
 				name: "my-power",
 				frontmatter: makeFrontmatter({
@@ -872,8 +875,8 @@ describe("kiroAdapter — progressive steering", () => {
 				(f) => f.relativePath === "steering/my-power.md",
 			);
 			expect(steeringFile).toBeDefined();
-			expect(steeringFile?.content).toContain("inclusion: manual");
-			expect(steeringFile?.content).not.toContain("fileMatchPattern");
+			expect(steeringFile?.content).not.toContain("---");
+			expect(steeringFile?.content).not.toContain("inclusion");
 		});
 	});
 

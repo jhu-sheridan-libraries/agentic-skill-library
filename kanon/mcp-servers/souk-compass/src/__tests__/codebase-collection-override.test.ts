@@ -29,6 +29,7 @@ function ctx(): ToolContext {
 			upsert: async () => {},
 			delete: async () => {},
 			commit: async () => {},
+			findByContentHash: async () => null,
 		} as unknown as SoukVectorClient,
 		embeddingProvider: {
 			name: "mock",
