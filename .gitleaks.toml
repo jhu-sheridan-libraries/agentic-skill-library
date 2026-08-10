@@ -33,6 +33,11 @@ paths = [
   '''kanon/dist/''',
   '''kanon/templates/''',
   '''kanon/evals/''',
+  # Test files that use synthetic credentials to verify security validation logic
+  # (credential-detection, redaction, and config rejection of literal secrets).
+  '''kanon/src/__tests__/config\.test\.ts''',
+  '''kanon/src/__tests__/rosetta-arbitraries\.ts''',
+  '''kanon/src/__tests__/rosetta-redaction\.test\.ts''',
   # Any detached-worktree artefacts that land in the root during CI
   '''power-builder/''',
 ]
