@@ -27,7 +27,11 @@ import { KIRO_POWER_CONTRACT } from "../rosetta/builtins/contracts";
 import { translateKiroPower } from "../rosetta/builtins/sources/kiro-power";
 import type { SourceTranslatorContext } from "../rosetta/registry";
 import { guardRequest } from "../rosetta/request-guard";
-import type { JsonValue, NormalizedRelativePath, SourceDocument } from "../schemas";
+import type {
+	JsonValue,
+	NormalizedRelativePath,
+	SourceDocument,
+} from "../schemas";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Constants

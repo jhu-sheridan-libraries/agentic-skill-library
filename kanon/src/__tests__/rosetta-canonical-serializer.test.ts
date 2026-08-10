@@ -130,7 +130,9 @@ describe("serializeCanonical", () => {
 		const hooksFile = result.plan!.outputFiles.find(
 			(f) => f.relativePath === "hooks.yaml",
 		);
-		expect((hooksFile?.content as string).trim()).toBe("[]");
+		const hooksContent = hooksFile?.content;
+		expect(typeof hooksContent).toBe("string");
+		expect((hooksContent as string).trim()).toBe("[]");
 	});
 
 	test("emitWorkflows: false omits workflow files", () => {
@@ -175,8 +177,8 @@ describe("serializeCanonical", () => {
 		const result = serializeCanonical(artifact);
 		expect(result.plan).toBeDefined();
 
-		const workflowPaths = result.plan!.outputFiles
-			.filter((f) => f.relativePath.startsWith("workflows/"))
+		const workflowPaths = result
+			.plan!.outputFiles.filter((f) => f.relativePath.startsWith("workflows/"))
 			.map((f) => f.relativePath);
 
 		expect(workflowPaths).toEqual([
@@ -198,8 +200,8 @@ describe("serializeCanonical", () => {
 		const result = serializeCanonical(artifact);
 		expect(result.plan).toBeDefined();
 
-		const bodyPaths = result.plan!.outputFiles
-			.filter((f) => f.relativePath.startsWith("body."))
+		const bodyPaths = result
+			.plan!.outputFiles.filter((f) => f.relativePath.startsWith("body."))
 			.map((f) => f.relativePath);
 
 		// Code-point comparison: 'c' < 'k' < 'w'

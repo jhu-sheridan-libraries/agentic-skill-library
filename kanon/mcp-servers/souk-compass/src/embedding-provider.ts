@@ -31,7 +31,14 @@ export async function createEmbeddingProvider(
 			const { BedrockTitanProvider } = await import(
 				"./providers/bedrock-provider.js"
 			);
-			return new BedrockTitanProvider({ dimensions: config.embedDimensions });
+			// Pass the configured region rather than letting the provider read
+			// AWS_REGION for itself: Bedrock, Solr's S3 repository and this
+			// server's S3 access must agree, and three independent reads of the
+			// environment is three chances to disagree.
+			return new BedrockTitanProvider({
+				dimensions: config.embedDimensions,
+				...(config.region ? { region: config.region } : {}),
+			});
 		} catch (err) {
 			// Deliberately fatal. Silently substituting the local model would
 			// embed queries in a different vector space than the index was built

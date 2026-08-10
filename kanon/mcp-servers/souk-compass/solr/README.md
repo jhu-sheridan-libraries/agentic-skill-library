@@ -222,6 +222,9 @@ Ensure the remote Solr instance has:
 | `SOUK_COMPASS_REPLICATION_FACTOR` | `1` | NRT replicas per shard, at creation |
 | `SOUK_COMPASS_TLOG_REPLICAS` | `0` | Transaction-log-only replicas |
 | `SOUK_COMPASS_PULL_REPLICAS` | `0` | Read-only replicas |
+| `SOUK_COMPASS_PLATFORM` | `local` | `local` or `aws`. Selects embeddings and org storage together |
+| `SOUK_COMPASS_REGION` | `$AWS_REGION` | One region for Bedrock, Solr's S3 repository and this server |
+| `SOUK_COMPASS_S3_BUCKET` | unset | Default bucket for org tenants that declare none |
 | `SOUK_COMPASS_HOME` | `~/.souk-compass` | Host state: registry, generated solr.xml, backups |
 | `SOUK_COMPASS_BACKUP_DIR` | `~/.souk-compass/backups` | **Host** snapshot directory, bind-mounted into Solr |
 | `SOUK_COMPASS_BACKUP_LOCATION` | `/var/solr/backups` | Container-side path Solr writes snapshots to |
@@ -349,11 +352,52 @@ configset goes with it, but Solr's backup image includes the configset, and
 `RESTORE` re-uploads it. And `compass_setup initialize` now uploads the configset
 even when Solr is already reachable — which it is immediately after a rebuild.
 
+### Platform profiles
+
+Embeddings and snapshot storage are one decision. Titan runs in Bedrock and org
+snapshots go to S3 — same cloud, same region, same credentials — so selecting the
+platform selects both:
+
+```bash
+export SOUK_COMPASS_PLATFORM=aws
+export SOUK_COMPASS_REGION=us-east-1
+export SOUK_COMPASS_S3_BUCKET=org-snapshots
+```
+
+| | `local` (default) | `aws` |
+|---|---|---|
+| Embeddings | local MiniLM | `bedrock-titan` |
+| Org tenant snapshots | host directory | S3, each tenant under its own prefix |
+| Personal snapshots | host directory | **host directory** |
+| Region | n/a | one value, everywhere |
+
+It sets **defaults only** — an explicit `SOUK_COMPASS_EMBED_PROVIDER` or a
+tenant's own `backup.s3` block still wins. And **personal deliberately stays on
+local disk**: that credential-free path is what makes `docker compose down -v`
+survivable with no AWS setup at all, and a profile should not quietly remove it.
+Give the personal tenant an explicit `backup.s3` block to move it to a bucket.
+
+Two configurations are refused rather than half-applied: an unrecognised platform
+name, and `platform: aws` with org tenants but no bucket — which would silently
+put every org's snapshots on one laptop's disk.
+
+> Switching an existing install to `aws` changes the embedding model, and vectors
+> from different models are not comparable. Reindex afterwards, and check
+> `compass_status` for `providerMismatch`.
+
 ### Storage backends
 
 Each tenant names a Solr **backup repository**. Solr reads and writes the index
 itself, so the repository is the storage backend; this server only transports the
 snapshot manifest.
+
+The manifest moves through `Bun.file()`, which returns the same `Blob` interface
+for a host path and an `s3://` URI — so local and remote are one code path, and
+no external tool is required. Bun's S3 client reads credentials from
+`AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` (or the `S3_*` equivalents) only. If
+your credentials come from `AWS_PROFILE`, SSO or an instance role instead, the
+server falls back to the `aws` CLI, which understands those — so install it if
+that is your setup. Each result reports the `transport` it used.
 
 | Backend | For | Needs |
 |---|---|---|

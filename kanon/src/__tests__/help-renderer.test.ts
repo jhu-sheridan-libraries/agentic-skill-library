@@ -275,25 +275,24 @@ describe("Harness list in relevant commands", () => {
 	 * Validates: Requirements 5.1, 5.2, 5.3, 5.4
 	 * Build, install, and eval help shows all 7 harness names inline
 	 */
-	test.each([
-		"build",
-		"install",
-		"eval",
-	])("%s help shows all 7 harness names inline", (cmdName) => {
-		const meta = commandMetaRegistry[cmdName];
-		const output = renderCommandHelp(
-			cmdName,
-			"Test description",
-			`kanon ${cmdName} [options]`,
-			[{ flags: "--harness <name>", description: "Target harness" }],
-			meta,
-			noColor,
-		);
+	test.each(["build", "install", "eval"])(
+		"%s help shows all 7 harness names inline",
+		(cmdName) => {
+			const meta = commandMetaRegistry[cmdName];
+			const output = renderCommandHelp(
+				cmdName,
+				"Test description",
+				`kanon ${cmdName} [options]`,
+				[{ flags: "--harness <name>", description: "Target harness" }],
+				meta,
+				noColor,
+			);
 
-		for (const harness of harnessNames) {
-			expect(output).toContain(harness);
-		}
-	});
+			for (const harness of harnessNames) {
+				expect(output).toContain(harness);
+			}
+		},
+	);
 });
 
 // ---------------------------------------------------------------------------

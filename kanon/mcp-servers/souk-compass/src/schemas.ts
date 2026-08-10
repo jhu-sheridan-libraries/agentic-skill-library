@@ -6,11 +6,44 @@ import { z } from "zod";
 // 1. Configuration Schema
 // ---------------------------------------------------------------------------
 
+/**
+ * Which platform's services this server uses.
+ *
+ * Embeddings and snapshot storage are one decision wearing two hats: Titan runs
+ * in Bedrock and the org backup backend is S3, both wanting the same region and
+ * the same credentials. Configuring them separately means the region is set in
+ * three unrelated places and a mismatch is silent.
+ *
+ * Named `platform` rather than `profile` because kanon already uses "profile"
+ * for acquisition and translation profiles; two meanings in one repository would
+ * cost more than the extra word.
+ */
+export const PlatformSchema = z.enum(["local", "aws"]);
+export type Platform = z.infer<typeof PlatformSchema>;
+
 export const SoukCompassConfigSchema = z.object({
 	solrUrl: z.string().url().default("http://localhost:8983"),
 	solrCollection: z.string().min(1).default("context-bazaar"),
 	userCollection: z.string().min(1).default("context-bazaar-user-docs"),
 	codebaseCollection: z.string().min(1).default("context-bazaar-codebase"),
+	/**
+	 * Selects a coherent set of platform services. `aws` defaults embeddings to
+	 * Bedrock and org snapshot storage to S3, and shares one region between
+	 * them. It sets defaults only — anything configured explicitly still wins,
+	 * and the personal tenant deliberately stays on local disk.
+	 */
+	platform: PlatformSchema.default("local"),
+	/**
+	 * Region for every platform service: Bedrock, Solr's S3 backup repository,
+	 * and this server's own S3 access. One value, because three that can
+	 * disagree is three chances to be wrong.
+	 */
+	region: z.string().optional(),
+	/**
+	 * Default bucket for org tenants that declare no repository of their own.
+	 * Each gets its own prefix within it.
+	 */
+	s3Bucket: z.string().optional(),
 	embedProvider: z.enum(["local", "bedrock-titan"]).default("local"),
 	embedDimensions: z.number().int().positive().default(1024),
 	cacheTiers: z

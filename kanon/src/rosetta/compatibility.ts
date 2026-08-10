@@ -263,7 +263,7 @@ export function evaluateCompatibility(
 		const canonicalPaths = [...CAPABILITY_FIELD_GROUPS[capability]].sort(
 			codePointCompare,
 		);
-		const degradationAction = entry.degradation!;
+		const degradationAction = entry.degradation as DegradationStrategy;
 
 		// Record affected count
 		affectedCounts[capability] = affectedCount;

@@ -41,6 +41,7 @@ function ctx(): ToolContext {
 			solrCollection: "c",
 			userCollection: "u",
 			codebaseCollection: DEFAULT_COLLECTION,
+			platform: "local" as const,
 			embedProvider: "local",
 			embedDimensions: 1024,
 			cacheTiers: ["memory"],

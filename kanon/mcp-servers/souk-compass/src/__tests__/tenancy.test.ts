@@ -20,6 +20,7 @@ function makeConfig(overrides: Partial<SoukCompassConfig> = {}) {
 		solrCollection: "context-bazaar",
 		userCollection: "context-bazaar-user-docs",
 		codebaseCollection: "context-bazaar-codebase",
+		platform: "local" as const,
 		embedProvider: "local",
 		embedDimensions: 1024,
 		cacheTiers: ["memory", "sqlite", "solr"],

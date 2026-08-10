@@ -7,15 +7,24 @@
  * file next to a backup, so this is the one thing the server must transport
  * itself.
  *
- * For S3 that means shelling out to the `aws` CLI rather than taking an SDK,
- * matching kanon's `S3Backend` and `GitHubBackend` (ADR-0017/0018). The manifest
- * is a few kilobytes once per snapshot, so the process cost is irrelevant, and
- * it keeps `@aws-sdk/client-s3` out of a bundle that marks `@aws-sdk/*`
- * external. The personal path touches none of this and needs no CLI at all.
+ * **The interface is `Bun.file`.** A manifest has one address — a host path, or
+ * an `s3://` URI — and Bun returns a `Blob` for either, with `text()`, `json()`,
+ * `exists()` and `write()` present on both. So local and remote are not two code
+ * paths here; they are one, differing only in what `manifestFile()` hands back.
+ * That also removes the `aws` CLI as a prerequisite, and makes listing a bucket
+ * possible at all — which the previous host-directory-only implementation could
+ * not do, so a second machine saw no snapshots even with a full bucket.
+ *
+ * The CLI survives as a fallback rather than the default. Bun's S3 resolves
+ * credentials from `S3_*`/`AWS_*` environment variables only; the AWS SDK behind
+ * Bedrock and the `aws` CLI both walk the full chain including `AWS_PROFILE`,
+ * SSO and IAM roles. Without the fallback, an SSO setup would embed happily and
+ * fail to move a manifest — the same credentials, two different answers.
  */
 import { spawnSync } from "node:child_process";
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { S3Client } from "bun";
 import { ErrorCodes, SoukCompassError } from "./errors.js";
 import {
 	type SnapshotManifest,
@@ -33,12 +42,20 @@ import { backupDir, type ResolvedBackupTarget } from "./tenancy.js";
  */
 const MANIFEST_DIR = "_manifests";
 
+/** How a manifest actually moved, so a slow or surprising path is attributable. */
+export type TransportPath = "local" | "bun-s3" | "aws-cli";
+
 export interface ManifestLocation {
-	/** Where the manifest is written on the host. Always present. */
+	/** The manifest's address: a host path, or an s3:// URI. */
+	uri: string;
+	/** Host path. Same as `uri` for a local repository; the cache copy for S3. */
 	hostPath: string;
-	/** S3 URI, when the repository is an S3 one. */
-	remoteUri?: string;
+	transport: TransportPath;
 }
+
+// ---------------------------------------------------------------------------
+// Addressing
+// ---------------------------------------------------------------------------
 
 /** Host directory holding manifests for a repository. */
 function hostManifestDir(
@@ -53,159 +70,328 @@ function hostManifestDir(
 		: join(backupDir(config), MANIFEST_DIR, target.repository);
 }
 
+/** Key of a manifest within an S3 repository. */
+function manifestKey(target: ResolvedBackupTarget, snapshotId: string): string {
+	return joinS3(
+		target.s3?.prefix,
+		target.location,
+		`${MANIFEST_DIR}/${snapshotId}.json`,
+	);
+}
+
 export function manifestLocation(
 	config: SoukCompassConfig,
 	target: ResolvedBackupTarget,
 	snapshotId: string,
 ): ManifestLocation {
 	const hostPath = join(hostManifestDir(config, target), `${snapshotId}.json`);
-	if (target.type !== "s3" || !target.s3) return { hostPath };
 
-	const prefix = joinS3(target.s3.prefix, target.location);
+	if (target.type !== "s3" || !target.s3) {
+		return { uri: hostPath, hostPath, transport: "local" };
+	}
+
 	return {
+		uri: `s3://${target.s3.bucket}/${manifestKey(target, snapshotId)}`,
 		hostPath,
-		remoteUri: `s3://${target.s3.bucket}/${joinS3(prefix, `${MANIFEST_DIR}/${snapshotId}.json`)}`,
+		transport: hasEnvCredentials() ? "bun-s3" : "aws-cli",
 	};
 }
 
 /**
- * Persist a manifest. Writes the host copy first, then uploads.
+ * Whether Bun's S3 client can authenticate.
  *
- * Order matters on failure: a host copy without a remote one still describes a
- * recoverable snapshot to the machine that took it, whereas an upload whose
- * local write failed leaves nothing to diagnose from.
+ * It reads credentials from the environment and nowhere else, so their absence
+ * is not a maybe — it is the signal to hand the work to the CLI, which knows
+ * about profiles, SSO and instance roles.
  */
-export function writeManifest(
+export function hasEnvCredentials(
+	env: Record<string, string | undefined> = process.env,
+): boolean {
+	return Boolean(
+		(env.S3_ACCESS_KEY_ID ?? env.AWS_ACCESS_KEY_ID) &&
+			(env.S3_SECRET_ACCESS_KEY ?? env.AWS_SECRET_ACCESS_KEY),
+	);
+}
+
+/**
+ * An S3 client bound to a repository's own bucket, region and endpoint.
+ *
+ * Built per repository rather than using the ambient `Bun.s3`, so a tenant that
+ * declares a region gets that region instead of whatever the environment
+ * happens to hold — the two disagreeing is how a snapshot ends up written where
+ * nobody looks for it.
+ */
+function s3ClientFor(target: ResolvedBackupTarget): S3Client {
+	return new S3Client({
+		bucket: target.s3?.bucket,
+		...(target.s3?.region ? { region: target.s3.region } : {}),
+		...(target.s3?.endpoint ? { endpoint: target.s3.endpoint } : {}),
+	});
+}
+
+/**
+ * The manifest as a file handle, wherever it lives.
+ *
+ * This is the interface the module is built on: a `Blob` with `text`, `json`,
+ * `exists` and `write`, identical whether the bytes are on this disk or in a
+ * bucket. Callers never branch on which.
+ */
+export function manifestFile(
+	config: SoukCompassConfig,
+	target: ResolvedBackupTarget,
+	snapshotId: string,
+) {
+	if (target.type !== "s3" || !target.s3) {
+		return Bun.file(manifestLocation(config, target, snapshotId).uri);
+	}
+	return s3ClientFor(target).file(manifestKey(target, snapshotId));
+}
+
+// ---------------------------------------------------------------------------
+// Read and write
+// ---------------------------------------------------------------------------
+
+export interface WriteResult extends ManifestLocation {
+	stored: boolean;
+	error?: string;
+}
+
+/**
+ * Persist a manifest.
+ *
+ * The host copy is written first and unconditionally, even for an S3
+ * repository: it costs nothing, it lets `list` answer without credentials, and a
+ * local copy whose upload failed still describes a recoverable snapshot to the
+ * machine that took it.
+ */
+export async function writeManifest(
 	config: SoukCompassConfig,
 	target: ResolvedBackupTarget,
 	manifest: SnapshotManifest,
-): ManifestLocation & { uploaded: boolean; uploadError?: string } {
+): Promise<WriteResult> {
 	const location = manifestLocation(config, target, manifest.snapshotId);
+	const body = `${JSON.stringify(manifest, null, 2)}\n`;
 
 	mkdirSync(hostManifestDir(config, target), { recursive: true });
-	writeFileSync(location.hostPath, `${JSON.stringify(manifest, null, 2)}\n`, {
-		encoding: "utf-8",
-	});
+	await Bun.write(location.hostPath, body);
 
-	if (!location.remoteUri) return { ...location, uploaded: true };
+	if (location.transport === "local") return { ...location, stored: true };
 
-	const result = awsCli(
-		["s3", "cp", location.hostPath, location.remoteUri],
-		target,
-	);
-	return {
-		...location,
-		uploaded: result.ok,
-		...(result.ok ? {} : { uploadError: result.error }),
-	};
+	if (location.transport === "aws-cli") {
+		const result = awsCli(
+			["s3", "cp", location.hostPath, location.uri],
+			target,
+		);
+		return {
+			...location,
+			stored: result.ok,
+			...(result.ok ? {} : { error: result.error }),
+		};
+	}
+
+	try {
+		await Bun.write(manifestFile(config, target, manifest.snapshotId), body);
+		return { ...location, stored: true };
+	} catch (err) {
+		// Never fatal: the index itself is already in the bucket, so a failed
+		// manifest downgrades the snapshot to "restorable with a warning", which
+		// is a different thing from lost.
+		return {
+			...location,
+			stored: false,
+			error: err instanceof Error ? err.message : String(err),
+		};
+	}
 }
 
 /**
  * Read a manifest, preferring the remote copy for an S3 repository.
  *
  * The remote is authoritative because it is the copy a second machine can see,
- * and the whole point of an org backend is that the machine restoring is not the
- * machine that saved. The host copy is the fallback when the CLI or credentials
- * are unavailable.
+ * and the whole point of an org backend is that the machine restoring is not
+ * necessarily the machine that saved. The host copy is the fallback.
  */
-export function readManifest(
+export async function readManifest(
 	config: SoukCompassConfig,
 	target: ResolvedBackupTarget,
 	snapshotId: string,
-): { manifest: SnapshotManifest; source: "remote" | "host" } {
+): Promise<{ manifest: SnapshotManifest; source: "remote" | "host" }> {
 	const location = manifestLocation(config, target, snapshotId);
 
-	if (location.remoteUri) {
+	if (location.transport === "bun-s3") {
+		try {
+			const remote = manifestFile(config, target, snapshotId);
+			if (await remote.exists()) {
+				return {
+					manifest: validate(await remote.json(), location.uri),
+					source: "remote",
+				};
+			}
+		} catch {
+			/* fall through to the host copy */
+		}
+	} else if (location.transport === "aws-cli") {
 		const pulled = awsCli(
-			["s3", "cp", location.remoteUri, location.hostPath],
+			["s3", "cp", location.uri, location.hostPath],
 			target,
-			{ mkdir: hostManifestDir(config, target) },
+			{
+				mkdir: hostManifestDir(config, target),
+			},
 		);
 		if (pulled.ok) {
-			return { manifest: parseManifest(location.hostPath), source: "remote" };
+			return { manifest: await readHost(location.hostPath), source: "remote" };
 		}
 	}
 
-	return { manifest: parseManifest(location.hostPath), source: "host" };
+	return { manifest: await readHost(location.hostPath), source: "host" };
 }
 
-function parseManifest(path: string): SnapshotManifest {
-	let raw: string;
-	try {
-		raw = readFileSync(path, "utf-8");
-	} catch {
+async function readHost(path: string): Promise<SnapshotManifest> {
+	const file = Bun.file(path);
+	if (!(await file.exists())) {
 		throw new SoukCompassError(
 			`No snapshot manifest at ${path}. List available snapshots with ` +
 				'compass_backup({ action: "list" }).',
 			ErrorCodes.RECORD_NOT_FOUND,
 		);
 	}
+	return validate(await file.json(), path);
+}
 
-	let parsed: unknown;
-	try {
-		parsed = JSON.parse(raw);
-	} catch (err) {
-		throw new SoukCompassError(
-			`Snapshot manifest at ${path} is not valid JSON: ${
-				err instanceof Error ? err.message : String(err)
-			}`,
-			ErrorCodes.SERIALIZATION,
-		);
-	}
-
+function validate(parsed: unknown, origin: string): SnapshotManifest {
 	const result = SnapshotManifestSchema.safeParse(parsed);
 	if (!result.success) {
 		const issues = result.error.issues
 			.map((i) => `  ${i.path.join(".") || "(root)"}: ${i.message}`)
 			.join("\n");
 		throw new SoukCompassError(
-			`Snapshot manifest at ${path} does not match the expected shape:\n${issues}`,
+			`Snapshot manifest at ${origin} does not match the expected shape:\n${issues}`,
 			ErrorCodes.SERIALIZATION,
 		);
 	}
-
 	return result.data;
 }
 
-/** Snapshot ids with a manifest available, newest first. */
-export function listManifests(
+// ---------------------------------------------------------------------------
+// Listing
+// ---------------------------------------------------------------------------
+
+export interface ManifestSummary {
+	snapshotId: string;
+	createdAt?: string;
+	/**
+	 * Where the manifest was found. `remote` alone is the second-machine case;
+	 * `host` alone on an S3 repository means an upload failed and the snapshot
+	 * is not yet shared.
+	 */
+	source: "host" | "remote" | "both";
+}
+
+/**
+ * Snapshots with a manifest, newest first, from both the host and the bucket.
+ *
+ * Listing only the host — which is all the previous implementation did — makes
+ * `compass_backup list` report nothing on a machine that has not taken a
+ * snapshot itself, which is exactly the machine an org backend exists to serve.
+ */
+export async function listManifests(
 	config: SoukCompassConfig,
 	target: ResolvedBackupTarget,
-): Array<{ snapshotId: string; createdAt?: string; source: "host" }> {
-	const dir = hostManifestDir(config, target);
+): Promise<ManifestSummary[]> {
+	const host = await listHostManifests(config, target);
+	const remote = await listRemoteManifests(target);
 
+	const merged = new Map<string, ManifestSummary>();
+	for (const entry of host) merged.set(entry.snapshotId, entry);
+	for (const id of remote) {
+		const existing = merged.get(id);
+		merged.set(id, {
+			snapshotId: id,
+			...(existing?.createdAt ? { createdAt: existing.createdAt } : {}),
+			source: existing ? "both" : "remote",
+		});
+	}
+
+	return [...merged.values()].sort((a, b) =>
+		(b.createdAt ?? b.snapshotId).localeCompare(a.createdAt ?? a.snapshotId),
+	);
+}
+
+async function listHostManifests(
+	config: SoukCompassConfig,
+	target: ResolvedBackupTarget,
+): Promise<ManifestSummary[]> {
 	let entries: string[];
 	try {
-		entries = readdirSync(dir);
+		entries = readdirSync(hostManifestDir(config, target));
 	} catch {
 		return [];
 	}
 
-	const manifests = entries
-		.filter((name) => name.endsWith(".json"))
-		.map((name) => {
-			const snapshotId = name.slice(0, -".json".length);
-			try {
-				const manifest = parseManifest(join(dir, name));
-				return {
-					snapshotId,
-					createdAt: manifest.createdAt,
-					source: "host" as const,
-				};
-			} catch {
-				// A manifest that will not parse is still evidence a snapshot was
-				// taken; reporting the id lets someone go looking for the backup.
-				return { snapshotId, source: "host" as const };
-			}
-		});
+	const summaries: ManifestSummary[] = [];
+	for (const name of entries) {
+		if (!name.endsWith(".json")) continue;
+		const snapshotId = name.slice(0, -".json".length);
+		try {
+			const manifest = await readHost(
+				join(hostManifestDir(config, target), name),
+			);
+			summaries.push({
+				snapshotId,
+				createdAt: manifest.createdAt,
+				source: "host",
+			});
+		} catch {
+			// A manifest that will not parse is still evidence a snapshot was
+			// taken; reporting the id lets someone go looking for the backup.
+			summaries.push({ snapshotId, source: "host" });
+		}
+	}
+	return summaries;
+}
 
-	return manifests.sort((a, b) =>
-		(b.createdAt ?? "").localeCompare(a.createdAt ?? ""),
-	);
+/** Snapshot ids present in the bucket. Empty for a local repository. */
+async function listRemoteManifests(
+	target: ResolvedBackupTarget,
+): Promise<string[]> {
+	if (target.type !== "s3" || !target.s3 || !hasEnvCredentials()) return [];
+
+	const prefix = joinS3(target.s3.prefix, target.location, `${MANIFEST_DIR}/`);
+	const client = s3ClientFor(target);
+	const ids: string[] = [];
+
+	try {
+		let continuationToken: string | undefined;
+		// Page to exhaustion. S3 caps a response at 1000 keys, and stopping there
+		// would silently hide older snapshots — the ones most likely to be the
+		// reason someone is looking at this list.
+		do {
+			const page = await client.list({
+				prefix,
+				...(continuationToken ? { continuationToken } : {}),
+			});
+
+			for (const object of page.contents ?? []) {
+				const name = object.key.slice(prefix.length);
+				if (name.includes("/") || !name.endsWith(".json")) continue;
+				ids.push(name.slice(0, -".json".length));
+			}
+
+			continuationToken = page.isTruncated
+				? page.nextContinuationToken
+				: undefined;
+		} while (continuationToken);
+	} catch {
+		// An unreachable bucket must not fail the whole listing — the host
+		// entries are still worth reporting.
+		return ids;
+	}
+
+	return ids;
 }
 
 // ---------------------------------------------------------------------------
-// aws CLI
+// aws CLI fallback
 // ---------------------------------------------------------------------------
 
 interface CliResult {
@@ -216,9 +402,9 @@ interface CliResult {
 /**
  * Run an `aws` command against a repository's region and endpoint.
  *
- * Never throws. A failed manifest upload must not fail a snapshot whose index
- * data is already safely in the bucket — it downgrades the snapshot to
- * "restorable with a warning", which is very different from "lost".
+ * The fallback for credentials Bun's S3 client cannot see: profiles, SSO, and
+ * instance roles. Never throws, for the same reason as the Bun path — a failed
+ * manifest must not fail a snapshot whose index is already safely stored.
  */
 function awsCli(
 	args: string[],
@@ -229,13 +415,17 @@ function awsCli(
 		try {
 			mkdirSync(options.mkdir, { recursive: true });
 		} catch {
-			/* the write below reports the real problem */
+			/* the operation below reports the real problem */
 		}
 	}
 
 	const full = [...args];
-	if (target.s3?.region) full.push("--region", target.s3.region);
-	if (target.s3?.endpoint) full.push("--endpoint-url", target.s3.endpoint);
+	if (target.s3?.region && /^[a-z0-9-]+$/.test(target.s3.region)) {
+		full.push("--region", target.s3.region);
+	}
+	if (target.s3?.endpoint && /^https?:\/\/.+$/.test(target.s3.endpoint)) {
+		full.push("--endpoint-url", target.s3.endpoint);
+	}
 
 	try {
 		const result = spawnSync("aws", full, {
@@ -246,9 +436,9 @@ function awsCli(
 		if (result.error) {
 			const message =
 				(result.error as NodeJS.ErrnoException).code === "ENOENT"
-					? "The `aws` CLI is not installed. It is required for S3 backup " +
-						"repositories — the index itself is transferred by Solr, but the " +
-						"snapshot manifest is transferred by this server."
+					? "No AWS credentials in the environment and the `aws` CLI is not " +
+						"installed. Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY, or " +
+						"install the CLI so profile and SSO credentials can be used."
 					: result.error.message;
 			return { ok: false, error: message };
 		}

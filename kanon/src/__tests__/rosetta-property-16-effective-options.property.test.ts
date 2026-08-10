@@ -21,7 +21,11 @@ import {
 	type OptionResolutionContext,
 	resolveOptions,
 } from "../rosetta/resolution";
-import type { FormatContract, FormatOptionDefinition, JsonValue } from "../schemas";
+import type {
+	FormatContract,
+	FormatOptionDefinition,
+	JsonValue,
+} from "../schemas";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Helpers

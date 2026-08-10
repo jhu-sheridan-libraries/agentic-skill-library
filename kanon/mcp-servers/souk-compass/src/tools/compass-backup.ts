@@ -194,7 +194,7 @@ async function save(
 		if (scoped.collections.length === 0) continue;
 		written.push({
 			repository: tenant.backup.repository,
-			...writeManifest(ctx.config, tenant.backup, scoped),
+			...(await writeManifest(ctx.config, tenant.backup, scoped)),
 		});
 	}
 
@@ -232,7 +232,7 @@ async function restore(
 	const tenant = resolveTenant(ctx.tenants, input.tenant);
 	const timeoutMs = timeoutMsOf(input);
 
-	const { manifest, source } = readManifest(
+	const { manifest, source } = await readManifest(
 		ctx.config,
 		tenant.backup,
 		snapshotId,
@@ -421,7 +421,11 @@ async function verify(
 ): Promise<ToolResult> {
 	const snapshotId = requireSnapshotId(input, "verify");
 	const tenant = resolveTenant(ctx.tenants, input.tenant);
-	const { manifest } = readManifest(ctx.config, tenant.backup, snapshotId);
+	const { manifest } = await readManifest(
+		ctx.config,
+		tenant.backup,
+		snapshotId,
+	);
 
 	const verification = await verifyAgainst(manifest, manifest.collections);
 
@@ -496,7 +500,7 @@ async function list(
 
 	const repositories = [];
 	for (const tenant of distinctRepositories(tenants)) {
-		const manifests = listManifests(ctx.config, tenant.backup);
+		const manifests = await listManifests(ctx.config, tenant.backup);
 
 		// Solr is the authority on what is recoverable; a manifest only records
 		// what was intended. The two disagreeing is worth seeing before a restore
@@ -572,7 +576,7 @@ async function prune(
 	for (const tenant of tenants) {
 		for (const partition of ALL_PARTITIONS) {
 			const collection = tenant.collections[partition];
-			for (const manifest of listManifests(ctx.config, tenant.backup)) {
+			for (const manifest of await listManifests(ctx.config, tenant.backup)) {
 				const outcome = await pruneBackups(
 					tenant.solrUrl,
 					backupNameFor(manifest.snapshotId, collection),
@@ -628,7 +632,9 @@ function buildManifest(
 		embedDimensions: ctx.embeddingProvider.dimensions,
 		schemaVersion: MEMORY_SCHEMA_VERSION,
 		configName: CONFIG_NAME,
-		repository: repositoryDescriptor(tenants[0] ?? distinctRepositories(tenants)[0]),
+		repository: repositoryDescriptor(
+			tenants[0] ?? distinctRepositories(tenants)[0],
+		),
 		registry: {
 			defaultTenant: ctx.tenants.defaultTenantId,
 			collectionPrefix: ctx.tenants.collectionPrefix,

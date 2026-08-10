@@ -465,6 +465,11 @@ function composeEnv(ctx: ToolContext): Record<string, string> {
 		...(modules.length > 0
 			? { SOUK_COMPASS_SOLR_MODULES: modules.join(",") }
 			: {}),
+		// The container gets the same region as Bedrock and this server's own S3
+		// access. Solr resolving a different one than the process that wrote the
+		// manifest is the kind of mismatch that only shows up as a restore
+		// finding nothing.
+		...(ctx.config.region ? { AWS_REGION: ctx.config.region } : {}),
 	};
 }
 

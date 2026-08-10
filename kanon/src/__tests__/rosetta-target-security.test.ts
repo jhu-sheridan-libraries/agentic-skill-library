@@ -117,7 +117,8 @@ describe("frozen inputs verification", () => {
 
 			const bundle = loadTemplateBundle(dir);
 			expect(() => {
-				(bundle as unknown as Record<string, unknown>).injectedField = "malicious";
+				(bundle as unknown as Record<string, unknown>).injectedField =
+					"malicious";
 			}).toThrow();
 		} finally {
 			cleanupDir(dir);

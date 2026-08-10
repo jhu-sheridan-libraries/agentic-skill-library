@@ -602,11 +602,15 @@ async function buildWithWorkspace(
 					// Skip version embedding for Kiro power format to match
 					// the official Kiro powers structure (no _forgeVersion in
 					// mcp.json, no forge:version HTML comments in .md files)
-					const skipVersionEmbed1 = h === "kiro" && (() => {
-						const hcRaw = (projectArtifact.frontmatter as Record<string, unknown>)["harness-config"] as Record<string, unknown> | undefined;
-						const kcRaw = (hcRaw?.kiro ?? {}) as Record<string, unknown>;
-						return resolveFormat("kiro", kcRaw).format === "power";
-					})();
+					const skipVersionEmbed1 =
+						h === "kiro" &&
+						(() => {
+							const hcRaw = (
+								projectArtifact.frontmatter as Record<string, unknown>
+							)["harness-config"] as Record<string, unknown> | undefined;
+							const kcRaw = (hcRaw?.kiro ?? {}) as Record<string, unknown>;
+							return resolveFormat("kiro", kcRaw).format === "power";
+						})();
 					for (const file of result.files) {
 						let content = file.content;
 						if (!skipVersionEmbed1) {
@@ -922,11 +926,15 @@ export async function build(options: BuildOptions): Promise<BuildResult> {
 				// Skip version embedding for Kiro power format to match
 				// the official Kiro powers structure (no _forgeVersion in
 				// mcp.json, no forge:version HTML comments in .md files)
-				const skipVersionEmbed2 = h === "kiro" && (() => {
-					const hcRaw = (artifact.frontmatter as Record<string, unknown>)["harness-config"] as Record<string, unknown> | undefined;
-					const kcRaw = (hcRaw?.kiro ?? {}) as Record<string, unknown>;
-					return resolveFormat("kiro", kcRaw).format === "power";
-				})();
+				const skipVersionEmbed2 =
+					h === "kiro" &&
+					(() => {
+						const hcRaw = (artifact.frontmatter as Record<string, unknown>)[
+							"harness-config"
+						] as Record<string, unknown> | undefined;
+						const kcRaw = (hcRaw?.kiro ?? {}) as Record<string, unknown>;
+						return resolveFormat("kiro", kcRaw).format === "power";
+					})();
 				for (const file of result.files) {
 					// Embed version in markdown and JSON files
 					let content = file.content;
