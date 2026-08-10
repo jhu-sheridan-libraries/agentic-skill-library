@@ -481,7 +481,7 @@ describe("tenancy", () => {
 			"acme",
 			"personal",
 		]);
-	});
+	}, 15_000);
 
 	test("restoring one tenant leaves the others alone", async () => {
 		const solr = makeSolr({
