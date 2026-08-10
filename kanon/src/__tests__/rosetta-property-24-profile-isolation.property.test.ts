@@ -252,7 +252,9 @@ function _makeFailingApplyFn(): ApplyFn {
 			operationId: "test-op-fail",
 			timestamp: "2024-01-01T00:00:00.000Z",
 			completedSuccessfully: false,
-			outcomes: [{ path: "some-file.md", action: "failed" as const, executable: false }],
+			outcomes: [
+				{ path: "some-file.md", action: "failed" as const, executable: false },
+			],
 			failedAt: "some-file.md",
 		} as ApplicationReport;
 	};
