@@ -369,7 +369,9 @@ Always write tests before implementation.
 				await importerRegistry["claude-code"].parse(filePath);
 
 			expect(result.hooks.length).toBeGreaterThanOrEqual(2);
-			const commands = result.hooks.map((h) => (h.action as { type: "run_command"; command: string }).command);
+			const commands = result.hooks.map(
+				(h) => (h.action as { type: "run_command"; command: string }).command,
+			);
 			expect(commands).toContain("bun run lint");
 			expect(commands).toContain("bun test");
 		});
