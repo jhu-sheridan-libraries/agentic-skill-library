@@ -128,6 +128,18 @@ Credentials never appear in the registry — Solr uses the AWS credential chain
 from its own container. `compass_setup` generates `solr.xml` from the registry,
 so no XML is hand-edited; restart Solr after changing a repository.
 
+Since embeddings already run on Bedrock, selecting the platform selects both:
+
+```bash
+export SOUK_COMPASS_PLATFORM=aws        # Bedrock embeddings + S3 org snapshots
+export SOUK_COMPASS_REGION=us-east-1    # one region for all of it
+export SOUK_COMPASS_S3_BUCKET=org-snapshots
+```
+
+Defaults only — explicit settings still win — and the personal tenant stays on
+local disk so the credential-free teardown-and-rebuild path keeps working.
+Switching an existing install changes the embedding model, so reindex afterwards.
+
 A snapshot carries a manifest recording the tenant→collection mapping, the
 registry, the embedding model, and the document counts. That is what lets a
 *different* machine restore, and what lets `verify` check that a restore actually

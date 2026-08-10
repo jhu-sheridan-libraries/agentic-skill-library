@@ -35,6 +35,7 @@ function config(): SoukCompassConfig {
 		solrCollection: "c",
 		userCollection: "u",
 		codebaseCollection: "cb",
+		platform: "local" as const,
 		embedProvider: "local",
 		embedDimensions: 1024,
 		cacheTiers: ["memory"],

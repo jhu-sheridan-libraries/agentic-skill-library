@@ -42027,11 +42027,15 @@ class StdioServerTransport {
 // src/schemas.ts
 import { homedir } from "os";
 import { join } from "path";
+var PlatformSchema = exports_external.enum(["local", "aws"]);
 var SoukCompassConfigSchema = exports_external.object({
   solrUrl: exports_external.string().url().default("http://localhost:8983"),
   solrCollection: exports_external.string().min(1).default("context-bazaar"),
   userCollection: exports_external.string().min(1).default("context-bazaar-user-docs"),
   codebaseCollection: exports_external.string().min(1).default("context-bazaar-codebase"),
+  platform: PlatformSchema.default("local"),
+  region: exports_external.string().optional(),
+  s3Bucket: exports_external.string().optional(),
   embedProvider: exports_external.enum(["local", "bedrock-titan"]).default("local"),
   embedDimensions: exports_external.number().int().positive().default(1024),
   cacheTiers: exports_external.array(exports_external.enum(["memory", "sqlite", "solr"])).default(["memory", "sqlite", "solr"]),
@@ -42370,30 +42374,34 @@ var ToolInputSchemas = {
 };
 
 // src/config.ts
-function loadConfig() {
+function loadConfig(env = process.env) {
+  const platform = readPlatform(env);
   const raw = {
-    solrUrl: process.env.SOUK_COMPASS_SOLR_URL,
-    solrCollection: process.env.SOUK_COMPASS_SOLR_COLLECTION,
-    userCollection: process.env.SOUK_COMPASS_USER_COLLECTION,
-    codebaseCollection: process.env.SOUK_COMPASS_CODEBASE_COLLECTION,
-    embedProvider: process.env.SOUK_COMPASS_EMBED_PROVIDER,
-    embedDimensions: process.env.SOUK_COMPASS_EMBED_DIMENSIONS ? Number(process.env.SOUK_COMPASS_EMBED_DIMENSIONS) : undefined,
-    cacheTiers: process.env.SOUK_COMPASS_CACHE_TIERS ? process.env.SOUK_COMPASS_CACHE_TIERS.split(",").map((t) => t.trim()) : undefined,
-    cacheDbPath: process.env.SOUK_COMPASS_CACHE_DB,
-    embedCacheSize: process.env.SOUK_COMPASS_EMBED_CACHE_SIZE ? Number(process.env.SOUK_COMPASS_EMBED_CACHE_SIZE) : undefined,
-    defaultMinScore: process.env.SOUK_COMPASS_DEFAULT_MIN_SCORE ? Number(process.env.SOUK_COMPASS_DEFAULT_MIN_SCORE) : undefined,
-    efSearchScaleFactor: process.env.SOUK_COMPASS_EF_SEARCH_SCALE ? Number(process.env.SOUK_COMPASS_EF_SEARCH_SCALE) : undefined,
-    filteredSearchThreshold: process.env.SOUK_COMPASS_FILTERED_SEARCH_THRESHOLD ? Number(process.env.SOUK_COMPASS_FILTERED_SEARCH_THRESHOLD) : undefined,
-    tenantRegistryPath: process.env.SOUK_COMPASS_TENANT_REGISTRY,
-    collectionPrefix: process.env.SOUK_COMPASS_COLLECTION_PREFIX,
-    defaultTenant: process.env.SOUK_COMPASS_DEFAULT_TENANT,
-    numShards: process.env.SOUK_COMPASS_NUM_SHARDS ? Number(process.env.SOUK_COMPASS_NUM_SHARDS) : undefined,
-    replicationFactor: process.env.SOUK_COMPASS_REPLICATION_FACTOR ? Number(process.env.SOUK_COMPASS_REPLICATION_FACTOR) : undefined,
-    tlogReplicas: process.env.SOUK_COMPASS_TLOG_REPLICAS ? Number(process.env.SOUK_COMPASS_TLOG_REPLICAS) : undefined,
-    pullReplicas: process.env.SOUK_COMPASS_PULL_REPLICAS ? Number(process.env.SOUK_COMPASS_PULL_REPLICAS) : undefined,
-    backupLocation: process.env.SOUK_COMPASS_BACKUP_LOCATION,
-    backupDir: process.env.SOUK_COMPASS_BACKUP_DIR,
-    stateDir: process.env.SOUK_COMPASS_HOME
+    platform,
+    solrUrl: env.SOUK_COMPASS_SOLR_URL,
+    solrCollection: env.SOUK_COMPASS_SOLR_COLLECTION,
+    userCollection: env.SOUK_COMPASS_USER_COLLECTION,
+    codebaseCollection: env.SOUK_COMPASS_CODEBASE_COLLECTION,
+    region: env.SOUK_COMPASS_REGION ?? env.AWS_REGION,
+    s3Bucket: env.SOUK_COMPASS_S3_BUCKET,
+    embedProvider: env.SOUK_COMPASS_EMBED_PROVIDER ?? defaultEmbedProvider(platform),
+    embedDimensions: env.SOUK_COMPASS_EMBED_DIMENSIONS ? Number(env.SOUK_COMPASS_EMBED_DIMENSIONS) : undefined,
+    cacheTiers: env.SOUK_COMPASS_CACHE_TIERS ? env.SOUK_COMPASS_CACHE_TIERS.split(",").map((t) => t.trim()) : undefined,
+    cacheDbPath: env.SOUK_COMPASS_CACHE_DB,
+    embedCacheSize: env.SOUK_COMPASS_EMBED_CACHE_SIZE ? Number(env.SOUK_COMPASS_EMBED_CACHE_SIZE) : undefined,
+    defaultMinScore: env.SOUK_COMPASS_DEFAULT_MIN_SCORE ? Number(env.SOUK_COMPASS_DEFAULT_MIN_SCORE) : undefined,
+    efSearchScaleFactor: env.SOUK_COMPASS_EF_SEARCH_SCALE ? Number(env.SOUK_COMPASS_EF_SEARCH_SCALE) : undefined,
+    filteredSearchThreshold: env.SOUK_COMPASS_FILTERED_SEARCH_THRESHOLD ? Number(env.SOUK_COMPASS_FILTERED_SEARCH_THRESHOLD) : undefined,
+    tenantRegistryPath: env.SOUK_COMPASS_TENANT_REGISTRY,
+    collectionPrefix: env.SOUK_COMPASS_COLLECTION_PREFIX,
+    defaultTenant: env.SOUK_COMPASS_DEFAULT_TENANT,
+    numShards: env.SOUK_COMPASS_NUM_SHARDS ? Number(env.SOUK_COMPASS_NUM_SHARDS) : undefined,
+    replicationFactor: env.SOUK_COMPASS_REPLICATION_FACTOR ? Number(env.SOUK_COMPASS_REPLICATION_FACTOR) : undefined,
+    tlogReplicas: env.SOUK_COMPASS_TLOG_REPLICAS ? Number(env.SOUK_COMPASS_TLOG_REPLICAS) : undefined,
+    pullReplicas: env.SOUK_COMPASS_PULL_REPLICAS ? Number(env.SOUK_COMPASS_PULL_REPLICAS) : undefined,
+    backupLocation: env.SOUK_COMPASS_BACKUP_LOCATION,
+    backupDir: env.SOUK_COMPASS_BACKUP_DIR,
+    stateDir: env.SOUK_COMPASS_HOME
   };
   const cleaned = Object.fromEntries(Object.entries(raw).filter(([, v]) => v !== undefined));
   const result = SoukCompassConfigSchema.safeParse(cleaned);
@@ -42406,6 +42414,20 @@ ${issues}`);
 ${issues}`);
   }
   return result.data;
+}
+function readPlatform(env) {
+  const raw = env.SOUK_COMPASS_PLATFORM?.trim();
+  if (!raw)
+    return "local";
+  const parsed = PlatformSchema.safeParse(raw.toLowerCase());
+  if (!parsed.success) {
+    throw new Error(`Invalid Souk Compass configuration:
+  SOUK_COMPASS_PLATFORM: ` + `"${raw}" is not a known platform. Use ${PlatformSchema.options.map((o) => `"${o}"`).join(" or ")}.`);
+  }
+  return parsed.data;
+}
+function defaultEmbedProvider(platform) {
+  return platform === "aws" ? "bedrock-titan" : "local";
 }
 
 // src/embed-cache.ts
@@ -42422,7 +42444,10 @@ async function createEmbeddingProvider(config2) {
   if (config2.embedProvider === "bedrock-titan") {
     try {
       const { BedrockTitanProvider: BedrockTitanProvider2 } = await Promise.resolve().then(() => (init_bedrock_provider(), exports_bedrock_provider));
-      return new BedrockTitanProvider2({ dimensions: config2.embedDimensions });
+      return new BedrockTitanProvider2({
+        dimensions: config2.embedDimensions,
+        ...config2.region ? { region: config2.region } : {}
+      });
     } catch (err) {
       throw new SoukCompassError(`Failed to initialize the bedrock-titan embedding provider: ${err instanceof Error ? err.message : String(err)}. Refusing to fall back to the local provider, which would embed queries in a different vector space than the index. Fix the AWS configuration, or set SOUK_COMPASS_EMBED_PROVIDER=local and reindex.`, ErrorCodes.EMBED_FAILURE, { cause: err });
     }
@@ -42915,6 +42940,7 @@ function buildTenantRegistry(config2, raw, sourcePath) {
   });
   const others = declared.filter((t) => t.id !== PERSONAL_TENANT_ID).map((t) => resolveTenantEntry(t, { config: config2, prefix, configDurability }));
   const tenants = [personal, ...others];
+  assertPlatformCoherent(config2, tenants);
   const defaultTenantId = parsed.defaultTenant ?? config2.defaultTenant ?? PERSONAL_TENANT_ID;
   if (!tenants.some((t) => t.id === defaultTenantId)) {
     throw new SoukCompassError(`Default tenant "${defaultTenantId}" is not in the registry. Known tenants: ${tenants.map((t) => t.id).join(", ")}.`, ErrorCodes.TENANT_UNKNOWN);
@@ -42978,13 +43004,14 @@ function resolveTenantEntry(tenant, context) {
 }
 function resolveBackupTarget(tenant, config2) {
   const declared = tenant.backup;
-  if (declared?.s3) {
-    assertNoCredentialLiterals(tenant.id, declared.s3);
+  const s3 = declared?.s3 ?? impliedS3(tenant, config2);
+  if (s3) {
+    assertNoCredentialLiterals(tenant.id, s3);
     return {
-      repository: declared.repository ?? tenant.id,
+      repository: declared?.repository ?? tenant.id,
       type: "s3",
-      location: declared.location ?? `${tenant.id}/`,
-      s3: declared.s3
+      location: declared?.location ?? `${tenant.id}/`,
+      s3: { ...s3, ...s3.region ? {} : regionOf(config2) }
     };
   }
   return {
@@ -42992,6 +43019,30 @@ function resolveBackupTarget(tenant, config2) {
     type: "local",
     location: declared?.location ?? config2.backupLocation ?? DEFAULT_BACKUP_LOCATION
   };
+}
+function impliedS3(tenant, config2) {
+  if (config2.platform !== "aws")
+    return;
+  if (tenant.scope !== "org")
+    return;
+  if (!config2.s3Bucket)
+    return;
+  return {
+    bucket: config2.s3Bucket,
+    prefix: tenant.id,
+    ...regionOf(config2)
+  };
+}
+function regionOf(config2) {
+  return config2.region ? { region: config2.region } : {};
+}
+function assertPlatformCoherent(config2, tenants) {
+  if (config2.platform !== "aws" || config2.s3Bucket)
+    return;
+  const orphaned = tenants.filter((t) => t.scope === "org" && t.backup.type === "local");
+  if (orphaned.length === 0)
+    return;
+  throw new SoukCompassError(`Platform "aws" is selected, but no default bucket is configured, so org ` + `tenants ${orphaned.map((t) => `"${t.id}"`).join(", ")} would store ` + "snapshots on local disk rather than in S3. Set SOUK_COMPASS_S3_BUCKET, " + 'give each tenant its own backup.s3 block, or use platform "local".', ErrorCodes.CONFIG_INVALID);
 }
 var LOCAL_REPOSITORY_NAME = "personal";
 var DEFAULT_BACKUP_LOCATION = "/var/solr/backups";
@@ -43109,98 +43160,181 @@ function tenantFilterQuery(tenants) {
 }
 
 // src/tools/compass-backup.ts
-import { mkdirSync as mkdirSync3, writeFileSync as writeFileSync2 } from "fs";
+import { mkdirSync as mkdirSync3, writeFileSync } from "fs";
 import { dirname as dirname3 } from "path";
 
 // src/backup-store.ts
 init_errors();
 import { spawnSync } from "child_process";
-import { mkdirSync as mkdirSync2, readdirSync, readFileSync as readFileSync2, writeFileSync } from "fs";
+import { mkdirSync as mkdirSync2, readdirSync } from "fs";
 import { join as join3 } from "path";
+var {S3Client } = globalThis.Bun;
 var MANIFEST_DIR = "_manifests";
 function hostManifestDir(config2, target) {
   return target.type === "local" ? join3(backupDir(config2), MANIFEST_DIR) : join3(backupDir(config2), MANIFEST_DIR, target.repository);
 }
+function manifestKey(target, snapshotId) {
+  return joinS3(target.s3?.prefix, target.location, `${MANIFEST_DIR}/${snapshotId}.json`);
+}
 function manifestLocation(config2, target, snapshotId) {
   const hostPath = join3(hostManifestDir(config2, target), `${snapshotId}.json`);
-  if (target.type !== "s3" || !target.s3)
-    return { hostPath };
-  const prefix = joinS3(target.s3.prefix, target.location);
+  if (target.type !== "s3" || !target.s3) {
+    return { uri: hostPath, hostPath, transport: "local" };
+  }
   return {
+    uri: `s3://${target.s3.bucket}/${manifestKey(target, snapshotId)}`,
     hostPath,
-    remoteUri: `s3://${target.s3.bucket}/${joinS3(prefix, `${MANIFEST_DIR}/${snapshotId}.json`)}`
+    transport: hasEnvCredentials() ? "bun-s3" : "aws-cli"
   };
 }
-function writeManifest(config2, target, manifest) {
-  const location = manifestLocation(config2, target, manifest.snapshotId);
-  mkdirSync2(hostManifestDir(config2, target), { recursive: true });
-  writeFileSync(location.hostPath, `${JSON.stringify(manifest, null, 2)}
-`, {
-    encoding: "utf-8"
+function hasEnvCredentials(env = process.env) {
+  return Boolean((env.S3_ACCESS_KEY_ID ?? env.AWS_ACCESS_KEY_ID) && (env.S3_SECRET_ACCESS_KEY ?? env.AWS_SECRET_ACCESS_KEY));
+}
+function s3ClientFor(target) {
+  return new S3Client({
+    bucket: target.s3?.bucket,
+    ...target.s3?.region ? { region: target.s3.region } : {},
+    ...target.s3?.endpoint ? { endpoint: target.s3.endpoint } : {}
   });
-  if (!location.remoteUri)
-    return { ...location, uploaded: true };
-  const result = awsCli(["s3", "cp", location.hostPath, location.remoteUri], target);
-  return {
-    ...location,
-    uploaded: result.ok,
-    ...result.ok ? {} : { uploadError: result.error }
-  };
 }
-function readManifest(config2, target, snapshotId) {
+function manifestFile(config2, target, snapshotId) {
+  if (target.type !== "s3" || !target.s3) {
+    return Bun.file(manifestLocation(config2, target, snapshotId).uri);
+  }
+  return s3ClientFor(target).file(manifestKey(target, snapshotId));
+}
+async function writeManifest(config2, target, manifest) {
+  const location = manifestLocation(config2, target, manifest.snapshotId);
+  const body = `${JSON.stringify(manifest, null, 2)}
+`;
+  mkdirSync2(hostManifestDir(config2, target), { recursive: true });
+  await Bun.write(location.hostPath, body);
+  if (location.transport === "local")
+    return { ...location, stored: true };
+  if (location.transport === "aws-cli") {
+    const result = awsCli(["s3", "cp", location.hostPath, location.uri], target);
+    return {
+      ...location,
+      stored: result.ok,
+      ...result.ok ? {} : { error: result.error }
+    };
+  }
+  try {
+    await Bun.write(manifestFile(config2, target, manifest.snapshotId), body);
+    return { ...location, stored: true };
+  } catch (err) {
+    return {
+      ...location,
+      stored: false,
+      error: err instanceof Error ? err.message : String(err)
+    };
+  }
+}
+async function readManifest(config2, target, snapshotId) {
   const location = manifestLocation(config2, target, snapshotId);
-  if (location.remoteUri) {
-    const pulled = awsCli(["s3", "cp", location.remoteUri, location.hostPath], target, { mkdir: hostManifestDir(config2, target) });
+  if (location.transport === "bun-s3") {
+    try {
+      const remote = manifestFile(config2, target, snapshotId);
+      if (await remote.exists()) {
+        return {
+          manifest: validate(await remote.json(), location.uri),
+          source: "remote"
+        };
+      }
+    } catch {}
+  } else if (location.transport === "aws-cli") {
+    const pulled = awsCli(["s3", "cp", location.uri, location.hostPath], target, {
+      mkdir: hostManifestDir(config2, target)
+    });
     if (pulled.ok) {
-      return { manifest: parseManifest(location.hostPath), source: "remote" };
+      return { manifest: await readHost(location.hostPath), source: "remote" };
     }
   }
-  return { manifest: parseManifest(location.hostPath), source: "host" };
+  return { manifest: await readHost(location.hostPath), source: "host" };
 }
-function parseManifest(path) {
-  let raw;
-  try {
-    raw = readFileSync2(path, "utf-8");
-  } catch {
+async function readHost(path) {
+  const file2 = Bun.file(path);
+  if (!await file2.exists()) {
     throw new SoukCompassError(`No snapshot manifest at ${path}. List available snapshots with ` + 'compass_backup({ action: "list" }).', ErrorCodes.RECORD_NOT_FOUND);
   }
-  let parsed;
-  try {
-    parsed = JSON.parse(raw);
-  } catch (err) {
-    throw new SoukCompassError(`Snapshot manifest at ${path} is not valid JSON: ${err instanceof Error ? err.message : String(err)}`, ErrorCodes.SERIALIZATION);
-  }
+  return validate(await file2.json(), path);
+}
+function validate(parsed, origin) {
   const result = SnapshotManifestSchema.safeParse(parsed);
   if (!result.success) {
     const issues = result.error.issues.map((i) => `  ${i.path.join(".") || "(root)"}: ${i.message}`).join(`
 `);
-    throw new SoukCompassError(`Snapshot manifest at ${path} does not match the expected shape:
+    throw new SoukCompassError(`Snapshot manifest at ${origin} does not match the expected shape:
 ${issues}`, ErrorCodes.SERIALIZATION);
   }
   return result.data;
 }
-function listManifests(config2, target) {
-  const dir = hostManifestDir(config2, target);
+async function listManifests(config2, target) {
+  const host = await listHostManifests(config2, target);
+  const remote = await listRemoteManifests(target);
+  const merged = new Map;
+  for (const entry of host)
+    merged.set(entry.snapshotId, entry);
+  for (const id of remote) {
+    const existing = merged.get(id);
+    merged.set(id, {
+      snapshotId: id,
+      ...existing?.createdAt ? { createdAt: existing.createdAt } : {},
+      source: existing ? "both" : "remote"
+    });
+  }
+  return [...merged.values()].sort((a, b) => (b.createdAt ?? b.snapshotId).localeCompare(a.createdAt ?? a.snapshotId));
+}
+async function listHostManifests(config2, target) {
   let entries;
   try {
-    entries = readdirSync(dir);
+    entries = readdirSync(hostManifestDir(config2, target));
   } catch {
     return [];
   }
-  const manifests = entries.filter((name) => name.endsWith(".json")).map((name) => {
+  const summaries = [];
+  for (const name of entries) {
+    if (!name.endsWith(".json"))
+      continue;
     const snapshotId = name.slice(0, -".json".length);
     try {
-      const manifest = parseManifest(join3(dir, name));
-      return {
+      const manifest = await readHost(join3(hostManifestDir(config2, target), name));
+      summaries.push({
         snapshotId,
         createdAt: manifest.createdAt,
         source: "host"
-      };
+      });
     } catch {
-      return { snapshotId, source: "host" };
+      summaries.push({ snapshotId, source: "host" });
     }
-  });
-  return manifests.sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""));
+  }
+  return summaries;
+}
+async function listRemoteManifests(target) {
+  if (target.type !== "s3" || !target.s3 || !hasEnvCredentials())
+    return [];
+  const prefix = joinS3(target.s3.prefix, target.location, `${MANIFEST_DIR}/`);
+  const client = s3ClientFor(target);
+  const ids = [];
+  try {
+    let continuationToken;
+    do {
+      const page = await client.list({
+        prefix,
+        ...continuationToken ? { continuationToken } : {}
+      });
+      for (const object4 of page.contents ?? []) {
+        const name = object4.key.slice(prefix.length);
+        if (name.includes("/") || !name.endsWith(".json"))
+          continue;
+        ids.push(name.slice(0, -".json".length));
+      }
+      continuationToken = page.isTruncated ? page.nextContinuationToken : undefined;
+    } while (continuationToken);
+  } catch {
+    return ids;
+  }
+  return ids;
 }
 function awsCli(args, target, options2 = {}) {
   if (options2.mkdir) {
@@ -43219,7 +43353,7 @@ function awsCli(args, target, options2 = {}) {
       timeout: 60000
     });
     if (result.error) {
-      const message = result.error.code === "ENOENT" ? "The `aws` CLI is not installed. It is required for S3 backup " + "repositories \u2014 the index itself is transferred by Solr, but the " + "snapshot manifest is transferred by this server." : result.error.message;
+      const message = result.error.code === "ENOENT" ? "No AWS credentials in the environment and the `aws` CLI is not " + "installed. Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY, or " + "install the CLI so profile and SSO credentials can be used." : result.error.message;
       return { ok: false, error: message };
     }
     if (result.status !== 0) {
@@ -43998,7 +44132,7 @@ async function save(input, ctx) {
       continue;
     written.push({
       repository: tenant.backup.repository,
-      ...writeManifest(ctx.config, tenant.backup, scoped)
+      ...await writeManifest(ctx.config, tenant.backup, scoped)
     });
   }
   const success2 = results.every((r) => r.success === true);
@@ -44016,7 +44150,7 @@ async function restore(input, ctx) {
   const snapshotId = requireSnapshotId(input, "restore");
   const tenant = resolveTenant(ctx.tenants, input.tenant);
   const timeoutMs = timeoutMsOf(input);
-  const { manifest, source } = readManifest(ctx.config, tenant.backup, snapshotId);
+  const { manifest, source } = await readManifest(ctx.config, tenant.backup, snapshotId);
   const configured = modelIdentity(ctx.embeddingProvider);
   const mismatch = manifest.embedProvider !== configured || manifest.embedDimensions !== ctx.embeddingProvider.dimensions;
   if (mismatch && !input.force) {
@@ -44107,7 +44241,7 @@ function restoreRegistry(ctx, manifest) {
   }
   try {
     mkdirSync3(dirname3(path), { recursive: true });
-    writeFileSync2(path, `${JSON.stringify(manifest.registry, null, 2)}
+    writeFileSync(path, `${JSON.stringify(manifest.registry, null, 2)}
 `, {
       encoding: "utf-8"
     });
@@ -44128,7 +44262,7 @@ function restoreRegistry(ctx, manifest) {
 async function verify(input, ctx) {
   const snapshotId = requireSnapshotId(input, "verify");
   const tenant = resolveTenant(ctx.tenants, input.tenant);
-  const { manifest } = readManifest(ctx.config, tenant.backup, snapshotId);
+  const { manifest } = await readManifest(ctx.config, tenant.backup, snapshotId);
   const verification = await verifyAgainst(manifest, manifest.collections);
   return jsonResult({
     action: "verify",
@@ -44172,7 +44306,7 @@ async function list(input, ctx) {
   const tenants = tenantsFor(ctx, input.tenant);
   const repositories = [];
   for (const tenant of distinctRepositories(tenants)) {
-    const manifests = listManifests(ctx.config, tenant.backup);
+    const manifests = await listManifests(ctx.config, tenant.backup);
     const solrBackups = [];
     if (await isSolrReachable(tenant.solrUrl)) {
       for (const manifest of manifests) {
@@ -44224,7 +44358,7 @@ async function prune(input, ctx) {
   for (const tenant of tenants) {
     for (const partition of ALL_PARTITIONS) {
       const collection = tenant.collections[partition];
-      for (const manifest of listManifests(ctx.config, tenant.backup)) {
+      for (const manifest of await listManifests(ctx.config, tenant.backup)) {
         const outcome = await pruneBackups(tenant.solrUrl, backupNameFor(manifest.snapshotId, collection), {
           location: tenant.backup.location,
           repository: repositoryParam(tenant),
@@ -46681,7 +46815,7 @@ function jsonResult13(data) {
 
 // src/tools/compass-setup.ts
 import { exec } from "child_process";
-import { chmodSync, mkdirSync as mkdirSync4, writeFileSync as writeFileSync3 } from "fs";
+import { chmodSync, mkdirSync as mkdirSync4, writeFileSync as writeFileSync2 } from "fs";
 import { dirname as dirname4 } from "path";
 import { promisify } from "util";
 
@@ -47029,7 +47163,7 @@ function prepareHostState(ctx) {
   try {
     chmodSync(backups, 511);
   } catch {}
-  writeFileSync3(xmlPath, renderSolrXml(ctx.tenants, { localBackupPath: DEFAULT_BACKUP_LOCATION }), { encoding: "utf-8" });
+  writeFileSync2(xmlPath, renderSolrXml(ctx.tenants, { localBackupPath: DEFAULT_BACKUP_LOCATION }), { encoding: "utf-8" });
   return {
     solrXmlPath: xmlPath,
     backupDir: backups,
@@ -47041,7 +47175,8 @@ function composeEnv(ctx) {
   return {
     SOUK_COMPASS_HOME: stateDir(ctx.config),
     SOUK_COMPASS_BACKUP_DIR: backupDir(ctx.config),
-    ...modules.length > 0 ? { SOUK_COMPASS_SOLR_MODULES: modules.join(",") } : {}
+    ...modules.length > 0 ? { SOUK_COMPASS_SOLR_MODULES: modules.join(",") } : {},
+    ...ctx.config.region ? { AWS_REGION: ctx.config.region } : {}
   };
 }
 async function uploadConfigset() {
