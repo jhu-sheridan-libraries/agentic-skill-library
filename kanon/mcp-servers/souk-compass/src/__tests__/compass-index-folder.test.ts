@@ -273,7 +273,10 @@ describe("handleCompassIndexFolder", () => {
 	});
 
 	test("skips embedding and upserting chunks already indexed for the same root", async () => {
-		writeFileSync(join(testDir, "existing.ts"), "export const existing = true;");
+		writeFileSync(
+			join(testDir, "existing.ts"),
+			"export const existing = true;",
+		);
 
 		let embedded = false;
 		let upserted = false;
@@ -337,9 +340,7 @@ describe("handleCompassIndexFolder", () => {
 					: null;
 			},
 			upsert: async (_id, _text, _embedding, metadata) => {
-				indexedByRoot.add(
-					`${metadata.content_hash}:${metadata.index_root}`,
-				);
+				indexedByRoot.add(`${metadata.content_hash}:${metadata.index_root}`);
 			},
 		});
 		const ctx = makeCtx({ codebaseSolrClient: mockClient });

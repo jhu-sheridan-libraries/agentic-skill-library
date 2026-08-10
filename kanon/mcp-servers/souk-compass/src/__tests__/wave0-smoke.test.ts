@@ -1,15 +1,15 @@
 import { describe, expect, test } from "bun:test";
 import {
-	LANGUAGE_PRESETS,
-	detectProjectType,
-	getLanguagePreset,
-} from "../project-detector.js";
-import {
 	createIgnoreMatcher,
 	loadIgnoreFile,
 	parseIgnoreFile,
 } from "../ignore-parser.js";
-import { RootConfigSchema, loadRootConfig } from "../root-config.js";
+import {
+	detectProjectType,
+	getLanguagePreset,
+	LANGUAGE_PRESETS,
+} from "../project-detector.js";
+import { loadRootConfig, RootConfigSchema } from "../root-config.js";
 
 describe("project-detector", () => {
 	test("LANGUAGE_PRESETS has all project types", () => {
@@ -76,9 +76,7 @@ describe("project-detector", () => {
 	});
 
 	test("detectProjectType returns node for this project", async () => {
-		const type = await detectProjectType(
-			import.meta.dir + "/../..",
-		);
+		const type = await detectProjectType(import.meta.dir + "/../..");
 		expect(type).toBe("node");
 	});
 

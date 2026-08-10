@@ -430,7 +430,11 @@ describe("SoukVectorClient", () => {
 				okJson({ response: { docs: [], numFound: 0 } }),
 			);
 
-			await client.findByContentHash("abc123", undefined, '/repo/with "quotes"');
+			await client.findByContentHash(
+				"abc123",
+				undefined,
+				'/repo/with "quotes"',
+			);
 
 			const [url] = fetchSpy.mock.calls[0] as [string];
 			const params = new URL(url).searchParams;

@@ -36,7 +36,9 @@ build/
 	});
 
 	test("skips invalid empty patterns and logs their line numbers", (): void => {
-		const warningSpy = spyOn(console, "warn").mockImplementation((): void => {});
+		const warningSpy = spyOn(console, "warn").mockImplementation(
+			(): void => {},
+		);
 
 		try {
 			const rules = parseIgnoreFile("!\n/\nvalid.ts\n");

@@ -6,10 +6,7 @@
  */
 import { readdir, stat } from "node:fs/promises";
 import { basename, extname, join, relative } from "node:path";
-import {
-	createIgnoreMatcher,
-	type IgnoreRule,
-} from "./ignore-parser.js";
+import { createIgnoreMatcher, type IgnoreRule } from "./ignore-parser.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -188,7 +185,10 @@ export function matchGlob(pattern: string, filePath: string): boolean {
 }
 
 /** Return whether a path matches at least one glob pattern. */
-export function matchesAny(patterns: readonly string[], filePath: string): boolean {
+export function matchesAny(
+	patterns: readonly string[],
+	filePath: string,
+): boolean {
 	return patterns.some((pattern: string) => matchGlob(pattern, filePath));
 }
 

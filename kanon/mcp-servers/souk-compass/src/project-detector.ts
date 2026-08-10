@@ -69,7 +69,7 @@ const MARKER_FILES: Array<{ files: string[]; type: ProjectType }> = [
 	{ files: ["package.json"], type: "node" },
 	{ files: ["Cargo.toml"], type: "rust" },
 	{ files: ["pyproject.toml", "requirements.txt"], type: "python" },
-	{ files: ["pom.xml", "build.gradle", "build.gradle.kts"], type: "java",},
+	{ files: ["pom.xml", "build.gradle", "build.gradle.kts"], type: "java" },
 ];
 
 // ---------------------------------------------------------------------------
@@ -86,7 +86,9 @@ const MARKER_FILES: Array<{ files: string[]; type: ProjectType }> = [
  *
  * Within each entry, any matching file triggers that type (OR logic).
  */
-export async function detectProjectType(rootPath: string): Promise<ProjectType> {
+export async function detectProjectType(
+	rootPath: string,
+): Promise<ProjectType> {
 	for (const marker of MARKER_FILES) {
 		for (const file of marker.files) {
 			try {

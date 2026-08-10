@@ -180,7 +180,9 @@ test("Property 4: matching chunk hashes in distinct roots are independently inde
 					expect(lookupCalls).toHaveLength(indexedChunks.length);
 					for (const lookup of lookupCalls) {
 						if (lookup.indexRoot === undefined) {
-							throw new Error("Expected each lookup to be scoped to an index root");
+							throw new Error(
+								"Expected each lookup to be scoped to an index root",
+							);
 						}
 						expect(rootPaths).toContain(lookup.indexRoot);
 					}

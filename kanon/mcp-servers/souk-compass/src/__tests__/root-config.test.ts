@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { RootConfigSchema, loadRootConfig } from "../root-config.js";
+import { loadRootConfig, RootConfigSchema } from "../root-config.js";
 
 type TemporaryRootAssertion = (rootPath: string) => Promise<void>;
 
@@ -39,12 +39,14 @@ async function captureWarnings(
 
 describe("RootConfigSchema", () => {
 	test("accepts positive boost values through 10 and at most 50 entries", () => {
-		const boundaryEntries = Array.from(
-			{ length: 50 },
-			(_, index: number) => ({ pattern: `src/${index}/**`, boost: 10 }),
-		);
+		const boundaryEntries = Array.from({ length: 50 }, (_, index: number) => ({
+			pattern: `src/${index}/**`,
+			boost: 10,
+		}));
 
-		expect(RootConfigSchema.safeParse({ boost: boundaryEntries }).success).toBe(true);
+		expect(RootConfigSchema.safeParse({ boost: boundaryEntries }).success).toBe(
+			true,
+		);
 	});
 
 	test("rejects non-positive and greater-than-10 boost values", () => {
@@ -61,10 +63,10 @@ describe("RootConfigSchema", () => {
 	});
 
 	test("rejects more than 50 boost entries", () => {
-		const entries = Array.from(
-			{ length: 51 },
-			(_, index: number) => ({ pattern: `src/${index}/**`, boost: 1 }),
-		);
+		const entries = Array.from({ length: 51 }, (_, index: number) => ({
+			pattern: `src/${index}/**`,
+			boost: 1,
+		}));
 
 		expect(RootConfigSchema.safeParse({ boost: entries }).success).toBe(false);
 	});

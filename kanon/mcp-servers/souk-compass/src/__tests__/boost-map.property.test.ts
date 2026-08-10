@@ -24,21 +24,22 @@ interface SpecificityInput {
 	path: string;
 }
 
-const generatedResultsArbitrary: fc.Arbitrary<GeneratedResult[]> = fc.array(
-	fc.record({
-		isBoosted: fc.boolean(),
-		score: fc.integer({ min: 0, max: 10_000 }),
-	}),
-	{ minLength: 1, maxLength: 50 },
-).map(
-	(results: Array<Omit<GeneratedResult, "id">>): GeneratedResult[] =>
+const generatedResultsArbitrary: fc.Arbitrary<GeneratedResult[]> = fc
+	.array(
+		fc.record({
+			isBoosted: fc.boolean(),
+			score: fc.integer({ min: 0, max: 10_000 }),
+		}),
+		{ minLength: 1, maxLength: 50 },
+	)
+	.map((results: Array<Omit<GeneratedResult, "id">>): GeneratedResult[] =>
 		results.map(
 			(result: Omit<GeneratedResult, "id">, id: number): GeneratedResult => ({
 				...result,
 				id,
 			}),
 		),
-);
+	);
 
 const specificityInputArbitrary: fc.Arbitrary<SpecificityInput> = fc
 	.tuple(
@@ -59,7 +60,15 @@ const specificityInputArbitrary: fc.Arbitrary<SpecificityInput> = fc
 			broadBoost,
 			firstSpecificBoost,
 			lastSpecificBoost,
-		]: [string, string, string, number, number, number, number]): SpecificityInput => ({
+		]: [
+			string,
+			string,
+			string,
+			number,
+			number,
+			number,
+			number,
+		]): SpecificityInput => ({
 			baseScore,
 			broadBoost,
 			firstSpecificBoost,
@@ -87,7 +96,10 @@ function expectedGroupOrder(
 			(result: GeneratedResult): boolean => result.isBoosted === isBoosted,
 		)
 		.map(
-			(result: GeneratedResult, originalIndex: number): {
+			(
+				result: GeneratedResult,
+				originalIndex: number,
+			): {
 				originalIndex: number;
 				result: GeneratedResult;
 			} => ({ originalIndex, result }),
@@ -113,9 +125,8 @@ function actualGroupOrder(
 ): number[] {
 	const pathPrefix = isBoosted ? "boosted/" : "unboosted/";
 	return results
-		.filter(
-			(result: { path: string; score: number }): boolean =>
-				result.path.startsWith(pathPrefix),
+		.filter((result: { path: string; score: number }): boolean =>
+			result.path.startsWith(pathPrefix),
 		)
 		.map((result: { [key: string]: unknown }): number => {
 			const id = result["id"];
@@ -133,10 +144,7 @@ test("Property 5: identical and absent boosts preserve each group's score orderi
 		fc.property(
 			generatedResultsArbitrary,
 			fc.integer({ min: 1, max: 10 }),
-			(
-				generatedResults: GeneratedResult[],
-				boost: number,
-			): void => {
+			(generatedResults: GeneratedResult[], boost: number): void => {
 				const boostMap: BoostEntry[] = [{ pattern: "boosted/**", boost }];
 				const boostedResults = applyBoostMap(
 					toSearchResults(generatedResults),
@@ -159,24 +167,21 @@ test("Property 5: identical and absent boosts preserve each group's score orderi
 // **Validates: Requirements 6.3**
 test("Property 6: the most literal-specific match wins and later ties override earlier entries", (): void => {
 	fc.assert(
-		fc.property(
-			specificityInputArbitrary,
-			(input: SpecificityInput): void => {
-				const boostMap: BoostEntry[] = [
-					{ pattern: "**/*.ts", boost: input.broadBoost },
-					{ pattern: input.path, boost: input.firstSpecificBoost },
-					{ pattern: input.path, boost: input.lastSpecificBoost },
-				];
-				const [boostedResult] = applyBoostMap(
-					[{ path: input.path, score: input.baseScore }],
-					boostMap,
-				);
+		fc.property(specificityInputArbitrary, (input: SpecificityInput): void => {
+			const boostMap: BoostEntry[] = [
+				{ pattern: "**/*.ts", boost: input.broadBoost },
+				{ pattern: input.path, boost: input.firstSpecificBoost },
+				{ pattern: input.path, boost: input.lastSpecificBoost },
+			];
+			const [boostedResult] = applyBoostMap(
+				[{ path: input.path, score: input.baseScore }],
+				boostMap,
+			);
 
-				expect(boostedResult?.score).toBe(
-					input.baseScore * input.lastSpecificBoost,
-				);
-			},
-		),
+			expect(boostedResult?.score).toBe(
+				input.baseScore * input.lastSpecificBoost,
+			);
+		}),
 		{ numRuns: 100 },
 	);
 });

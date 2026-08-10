@@ -1,6 +1,6 @@
 import { describe, expect, spyOn, test } from "bun:test";
 import * as childProcess from "node:child_process";
-import { mkdtemp, mkdir, rm, unlink, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, unlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { promisify } from "node:util";
@@ -53,7 +53,11 @@ async function commitAll(rootPath: string, message: string): Promise<void> {
 
 async function createGitRepository(rootPath: string): Promise<string> {
 	await runGit(rootPath, ["init"]);
-	await runGit(rootPath, ["config", "user.email", "git-diff-test@example.test"]);
+	await runGit(rootPath, [
+		"config",
+		"user.email",
+		"git-diff-test@example.test",
+	]);
 	await runGit(rootPath, ["config", "user.name", "Git Diff Test"]);
 	await writeRepositoryFile(rootPath, "README.md", "initial commit\n");
 	await commitAll(rootPath, "initial commit");
@@ -70,7 +74,11 @@ function createTimeoutExecFileMock(): typeof childProcess.execFile {
 
 		if (typeof callback === "function") {
 			queueMicrotask(() => {
-				(callback as (...callbackArgs: unknown[]) => void)(timeoutError, "", "");
+				(callback as (...callbackArgs: unknown[]) => void)(
+					timeoutError,
+					"",
+					"",
+				);
 			});
 		}
 
@@ -82,13 +90,29 @@ describe("git-diff", () => {
 	test("classifies added, modified, and deleted committed files", async () => {
 		await withTemporaryDirectory(async (rootPath: string): Promise<void> => {
 			const storedSha: string = await createGitRepository(rootPath);
-			await writeRepositoryFile(rootPath, "modified.ts", "export const value = 1;\n");
-			await writeRepositoryFile(rootPath, "deleted.ts", "export const stale = true;\n");
+			await writeRepositoryFile(
+				rootPath,
+				"modified.ts",
+				"export const value = 1;\n",
+			);
+			await writeRepositoryFile(
+				rootPath,
+				"deleted.ts",
+				"export const stale = true;\n",
+			);
 			await commitAll(rootPath, "add initial files");
 
-			const indexedSha: string = await getCurrentSha(rootPath) as string;
-			await writeRepositoryFile(rootPath, "added.ts", "export const added = true;\n");
-			await writeRepositoryFile(rootPath, "modified.ts", "export const value = 2;\n");
+			const indexedSha: string = (await getCurrentSha(rootPath)) as string;
+			await writeRepositoryFile(
+				rootPath,
+				"added.ts",
+				"export const added = true;\n",
+			);
+			await writeRepositoryFile(
+				rootPath,
+				"modified.ts",
+				"export const value = 2;\n",
+			);
 			await unlink(join(rootPath, "deleted.ts"));
 			await commitAll(rootPath, "change indexed files");
 

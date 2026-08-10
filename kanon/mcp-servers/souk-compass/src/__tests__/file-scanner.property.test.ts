@@ -1,12 +1,9 @@
 import { expect, test } from "bun:test";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
 import fc from "fast-check";
-import {
-	matchesAny,
-	scanDirectory,
-} from "../file-scanner.js";
+import { matchesAny, scanDirectory } from "../file-scanner.js";
 import {
 	detectProjectType,
 	getLanguagePreset,
@@ -181,7 +178,10 @@ test("Property 1: project detection selects presets unless explicit exclusions o
 
 					expect(
 						scanned
-							.map(({ relativePath }: { relativePath: string }): string => relativePath)
+							.map(
+								({ relativePath }: { relativePath: string }): string =>
+									relativePath,
+							)
 							.sort(),
 					).toEqual(expectedScannedPaths(activeExclusions));
 				},

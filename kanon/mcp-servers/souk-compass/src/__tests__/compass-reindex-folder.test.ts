@@ -255,7 +255,10 @@ describe("compass_reindex_folder removal scoping", () => {
 	test("uses language presets and root ignore rules when no exclude is supplied", async () => {
 		mkdirSync(join(ROOT, "_build"), { recursive: true });
 		writeFileSync(join(ROOT, "mix.exs"), "defmodule Fixture do\nend\n");
-		writeFileSync(join(ROOT, "_build", "generated.ex"), "defmodule Generated do\nend\n");
+		writeFileSync(
+			join(ROOT, "_build", "generated.ex"),
+			"defmodule Generated do\nend\n",
+		);
 		writeFileSync(join(ROOT, "ignored.ex"), "defmodule Ignored do\nend\n");
 		writeFileSync(join(ROOT, ".solrcompass-ignore"), "ignored.ex\n");
 
@@ -284,9 +287,18 @@ describe("compass_reindex_folder removal scoping", () => {
 		mkdirSync(join(ROOT, "_build"), { recursive: true });
 		mkdirSync(join(ROOT, "manually-excluded"), { recursive: true });
 		writeFileSync(join(ROOT, "mix.exs"), "defmodule Fixture do\nend\n");
-		writeFileSync(join(ROOT, "_build", "included.ex"), "defmodule Included do\nend\n");
-		writeFileSync(join(ROOT, "manually-excluded", "skip.ts"), "export const skip = true;\n");
-		writeFileSync(join(ROOT, "ignore-file.ts"), "export const ignored = true;\n");
+		writeFileSync(
+			join(ROOT, "_build", "included.ex"),
+			"defmodule Included do\nend\n",
+		);
+		writeFileSync(
+			join(ROOT, "manually-excluded", "skip.ts"),
+			"export const skip = true;\n",
+		);
+		writeFileSync(
+			join(ROOT, "ignore-file.ts"),
+			"export const ignored = true;\n",
+		);
 		writeFileSync(join(ROOT, ".solrcompass-ignore"), "ignore-file.ts\n");
 
 		const indexedPaths: string[] = [];
@@ -390,55 +402,54 @@ describe("compass_reindex_folder removal scoping", () => {
 			runGit(["commit", "-m", "change indexed files"]);
 			const currentCommit = runGit(["rev-parse", "HEAD"]);
 
-			(ctx.codebaseSolrClient as unknown as { upsert: unknown }).upsert = async (
-				_id: string,
-				_text: string,
-				_vector: number[],
-				metadata: Record<string, unknown>,
-			) => {
-				written.push(metadata);
-			};
+			(ctx.codebaseSolrClient as unknown as { upsert: unknown }).upsert =
+				async (
+					_id: string,
+					_text: string,
+					_vector: number[],
+					metadata: Record<string, unknown>,
+				) => {
+					written.push(metadata);
+				};
 			let selectCount = 0;
-			fetchSpy.mockImplementation(
-				(async (
-					url: RequestInfo | URL,
-					init?: RequestInit,
-				): Promise<Response> => {
-					const requestUrl = String(url);
-					if (requestUrl.includes("/select")) {
-						selectCount++;
-						if (selectCount === 1) {
-							return solrDocs([{ index_commit: storedCommit }]);
-						}
-						return solrDocs([
-							{
-								id: changedDocument.id,
-								content_hash: contentHash(changedDocument.text),
-								index_root: gitRoot,
-								metadata_path: "changed.ts",
-							},
-							{
-								id: removedDocument.id,
-								content_hash: contentHash(removedDocument.text),
-								index_root: gitRoot,
-								metadata_path: "removed.ts",
-							},
-							{
-								id: unchangedDocument.id,
-								content_hash: contentHash(unchangedDocument.text),
-								index_root: gitRoot,
-								metadata_path: "unchanged.ts",
-							},
-						]);
+			fetchSpy.mockImplementation((async (
+				url: RequestInfo | URL,
+				init?: RequestInit,
+			): Promise<Response> => {
+				const requestUrl = String(url);
+				if (requestUrl.includes("/select")) {
+					selectCount++;
+					if (selectCount === 1) {
+						return solrDocs([{ index_commit: storedCommit }]);
 					}
-					if (requestUrl.includes("/update/json/docs")) {
-						atomicUpdates.push(
-							JSON.parse(String(init?.body)) as Array<Record<string, unknown>>,
-						);
-					}
-					return new Response("", { status: 200 });
-				}) as typeof fetch,
-			);
+					return solrDocs([
+						{
+							id: changedDocument.id,
+							content_hash: contentHash(changedDocument.text),
+							index_root: gitRoot,
+							metadata_path: "changed.ts",
+						},
+						{
+							id: removedDocument.id,
+							content_hash: contentHash(removedDocument.text),
+							index_root: gitRoot,
+							metadata_path: "removed.ts",
+						},
+						{
+							id: unchangedDocument.id,
+							content_hash: contentHash(unchangedDocument.text),
+							index_root: gitRoot,
+							metadata_path: "unchanged.ts",
+						},
+					]);
+				}
+				if (requestUrl.includes("/update/json/docs")) {
+					atomicUpdates.push(
+						JSON.parse(String(init?.body)) as Array<Record<string, unknown>>,
+					);
+				}
+				return new Response("", { status: 200 });
+			}) as typeof fetch);
 
 			const result = await handleCompassReindexFolder({ path: gitRoot }, ctx);
 			const payload = JSON.parse(result.content[0].text as string);

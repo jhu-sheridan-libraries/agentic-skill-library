@@ -3,9 +3,9 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
-	LANGUAGE_PRESETS,
 	detectProjectType,
 	getLanguagePreset,
+	LANGUAGE_PRESETS,
 	type ProjectType,
 } from "../project-detector.js";
 
@@ -51,7 +51,9 @@ async function withMarkerFiles(
 	markerFiles: readonly string[],
 	assertion: (rootPath: string) => Promise<void>,
 ): Promise<void> {
-	const rootPath: string = await mkdtemp(join(tmpdir(), "souk-project-detector-"));
+	const rootPath: string = await mkdtemp(
+		join(tmpdir(), "souk-project-detector-"),
+	);
 
 	try {
 		await Promise.all(
@@ -68,9 +70,12 @@ async function withMarkerFiles(
 describe("project-detector", () => {
 	for (const { marker, expectedType } of markerCases) {
 		test(`detects ${expectedType} projects from ${marker}`, async () => {
-			await withMarkerFiles([marker], async (rootPath: string): Promise<void> => {
-				expect(await detectProjectType(rootPath)).toBe(expectedType);
-			});
+			await withMarkerFiles(
+				[marker],
+				async (rootPath: string): Promise<void> => {
+					expect(await detectProjectType(rootPath)).toBe(expectedType);
+				},
+			);
 		});
 	}
 
