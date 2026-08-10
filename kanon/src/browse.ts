@@ -845,7 +845,7 @@ export async function handleRequest(
 			// Write back to disk
 			const { writeFile: writeFs } = await import("node:fs/promises");
 			const yaml = await import("js-yaml");
-			const configYaml = yaml.default.dump(config, {
+			const configYaml = yaml.dump(config, {
 				indent: 2,
 				lineWidth: -1,
 				noRefs: true,

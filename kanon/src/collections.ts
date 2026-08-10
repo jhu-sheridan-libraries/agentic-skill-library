@@ -1,6 +1,6 @@
 import { exists, readdir, readFile } from "node:fs/promises";
 import { basename, join } from "node:path";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 import {
 	type CatalogEntry,
 	type Collection,

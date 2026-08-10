@@ -1,6 +1,6 @@
 import { exists, readdir, readFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 import {
 	SUPPORTED_HARNESSES,
 	type ValidationError,

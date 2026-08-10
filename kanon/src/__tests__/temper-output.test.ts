@@ -84,7 +84,7 @@ async function createTestArtifact(
 		];
 		await writeFile(
 			join(artifactDir, "hooks.yaml"),
-			yaml.default.dump(hooks),
+			yaml.dump(hooks),
 			"utf-8",
 		);
 	}

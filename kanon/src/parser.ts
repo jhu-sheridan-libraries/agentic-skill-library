@@ -1,7 +1,7 @@
 import { exists, readdir, readFile } from "node:fs/promises";
 import { basename, join, resolve } from "node:path";
 import matter from "gray-matter";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 import { parseCanonical } from "./rosetta/canonical";
 import {
 	type CanonicalHook,
@@ -160,7 +160,7 @@ export async function parseHooksYaml(
 
 	let parsed: unknown;
 	try {
-		parsed = yaml.load(raw);
+		parsed = raw.trim().length === 0 ? null : yaml.load(raw);
 	} catch (e: unknown) {
 		const msg = e instanceof Error ? e.message : String(e);
 		return {
@@ -205,7 +205,7 @@ export async function parseMcpServersYaml(
 
 	let parsed: unknown;
 	try {
-		parsed = yaml.load(raw);
+		parsed = raw.trim().length === 0 ? null : yaml.load(raw);
 	} catch (e: unknown) {
 		const msg = e instanceof Error ? e.message : String(e);
 		return {
