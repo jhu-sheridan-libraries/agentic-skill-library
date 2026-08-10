@@ -223,7 +223,8 @@ export function parseCanonical(
 
 		let hooksParsed: unknown;
 		try {
-			hooksParsed = hooksContent.trim().length === 0 ? null : yaml.load(hooksContent);
+			hooksParsed =
+				hooksContent.trim().length === 0 ? null : yaml.load(hooksContent);
 		} catch (e: unknown) {
 			const msg = e instanceof Error ? e.message : String(e);
 			diagnostics.push(
@@ -533,7 +534,6 @@ export function renderDeterministicYaml(
 
 	const result = yaml.dump(data, {
 		sortKeys: sortKeysFn,
-		noCompatMode: true,
 		lineWidth: 80,
 		noRefs: true,
 	});

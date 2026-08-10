@@ -113,7 +113,7 @@ export function serializeFrontmatter(
 	const yamlStr = yaml.dump(frontmatter, {
 		lineWidth: -1,
 		noRefs: true,
-		quotingType: "'",
+		quoteStyle: "single",
 	});
 	return `---\n${yamlStr}---\n${body}`;
 }

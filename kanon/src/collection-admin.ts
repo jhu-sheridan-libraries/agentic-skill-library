@@ -80,7 +80,7 @@ export function serializeCollection(
 	return yaml.dump(collection, {
 		lineWidth: -1,
 		noRefs: true,
-		quotingType: "'",
+		quoteStyle: "single",
 	});
 }
 
