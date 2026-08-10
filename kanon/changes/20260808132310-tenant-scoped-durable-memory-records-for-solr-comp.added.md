@@ -1,1 +1,0 @@
-Tenant-scoped, durable memory records for Solr Compass: personal and org tenants with per-tenant collections, precedence-based conflict resolution, record supersession and retraction, validity windows, and configurable replication with backup and restore

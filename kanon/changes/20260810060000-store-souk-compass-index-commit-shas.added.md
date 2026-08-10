@@ -1,1 +1,0 @@
-Store the current Git commit SHA on Souk Compass codebase index documents.

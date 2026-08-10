@@ -1,1 +1,0 @@
-An 'aws' platform profile selecting Bedrock embeddings and S3 snapshot storage together with one shared region, and snapshot manifests moved onto Bun's Bun.file/S3File interface so local and S3 share one code path, the aws CLI becomes an optional fallback, and list finally sees snapshots in a bucket

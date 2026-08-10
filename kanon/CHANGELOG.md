@@ -7,6 +7,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-08-10
+
+### Added
+- Add Souk Compass indexing-pipeline integration coverage for language presets, root-scoped deduplication, boost-map search ordering, and Git-aware reindexing.
+- Rosetta Stone deterministic canonical serializer with extra-field collision detection, YAML key-order normalization, and plan generation
+- Implement deterministic inspection models in src/rosetta/inspection.ts
+- Rosetta Stone immutable template bundle loader and pure renderer contract with in-memory Nunjucks rendering, content digest, and filesystem fallback prohibition
+- Add acquisitions and translations profile records to ForgeConfigSchema with validation (Req 10.3-10.8, 13.12)
+- Normalize legacy upstreams into typed acquisition/translation profiles (Req 10.6, 10.7, 13.12, 14.8)
+- Tenant-scoped, durable memory records for Solr Compass: personal and org tenants with per-tenant collections, precedence-based conflict resolution, record supersession and retraction, validity windows, and configurable replication with backup and restore
+- Implement deterministic pretty-printers for all source-capable format contracts (kiro-power, kiro-skill, superpowers, kiro-native, claude-code, codex, copilot, cursor, windsurf, cline, qdeveloper)
+- Add Rosetta Stone target translators for Copilot, Cursor, Windsurf, Cline, and Q Developer
+- Apply per-root boost maps to Souk Compass codebase search results
+- Publish Solr Compass as a Bun-powered npm package with a pinned bunx launch, independent package and content roots, and patch-pinned SolrCloud images
+- Add a Kiro Solr Compass Guided MCP Power artifact with seamless first-run Docker and SolrCloud initialization
+- Document the shared Souk Compass indexing-policy architecture: centralized scanning, root-local configuration, language-aware chunking, client-side path boosting, and typed git-diff fallbacks.
+- Implement target translators for Kiro, Claude Code, and Codex in src/rosetta/builtins/targets/
+- Personal and organizational backup storage backends for Solr Compass: snapshots survive 'docker compose down -v' and rebuild, via a host-mounted local repository or a tenant's S3 bucket, with a portable snapshot manifest, an embedding-model compatibility guard, and a new compass_backup tool
+- Add root-scoped deduplication property coverage for Souk Compass
+- Use Git diffs to incrementally reindex changed Souk Compass codebase files, delete removed documents, and advance root commit metadata.
+- Rosetta Stone source accounting and mapping helpers with consumed/preserved path tracking, field mappings, namespaced extra fields, and document order normalization
+- Rosetta Stone built-in compatibility profiles seeded from ASSET_HARNESS_COMPATIBILITY and CAPABILITY_MATRIX with per-harness constants and lookup API
+- Rosetta Stone transactional translation registry with atomic registration, frozen snapshots, and 12 built-in format contracts
+- Rosetta Stone application policy evaluation and cross-request collision analysis with deterministic path normalization and configurable collision resolution
+- Add shared format variant and option resolution module (src/rosetta/resolution.ts)
+- Add Rosetta Stone public Zod schemas and inferred TypeScript types to src/schemas.ts covering format contracts, detection models, translation requests/results, diagnostics, compatibility profiles, plans, profiles, provenance, and machine-output envelopes
+- Use Elixir-aware chunking when building Souk Compass codebase documents
+- Add Rosetta Stone translation engine (src/rosetta/engine.ts) coordinating request guard, registry, detection, source translation, canonical validation, compatibility, target translation, and plan validation phases
+- An 'aws' platform profile selecting Bedrock embeddings and S3 snapshot storage together with one shared region, and snapshot manifests moved onto Bun's Bun.file/S3File interface so local and S3 share one code path, the aws CLI becomes an optional fallback, and list finally sees snapshots in a bucket
+- Add path-based source translators for kiro-power, kiro-skill, and superpowers formats under src/rosetta/builtins/sources/
+- Rosetta Stone translation plan applier with atomic writes, symlink escape detection, collision rechecking, multi-file staging, and separate ApplicationReport
+- Document root-scoped Git baselines for incremental Souk Compass indexing
+- Store the current Git commit SHA on Souk Compass codebase index documents.
+- Add harness-native source translators for Kiro, Claude Code, and Codex
+- Add root-scoped content-hash deduplication to Souk Compass folder indexing.
+
+### Changed
+- Move the paid LLM eval suite to a manual-dispatch workflow and drop the redundant per-PR eval job from CI; the deterministic Kiro progressive-steering rubric stays a PR gate
+- Refactor Souk Compass full-folder indexing to use shared language-aware scanning and root-local ignore rules.
+- Deduplicate Souk Compass reindex chunks by root-scoped content hash before embedding and upserting.
+- Refactor Souk Compass incremental reindexing to use the shared file scanner with project presets, explicit excludes, and `.solrcompass-ignore` rules.
+- Upgrade TypeScript to 7.0.2 and bring kanon and souk-compass dependencies (biome, zod, chalk, promptfoo, clack, rollup, AWS SDK, MCP SDK, fast-check) up to date
+
+### Deprecated
+- Deprecate type: "power" as an asset-taxonomy value in favor of type: "skill" + harness-config.kiro.format: "power"; migrate all 47 existing power-typed artifacts
+
+### Fixed
+- Reconcile agent asset-type compatibility with per-harness agent capability support, make temper agent-degradation detection content-aware, and add agent validation rules
+
+
 ## [0.6.0] - 2026-07-27
 
 ### Added

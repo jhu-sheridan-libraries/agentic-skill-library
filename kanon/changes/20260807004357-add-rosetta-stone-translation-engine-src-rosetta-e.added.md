@@ -1,1 +1,0 @@
-Add Rosetta Stone translation engine (src/rosetta/engine.ts) coordinating request guard, registry, detection, source translation, canonical validation, compatibility, target translation, and plan validation phases

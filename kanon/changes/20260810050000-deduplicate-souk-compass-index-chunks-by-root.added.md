@@ -1,1 +1,0 @@
-Add root-scoped content-hash deduplication to Souk Compass folder indexing.

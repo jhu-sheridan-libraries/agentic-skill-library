@@ -1,6 +1,6 @@
 {
 	"name": "@thinkingsage/kanon",
-	"version": "0.6.0",
+	"version": "0.7.0",
 	"description": "Write knowledge once, compile to every AI coding assistant harness",
 	"type": "module",
 	"bin": {

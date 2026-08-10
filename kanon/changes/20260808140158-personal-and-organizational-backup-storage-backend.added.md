@@ -1,1 +1,0 @@
-Personal and organizational backup storage backends for Solr Compass: snapshots survive 'docker compose down -v' and rebuild, via a host-mounted local repository or a tenant's S3 bucket, with a portable snapshot manifest, an embedding-model compatibility guard, and a new compass_backup tool
