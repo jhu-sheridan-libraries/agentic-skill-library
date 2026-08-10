@@ -12,6 +12,7 @@ import { ErrorCodes, SoukCompassError } from "../errors.js";
 import type { CompassSetupInput, SoukCompassConfig } from "../schemas.js";
 import type { SolrSearchResponse, SoukVectorClient } from "../solr-client.js";
 import type { ToolContext, ToolResult } from "../tools/types.js";
+import { completeToolContext } from "./test-support.js";
 
 // ---------------------------------------------------------------------------
 // Mock factories
@@ -55,6 +56,7 @@ function makeConfig(overrides?: Partial<SoukCompassConfig>): SoukCompassConfig {
 		solrCollection: "context-bazaar",
 		userCollection: "context-bazaar-user-docs",
 		codebaseCollection: "context-bazaar-codebase",
+		platform: "local" as const,
 		embedProvider: "local",
 		embedDimensions: 1024,
 		cacheTiers: ["memory", "sqlite", "solr"],
@@ -66,7 +68,7 @@ function makeConfig(overrides?: Partial<SoukCompassConfig>): SoukCompassConfig {
 }
 
 function makeCtx(overrides?: Partial<ToolContext>): ToolContext {
-	return {
+	return completeToolContext({
 		solrClient: makeMockSolrClient(),
 		userSolrClient: makeMockSolrClient(),
 		codebaseSolrClient: makeMockSolrClient(),
@@ -75,7 +77,7 @@ function makeCtx(overrides?: Partial<ToolContext>): ToolContext {
 		packageRoot: "/fake/package/root",
 		contentRoot: "/fake/content/root",
 		...overrides,
-	};
+	});
 }
 
 /** Parse the JSON text from a ToolResult */
@@ -1031,7 +1033,9 @@ describe("compass_status handler", () => {
 		expect(collections[1].docCount).toBe(7);
 		expect(collections[2].docCount).toBe(10);
 		expect(data.totalDocs).toBe(59);
-		expect(data.memoryNotes).toBe(3);
+		// Memory notes are counted per tenant now — a single total cannot say
+		// whether three notes are yours or the org's.
+		expect(data.memoryNotes).toEqual({ personal: 3 });
 	});
 
 	test("handles Solr unreachable gracefully", async () => {

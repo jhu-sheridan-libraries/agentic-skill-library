@@ -219,13 +219,14 @@ export class SoukVectorClient {
 	}
 
 	/**
-	 * Find a document by its content hash.
-	 * Returns the first matching document or `null` if not found.
+	 * Find a document by its content hash, optionally scoped by embedding
+	 * provider and index root. Returns the first matching document or `null`.
 	 * Catches errors and returns `null` — used by the Solr-as-cache tier.
 	 */
 	async findByContentHash(
 		contentHash: string,
 		embedProvider?: string,
+		indexRoot?: string,
 	): Promise<Record<string, unknown> | null> {
 		try {
 			const params = new URLSearchParams({
@@ -233,12 +234,21 @@ export class SoukVectorClient {
 				rows: "1",
 				wt: "json",
 			});
+			const filters: string[] = [];
 
 			// Only reuse a stored vector when the same model produced it.
 			// Documents indexed before embed_provider existed are untagged and
 			// deliberately excluded — their provider is unknowable.
 			if (embedProvider) {
-				params.set("fq", `embed_provider:"${embedProvider}"`);
+				filters.push(`embed_provider:"${embedProvider}"`);
+			}
+			if (indexRoot) {
+				filters.push(
+					`index_root:"${indexRoot.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`,
+				);
+			}
+			if (filters.length > 0) {
+				params.set("fq", filters.join(" AND "));
 			}
 
 			const url = `${this.baseUrl}/solr/${this.collection}/select?${params.toString()}`;
@@ -252,6 +262,92 @@ export class SoukVectorClient {
 		} catch {
 			return null;
 		}
+	}
+
+	/**
+	 * Upsert a fully-formed document.
+	 *
+	 * `upsert` builds the document from separate text, vector and metadata
+	 * arguments, which forces every non-string field through `String()`. A record
+	 * with typed fields — dates, a float confidence, a boolean, a multi-valued
+	 * tag list — has to reach Solr with those types intact, so it goes on the
+	 * wire as JSON as it was constructed.
+	 */
+	async upsertDocument(
+		doc: Record<string, unknown>,
+		options?: { commit?: boolean },
+	): Promise<void> {
+		const commit = options?.commit ?? true;
+		const url = `${this.baseUrl}/solr/${this.collection}/update/json/docs${commit ? "?commit=true" : ""}`;
+
+		const wire =
+			Array.isArray(doc.vector) &&
+			doc.vector.every((v) => typeof v === "number")
+				? { ...doc, vector: toWireVector(doc.vector as number[]) }
+				: doc;
+
+		await this.solrFetch(url, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(wire),
+		});
+	}
+
+	/**
+	 * Fetch one document by id, with every stored field.
+	 *
+	 * Needed for read-modify-write transitions. A record moving to `superseded`
+	 * keeps its vector, so the alternative is a Solr atomic update — which
+	 * reconstructs the document from stored fields, and whose behaviour on a
+	 * quantised dense-vector field is not something to rely on for the operation
+	 * that preserves history.
+	 */
+	async getById(docId: string): Promise<Record<string, unknown> | null> {
+		const params = new URLSearchParams({
+			q: `id:"${docId.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`,
+			rows: "1",
+			wt: "json",
+			fl: "*",
+		});
+		const url = `${this.baseUrl}/solr/${this.collection}/select?${params.toString()}`;
+		const response = await this.solrFetch(url);
+		const body = (await response.json()) as SolrSearchResponse;
+		return body.response.docs[0] ?? null;
+	}
+
+	/**
+	 * Fetch documents matching a filter, without a relevance query.
+	 *
+	 * Lifecycle bookkeeping needs exhaustive lookups — every revision of one
+	 * logical record, every record a retraction must touch — where kNN's ranked
+	 * top-K is the wrong shape entirely.
+	 */
+	async listByFilter(
+		filterQuery: string,
+		options?: { rows?: number; sort?: string },
+	): Promise<Record<string, unknown>[]> {
+		const params = new URLSearchParams({
+			q: "*:*",
+			fq: filterQuery,
+			rows: String(options?.rows ?? 100),
+			wt: "json",
+			fl: "*",
+		});
+		if (options?.sort) params.set("sort", options.sort);
+
+		const url = `${this.baseUrl}/solr/${this.collection}/select`;
+		const response = await this.solrFetch(url, {
+			method: "POST",
+			headers: { "Content-Type": "application/x-www-form-urlencoded" },
+			body: params.toString(),
+		});
+		const body = (await response.json()) as SolrSearchResponse;
+		return body.response.docs;
+	}
+
+	/** Collection this client is bound to, for attributing a federated hit. */
+	get collectionName(): string {
+		return this.collection;
 	}
 
 	/**

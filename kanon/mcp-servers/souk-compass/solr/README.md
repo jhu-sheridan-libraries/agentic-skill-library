@@ -214,6 +214,278 @@ Ensure the remote Solr instance has:
 | `SOUK_COMPASS_DEFAULT_MIN_SCORE` | unset | Default similarity floor, 0–1 |
 | `SOUK_COMPASS_EF_SEARCH_SCALE` | `1.0` | HNSW candidate multiplier |
 | `SOUK_COMPASS_FILTERED_SEARCH_THRESHOLD` | unset | ACORN threshold, integer 0–100 |
+| `SOUK_COMPASS_TENANTS` | unset | Tenant registry as inline JSON. Wins over the file |
+| `SOUK_COMPASS_TENANT_REGISTRY` | `~/.souk-compass/tenants.json` | Tenant registry path |
+| `SOUK_COMPASS_DEFAULT_TENANT` | `personal` | Tenant used when a call names none |
+| `SOUK_COMPASS_COLLECTION_PREFIX` | `souk` | Prefix for derived collection names |
+| `SOUK_COMPASS_NUM_SHARDS` | `1` | Shards per collection, at creation |
+| `SOUK_COMPASS_REPLICATION_FACTOR` | `1` | NRT replicas per shard, at creation |
+| `SOUK_COMPASS_TLOG_REPLICAS` | `0` | Transaction-log-only replicas |
+| `SOUK_COMPASS_PULL_REPLICAS` | `0` | Read-only replicas |
+| `SOUK_COMPASS_PLATFORM` | `local` | `local` or `aws`. Selects embeddings and org storage together |
+| `SOUK_COMPASS_REGION` | `$AWS_REGION` | One region for Bedrock, Solr's S3 repository and this server |
+| `SOUK_COMPASS_S3_BUCKET` | unset | Default bucket for org tenants that declare none |
+| `SOUK_COMPASS_HOME` | `~/.souk-compass` | Host state: registry, generated solr.xml, backups |
+| `SOUK_COMPASS_BACKUP_DIR` | `~/.souk-compass/backups` | **Host** snapshot directory, bind-mounted into Solr |
+| `SOUK_COMPASS_BACKUP_LOCATION` | `/var/solr/backups` | Container-side path Solr writes snapshots to |
+| `AWS_ACCESS_KEY_ID` etc. | unset | Passed through to Solr for S3 backup repositories |
+
+## Tenants
+
+A **tenant** is the unit of ownership: `personal` for you, one entry per org you
+share an index with. Each owns up to three collections, one per partition
+(`artifacts`, `memory`, `codebase`).
+
+With no configuration there is exactly one tenant — `personal` — mapped to the
+three `context-bazaar*` collection names above. An existing index needs no
+migration.
+
+Declare orgs in `~/.souk-compass/tenants.json`:
+
+```json
+{
+  "tenants": [
+    { "id": "acme", "scope": "org", "displayName": "Acme Platform" },
+    { "id": "upstream", "scope": "org", "access": "read" },
+    { "id": "policy", "scope": "org", "precedence": 500,
+      "durability": { "replicationFactor": 3 } }
+  ]
+}
+```
+
+- `id` is a lowercase slug. It becomes part of collection names
+  (`souk-acme-memory`) and part of Solr filter queries, which is why it is
+  constrained.
+- `access: "read"` refuses writes at the tool boundary — the shape of an org
+  index you consume and someone else curates.
+- `precedence` decides who wins when two tenants disagree. Personal defaults to
+  100 and org to 50, so a local decision outranks an org default. Raise an org
+  above 100 when it publishes binding policy rather than suggestions.
+- `solrUrl` lets a tenant's index live on a different SolrCloud entirely; reads
+  federate across clusters.
+- `collections` names a partition's collection explicitly. Two tenants may
+  deliberately share one — `compass_tenants` flags that, because there the
+  `tenant_id` filter is the only thing separating them.
+
+Isolation is by collection rather than by a filter over one shared collection,
+because backup, replication factor, and Solr's per-collection authorization are
+all properties of a collection (see
+[ADR-0056](../../../docs/adr/0056-tenant-scoped-durable-memory-records.md)).
+
+```
+compass_tenants { "verify": true }                       # who is reachable, and how healthy
+compass_remember { "note": "...", "category": "convention", "tenant": "acme" }
+compass_recall_memory { "query": "...", "tenants": "all" }   # personal + every org
+```
+
+## Memory records
+
+A memory note is a record with an identity and a lifecycle, not an insert.
+
+- **Revisions.** Restating something already recorded is a no-op. A changed
+  statement about the same subject becomes revision *n+1* and marks the previous
+  one `superseded` — retained, pointing forward at its replacement.
+- **Retraction.** `compass_forget` marks a record `retracted` rather than
+  deleting it, so a mistake stays auditable and cannot be resurrected by a later
+  reindex.
+- **Validity.** `validFrom` / `validUntil` bound when a record was true.
+  `compass_recall_memory { asOf }` asks what was believed at a past instant.
+- **Decay.** Episodic records (observations, decisions) lose ranking weight with
+  age — 90-day half-life by default. Semantic and procedural records do not, and
+  `pinned` records never do. Decay changes ranking only; nothing is dropped.
+- **Conflicts.** When two tenants disagree, the higher-precedence record wins and
+  the loser is returned as `shadowed` rather than silently dropped.
+- **Provenance.** Session, agent, repository, and author are recorded per record.
+
+Pre-v2 notes keep working: absent `status` and `valid_from` read as "active,
+valid from the beginning of time", and untagged documents belong to `personal`.
+`compass_status` reports `unmigratedCollections` so an unfinished migration is
+visible rather than blended into the personal totals.
+
+## Durability
+
+Replication is configured at creation and cannot be changed afterwards for
+`numShards`, so it is worth setting before the first index:
+
+```bash
+export SOUK_COMPASS_REPLICATION_FACTOR=3
+compass_setup { "action": "create_collections" }
+```
+
+`compass_status` and `compass_setup { "action": "check" }` compare *live* replica
+counts against the requested `replicationFactor` and report `underReplicated`. A
+collection created with three replicas and running on one answers every query
+correctly right up until that node fails; a document count cannot tell you that.
+
+Replication does not survive a bad reindex or a mistaken delete — both replicate
+faithfully. Code can be reindexed from source afterwards; memory cannot, because
+it has no source. That is what snapshots are for.
+
+## Snapshots: save, tear down, rebuild, restore
+
+The supported lifecycle:
+
+```bash
+compass_backup { "action": "save", "snapshotId": "2026-08-08" }
+
+docker compose down -v            # index, ZooKeeper, all cluster state gone
+
+compass_setup  { "action": "start" }
+compass_backup { "action": "restore", "snapshotId": "2026-08-08" }
+compass_backup { "action": "verify",  "snapshotId": "2026-08-08" }
+```
+
+Use `start`, not `initialize`, before a restore. Both bring the containers up and
+upload the configset, but `initialize` also **creates** the collections — and
+Solr restores only into a collection that does not exist, so every restore would
+then be refused. `initialize` is for a first run; `start` is for a rebuild you
+intend to restore into.
+
+This works because snapshots are **not** stored in a Docker volume.
+`docker compose down -v` removes every named volume, so a snapshot kept in one
+is destroyed by the very command it exists to survive. The backup path is a host
+bind mount instead — `~/.souk-compass/backups` by default, or
+`SOUK_COMPASS_BACKUP_DIR`.
+
+Two other things `down -v` destroys are handled for you. ZooKeeper's copy of the
+configset goes with it, but Solr's backup image includes the configset, and
+`RESTORE` re-uploads it. And `compass_setup initialize` now uploads the configset
+even when Solr is already reachable — which it is immediately after a rebuild.
+
+### Platform profiles
+
+Embeddings and snapshot storage are one decision. Titan runs in Bedrock and org
+snapshots go to S3 — same cloud, same region, same credentials — so selecting the
+platform selects both:
+
+```bash
+export SOUK_COMPASS_PLATFORM=aws
+export SOUK_COMPASS_REGION=us-east-1
+export SOUK_COMPASS_S3_BUCKET=org-snapshots
+```
+
+| | `local` (default) | `aws` |
+|---|---|---|
+| Embeddings | local MiniLM | `bedrock-titan` |
+| Org tenant snapshots | host directory | S3, each tenant under its own prefix |
+| Personal snapshots | host directory | **host directory** |
+| Region | n/a | one value, everywhere |
+
+It sets **defaults only** — an explicit `SOUK_COMPASS_EMBED_PROVIDER` or a
+tenant's own `backup.s3` block still wins. And **personal deliberately stays on
+local disk**: that credential-free path is what makes `docker compose down -v`
+survivable with no AWS setup at all, and a profile should not quietly remove it.
+Give the personal tenant an explicit `backup.s3` block to move it to a bucket.
+
+Two configurations are refused rather than half-applied: an unrecognised platform
+name, and `platform: aws` with org tenants but no bucket — which would silently
+put every org's snapshots on one laptop's disk.
+
+> Switching an existing install to `aws` changes the embedding model, and vectors
+> from different models are not comparable. Reindex afterwards, and check
+> `compass_status` for `providerMismatch`.
+
+### Storage backends
+
+Each tenant names a Solr **backup repository**. Solr reads and writes the index
+itself, so the repository is the storage backend; this server only transports the
+snapshot manifest.
+
+The manifest moves through `Bun.file()`, which returns the same `Blob` interface
+for a host path and an `s3://` URI — so local and remote are one code path, and
+no external tool is required. Bun's S3 client reads credentials from
+`AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` (or the `S3_*` equivalents) only. If
+your credentials come from `AWS_PROFILE`, SSO or an instance role instead, the
+server falls back to the `aws` CLI, which understands those — so install it if
+that is your setup. Each result reports the `transport` it used.
+
+| Backend | For | Needs |
+|---|---|---|
+| `LocalFileSystemRepository` | personal | nothing — a host directory |
+| `S3BackupRepository` | an org, or a second machine | a bucket, AWS credentials, the `aws` CLI |
+
+Declare an org backend in `~/.souk-compass/tenants.json`:
+
+```json
+{
+  "tenants": [
+    {
+      "id": "acme",
+      "scope": "org",
+      "backup": {
+        "s3": { "bucket": "acme-solr-backups", "region": "us-east-1" }
+      }
+    }
+  ]
+}
+```
+
+`compass_setup start` generates `~/.souk-compass/solr.xml` from the registry and
+bind-mounts it, so you never hand-edit XML — and sets `SOLR_MODULES` to whatever
+the declared repositories need. **Repositories are read once, at boot**: after
+changing the registry, restart Solr.
+
+**Credentials never go in the registry.** Solr uses the AWS credential chain from
+its own container, so `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`,
+`AWS_SESSION_TOKEN` and `AWS_REGION` are passed through from your environment by
+the compose file. A credential-shaped value in the registry is rejected at load
+time.
+
+Solr officially supports AWS S3 only. MinIO is documented as incompatible with
+`S3BackupRepository`; Adobe's S3Mock is the recommended local test double.
+
+### What a snapshot records
+
+Alongside Solr's per-collection backups, each snapshot writes a manifest to
+`<location>/_manifests/<snapshotId>.json` — pushed to the bucket too, for an S3
+repository. It holds the tenant→collection mapping, the resolved tenant registry,
+the embedding provider and dimensions, the memory schema version, and the
+per-collection document counts.
+
+That is what makes a restore on a *different* machine work. Solr's backups are
+three anonymous indexes without it, and `tenants.json` is not otherwise part of
+the snapshot — its absence would degrade silently into personal-only defaults.
+`restore` writes the registry back if none is present, and never overwrites one.
+
+The manifest is also why a restore can be checked. Solr reports RESTORE
+successful the moment the collection exists, which is some way short of "holds
+what it held"; `verify` compares live counts against the recorded ones.
+
+### The embedding-model guard
+
+`restore` refuses a snapshot built with a different embedding provider or vector
+width. Restoring Titan vectors onto the `local` provider yields an index that
+answers every query, raises no error, and ranks by nothing — there is no later
+point at which that becomes visible. Override with `force: true` only if you
+intend to reindex afterwards.
+
+### Retention
+
+```
+compass_backup { "action": "list" }
+compass_backup { "action": "prune", "keep": 5 }
+```
+
+Retention is "keep the newest N backup points", not "delete older than" —
+snapshots are taken by hand, and a time rule can leave you with none after a
+quiet month.
+
+### Known trap: bind-mount ownership
+
+Docker creates a missing bind-mount source as a **root-owned** directory, and
+Solr runs as uid 8983 — so backups then fail with a permission error that reads
+like a bug. `compass_setup initialize` creates `~/.souk-compass/backups` itself
+with mode `0777` before starting the containers. If you prefer tighter
+permissions, create it yourself:
+
+```bash
+mkdir -p ~/.souk-compass/backups && sudo chown 8983:8983 ~/.souk-compass/backups
+```
+
+### Not included
+
+`~/.souk-compass/embed-cache.db` is deliberately not snapshotted. It is a pure
+cache keyed by embedding provider; losing it costs re-embedding time, not data.
 
 ## Choosing an Embedding Provider
 

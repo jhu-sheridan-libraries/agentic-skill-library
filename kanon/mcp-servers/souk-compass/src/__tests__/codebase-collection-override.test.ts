@@ -29,7 +29,6 @@ function ctx(): ToolContext {
 			upsert: async () => {},
 			delete: async () => {},
 			commit: async () => {},
-			findByContentHash: async () => null,
 		} as unknown as SoukVectorClient,
 		embeddingProvider: {
 			name: "mock",
@@ -42,6 +41,7 @@ function ctx(): ToolContext {
 			solrCollection: "c",
 			userCollection: "u",
 			codebaseCollection: DEFAULT_COLLECTION,
+			platform: "local" as const,
 			embedProvider: "local",
 			embedDimensions: 1024,
 			cacheTiers: ["memory"],

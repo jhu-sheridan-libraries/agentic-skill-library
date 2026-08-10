@@ -22,6 +22,9 @@
        root-relative, so incremental reindex needs this to know which
        documents it owns and must not delete another root's index. -->
   <field name="index_root" type="string" indexed="true" stored="true" />
+  <!-- Git HEAD SHA captured when a codebase root was indexed. This allows
+       incremental reindexing to resolve the precise change range. -->
+  <field name="index_commit" type="string" indexed="true" stored="true" />
 
   <!-- Change detection and chunking -->
   <field name="content_hash" type="string" indexed="true" stored="true" />
@@ -32,7 +35,52 @@
   <field name="collection_names" type="string" indexed="true" stored="true" multiValued="true" />
   <field name="keywords" type="string" indexed="true" stored="true" multiValued="true" />
 
-  <!-- Dynamic fields for user metadata -->
+  <!-- Tenancy. Tenants are isolated by collection; these fields make a
+       mis-routed write visible, allow two tenants to share one collection
+       deliberately, and attribute a hit when one query spans several tenants. -->
+  <field name="tenant_id" type="string" indexed="true" stored="true" />
+  <field name="tenant_scope" type="string" indexed="true" stored="true" />
+  <field name="partition" type="string" indexed="true" stored="true" />
+  <!-- Data model version. Absent means 1 (pre-tenancy). Same argument as
+       embed_provider, applied to field semantics: without it a half-migrated
+       collection is indistinguishable from a healthy one. -->
+  <field name="schema_version" type="pint" indexed="true" stored="true" />
+
+  <!-- Record lifecycle. Nothing is deleted: a replaced record becomes
+       superseded and points at its replacement, a wrong one becomes retracted.
+       Both stay queryable, which is what makes this an archive and not a cache. -->
+  <field name="logical_id" type="string" indexed="true" stored="true" />
+  <field name="revision" type="pint" indexed="true" stored="true" />
+  <field name="status" type="string" indexed="true" stored="true" />
+  <field name="superseded_by" type="string" indexed="true" stored="true" />
+  <field name="supersedes" type="string" indexed="true" stored="true" multiValued="true" />
+  <!-- Validity window. pdate rather than string, so "what did we believe in
+       June" is a range query rather than lexical comparison. valid_until absent
+       means open-ended. -->
+  <field name="created_at" type="pdate" indexed="true" stored="true" />
+  <field name="updated_at" type="pdate" indexed="true" stored="true" />
+  <field name="valid_from" type="pdate" indexed="true" stored="true" />
+  <field name="valid_until" type="pdate" indexed="true" stored="true" />
+  <field name="confidence" type="pfloat" indexed="true" stored="true" />
+  <field name="pinned" type="boolean" indexed="true" stored="true" />
+
+  <!-- Memory typing. memory_type governs whether relevance decays with age;
+       category says what the note is about. -->
+  <field name="memory_type" type="string" indexed="true" stored="true" />
+  <field name="category" type="string" indexed="true" stored="true" />
+  <!-- Real multi-valued field. Replaces the comma-joined metadata_tags string,
+       which could only be matched by substring wildcard, so tag "ci" also
+       matched "cicd". -->
+  <field name="tags" type="string" indexed="true" stored="true" multiValued="true" />
+
+  <!-- Provenance: which session, agent, and repository produced the record. -->
+  <field name="source_session" type="string" indexed="true" stored="true" />
+  <field name="source_agent" type="string" indexed="true" stored="true" />
+  <field name="source_repo" type="string" indexed="true" stored="true" />
+
+  <!-- Dynamic fields for user metadata. Also carries the pre-v2 mirrors
+       (metadata_category, metadata_tags, metadata_created_at) written during
+       the migration window so a rollback still finds its fields. -->
   <dynamicField name="metadata_*" type="string" indexed="true" stored="true" />
 
   <!-- SolrCloud internal fields -->
@@ -43,6 +91,9 @@
   <!-- Field types -->
   <fieldType name="pint" class="solr.IntPointField" docValues="true" />
   <fieldType name="plong" class="solr.LongPointField" docValues="true" />
+  <fieldType name="pfloat" class="solr.FloatPointField" docValues="true" />
+  <fieldType name="pdate" class="solr.DatePointField" docValues="true" />
+  <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true" />
   <fieldType name="_nest_path_" class="solr.NestPathField" />
   <fieldType name="string" class="solr.StrField" sortMissingLast="true" multiValued="false" />
   <fieldType name="text_general" class="solr.TextField" positionIncrementGap="100">

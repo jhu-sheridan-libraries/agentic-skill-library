@@ -1,9 +1,13 @@
 import { describe, expect, test } from "bun:test";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { EmbeddingProvider } from "../embedding-provider.js";
 import type { SoukCompassConfig } from "../schemas.js";
 import type { SolrSearchResponse, SoukVectorClient } from "../solr-client.js";
 import { handleCompassSearchCodebase } from "../tools/compass-search-codebase.js";
 import type { ToolContext, ToolResult } from "../tools/types.js";
+import { completeToolContext } from "./test-support.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -43,6 +47,7 @@ function makeConfig(overrides?: Partial<SoukCompassConfig>): SoukCompassConfig {
 		solrCollection: "context-bazaar",
 		userCollection: "context-bazaar-user-docs",
 		codebaseCollection: "context-bazaar-codebase",
+		platform: "local" as const,
 		embedProvider: "local",
 		embedDimensions: 1024,
 		cacheTiers: ["memory", "sqlite", "solr"],
@@ -54,7 +59,7 @@ function makeConfig(overrides?: Partial<SoukCompassConfig>): SoukCompassConfig {
 }
 
 function makeCtx(overrides?: Partial<ToolContext>): ToolContext {
-	return {
+	return completeToolContext({
 		solrClient: makeMockSolrClient(),
 		userSolrClient: makeMockSolrClient(),
 		codebaseSolrClient: makeMockSolrClient(),
@@ -63,7 +68,7 @@ function makeCtx(overrides?: Partial<ToolContext>): ToolContext {
 		packageRoot: "/fake/package/root",
 		contentRoot: "/fake/content/root",
 		...overrides,
-	};
+	});
 }
 
 function parseResult(result: ToolResult): Record<string, unknown> {
@@ -373,4 +378,158 @@ describe("handleCompassSearchCodebase", () => {
 		expect(first(vectorHeavy)).toBe("vector-only.ts");
 		expect(first(keywordHeavy)).toBe("keyword-only.ts");
 	});
+
+	test("applies a configured boost map for a scoped root", async () => {
+		await withRootConfig(
+			{ boost: [{ pattern: "src/**", boost: 2 }] },
+			async (rootPath: string): Promise<void> => {
+				const mockClient = makeMockSolrClient({
+					search: async () =>
+						makeSolrResponse([
+							{
+								id: "codebase::CHANGELOG.md",
+								text: "File: CHANGELOG.md\n\nrelease notes",
+								metadata_path: "CHANGELOG.md",
+								metadata_extension: ".md",
+								index_root: rootPath,
+								score: 0.9,
+							},
+							{
+								id: "codebase::src/index.ts",
+								text: "File: src/index.ts\n\nexport const value = true;",
+								metadata_path: "src/index.ts",
+								metadata_extension: ".ts",
+								index_root: rootPath,
+								score: 0.6,
+							},
+						]),
+				});
+
+				const result = await handleCompassSearchCodebase(
+					{ query: "value", mode: "keyword", root: rootPath },
+					makeCtx({ codebaseSolrClient: mockClient }),
+				);
+				const results = parseResult(result).results as Array<
+					Record<string, unknown>
+				>;
+
+				expect(results.map((searchResult) => searchResult.path)).toEqual([
+					"src/index.ts",
+					"CHANGELOG.md",
+				]);
+				expect(results[0].score).toBe(1.2);
+				expect(results[1].score).toBe(0.9);
+			},
+		);
+	});
+
+	test("keeps scores unmodified when the queried root has no boost map", async () => {
+		await withRootConfig(undefined, async (rootPath: string): Promise<void> => {
+			const mockClient = makeMockSolrClient({
+				search: async () =>
+					makeSolrResponse([
+						{
+							id: "codebase::high.ts",
+							text: "File: high.ts\n\nhigh relevance",
+							metadata_path: "high.ts",
+							metadata_extension: ".ts",
+							index_root: rootPath,
+							score: 0.8,
+						},
+						{
+							id: "codebase::low.ts",
+							text: "File: low.ts\n\nlow relevance",
+							metadata_path: "low.ts",
+							metadata_extension: ".ts",
+							index_root: rootPath,
+							score: 0.6,
+						},
+					]),
+			});
+
+			const result = await handleCompassSearchCodebase(
+				{ query: "relevance", mode: "keyword", root: rootPath },
+				makeCtx({ codebaseSolrClient: mockClient }),
+			);
+			const results = parseResult(result).results as Array<
+				Record<string, unknown>
+			>;
+
+			expect(results.map((searchResult) => searchResult.score)).toEqual([
+				0.8, 0.6,
+			]);
+		});
+	});
+
+	test("uses each result root's boost map for an unscoped search", async () => {
+		await withRootConfig(
+			{ boost: [{ pattern: "src/**", boost: 2 }] },
+			async (sourceRoot: string): Promise<void> => {
+				await withRootConfig(
+					{ boost: [{ pattern: "docs/**", boost: 0.5 }] },
+					async (docsRoot: string): Promise<void> => {
+						const mockClient = makeMockSolrClient({
+							search: async () =>
+								makeSolrResponse([
+									{
+										id: "codebase::docs::guide.md",
+										text: "File: docs/guide.md\n\ndocumentation",
+										metadata_path: "docs/guide.md",
+										metadata_extension: ".md",
+										index_root: docsRoot,
+										score: 1,
+									},
+									{
+										id: "codebase::src::index.ts",
+										text: "File: src/index.ts\n\nexport const value = true;",
+										metadata_path: "src/index.ts",
+										metadata_extension: ".ts",
+										index_root: sourceRoot,
+										score: 0.8,
+									},
+								]),
+						});
+
+						const result = await handleCompassSearchCodebase(
+							{ query: "value", mode: "keyword" },
+							makeCtx({ codebaseSolrClient: mockClient }),
+						);
+						const results = parseResult(result).results as Array<
+							Record<string, unknown>
+						>;
+
+						expect(results.map((searchResult) => searchResult.path)).toEqual([
+							"src/index.ts",
+							"docs/guide.md",
+						]);
+						expect(results.map((searchResult) => searchResult.score)).toEqual([
+							1.6, 0.5,
+						]);
+					},
+				);
+			},
+		);
+	});
 });
+
+type RootConfigAssertion = (rootPath: string) => Promise<void>;
+
+async function withRootConfig(
+	config: unknown | undefined,
+	assertion: RootConfigAssertion,
+): Promise<void> {
+	const rootPath = await mkdtemp(join(tmpdir(), "souk-search-boost-"));
+
+	try {
+		if (config !== undefined) {
+			await writeFile(
+				join(rootPath, ".solrcompass.json"),
+				JSON.stringify(config),
+				"utf-8",
+			);
+		}
+		await assertion(rootPath);
+	} finally {
+		await rm(rootPath, { force: true, recursive: true });
+	}
+}

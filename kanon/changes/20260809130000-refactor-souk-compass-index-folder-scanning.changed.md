@@ -1,0 +1,1 @@
+Refactor Souk Compass full-folder indexing to use shared language-aware scanning and root-local ignore rules.
