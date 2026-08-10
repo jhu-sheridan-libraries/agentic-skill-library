@@ -219,13 +219,14 @@ export class SoukVectorClient {
 	}
 
 	/**
-	 * Find a document by its content hash.
-	 * Returns the first matching document or `null` if not found.
+	 * Find a document by its content hash, optionally scoped by embedding
+	 * provider and index root. Returns the first matching document or `null`.
 	 * Catches errors and returns `null` — used by the Solr-as-cache tier.
 	 */
 	async findByContentHash(
 		contentHash: string,
 		embedProvider?: string,
+		indexRoot?: string,
 	): Promise<Record<string, unknown> | null> {
 		try {
 			const params = new URLSearchParams({
@@ -233,12 +234,21 @@ export class SoukVectorClient {
 				rows: "1",
 				wt: "json",
 			});
+			const filters: string[] = [];
 
 			// Only reuse a stored vector when the same model produced it.
 			// Documents indexed before embed_provider existed are untagged and
 			// deliberately excluded — their provider is unknowable.
 			if (embedProvider) {
-				params.set("fq", `embed_provider:"${embedProvider}"`);
+				filters.push(`embed_provider:"${embedProvider}"`);
+			}
+			if (indexRoot) {
+				filters.push(
+					`index_root:"${indexRoot.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`,
+				);
+			}
+			if (filters.length > 0) {
+				params.set("fq", filters.join(" AND "));
 			}
 
 			const url = `${this.baseUrl}/solr/${this.collection}/select?${params.toString()}`;

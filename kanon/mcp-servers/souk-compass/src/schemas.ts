@@ -424,6 +424,11 @@ export const SolrDocumentSchema = z
 		 * root-relative, so incremental reindex uses this to scope deletions.
 		 */
 		index_root: z.string().optional(),
+		/**
+		 * Git HEAD SHA captured when a codebase root was indexed. This makes
+		 * repository-aware incremental reindexing queryable from Solr.
+		 */
+		index_commit: z.string().optional(),
 
 		// -- Tenancy ----------------------------------------------------------
 		/**

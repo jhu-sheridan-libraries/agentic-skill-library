@@ -22,6 +22,9 @@
        root-relative, so incremental reindex needs this to know which
        documents it owns and must not delete another root's index. -->
   <field name="index_root" type="string" indexed="true" stored="true" />
+  <!-- Git HEAD SHA captured when a codebase root was indexed. This allows
+       incremental reindexing to resolve the precise change range. -->
+  <field name="index_commit" type="string" indexed="true" stored="true" />
 
   <!-- Change detection and chunking -->
   <field name="content_hash" type="string" indexed="true" stored="true" />

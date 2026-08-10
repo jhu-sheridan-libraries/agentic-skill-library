@@ -68,6 +68,8 @@ ADRs document significant architectural decisions made during the project's deve
 | [056](0056-tenant-scoped-durable-memory-records.md) | Tenant-scoped, durable memory records for Solr Compass | Accepted | 2026-08-08 |
 | [057](0057-backup-repositories-as-storage-backends.md) | Solr backup repositories as the storage backend for snapshots | Accepted | 2026-08-08 |
 | [058](0058-aws-platform-profile-and-bun-s3-file-interface.md) | An `aws` platform profile, on Bun's S3File interface | Accepted | 2026-08-08 |
+| [059](0059-composable-indexing-policy-pipeline.md) | Composable indexing policy pipeline for Souk Compass | Proposed | 2026-08-09 |
+| [060](0060-root-scoped-git-baselines-for-incremental-codebase-indexing.md) | Root-scoped Git baselines for incremental codebase indexing | Proposed | 2026-08-10 |
 
 ## Creating a New ADR
 

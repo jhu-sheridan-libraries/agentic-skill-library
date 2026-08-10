@@ -425,6 +425,18 @@ describe("SoukVectorClient", () => {
 			expect(url).toContain("content_hash%3A%22abc123%22");
 		});
 
+		test("filters a content-hash lookup by index root", async () => {
+			fetchSpy.mockResolvedValueOnce(
+				okJson({ response: { docs: [], numFound: 0 } }),
+			);
+
+			await client.findByContentHash("abc123", undefined, '/repo/with "quotes"');
+
+			const [url] = fetchSpy.mock.calls[0] as [string];
+			const params = new URL(url).searchParams;
+			expect(params.get("fq")).toBe('index_root:"/repo/with \\"quotes\\""');
+		});
+
 		test("returns null when no document matches", async () => {
 			fetchSpy.mockResolvedValueOnce(
 				okJson({ response: { docs: [], numFound: 0 } }),
