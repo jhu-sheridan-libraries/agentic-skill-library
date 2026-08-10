@@ -187,5 +187,5 @@ function splitLongLine(line: SourceLine, maxLength: number): CodeChunk[] {
 }
 
 function withoutLineEnding(line: string): string {
-	return line.replace(/\r\n|\r|\n$/, "");
+	return line.replace(/\r\n|\r|\n/g, "");
 }
