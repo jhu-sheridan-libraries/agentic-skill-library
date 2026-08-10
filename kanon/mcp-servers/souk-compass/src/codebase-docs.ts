@@ -9,6 +9,7 @@
  */
 import { createHash } from "node:crypto";
 import { basename } from "node:path";
+import { chunkElixir, isElixirFile } from "./elixir-chunker.js";
 
 export interface CodeChunk {
 	index: number;
@@ -114,16 +115,19 @@ export function buildCodebaseDocs(options: {
 	const key = rootKey(root);
 	const base = `codebase::${key}::${relativePath}`;
 
-	const chunks = chunked
-		? chunkCode(content, chunkMaxLength)
-		: [
+	const chunks = !chunked
+		? [
 				{
 					index: 0,
 					text: content,
 					startLine: 1,
 					endLine: content.split("\n").length,
 				},
-			];
+			]
+		: isElixirFile(relativePath)
+			? (chunkElixir(content, chunkMaxLength) ??
+				chunkCode(content, chunkMaxLength))
+			: chunkCode(content, chunkMaxLength);
 
 	if (chunks.length === 1) {
 		return [

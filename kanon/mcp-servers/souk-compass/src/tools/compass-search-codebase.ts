@@ -1,6 +1,8 @@
 import { resolve } from "node:path";
+import { applyBoostMap } from "../boost-map.js";
 import { requireCollection } from "../collections.js";
 import { hybridSearch } from "../hybrid-search.js";
+import { loadRootConfig } from "../root-config.js";
 import type { CompassSearchCodebaseInput } from "../schemas.js";
 import type { SolrSearchResponse } from "../solr-client.js";
 import { SoukVectorClient } from "../solr-client.js";
@@ -72,12 +74,14 @@ export async function handleCompassSearchCodebase(
 		}
 
 		const results = parseCodebaseResults(response, snippetLength, mode);
+		const boostedResults = await applyRootBoostMaps(results, input.root);
 
-		// Apply client-side score filtering for hybrid/keyword modes
+		// Apply client-side score filtering for hybrid/keyword modes after any
+		// root-specific score adjustments have been applied.
 		const filtered =
 			effectiveMinScore != null && mode !== "vector"
-				? results.filter((r) => r.score >= effectiveMinScore)
-				: results;
+				? boostedResults.filter((result) => result.score >= effectiveMinScore)
+				: boostedResults;
 
 		if (filtered.length === 0) {
 			return jsonResult({
@@ -201,4 +205,93 @@ function jsonResult(data: unknown): ToolResult {
 	return {
 		content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
 	};
+}
+
+interface IndexedCodebaseSearchResult {
+	result: CodebaseSearchResult;
+	originalIndex: number;
+}
+
+interface BoostableCodebaseSearchResult extends CodebaseSearchResult {
+	originalIndex: number;
+	[key: string]: unknown;
+}
+
+/**
+ * Apply each indexed root's boost map to its own hits. An unscoped search may
+ * span repositories, so sharing one root's configuration with all hits would
+ * incorrectly alter unrelated results.
+ */
+async function applyRootBoostMaps(
+	results: CodebaseSearchResult[],
+	queriedRoot: string | undefined,
+): Promise<CodebaseSearchResult[]> {
+	const resolvedQueriedRoot = queriedRoot ? resolve(queriedRoot) : undefined;
+	const resultsByRoot = new Map<string, IndexedCodebaseSearchResult[]>();
+
+	results.forEach(
+		(result: CodebaseSearchResult, originalIndex: number): void => {
+			const root = result.root ?? resolvedQueriedRoot;
+			if (!root) return;
+
+			const rootResults = resultsByRoot.get(root) ?? [];
+			rootResults.push({ result, originalIndex });
+			resultsByRoot.set(root, rootResults);
+		},
+	);
+
+	const boostedByOriginalIndex = new Map<number, CodebaseSearchResult>();
+	await Promise.all(
+		[...resultsByRoot.entries()].map(
+			async ([root, rootResults]): Promise<void> => {
+				const config = await loadRootConfig(root);
+				if (!config?.boost?.length) return;
+
+				const boostableResults: BoostableCodebaseSearchResult[] =
+					rootResults.map(
+						({ result, originalIndex }): BoostableCodebaseSearchResult => ({
+							...result,
+							originalIndex,
+						}),
+					);
+				const boosted = applyBoostMap(
+					boostableResults,
+					config.boost,
+				) as BoostableCodebaseSearchResult[];
+
+				boosted.forEach(
+					({
+						originalIndex,
+						...result
+					}: BoostableCodebaseSearchResult): void => {
+						boostedByOriginalIndex.set(originalIndex, result);
+					},
+				);
+			},
+		),
+	);
+
+	if (boostedByOriginalIndex.size === 0) return results;
+
+	return results
+		.map(
+			(
+				result: CodebaseSearchResult,
+				originalIndex: number,
+			): IndexedCodebaseSearchResult => ({
+				result: boostedByOriginalIndex.get(originalIndex) ?? result,
+				originalIndex,
+			}),
+		)
+		.sort(
+			(
+				left: IndexedCodebaseSearchResult,
+				right: IndexedCodebaseSearchResult,
+			): number =>
+				right.result.score - left.result.score ||
+				left.originalIndex - right.originalIndex,
+		)
+		.map(
+			({ result }: IndexedCodebaseSearchResult): CodebaseSearchResult => result,
+		);
 }

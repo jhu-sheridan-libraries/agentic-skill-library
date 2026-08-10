@@ -1,251 +1,17 @@
-import { readdir, readFile, stat } from "node:fs/promises";
-import { basename, extname, join, relative, resolve } from "node:path";
+import { readFile, stat } from "node:fs/promises";
+import { extname, resolve } from "node:path";
 import { buildCodebaseDocs } from "../codebase-docs.js";
 import { requireCollection } from "../collections.js";
 import { contentHash } from "../embed-cache.js";
 import { modelIdentity } from "../embedding-provider.js";
 import { ErrorCodes, SoukCompassError } from "../errors.js";
+import { scanDirectory } from "../file-scanner.js";
+import { getCurrentSha, isGitRepository } from "../git-diff.js";
+import { loadIgnoreFile } from "../ignore-parser.js";
+import { detectProjectType, getLanguagePreset } from "../project-detector.js";
 import type { CompassIndexFolderInput } from "../schemas.js";
 import { SoukVectorClient } from "../solr-client.js";
 import type { ToolContext, ToolResult } from "./types.js";
-
-// ---------------------------------------------------------------------------
-// File extension allowlist (text-based source files)
-// ---------------------------------------------------------------------------
-
-const TEXT_EXTENSIONS = new Set([
-	".ts",
-	".tsx",
-	".js",
-	".jsx",
-	".mjs",
-	".cjs",
-	".py",
-	".rb",
-	".go",
-	".rs",
-	".java",
-	".kt",
-	".kts",
-	".scala",
-	".c",
-	".h",
-	".cpp",
-	".hpp",
-	".cs",
-	".swift",
-	".m",
-	".mm",
-	".php",
-	".lua",
-	".sh",
-	".bash",
-	".zsh",
-	".fish",
-	".ps1",
-	".bat",
-	".cmd",
-	".sql",
-	".graphql",
-	".gql",
-	".proto",
-	".tf",
-	".hcl",
-	".yaml",
-	".yml",
-	".toml",
-	".json",
-	".xml",
-	".html",
-	".htm",
-	".css",
-	".scss",
-	".sass",
-	".less",
-	".md",
-	".mdx",
-	".rst",
-	".txt",
-	".env.example",
-	".gitignore",
-	".dockerignore",
-	".editorconfig",
-	".njk",
-	".hbs",
-	".ejs",
-	".vue",
-	".svelte",
-	".astro",
-	".r",
-	".R",
-	".jl",
-	".ex",
-	".exs",
-	".erl",
-	".hrl",
-	".hs",
-	".elm",
-	".clj",
-	".cljs",
-	".cljc",
-	".dart",
-	".zig",
-	".nim",
-	".v",
-	".sv",
-	".vhdl",
-	".makefile",
-	".cmake",
-	".gradle",
-	".sbt",
-]);
-
-/** Check if a filename is likely a text source file. */
-function isTextFile(filePath: string): boolean {
-	const ext = extname(filePath).toLowerCase();
-	if (TEXT_EXTENSIONS.has(ext)) return true;
-	// Handle extensionless files that are commonly text
-	const name = basename(filePath).toLowerCase();
-	return [
-		"makefile",
-		"dockerfile",
-		"jenkinsfile",
-		"vagrantfile",
-		"rakefile",
-		"gemfile",
-		"procfile",
-		"brewfile",
-	].includes(name);
-}
-
-// ---------------------------------------------------------------------------
-// Glob matching (simple minimatch-style)
-// ---------------------------------------------------------------------------
-
-/**
- * Simple glob matcher supporting *, **, and ? patterns.
- * Matches against forward-slash normalized paths.
- */
-function matchGlob(pattern: string, filePath: string): boolean {
-	const normalizedPath = filePath.replace(/\\/g, "/");
-	const normalizedPattern = pattern.replace(/\\/g, "/");
-
-	// Convert glob to regex
-	let regex = "^";
-	let i = 0;
-	while (i < normalizedPattern.length) {
-		const char = normalizedPattern[i];
-		if (char === "*") {
-			if (normalizedPattern[i + 1] === "*") {
-				// ** matches any path segment(s)
-				if (normalizedPattern[i + 2] === "/") {
-					regex += "(?:.*/)?";
-					i += 3;
-				} else {
-					regex += ".*";
-					i += 2;
-				}
-			} else {
-				// * matches anything except /
-				regex += "[^/]*";
-				i++;
-			}
-		} else if (char === "?") {
-			regex += "[^/]";
-			i++;
-		} else if (char === ".") {
-			regex += "\\.";
-			i++;
-		} else {
-			regex += char;
-			i++;
-		}
-	}
-	regex += "$";
-
-	return new RegExp(regex).test(normalizedPath);
-}
-
-function matchesAny(patterns: string[], filePath: string): boolean {
-	return patterns.some((p) => matchGlob(p, filePath));
-}
-
-// ---------------------------------------------------------------------------
-// Code chunker (splits source files into logical chunks)
-// ---------------------------------------------------------------------------
-
-/**
- * Split source code into chunks by logical boundaries (functions, classes, blocks).
- * Falls back to line-count-based splitting for files without clear boundaries.
- */
-// ---------------------------------------------------------------------------
-// Directory walker
-// ---------------------------------------------------------------------------
-
-async function walkDirectory(
-	dir: string,
-	include: string[],
-	exclude: string[],
-	maxFileSize: number,
-	rootDir: string,
-): Promise<Array<{ absolutePath: string; relativePath: string }>> {
-	const results: Array<{ absolutePath: string; relativePath: string }> = [];
-
-	async function walk(currentDir: string): Promise<void> {
-		let entries: string[];
-		try {
-			entries = await readdir(currentDir);
-		} catch {
-			return; // Skip unreadable directories
-		}
-
-		for (const name of entries) {
-			const absolutePath = join(currentDir, name);
-			const relativePath = relative(rootDir, absolutePath);
-
-			let fileStat: Awaited<ReturnType<typeof stat>>;
-			try {
-				fileStat = await stat(absolutePath);
-			} catch {
-				continue;
-			}
-
-			if (fileStat.isDirectory()) {
-				// Check if directory matches exclude patterns
-				const dirRelative = `${relativePath}/`;
-				if (
-					matchesAny(exclude, dirRelative) ||
-					matchesAny(exclude, relativePath)
-				) {
-					continue;
-				}
-				await walk(absolutePath);
-			} else if (fileStat.isFile()) {
-				// Check exclude patterns
-				if (matchesAny(exclude, relativePath)) {
-					continue;
-				}
-				// Check include patterns
-				if (!matchesAny(include, relativePath)) {
-					continue;
-				}
-				// Check if it's a text file
-				if (!isTextFile(absolutePath)) {
-					continue;
-				}
-				// Check file size
-				if (fileStat.size > maxFileSize || fileStat.size === 0) {
-					continue;
-				}
-
-				results.push({ absolutePath, relativePath });
-			}
-		}
-	}
-
-	await walk(dir);
-	return results;
-}
 
 // ---------------------------------------------------------------------------
 // Main handler
@@ -278,14 +44,6 @@ export async function handleCompassIndexFolder(
 		? new SoukVectorClient(ctx.config.solrUrl, input.collection)
 		: ctx.codebaseSolrClient;
 	const include = input.include ?? ["**/*"];
-	const exclude = input.exclude ?? [
-		"**/node_modules/**",
-		"**/.git/**",
-		"**/dist/**",
-		"**/build/**",
-		"**/*.lock",
-		"**/package-lock.json",
-	];
 	const maxFileSize = input.maxFileSize ?? 100_000;
 	const chunked = input.chunked ?? true;
 	const chunkMaxLength = input.chunkMaxLength ?? 2000;
@@ -336,27 +94,42 @@ export async function handleCompassIndexFolder(
 		}
 	}
 
-	// Walk directory
-	const files = await walkDirectory(
-		folderPath,
+	const [projectType, ignoreRules] = await Promise.all([
+		detectProjectType(folderPath),
+		loadIgnoreFile(folderPath),
+	]);
+	const presetExclusions =
+		input.exclude === undefined
+			? getLanguagePreset(projectType).exclude
+			: undefined;
+	const files = await scanDirectory({
+		rootPath: folderPath,
 		include,
-		exclude,
+		exclude: input.exclude,
 		maxFileSize,
-		folderPath,
-	);
+		ignoreRules,
+		presetExclusions,
+	});
 
 	if (files.length === 0) {
 		return jsonResult({
 			indexed: 0,
+			deduplicated: 0,
 			errors: 0,
 			filesScanned: 0,
 			message: "No matching text files found in the specified directory.",
 		});
 	}
 
+	const indexCommit = (await isGitRepository(folderPath))
+		? await getCurrentSha(folderPath)
+		: null;
+
 	let indexed = 0;
 	let errors = 0;
 	let chunksIndexed = 0;
+	let deduplicated = 0;
+	const indexedContentHashes = new Set<string>();
 	const errorDetails: Array<{ file: string; error: string }> = [];
 	const BATCH_SIZE = 20;
 
@@ -393,14 +166,42 @@ export async function handleCompassIndexFolder(
 
 		if (batchDocs.length === 0) continue;
 
-		// Batch embed
+		const docsToEmbed: Array<{
+			doc: (typeof batchDocs)[number];
+			contentHash: string;
+		}> = [];
+		for (const doc of batchDocs) {
+			const hash = contentHash(doc.text);
+			if (indexedContentHashes.has(hash)) {
+				deduplicated++;
+				continue;
+			}
+
+			const existingDocument = await codebaseClient.findByContentHash(
+				hash,
+				undefined,
+				folderPath,
+			);
+			if (existingDocument) {
+				indexedContentHashes.add(hash);
+				deduplicated++;
+				continue;
+			}
+
+			indexedContentHashes.add(hash);
+			docsToEmbed.push({ doc, contentHash: hash });
+		}
+
+		if (docsToEmbed.length === 0) continue;
+
+		// Batch embed only chunks that are not already stored for this root.
 		try {
-			const texts = batchDocs.map((d) => d.text);
+			const texts = docsToEmbed.map(({ doc }) => doc.text);
 			const embeddings = await ctx.embeddingProvider.batchEmbed(texts);
 
 			// Upsert each document
-			for (let j = 0; j < batchDocs.length; j++) {
-				const doc = batchDocs[j];
+			for (let j = 0; j < docsToEmbed.length; j++) {
+				const { doc, contentHash: hash } = docsToEmbed[j];
 				const embedding = embeddings[j];
 
 				try {
@@ -412,9 +213,10 @@ export async function handleCompassIndexFolder(
 							doc_source: "codebase",
 							metadata_path: doc.relativePath,
 							metadata_extension: extname(doc.relativePath).toLowerCase(),
-							content_hash: contentHash(doc.text),
+							content_hash: hash,
 							embed_provider: modelIdentity(ctx.embeddingProvider),
 							index_root: folderPath,
+							...(indexCommit === null ? {} : { index_commit: indexCommit }),
 						},
 						{ commit: false },
 					);
@@ -432,8 +234,8 @@ export async function handleCompassIndexFolder(
 			}
 		} catch (err) {
 			// Embedding failure for entire batch
-			errors += batchDocs.length;
-			for (const doc of batchDocs) {
+			errors += docsToEmbed.length;
+			for (const { doc } of docsToEmbed) {
 				errorDetails.push({
 					file: doc.relativePath,
 					error: `Embedding failed: ${err instanceof Error ? err.message : String(err)}`,
@@ -448,6 +250,7 @@ export async function handleCompassIndexFolder(
 	} catch (err) {
 		return jsonResult({
 			indexed,
+			deduplicated,
 			errors: errors + 1,
 			filesScanned: files.length,
 			chunksIndexed,
@@ -458,6 +261,7 @@ export async function handleCompassIndexFolder(
 
 	const result: Record<string, unknown> = {
 		indexed,
+		deduplicated,
 		errors,
 		filesScanned: files.length,
 		chunksIndexed,

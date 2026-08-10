@@ -203,6 +203,45 @@ describe("handleCompassIndexFolder", () => {
 		expect(data.message).toContain("not a directory");
 	});
 
+	test("stores the current Git commit SHA on indexed documents", async () => {
+		writeFileSync(join(testDir, "main.ts"), 'console.log("hello");');
+
+		const { execFile } = await import("node:child_process");
+		const { promisify } = await import("node:util");
+		const execFileAsync = promisify(execFile);
+		const runGit = async (arguments_: readonly string[]): Promise<string> => {
+			const { stdout } = await execFileAsync("git", [...arguments_], {
+				cwd: testDir,
+			});
+			return stdout.trim();
+		};
+
+		await runGit(["init"]);
+		await runGit(["config", "user.email", "index-folder-test@example.test"]);
+		await runGit(["config", "user.name", "Index Folder Test"]);
+		await runGit(["add", "--all"]);
+		await runGit(["commit", "-m", "initial commit"]);
+		const expectedCommit = await runGit(["rev-parse", "HEAD"]);
+
+		const upsertMetadata: Array<Record<string, string | string[]>> = [];
+		const mockClient = makeMockSolrClient({
+			upsert: async (_id, _text, _embedding, metadata) => {
+				upsertMetadata.push(metadata);
+			},
+		});
+
+		const result = await handleCompassIndexFolder(
+			{ path: testDir },
+			makeCtx({ codebaseSolrClient: mockClient }),
+		);
+		const data = parseResult(result);
+
+		expect(data.indexed).toBe(1);
+		expect(data.errors).toBe(0);
+		expect(upsertMetadata).toHaveLength(1);
+		expect(upsertMetadata[0].index_commit).toBe(expectedCommit);
+	});
+
 	test("indexes text files from a directory", async () => {
 		writeFileSync(join(testDir, "main.ts"), 'console.log("hello");');
 		writeFileSync(
@@ -232,7 +271,93 @@ describe("handleCompassIndexFolder", () => {
 		expect(ids).toContain(`codebase::${rootKey(testDir)}::utils.ts`);
 	});
 
-	test("excludes node_modules by default", async () => {
+	test("skips embedding and upserting chunks already indexed for the same root", async () => {
+		writeFileSync(join(testDir, "existing.ts"), "export const existing = true;");
+
+		let embedded = false;
+		let upserted = false;
+		const lookups: Array<{ hash: string; indexRoot: string | undefined }> = [];
+		const mockClient = makeMockSolrClient({
+			findByContentHash: async (
+				hash: string,
+				_provider?: string,
+				indexRoot?: string,
+			) => {
+				lookups.push({ hash, indexRoot });
+				return { id: "existing-document" };
+			},
+			upsert: async () => {
+				upserted = true;
+			},
+		});
+		const ctx = makeCtx({
+			codebaseSolrClient: mockClient,
+			embeddingProvider: makeMockEmbeddingProvider({
+				batchEmbed: async () => {
+					embedded = true;
+					return [];
+				},
+			}),
+		});
+
+		const result = await handleCompassIndexFolder({ path: testDir }, ctx);
+		const data = parseResult(result);
+
+		expect(data.indexed).toBe(0);
+		expect(data.deduplicated).toBe(1);
+		expect(data.errors).toBe(0);
+		expect(data.filesScanned).toBe(1);
+		expect(embedded).toBe(false);
+		expect(upserted).toBe(false);
+		expect(lookups).toHaveLength(1);
+		expect(lookups[0].hash).toMatch(/^[a-f0-9]{64}$/);
+		expect(lookups[0].indexRoot).toBe(testDir);
+	});
+
+	test("indexes identical chunks independently in different roots", async () => {
+		const rootA = join(testDir, "repo-a");
+		const rootB = join(testDir, "repo-b");
+		mkdirSync(rootA, { recursive: true });
+		mkdirSync(rootB, { recursive: true });
+		writeFileSync(join(rootA, "same.ts"), "export const duplicate = true;");
+		writeFileSync(join(rootB, "same.ts"), "export const duplicate = true;");
+
+		const indexedByRoot = new Set<string>();
+		const lookupRoots: string[] = [];
+		const mockClient = makeMockSolrClient({
+			findByContentHash: async (
+				hash: string,
+				_provider?: string,
+				indexRoot?: string,
+			) => {
+				lookupRoots.push(indexRoot ?? "");
+				return indexedByRoot.has(`${hash}:${indexRoot}`)
+					? { id: "existing-document" }
+					: null;
+			},
+			upsert: async (_id, _text, _embedding, metadata) => {
+				indexedByRoot.add(
+					`${metadata.content_hash}:${metadata.index_root}`,
+				);
+			},
+		});
+		const ctx = makeCtx({ codebaseSolrClient: mockClient });
+
+		const first = parseResult(
+			await handleCompassIndexFolder({ path: rootA }, ctx),
+		);
+		const second = parseResult(
+			await handleCompassIndexFolder({ path: rootB }, ctx),
+		);
+
+		expect(first.indexed).toBe(1);
+		expect(second.indexed).toBe(1);
+		expect(second.deduplicated).toBe(0);
+		expect(lookupRoots).toEqual([rootA, rootB]);
+	});
+
+	test("applies the Node preset when package.json marks the project", async () => {
+		writeFileSync(join(testDir, "package.json"), "{}");
 		mkdirSync(join(testDir, "node_modules", "pkg"), { recursive: true });
 		writeFileSync(
 			join(testDir, "node_modules", "pkg", "index.js"),
@@ -248,7 +373,10 @@ describe("handleCompassIndexFolder", () => {
 		});
 
 		const ctx = makeCtx({ codebaseSolrClient: mockClient });
-		const result = await handleCompassIndexFolder({ path: testDir }, ctx);
+		const result = await handleCompassIndexFolder(
+			{ path: testDir, include: ["**/app.ts"] },
+			ctx,
+		);
 		const data = parseResult(result);
 
 		expect(data.indexed).toBe(1);
@@ -299,11 +427,23 @@ describe("handleCompassIndexFolder", () => {
 		expect(upsertCalls).toContain(`codebase::${rootKey(testDir)}::main.ts`);
 	});
 
-	test("respects custom exclude patterns", async () => {
+	test("combines explicit exclusions with ignore rules and suppresses language presets", async () => {
+		writeFileSync(join(testDir, "mix.exs"), "defmodule Demo.MixProject do end");
+		writeFileSync(join(testDir, ".solrcompass-ignore"), "ignored/\n");
 		mkdirSync(join(testDir, "generated"), { recursive: true });
+		mkdirSync(join(testDir, "ignored"), { recursive: true });
+		mkdirSync(join(testDir, "_build", "dev"), { recursive: true });
 		writeFileSync(
 			join(testDir, "generated", "types.ts"),
 			"export type X = {};",
+		);
+		writeFileSync(
+			join(testDir, "ignored", "skip.ts"),
+			"export const skip = true;",
+		);
+		writeFileSync(
+			join(testDir, "_build", "dev", "copy.ts"),
+			"export const copy = true;",
 		);
 		writeFileSync(join(testDir, "app.ts"), "const x = 1;");
 
@@ -316,13 +456,18 @@ describe("handleCompassIndexFolder", () => {
 
 		const ctx = makeCtx({ codebaseSolrClient: mockClient });
 		const result = await handleCompassIndexFolder(
-			{ path: testDir, exclude: ["**/generated/**"] },
+			{ path: testDir, exclude: ["**/generated/**"], include: ["**/*.ts"] },
 			ctx,
 		);
 		const data = parseResult(result);
 
-		expect(data.indexed).toBe(1);
+		expect(data.indexed).toBe(2);
 		expect(upsertCalls).toContain(`codebase::${rootKey(testDir)}::app.ts`);
+		expect(upsertCalls).toContain(
+			`codebase::${rootKey(testDir)}::_build/dev/copy.ts`,
+		);
+		expect(upsertCalls.some((id) => id.includes("generated"))).toBe(false);
+		expect(upsertCalls.some((id) => id.includes("ignored"))).toBe(false);
 	});
 
 	test("skips binary/non-text files", async () => {
