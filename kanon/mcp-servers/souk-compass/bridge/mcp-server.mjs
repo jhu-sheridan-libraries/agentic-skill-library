@@ -20911,7 +20911,7 @@ function finalize2(ctx, schema) {
     result.$schema = "http://json-schema.org/draft-07/schema#";
   } else if (ctx.target === "draft-04") {
     result.$schema = "http://json-schema.org/draft-04/schema#";
-  } else if (ctx.target === "openapi-3.0") {} else {}
+  } else if (ctx.target === "openapi-3.0") {}
   if (ctx.external?.uri) {
     const id = ctx.external.registry.get(schema)?.id;
     if (!id)
@@ -21176,7 +21176,7 @@ var formatMap2, stringProcessor2 = (schema, ctx, _json, _params) => {
     if (val === undefined) {
       if (ctx.unrepresentable === "throw") {
         throw new Error("Literal `undefined` cannot be represented in JSON Schema");
-      } else {}
+      }
     } else if (typeof val === "bigint") {
       if (ctx.unrepresentable === "throw") {
         throw new Error("BigInt literals cannot be represented in JSON Schema");
@@ -25068,10 +25068,8 @@ var init_contracts2 = __esm(() => {
     harness: "kiro",
     aliases: [],
     lifecycle: {
-      status: "deprecated",
-      introducedIn: "0.1.0",
-      deprecatedIn: "1.0.0",
-      replacement: undefined
+      status: "active",
+      introducedIn: "0.1.0"
     },
     canonicalVersions: { minInclusive: "1.0.0", maxExclusive: "2.0.0" },
     schemaReference: {
@@ -25134,10 +25132,8 @@ var init_contracts2 = __esm(() => {
     harness: "kiro",
     aliases: [],
     lifecycle: {
-      status: "deprecated",
-      introducedIn: "0.1.0",
-      deprecatedIn: "1.0.0",
-      replacement: undefined
+      status: "active",
+      introducedIn: "0.1.0"
     },
     canonicalVersions: { minInclusive: "1.0.0", maxExclusive: "2.0.0" },
     schemaReference: {
@@ -36843,7 +36839,7 @@ function finalize(ctx, schema) {
     result.$schema = "http://json-schema.org/draft-07/schema#";
   } else if (ctx.target === "draft-04") {
     result.$schema = "http://json-schema.org/draft-04/schema#";
-  } else if (ctx.target === "openapi-3.0") {} else {}
+  } else if (ctx.target === "openapi-3.0") {}
   if (ctx.external?.uri) {
     const id = ctx.external.registry.get(schema)?.id;
     if (!id)
@@ -37091,7 +37087,7 @@ var literalProcessor = (schema, ctx, json, _params) => {
     if (val === undefined) {
       if (ctx.unrepresentable === "throw") {
         throw new Error("Literal `undefined` cannot be represented in JSON Schema");
-      } else {}
+      }
     } else if (typeof val === "bigint") {
       if (ctx.unrepresentable === "throw") {
         throw new Error("BigInt literals cannot be represented in JSON Schema");
@@ -44260,7 +44256,7 @@ function buildManifest(snapshotId, ctx, tenants, collections) {
     embedDimensions: ctx.embeddingProvider.dimensions,
     schemaVersion: MEMORY_SCHEMA_VERSION,
     configName: CONFIG_NAME2,
-    repository: repositoryDescriptor(tenants[0]),
+    repository: repositoryDescriptor(tenants[0] ?? distinctRepositories(tenants)[0]),
     registry: {
       defaultTenant: ctx.tenants.defaultTenantId,
       collectionPrefix: ctx.tenants.collectionPrefix,
