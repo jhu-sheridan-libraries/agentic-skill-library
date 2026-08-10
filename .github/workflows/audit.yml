@@ -54,20 +54,56 @@ jobs:
         run: |
           bun audit --json > audit-results.json 2>/dev/null || true
 
-          # Parse JSON to count high/critical vulnerabilities precisely
+          # Strip ANSI codes from text output for reliable parsing
+          bun audit 2>&1 | sed 's/\x1b\[[0-9;]*m//g' > audit-text.txt || true
+
+          # Count high/critical from JSON
           TOTAL_HIGH=$(jq '[to_entries[].value[] | select(.severity == "high" or .severity == "critical")] | length' audit-results.json 2>/dev/null || echo 0)
 
-          # Check if all high/critical vulns are from dev-only transitive deps
-          # (promptfoo: eval framework, @codecov: coverage plugin — neither shipped in compiled binary)
-          DEV_ONLY_PATHS=$(bun audit 2>&1 | grep -cE "promptfoo|@codecov" || true)
+          # Determine how many high/critical findings are actionable.
+          # Suppressed dependency chains (not shipped or no fix available):
+          #   - promptfoo: eval framework (devDependency, never shipped)
+          #   - @codecov: coverage plugin (devDependency, never shipped)
+          #   - js-yaml (direct + gray-matter): no upstream fix for 3.x/4.x !!omap DoS
+          #     (only fixed in js-yaml 5.x which gray-matter can't use). We control all
+          #     YAML input (local artifact files). Tracked: GHSA-5p4m-2wfm-xmqj.
+          #
+          # Strategy: for each vulnerability package block in the text output, check
+          # whether ALL dependency paths go through suppressed packages. If yes,
+          # the entire block's high/critical count is suppressed.
+          ACTIONABLE=$(awk '
+            BEGIN { suppressed_high = 0 }
+            # Package header line (starts at column 1, not indented)
+            /^[a-zA-Z@][^ ]/ {
+              if (pkg != "" && has_high && !has_unsuppressed) suppressed_high += high_count
+              pkg = $1; has_high = 0; high_count = 0; has_unsuppressed = 0
+            }
+            # Dependency path lines (indented, contain package names with arrows)
+            /^  [a-zA-Z@(]/ {
+              line = $0
+              # Suppressed if line mentions promptfoo, @codecov, or gray-matter
+              if (line ~ /promptfoo/ || line ~ /@codecov/ || line ~ /gray-matter/) next
+              # js-yaml direct dep: no upstream fix available, suppress
+              if (line ~ /\(direct dependency\)/ && pkg ~ /^js-yaml/) next
+              # Any other path means this package has an actionable chain
+              if (line !~ /^  (high|critical|moderate|low):/) has_unsuppressed = 1
+            }
+            # Vulnerability severity lines
+            /^  (high|critical):/ { has_high = 1; high_count++ }
+            END {
+              if (pkg != "" && has_high && !has_unsuppressed) suppressed_high += high_count
+              actionable = '"$TOTAL_HIGH"' - suppressed_high
+              if (actionable < 0) actionable = 0
+              print actionable
+            }
+          ' audit-text.txt)
 
-          if [ "$TOTAL_HIGH" -gt 0 ] && [ "$DEV_ONLY_PATHS" -ge "$TOTAL_HIGH" ]; then
-            echo "high_count=0" >> "$GITHUB_OUTPUT"
-            echo "::warning::Found $TOTAL_HIGH high/critical vulnerabilities in dev-only transitive deps (promptfoo, @codecov). Not blocking."
-          else
-            ACTIONABLE=$((TOTAL_HIGH - DEV_ONLY_PATHS))
-            if [ "$ACTIONABLE" -lt 0 ]; then ACTIONABLE=0; fi
-            echo "high_count=$ACTIONABLE" >> "$GITHUB_OUTPUT"
+          echo "high_count=$ACTIONABLE" >> "$GITHUB_OUTPUT"
+
+          if [ "$ACTIONABLE" -eq 0 ] && [ "$TOTAL_HIGH" -gt 0 ]; then
+            echo "::warning::Found $TOTAL_HIGH high/critical vulnerabilities, all in suppressed deps (promptfoo, @codecov, js-yaml with no upstream fix). Not blocking."
+          elif [ "$ACTIONABLE" -gt 0 ]; then
+            echo "::error::Found $ACTIONABLE actionable high/critical vulnerabilities."
           fi
 
       - name: Upload audit results
