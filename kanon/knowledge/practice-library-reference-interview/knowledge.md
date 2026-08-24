@@ -5,7 +5,7 @@ description: Role-play and debrief a fictional research-library reference interv
 keywords: [academic-libraries, reference-interview, question-negotiation, privacy, research-support, role-play]
 author: Library AI Workshop maintainers
 version: 0.1.0
-harnesses: [codex]
+harnesses: [codex, claude-code]
 type: skill
 inclusion: manual
 categories: [documentation, accessibility]

@@ -5,7 +5,7 @@ description: Audit an AI-assisted research output for evidence, citation fit, so
 keywords: [academic-libraries, research-review, evidence, citations, reproducibility, privacy, human-review]
 author: Library AI Workshop maintainers
 version: 0.1.0
-harnesses: [codex]
+harnesses: [codex, claude-code]
 type: skill
 inclusion: manual
 categories: [documentation, accessibility]

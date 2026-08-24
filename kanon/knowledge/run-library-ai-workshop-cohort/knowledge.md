@@ -5,7 +5,7 @@ description: Plan, facilitate, and debrief a live Research with AI workshop for 
 keywords: [academic-libraries, workshop-facilitation, cohort-learning, ai-literacy, accessibility, research-support]
 author: Library AI Workshop maintainers
 version: 0.1.0
-harnesses: [codex]
+harnesses: [codex, claude-code]
 type: skill
 inclusion: manual
 categories: [documentation, accessibility]

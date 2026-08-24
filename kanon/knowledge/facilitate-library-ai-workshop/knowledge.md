@@ -4,8 +4,8 @@ displayName: Library AI Workshop Coach
 description: Coach one learner through the Research with AI workshop for research librarians, using fictional or simulated material and keeping source checks and professional judgment with the learner.
 keywords: [academic-libraries, research-support, ai-literacy, reference-interview, source-verification, evidence-synthesis, reproducibility]
 author: Library AI Workshop maintainers
-version: 0.1.0
-harnesses: [codex]
+version: 0.1.1
+harnesses: [codex, claude-code]
 type: skill
 inclusion: manual
 categories: [documentation, accessibility]
