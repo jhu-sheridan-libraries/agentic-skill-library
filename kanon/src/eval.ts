@@ -65,36 +65,99 @@ interface EvalConfig {
 	config: Record<string, unknown>;
 }
 
+interface ArtifactEvalDirectory {
+	artifactName: string;
+	path: string;
+}
+
+/**
+ * Collect artifact directories in both supported canonical layouts:
+ * knowledge/<artifact>/ and knowledge/<namespace>/<artifact>/.
+ */
+async function collectArtifactEvalDirectories(
+	knowledgeDir: string,
+): Promise<ArtifactEvalDirectory[]> {
+	const artifactDirectories: ArtifactEvalDirectory[] = [];
+
+	if (!(await exists(knowledgeDir))) return artifactDirectories;
+
+	const entries = await readdir(knowledgeDir, { withFileTypes: true });
+	for (const entry of entries) {
+		if (!entry.isDirectory()) continue;
+
+		const entryPath = join(knowledgeDir, entry.name);
+		if (await exists(join(entryPath, "knowledge.md"))) {
+			artifactDirectories.push({ artifactName: entry.name, path: entryPath });
+			continue;
+		}
+
+		const nestedEntries = await readdir(entryPath, { withFileTypes: true });
+		for (const nestedEntry of nestedEntries) {
+			if (!nestedEntry.isDirectory()) continue;
+
+			const artifactPath = join(entryPath, nestedEntry.name);
+			if (await exists(join(artifactPath, "knowledge.md"))) {
+				artifactDirectories.push({
+					artifactName: nestedEntry.name,
+					path: artifactPath,
+				});
+			}
+		}
+	}
+
+	return artifactDirectories;
+}
+
+async function loadArtifactEvalConfigs(
+	artifactDirectory: ArtifactEvalDirectory,
+): Promise<EvalConfig[]> {
+	const evalsDir = join(artifactDirectory.path, "evals");
+	if (!(await exists(evalsDir))) return [];
+
+	const configs: EvalConfig[] = [];
+	const evalFiles = await readdir(evalsDir);
+	for (const file of evalFiles) {
+		if (!file.endsWith(".yaml") && !file.endsWith(".yml")) continue;
+		const filePath = join(evalsDir, file);
+		const raw = await readFile(filePath, "utf-8");
+		const config = yaml.load(raw) as Record<string, unknown>;
+		configs.push({
+			configFile: filePath,
+			artifactName: artifactDirectory.artifactName,
+			config,
+		});
+	}
+
+	return configs;
+}
+
+async function resolveArtifactDirectory(artifactName: string): Promise<string> {
+	const artifactDirectories = await collectArtifactEvalDirectories("knowledge");
+	const artifactDirectory = artifactDirectories.find(
+		(directory: ArtifactEvalDirectory): boolean =>
+			directory.artifactName === artifactName,
+	);
+
+	return artifactDirectory?.path ?? join("knowledge", artifactName);
+}
+
 export async function discoverEvalConfigs(
 	knowledgeDir: string,
 	topLevelEvalsDir: string,
 	artifactName?: string,
 ): Promise<EvalConfig[]> {
 	const configs: EvalConfig[] = [];
+	const artifactDirectories =
+		await collectArtifactEvalDirectories(knowledgeDir);
 
-	// Scan knowledge/*/evals/
-	if (await exists(knowledgeDir)) {
-		const entries = await readdir(knowledgeDir, { withFileTypes: true });
-		for (const entry of entries) {
-			if (!entry.isDirectory()) continue;
-			if (artifactName && entry.name !== artifactName) continue;
-
-			const evalsDir = join(knowledgeDir, entry.name, "evals");
-			if (!(await exists(evalsDir))) continue;
-
-			const evalFiles = await readdir(evalsDir);
-			for (const file of evalFiles) {
-				if (!file.endsWith(".yaml") && !file.endsWith(".yml")) continue;
-				const filePath = join(evalsDir, file);
-				const raw = await readFile(filePath, "utf-8");
-				const config = yaml.load(raw) as Record<string, unknown>;
-				configs.push({
-					configFile: filePath,
-					artifactName: entry.name,
-					config,
-				});
-			}
+	for (const artifactDirectory of artifactDirectories) {
+		if (
+			artifactName !== undefined &&
+			artifactDirectory.artifactName !== artifactName
+		) {
+			continue;
 		}
+		configs.push(...(await loadArtifactEvalConfigs(artifactDirectory)));
 	}
 
 	// Scan top-level evals/
@@ -313,7 +376,8 @@ export async function runEvals(options: EvalOptions): Promise<EvalResult[]> {
 }
 
 export async function scaffoldEvals(artifactName: string): Promise<void> {
-	const artifactEvalsDir = join("knowledge", artifactName, "evals");
+	const artifactPath = await resolveArtifactDirectory(artifactName);
+	const artifactEvalsDir = join(artifactPath, "evals");
 	await mkdir(artifactEvalsDir, { recursive: true });
 
 	const configContent = `# Eval config for ${artifactName}

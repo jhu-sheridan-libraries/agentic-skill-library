@@ -1439,9 +1439,10 @@
       "reproducibility"
     ],
     "author": "Library AI Workshop maintainers",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "harnesses": [
-      "codex"
+      "codex",
+      "claude-code"
     ],
     "type": "skill",
     "path": "knowledge/facilitate-library-ai-workshop",
@@ -1459,7 +1460,8 @@
     "depends": [],
     "enhances": [],
     "formatByHarness": {
-      "codex": "skill"
+      "codex": "skill",
+      "claude-code": "claude-md"
     },
     "features": {
       "hooks": false,
@@ -2483,7 +2485,8 @@
     "author": "Library AI Workshop maintainers",
     "version": "0.1.0",
     "harnesses": [
-      "codex"
+      "codex",
+      "claude-code"
     ],
     "type": "skill",
     "path": "knowledge/practice-library-reference-interview",
@@ -2501,7 +2504,8 @@
     "depends": [],
     "enhances": [],
     "formatByHarness": {
-      "codex": "skill"
+      "codex": "skill",
+      "claude-code": "claude-md"
     },
     "features": {
       "hooks": false,
@@ -2652,7 +2656,8 @@
     "author": "Library AI Workshop maintainers",
     "version": "0.1.0",
     "harnesses": [
-      "codex"
+      "codex",
+      "claude-code"
     ],
     "type": "skill",
     "path": "knowledge/review-ai-research-output",
@@ -2670,7 +2675,8 @@
     "depends": [],
     "enhances": [],
     "formatByHarness": {
-      "codex": "skill"
+      "codex": "skill",
+      "claude-code": "claude-md"
     },
     "features": {
       "hooks": false,
@@ -2764,7 +2770,8 @@
     "author": "Library AI Workshop maintainers",
     "version": "0.1.0",
     "harnesses": [
-      "codex"
+      "codex",
+      "claude-code"
     ],
     "type": "skill",
     "path": "knowledge/run-library-ai-workshop-cohort",
@@ -2782,7 +2789,8 @@
     "depends": [],
     "enhances": [],
     "formatByHarness": {
-      "codex": "skill"
+      "codex": "skill",
+      "claude-code": "claude-md"
     },
     "features": {
       "hooks": false,
@@ -3551,6 +3559,49 @@
     "collections": [
       "jh-drcc",
       "neon-caravan"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "writing-clearly-and-concisely",
+    "displayName": "Writing Clearly And Concisely",
+    "description": "Apply Strunk's timeless writing rules to ANY prose humans will read—documentation, commit messages, error messages, explanations, reports, or UI text. Makes your writing clearer, stronger, and more professional.",
+    "keywords": [],
+    "author": "obra",
+    "version": "1.0.0",
+    "harnesses": [
+      "kiro",
+      "claude-code"
+    ],
+    "type": "skill",
+    "path": "knowledge/byron-powers/writing-clearly-and-concisely",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "writing"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "steering",
+      "claude-code": "claude-md"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "community",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "byron-powers"
     ],
     "visibility": "public",
     "priority": 50,

@@ -1,0 +1,84 @@
+# Eval: Writing Clearly and Concisely applies Strunk's rules to human-facing prose.
+#
+# Tests direct revisions for clarity, concision, precision, and sound grammar.
+# These evals are intentionally not run during artifact wiring.
+#
+# Run after a Kiro build: bun run dev eval writing-clearly-and-concisely
+
+description: "Writing Clearly and Concisely produces precise, concise prose edits"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/writing-clearly-and-concisely/writing-clearly-and-concisely.md
+    - role: user
+      content: "{{query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Revises vague passive prose in direct, concrete language"
+    vars:
+      query: >
+        Rewrite this status update in one sentence: "Due to the fact that the
+        deployment process was not successful, a decision was made by the team
+        to conduct an investigation."
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the response supplies a one-sentence rewrite that says the
+          team investigated a failed deployment (or an equally direct version),
+          uses active voice, and removes circumlocutions such as "due to the
+          fact that" and "a decision was made." FAIL if it retains passive,
+          vague, or needlessly wordy phrasing; changes the meaning; or omits a
+          rewrite.
+
+  - description: "Preserves material facts while omitting needless words"
+    vars:
+      query: >
+        Tighten this incident update without dropping any fact: "There is no
+        doubt but that the service had a total of 17 failed requests during the
+        09:00 UTC deployment."
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the response produces a more concise sentence while retaining
+          the service, 17 failed requests, and the 09:00 UTC deployment. It
+          should remove filler such as "there is no doubt but that" and avoid
+          introducing new facts. FAIL if it loses, alters, or invents a material
+          fact, or leaves the needless introductory phrase intact.
+
+  - description: "Corrects a comma splice without flattening the relationship"
+    vars:
+      query: >
+        Edit this release note for standard written English: "The build passed,
+        the team released the service."
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the response corrects the comma splice with a period,
+          semicolon, or an appropriate conjunction, while retaining both events
+          in their logical order. FAIL if it leaves two independent clauses
+          joined only by a comma, changes the sequence, or adds unsupported
+          details.
+
+  - description: "Uses parallel form for equivalent release instructions"
+    vars:
+      query: >
+        Improve this checklist item: "Before release, confirm the migration,
+        that backups work, and review the rollback plan."
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the revision makes the three coordinated actions grammatically
+          parallel, such as "confirm the migration, verify the backups, and
+          review the rollback plan." It must retain all three actions and keep
+          the result concise. FAIL if the list remains structurally mismatched,
+          drops an action, or adds an unrelated requirement.
