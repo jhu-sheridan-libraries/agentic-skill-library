@@ -1,0 +1,24 @@
+- name: awslabs.roda-mcp-server
+  description: >-
+    AWS Labs RODA (Registry of Open Data on AWS) MCP server. Provides
+    search, metadata retrieval, and discovery over datasets published in
+    the Registry of Open Data on AWS.
+  command: uvx
+  args:
+    - awslabs.roda-mcp-server@latest
+  env:
+    FASTMCP_LOG_LEVEL: ERROR
+  autoApprove: []
+
+- name: archimedes-delight-literature-search
+  transport: sse
+  url: https://TBD.internal.jh.edu/mcp
+  description: >-
+    PLACEHOLDER — literature-search MCP server (PubMed / arXiv / Semantic
+    Scholar). No official institutional remote MCP endpoint exists for any
+    of these sources as of this writing; this entry is a placeholder pending
+    a JHU DRCC-hosted instance. A documented starting point for that instance
+    is cyanheads/pubmed-mcp-server (supports self-hosting via transport: http
+    or sse). Do not point this at an unaffiliated third party's
+    personally-hosted instance in production.
+  autoApprove: []

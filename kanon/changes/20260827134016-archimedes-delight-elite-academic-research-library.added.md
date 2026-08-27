@@ -1,0 +1,1 @@
+archimedes-delight: elite academic research-library artifact for the jh-drcc collection — RODA MCP data access, a literature-search MCP placeholder, a citation-management skill, a citation-pipeline workflow, and autonomous literature-review and dataset-discovery agents

@@ -133,6 +133,61 @@
     "outcomes": []
   },
   {
+    "name": "archimedes-delight",
+    "displayName": "Archimedes Delight",
+    "description": "Elite academic research library tool for Johns Hopkins staff and faculty. Provides MCP-backed data access to research repositories (starting with RODA — Registry of Open Data on AWS), guided research skills for citation management, autonomous agents for literature review and dataset discovery, and multi-step research workflows.",
+    "keywords": [
+      "archimedes-delight",
+      "jh-drcc",
+      "roda",
+      "research-library",
+      "literature-review",
+      "dataset-discovery",
+      "citation-management",
+      "academic-research"
+    ],
+    "author": "Johns Hopkins DRCC",
+    "version": "0.1.1",
+    "harnesses": [
+      "kiro",
+      "claude-code"
+    ],
+    "type": "skill",
+    "path": "knowledge/archimedes-delight",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation",
+      "devops"
+    ],
+    "ecosystem": [
+      "aws"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power",
+      "claude-code": "claude-md"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": true,
+      "conditionalInclusion": false
+    },
+    "maturity": "experimental",
+    "trust": "community",
+    "audience": "advanced",
+    "model-assumptions": [],
+    "collections": [
+      "jh-drcc"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
     "name": "archon-reference-pack",
     "displayName": "Archon Reference Pack",
     "description": "Complete reference for authoring Archon workflows, commands, and using the CLI. Covers DAG node types, variables, trigger rules, conditions, structured output, hooks, MCP, skills, and all built-in workflows.",

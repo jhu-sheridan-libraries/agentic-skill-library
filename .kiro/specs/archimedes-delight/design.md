@@ -2,9 +2,13 @@
 
 ## Overview
 
-Archimedes Delight is a **single** knowledge artifact, `kanon/knowledge/archimedes-delight/` (`type: power`), bundling four capability kinds: data-access MCP servers (RODA, plus a placeholder for literature search), guided research skills (citation management, dataset-discovery guidance), human-followed research workflows (dataset-to-citation pipeline), and two autonomous research agents (literature review, dataset discovery). It follows the same shape as `alice-whiterabbit` and `kanon`, the two existing `jh-drcc` artifacts that already combine steering content with MCP servers and workflows.
+Archimedes Delight is a **single** knowledge artifact, `kanon/knowledge/archimedes-delight/` (`type: skill` with `harness-config.kiro.format: power` — see the type/format note below), bundling four capability kinds: data-access MCP servers (RODA, plus a placeholder for literature search), guided research skills (citation management, dataset-discovery guidance), human-followed research workflows (dataset-to-citation pipeline), and two autonomous research agents (literature review, dataset discovery). It follows the same shape as `alice-whiterabbit` and `kanon`, the two existing `jh-drcc` artifacts that already combine steering content with MCP servers and workflows.
 
 An earlier iteration of this design split the literature-review agent into its own `type: agent` artifact with a `depends: [archimedes-delight]` link. That was reconsidered: per **ADR-0014**, `type` is a single asset-taxonomy tag used for discovery, validation, and collection curation — it is explicitly decoupled from output format (ADR-0012/0013), which lives entirely in `harness-config.<harness>.format`. There is no distinct "agent runtime" that `type: agent` unlocks in this pipeline. Concretely, Kiro's format registry (`src/format-registry.ts`) defines only `steering` and `power` as valid Kiro formats — there is no Kiro `agent` format — so a `type: agent` artifact on Kiro renders through the exact same `power`/`steering` template path as this artifact already uses. On Claude Code, both `power` and `agent` render as a CLAUDE.md section regardless. The only harnesses where `agent` produces genuinely different output are Copilot (`AGENTS.md`) and Q Developer (`.q/agents/`), neither of which this artifact targets. Since "agent" behavior here is just documented body content (a loop description) plus MCP access — exactly what `power` already bundles — splitting it out would buy only a distinct catalog tag, at the cost of a second artifact, a second `jh-drcc` collection member, and `depends`-composition wiring that serves no other purpose. Both agents therefore live inside the power and read its MCP servers directly, with no `depends` field needed at all.
+
+### A note on `type` versus the Kiro `power` format
+
+This artifact is authored as `type: skill` with `harness-config.kiro.format: power`, **not** `type: power`. Per **ADR-0051** (Deprecate `power` as an asset-taxonomy value), `power` is Kiro's own output-*format* concept — chosen via `harness-config.kiro.format` — not an asset-*taxonomy* value. `type: power` survives only as a backward-compat alias for `type: skill` and is flagged by `kanon validate` (`type-power-deprecated`); the canonical form going forward is `type: skill` plus an explicit Kiro format. This is fully consistent with ADR-0014's separation of taxonomy from output format — the same reasoning that keeps the two agents inside this artifact rather than splitting them into a `type: agent` artifact. Everywhere this document refers to "the power," it means the Kiro *power output* this artifact produces (`POWER.md` + progressively-disclosed `steering/*.md`), which comes from `harness-config.kiro.format: power`, not from the `type` field. Progressive disclosure is made explicit via `harness-config.kiro.inclusion: manual`, so the artifact ships no always-on steering surface beyond `POWER.md` itself.
 
 Capability-to-primitive mapping, all within this one artifact:
 
@@ -19,7 +23,7 @@ No changes to `build.ts`, `parser.ts`, `schemas.ts`, or any adapter are needed. 
 
 ```mermaid
 graph TD
-    subgraph "kanon/knowledge/archimedes-delight/ (type: power)"
+    subgraph "kanon/knowledge/archimedes-delight/ (type: skill, kiro format: power)"
         KM[knowledge.md<br/>frontmatter + body:<br/>overview, skills, agents, steering table]
         MCP[mcp-servers.yaml<br/>awslabs.roda-mcp-server +<br/>literature-search placeholder]
         WF1[workflows/dataset-discovery.md]
@@ -108,7 +112,7 @@ version: 0.1.0
 harnesses:
   - kiro
   - claude-code
-type: power
+type: skill
 inclusion: auto
 categories:
   - documentation
@@ -127,13 +131,15 @@ inherit-hooks: false
 harness-config:
   kiro:
     format: power
+    inclusion: manual
   claude-code:
     format: claude-md
 ```
 
 Design decisions on specific fields, tied to requirements:
 
-- `type: power` (Requirement 1.2) — chosen over `reference-pack` because power is designed for exactly this "broad capability bundle with an entry-point doc + steering topics" shape, matching `alice-whiterabbit`'s and `kanon`'s own precedent. `reference-pack` is for manual-inclusion-only reference material and has no natural home for MCP servers or workflow steering. `agent` was considered and rejected as the *top-level* type too — see Overview — since it's a single-artifact taxonomy tag, not a container, and `power` already accommodates agent-loop content as body sections.
+- `type: skill` + `harness-config.kiro.format: power` (Requirement 1.2) — the artifact is taxonomically a `skill` that renders to Kiro's `power` *format*. This is the canonical pairing per ADR-0051 (see the type/format note in the Overview); `type: power` is a deprecated alias and is not used. The Kiro `power` format is chosen over `reference-pack` because it is designed for exactly this "broad capability bundle with an entry-point doc + steering topics" shape, matching `alice-whiterabbit`'s and `kanon`'s own precedent. `reference-pack` is for manual-inclusion-only reference material and has no natural home for MCP servers or workflow steering. `type: agent` was considered and rejected too — see Overview — since it's a single-artifact taxonomy tag, not a container, and the Kiro power format already accommodates agent-loop content as body sections.
+- `harness-config.kiro.inclusion: manual` — makes the Progressive Steering choice explicit (Requirement 6): `POWER.md` is the always-on surface and the workflow/steering files are disclosed on demand, avoiding the `kanon validate` warnings that fire when a power-format artifact leaves inclusion unset or `always`.
 - `depends: []` — no dependency composition is used; both agents read MCP servers declared directly in this artifact's own `mcp-servers.yaml`.
 - `maturity: experimental` and `audience: advanced` — this is a new, unreleased artifact (Requirement 1) aimed at expert researchers, not a stable general-audience tool; distinguishes it from `alice-whiterabbit` (`stable`) and `jhu-editorial-check`.
 - `trust: community` — matches every other `jh-drcc` artifact's trust lane; nothing here claims official JHU endorsement.
@@ -288,15 +294,15 @@ This is a content-only, single-artifact addition; the existing test suite alread
 - **`bun run dev validate --security`** — confirms no credential-like hardcoded value is flagged in `mcp-servers.yaml`, and that the literature-search placeholder's non-real `url` doesn't itself trigger a security warning (Requirement 3.6).
 - **`bun run dev build`** (default, non-strict) and **`bun run dev build --strict`** — confirms Kiro output (`POWER.md`, `steering/citation-pipeline.md`, MCP config entry with both servers) and Claude Code output (CLAUDE.md section, including both agent sub-sections) render without strict-mode errors (Requirement 6.2/6.3).
 - **Manual collection check** — after build, inspect that `buildCollectionMembership()`'s output (or the browse UI / MCP bridge `collection_list` tool) lists `archimedes-delight` under `jh-drcc` (Requirement 2.3).
-- **`bun run build:skills`** — confirms `archimedes-delight` is selected (via `type: power` + `claude-code` harness) and a `skills/archimedes-delight/SKILL.md` is generated and committed, containing both agent sections and the citation skill/workflow, exercising the plugin-skill path noted in Components above.
+- **`bun run build:skills`** — confirms `archimedes-delight` is selected (via `type: skill` + `claude-code` harness) and a `skills/archimedes-delight/SKILL.md` is generated and committed, containing both agent sections and the citation skill/workflow, exercising the plugin-skill path noted in Components above.
 
 No property-based tests are warranted — this artifact introduces no executable logic, only declarative content consumed by an already-tested compiler.
 
 ## Decisions and Trade-offs
 
 1. **One artifact, not two (or three).** Reconsidered from an earlier draft that split literature review into its own `type: agent` artifact. Per ADR-0014, `type` is a single taxonomy tag decoupled from output format; Kiro has no distinct `agent` format (only `steering`/`power`), so splitting bought only a catalog-filter tag at the cost of a second artifact, collection member, and unused `depends` wiring. Folding agents into the power keeps one catalog entry, one collection membership, one version, and zero cross-artifact composition — the right trade for two agents that are functionally just documented loops over MCP servers this artifact already owns.
-2. **`type: power`, not `reference-pack` or `agent`.** Power gives a proper Kiro entry point and matches the "one bundle, several capabilities" shape of the two other multi-capability `jh-drcc` artifacts, and accommodates agent-loop content as body sections without needing to be the top-level type itself.
-3. **Inline research skills and agents instead of namespaced sub-artifacts.** Keeps one artifact = one catalog entry = one collection membership, and still produces a single combined Claude Code plugin skill via the existing `power`-inclusive selector in `generate-plugin-skills.ts` — no schema or script change needed.
+2. **`type: skill` + `harness-config.kiro.format: power`, not `type: power`, `reference-pack`, or `agent`.** Per ADR-0051, `power` is an output-format concept, not a taxonomy value; `type: power` is a deprecated alias that `kanon validate` flags. So the artifact is a `skill` taxonomically and selects the Kiro `power` format explicitly. The power *format* gives a proper Kiro entry point (`POWER.md`) and matches the "one bundle, several capabilities" shape of the two other multi-capability `jh-drcc` artifacts, and accommodates agent-loop content as body sections — none of which requires the deprecated `type: power` or a `reference-pack`/`agent` taxonomy tag.
+3. **Inline research skills and agents instead of namespaced sub-artifacts.** Keeps one artifact = one catalog entry = one collection membership, and still produces a single combined Claude Code plugin skill via the `generate-plugin-skills.ts` selector (`type === "skill" || type === "power"`), which selects this artifact on its `type: skill` — no schema or script change needed.
 4. **`autoApprove: []` for RODA and the literature-search placeholder.** Safer default for RODA pending tool-list confirmation; doubly appropriate for the placeholder since its endpoint isn't even real yet. Deferred rather than guessed.
 5. **Literature-search MCP server is a documented placeholder, not a working third-party-hosted URL.** The only real remote instance found during research (`cyanheads/pubmed-mcp-server`'s community-hosted `https://pubmed.caseyjhand.com/mcp`) is an unaffiliated individual's personal hosting with no SLA — unsuitable as the backbone of an "elite academic research library tool." Trade-off: literature review has no working search capability until JHU DRCC stands up its own instance; the agent's documented "Current limitation" behavior (tell the user, don't fabricate) is the mitigation until then. Dataset discovery has no equivalent gap — RODA is real and working.
 6. **No `${ENV_VAR}` credentials wired up for RODA.** RODA's public/no-auth MCP config, as given, needs none; the credential-boundary guidance from `CLAUDE.md` is documented for future data-access servers instead of applied to a server that doesn't need it, avoiding speculative config.
