@@ -1,4 +1,8 @@
-import { loadCatalog, readArtifactContent } from "../catalog-reader.js";
+import {
+	loadCatalog,
+	readArtifactContent,
+	resolveRequestContentRoot,
+} from "../catalog-reader.js";
 import { buildChunkDocuments, chunkMarkdown } from "../chunker.js";
 import { modelIdentity } from "../embedding-provider.js";
 import { ErrorCodes, SoukCompassError } from "../errors.js";
@@ -10,15 +14,16 @@ export async function handleCompassIndexArtifacts(
 	input: CompassIndexArtifactsInput,
 	ctx: ToolContext,
 ): Promise<ToolResult> {
-	const catalog = await loadCatalog(ctx.contentRoot);
+	const contentRoot = await resolveRequestContentRoot(input, ctx.contentRoot);
+	const catalog = await loadCatalog(contentRoot);
 	const chunked = input.chunked ?? false;
 
 	if (input.name) {
-		return indexSingle(input.name, catalog, ctx, chunked);
+		return indexSingle(input.name, catalog, ctx, chunked, contentRoot);
 	}
 
 	if (input.all) {
-		return indexAll(catalog, ctx, chunked);
+		return indexAll(catalog, ctx, chunked, contentRoot);
 	}
 
 	return jsonResult({
@@ -35,6 +40,7 @@ async function indexSingle(
 	catalog: Awaited<ReturnType<typeof loadCatalog>>,
 	ctx: ToolContext,
 	chunked: boolean,
+	contentRoot: string,
 ): Promise<ToolResult> {
 	const entry = catalog.find((e) => e.name === name);
 	if (!entry) {
@@ -46,7 +52,12 @@ async function indexSingle(
 	}
 
 	try {
-		const { body } = await readArtifactContent(ctx.contentRoot, entry);
+		// Delete the artifact's existing docs (top-level + any chunks) before
+		// writing the current representation, so switching chunked <-> unchunked
+		// or changing the chunk count cannot leave stale docs behind.
+		await deleteArtifactDocs(ctx, entry.name);
+
+		const { body } = await readArtifactContent(contentRoot, entry);
 
 		if (chunked) {
 			// Pack sections toward the encoder's window: artifact sections are
@@ -119,6 +130,7 @@ async function indexAll(
 	catalog: Awaited<ReturnType<typeof loadCatalog>>,
 	ctx: ToolContext,
 	chunked: boolean,
+	contentRoot: string,
 ): Promise<ToolResult> {
 	let indexed = 0;
 	let errors = 0;
@@ -131,7 +143,11 @@ async function indexAll(
 
 	for (const entry of catalog) {
 		try {
-			const { body } = await readArtifactContent(ctx.contentRoot, entry);
+			// Replace any existing representation of this artifact (top-level +
+			// chunks) so re-indexing never leaves stale docs alongside new ones.
+			await deleteArtifactDocs(ctx, entry.name);
+
+			const { body } = await readArtifactContent(contentRoot, entry);
 
 			if (chunked) {
 				// Pack sections toward the encoder's window: artifact sections are
@@ -212,6 +228,26 @@ async function indexAll(
 	}
 
 	return jsonResult({ indexed, errors, details });
+}
+
+/**
+ * Delete every existing document for one artifact — its top-level doc (`id`)
+ * and all chunk docs (`parent_artifact`) — batched (no commit), since a write
+ * with its own commit always follows. Best-effort: a delete failure must not
+ * abort the (re)index of the artifact.
+ */
+async function deleteArtifactDocs(
+	ctx: ToolContext,
+	artifactName: string,
+): Promise<void> {
+	const v = artifactName.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+	try {
+		await ctx.solrClient.deleteByQuery(`id:"${v}" OR parent_artifact:"${v}"`, {
+			commit: false,
+		});
+	} catch {
+		// Best-effort; the following write still stores the current representation.
+	}
 }
 
 function extractArtifactMetadata(
