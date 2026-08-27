@@ -1,0 +1,1 @@
+rosetta-stone: add Property 29 fast-check test verifying curation-preserving deterministic three-way reconciliation — curation preservation, fast-forward-only-when-unchanged, conflict-keeps-Ours-while-applying-non-conflicting-fields, deterministic merge-by-union, and repeat-run canonical equivalence with identical ordered diagnostics

@@ -7,6 +7,11 @@ import { looksLikeSecret } from "./rosetta/redaction";
 import {
 	type AcquisitionProfile,
 	AcquisitionProfileSchema,
+	type FieldOwnershipClass,
+	FieldOwnershipClassSchema,
+	type FieldOwnershipPolicy,
+	type ReconcilableField,
+	ReconcilableFieldSchema,
 	type TranslationProfile,
 	TranslationProfileSchema,
 } from "./schemas";
@@ -619,4 +624,120 @@ function scanForCredentials(
 			);
 		}
 	}
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Field Ownership Policy Validation (Req 18.14)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * The result of validating a Field_Ownership_Policy for a single upstream.
+ *
+ * When `valid` is true, `policy` carries the parsed, complete policy ready for
+ * the pure reconciliation core; `diagnostics` is empty. When `valid` is false,
+ * `policy` is undefined and `diagnostics` describes every problem: fields
+ * classified outside {@link ReconcilableFieldSchema} and reconcilable fields
+ * left unclassified (Requirement 18.14).
+ */
+export interface FieldOwnershipPolicyValidationResult {
+	readonly valid: boolean;
+	readonly policy: FieldOwnershipPolicy | undefined;
+	readonly diagnostics: readonly ProfileDiagnostic[];
+}
+
+/**
+ * Validate a Field_Ownership_Policy for reconciliation configuration.
+ *
+ * The base `FieldOwnershipPolicySchema` (task 19.1) constrains keys to
+ * {@link ReconcilableFieldSchema} and values to `FieldOwnershipClassSchema`. The
+ * Configuration_Validator, in addition, enforces COMPLETENESS: it rejects a
+ * policy that omits a classification for any reconcilable field
+ * (Requirement 18.14).
+ *
+ * This validator produces clean, field-addressed diagnostics for every problem
+ * class, independent of the underlying schema's record-key mechanics:
+ *  1. Non-object shape — the policy value must be a plain object.
+ *  2. Unknown/misclassified fields — a key outside {@link ReconcilableFieldSchema}
+ *     is a field-addressed error at that key.
+ *  3. Invalid ownership class — a value that is not a `FieldOwnershipClass`.
+ *  4. Unclassified/omitted fields — every member of
+ *     {@link ReconcilableFieldSchema} must appear; any omission is a
+ *     field-addressed error naming the missing field.
+ *
+ * The documented `DEFAULT_FIELD_OWNERSHIP_POLICY` is complete by construction
+ * and therefore always validates.
+ *
+ * @param policy The policy value from configuration.
+ * @param section The config path prefix used in diagnostics (default
+ *   `"fieldOwnership"`).
+ * @returns A validation result with the parsed complete policy or diagnostics.
+ */
+export function validateFieldOwnershipPolicy(
+	policy: unknown,
+	section = "fieldOwnership",
+): FieldOwnershipPolicyValidationResult {
+	const diagnostics: ProfileDiagnostic[] = [];
+
+	// Step 1: shape. The policy must be a plain object (record of field → class).
+	if (policy === null || typeof policy !== "object" || Array.isArray(policy)) {
+		diagnostics.push({
+			path: section,
+			message:
+				"Field_Ownership_Policy must be an object mapping reconcilable fields to ownership classes",
+			severity: "error",
+		});
+		return { valid: false, policy: undefined, diagnostics };
+	}
+
+	const known: ReadonlySet<string> = new Set(ReconcilableFieldSchema.options);
+	const entries = Object.entries(policy as Record<string, unknown>);
+	const classified: Partial<Record<ReconcilableField, FieldOwnershipClass>> =
+		{};
+
+	// Step 2: per-key validation. Reject keys outside the reconcilable set and
+	// values that are not a valid ownership class, each field-addressed.
+	for (const [key, value] of entries) {
+		if (!known.has(key)) {
+			diagnostics.push({
+				path: `${section}.${key}`,
+				message: `Field_Ownership_Policy references field "${key}" outside ReconcilableFieldSchema`,
+				severity: "error",
+			});
+			continue;
+		}
+		const classResult = FieldOwnershipClassSchema.safeParse(value);
+		if (!classResult.success) {
+			diagnostics.push({
+				path: `${section}.${key}`,
+				message: `Field_Ownership_Policy classification for "${key}" must be one of ${FieldOwnershipClassSchema.options
+					.map((option) => `"${option}"`)
+					.join(", ")}`,
+				severity: "error",
+			});
+			continue;
+		}
+		classified[key as ReconcilableField] = classResult.data;
+	}
+
+	// Step 3: completeness. Every reconcilable field must be classified; a
+	// missing classification is an error naming the omitted field (Req 18.14).
+	for (const field of ReconcilableFieldSchema.options) {
+		if (!(field in classified)) {
+			diagnostics.push({
+				path: `${section}.${field}`,
+				message: `Field_Ownership_Policy omits a classification for reconcilable field "${field}"`,
+				severity: "error",
+			});
+		}
+	}
+
+	if (diagnostics.length > 0) {
+		return { valid: false, policy: undefined, diagnostics };
+	}
+
+	return {
+		valid: true,
+		policy: classified as FieldOwnershipPolicy,
+		diagnostics: [],
+	};
 }

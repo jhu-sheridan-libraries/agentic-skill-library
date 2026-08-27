@@ -133,6 +133,61 @@
     "outcomes": []
   },
   {
+    "name": "archimedes-delight",
+    "displayName": "Archimedes Delight",
+    "description": "Elite academic research library tool for Johns Hopkins staff and faculty. Provides MCP-backed data access to research repositories (starting with RODA — Registry of Open Data on AWS), guided research skills for citation management, autonomous agents for literature review and dataset discovery, and multi-step research workflows.",
+    "keywords": [
+      "archimedes-delight",
+      "jh-drcc",
+      "roda",
+      "research-library",
+      "literature-review",
+      "dataset-discovery",
+      "citation-management",
+      "academic-research"
+    ],
+    "author": "Johns Hopkins DRCC",
+    "version": "0.1.1",
+    "harnesses": [
+      "kiro",
+      "claude-code"
+    ],
+    "type": "skill",
+    "path": "knowledge/archimedes-delight",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation",
+      "devops"
+    ],
+    "ecosystem": [
+      "aws"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power",
+      "claude-code": "claude-md"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": true,
+      "conditionalInclusion": false
+    },
+    "maturity": "experimental",
+    "trust": "community",
+    "audience": "advanced",
+    "model-assumptions": [],
+    "collections": [
+      "jh-drcc"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
     "name": "archon-reference-pack",
     "displayName": "Archon Reference Pack",
     "description": "Complete reference for authoring Archon workflows, commands, and using the CLI. Covers DAG node types, variables, trigger rules, conditions, structured output, hooks, MCP, skills, and all built-in workflows.",
@@ -1439,9 +1494,10 @@
       "reproducibility"
     ],
     "author": "Library AI Workshop maintainers",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "harnesses": [
-      "codex"
+      "codex",
+      "claude-code"
     ],
     "type": "skill",
     "path": "knowledge/facilitate-library-ai-workshop",
@@ -1459,7 +1515,8 @@
     "depends": [],
     "enhances": [],
     "formatByHarness": {
-      "codex": "skill"
+      "codex": "skill",
+      "claude-code": "claude-md"
     },
     "features": {
       "hooks": false,
@@ -2483,7 +2540,8 @@
     "author": "Library AI Workshop maintainers",
     "version": "0.1.0",
     "harnesses": [
-      "codex"
+      "codex",
+      "claude-code"
     ],
     "type": "skill",
     "path": "knowledge/practice-library-reference-interview",
@@ -2501,7 +2559,8 @@
     "depends": [],
     "enhances": [],
     "formatByHarness": {
-      "codex": "skill"
+      "codex": "skill",
+      "claude-code": "claude-md"
     },
     "features": {
       "hooks": false,
@@ -2652,7 +2711,8 @@
     "author": "Library AI Workshop maintainers",
     "version": "0.1.0",
     "harnesses": [
-      "codex"
+      "codex",
+      "claude-code"
     ],
     "type": "skill",
     "path": "knowledge/review-ai-research-output",
@@ -2670,7 +2730,8 @@
     "depends": [],
     "enhances": [],
     "formatByHarness": {
-      "codex": "skill"
+      "codex": "skill",
+      "claude-code": "claude-md"
     },
     "features": {
       "hooks": false,
@@ -2764,7 +2825,8 @@
     "author": "Library AI Workshop maintainers",
     "version": "0.1.0",
     "harnesses": [
-      "codex"
+      "codex",
+      "claude-code"
     ],
     "type": "skill",
     "path": "knowledge/run-library-ai-workshop-cohort",
@@ -2782,7 +2844,8 @@
     "depends": [],
     "enhances": [],
     "formatByHarness": {
-      "codex": "skill"
+      "codex": "skill",
+      "claude-code": "claude-md"
     },
     "features": {
       "hooks": false,
@@ -3551,6 +3614,49 @@
     "collections": [
       "jh-drcc",
       "neon-caravan"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "writing-clearly-and-concisely",
+    "displayName": "Writing Clearly And Concisely",
+    "description": "Apply Strunk's timeless writing rules to ANY prose humans will read—documentation, commit messages, error messages, explanations, reports, or UI text. Makes your writing clearer, stronger, and more professional.",
+    "keywords": [],
+    "author": "obra",
+    "version": "1.0.0",
+    "harnesses": [
+      "kiro",
+      "claude-code"
+    ],
+    "type": "skill",
+    "path": "knowledge/byron-powers/writing-clearly-and-concisely",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "writing"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "steering",
+      "claude-code": "claude-md"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "stable",
+    "trust": "community",
+    "audience": "intermediate",
+    "model-assumptions": [],
+    "collections": [
+      "byron-powers"
     ],
     "visibility": "public",
     "priority": 50,

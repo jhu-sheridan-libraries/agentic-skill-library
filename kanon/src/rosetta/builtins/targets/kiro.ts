@@ -33,6 +33,20 @@ import type {
 // Kiro Target Translator
 // ═══════════════════════════════════════════════════════════════════════════════
 
+function allocateHookPath(baseName: string, usedPaths: Set<string>): string {
+	const normalizedBaseName = `${baseName}.kiro.hook`;
+	let candidate = normalizedBaseName;
+	let suffix = 1;
+
+	while (usedPaths.has(candidate)) {
+		candidate = `${baseName}-${suffix}.kiro.hook`;
+		suffix += 1;
+	}
+
+	usedPaths.add(candidate);
+	return candidate;
+}
+
 /**
  * Translate a canonical KnowledgeArtifact into Kiro harness-native output.
  *
@@ -76,6 +90,7 @@ export function translateKiroTarget(
 
 	// Render output files
 	const outputFiles: OutputFile[] = [];
+	const usedHookPaths = new Set<string>();
 
 	if (variant === "power") {
 		// Generate POWER.md
@@ -138,7 +153,7 @@ export function translateKiroTarget(
 		});
 		const hookName = hook.name.toLowerCase().replace(/\s+/g, "-");
 		outputFiles.push({
-			relativePath: `${hookName}.kiro.hook`,
+			relativePath: allocateHookPath(hookName, usedHookPaths),
 			content: hookContent,
 			executable: false,
 		});

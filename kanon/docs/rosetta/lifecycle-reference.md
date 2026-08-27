@@ -15,11 +15,11 @@
 | `kiro` | 1.0.0 | — | — |
 | `qdeveloper` | 1.0.0 | — | — |
 | `windsurf` | 1.0.0 | — | — |
+| `kiro-power` | 0.1.0 | — | — |
+| `kiro-skill` | 0.1.0 | — | — |
 
 ## Deprecated Formats
 
 | Format | Introduced In | Deprecated In | Replacement |
 |---|---|---|---|
-| `kiro-power` | 0.1.0 | 1.0.0 | — |
-| `kiro-skill` | 0.1.0 | 1.0.0 | — |
 | `superpowers` | 0.1.0 | 1.0.0 | — |

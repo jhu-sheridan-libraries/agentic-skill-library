@@ -183,6 +183,54 @@ jobs:
           bun run build:bridge
           node bridge/mcp-server.cjs --version || true
 
+  # ── Generated-artifact drift check ──
+  # skills/ and bridge/mcp-server.cjs are committed build outputs generated
+  # from knowledge/ by `build:skills` and `build:bridge`. They can silently
+  # go stale if someone edits knowledge/ (or the bridge/template source) and
+  # forgets to regenerate. Regenerate here and fail if the working tree drifts.
+  generated-artifacts-check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kanon
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.12"
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.bun/install/cache
+            kanon/node_modules
+          key: bun-${{ runner.os }}-${{ hashFiles('kanon/bun.lock') }}
+          restore-keys: |
+            bun-${{ runner.os }}-
+
+      - run: bun install --frozen-lockfile
+
+      - name: Regenerate committed plugin skills
+        run: bun run build:skills
+
+      - name: Regenerate committed MCP bridge
+        run: bun run build:bridge
+
+      - name: Fail if committed artifacts drifted from source
+        run: |
+          # Compare committed skills/ and bridge against freshly generated output.
+          if [ -n "$(git status --porcelain skills bridge)" ]; then
+            echo "::error::Committed generated artifacts are out of sync with source."
+            echo "::error::Run 'bun run build:skills && bun run build:bridge' in kanon/ and commit the result."
+            echo "--- drift ---"
+            git status --short skills bridge
+            git diff -- skills bridge
+            exit 1
+          fi
+          echo "✓ skills/ and bridge/mcp-server.cjs are in sync with source."
+
   # ── Changelog fragment enforcement ──
   changelog-check:
     runs-on: ubuntu-latest

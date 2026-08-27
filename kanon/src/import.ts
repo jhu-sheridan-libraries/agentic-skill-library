@@ -13,6 +13,11 @@
 import { exists, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { basename, extname, join } from "node:path";
 import chalk from "chalk";
+import {
+	type AcquisitionContext,
+	buildProvenanceRecord,
+	writeBaseArtifact,
+} from "./base-cache";
 import { translateKiroPower } from "./rosetta/builtins/sources/kiro-power";
 import { translateKiroSkill } from "./rosetta/builtins/sources/kiro-skill";
 import { translateSuperpowers } from "./rosetta/builtins/sources/superpowers";
@@ -42,6 +47,30 @@ export interface ImportOptions {
 	knowledgeDir?: string;
 	/** Collection names to add to all imported artifacts. */
 	collections?: string[];
+	/**
+	 * Acquisition-driven import context. When supplied (by the Sync_Orchestrator
+	 * for an upstream-sourced import), a machine-managed ProvenanceRecord is
+	 * populated on the imported artifact and its normalized base is cached for
+	 * later three-way reconciliation. Absent for plain local-path imports, which
+	 * carry no provenance and are excluded from reconciliation (Requirement 18.17).
+	 */
+	acquisition?: ImportAcquisitionOptions;
+}
+
+/**
+ * The subset of AcquisitionContext an import caller supplies plus the workspace
+ * root used to anchor the git-ignored base cache. `importedAt` and the resolved
+ * `sourceFormat`/`contract` are derived at import time and need not be provided.
+ */
+export interface ImportAcquisitionOptions {
+	/** The upstream identifier — matches a key in config `upstreams`. */
+	upstream: string;
+	/** The source subpath within the upstream repository. */
+	sourcePath: string;
+	/** The upstream revision (subtree commit) the import was taken from. */
+	sourceRevision: string;
+	/** Workspace root anchoring `upstream/.kanon-base/` (default: process.cwd()). */
+	workspaceRoot?: string;
 }
 
 export interface ImportResult {
@@ -51,6 +80,10 @@ export interface ImportResult {
 	filesWritten: string[];
 	workflowsCopied: number;
 	skipped?: string;
+	/** True when a ProvenanceRecord was written for an acquisition import. */
+	provenanceWritten?: boolean;
+	/** The base-cache directory written, when an acquisition import cached its base. */
+	baseCachePath?: string;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -165,11 +198,28 @@ async function buildSourceDocuments(
  * requests a canonical serializer plan. Injects collections from CLI options
  * into the resulting artifact before serialization.
  */
+/**
+ * The Rosetta Stone Format_Contract identifier and version recorded in
+ * provenance for each source format, e.g. `kiro-power@1`. All built-in source
+ * contracts declare contractVersion "1.0" (see builtins/contracts.ts); the
+ * major component is recorded here.
+ */
+const SOURCE_CONTRACT_IDENTIFIERS: Record<
+	"kiro-power" | "kiro-skill" | "superpowers",
+	string
+> = {
+	"kiro-power": "kiro-power@1",
+	"kiro-skill": "kiro-skill@1",
+	superpowers: "superpowers@1",
+};
+
 function translateViaRosetta(
 	documents: readonly SourceDocument[],
 	format: "kiro-power" | "kiro-skill" | "superpowers",
 	artifactNameHint: string,
 	collections: string[],
+	acquisition: ImportAcquisitionOptions | undefined,
+	importedAt: string,
 ): {
 	artifact: KnowledgeArtifact | undefined;
 	plan:
@@ -181,6 +231,7 @@ function translateViaRosetta(
 				}>;
 		  }
 		| undefined;
+	baseDigest: string | undefined;
 	diagnostics: Array<{ severity: string; message: string }>;
 } {
 	// Build translator context
@@ -213,6 +264,7 @@ function translateViaRosetta(
 		return {
 			artifact: undefined,
 			plan: undefined,
+			baseDigest: undefined,
 			diagnostics: diagnostics.map((d) => ({
 				severity: d.severity,
 				message: d.message,
@@ -226,6 +278,40 @@ function translateViaRosetta(
 	// Inject CLI-provided collections into the candidate
 	if (collections.length > 0) {
 		artifact.frontmatter.collections = collections;
+	}
+
+	const mappedDiagnostics = diagnostics.map((d) => ({
+		severity: d.severity,
+		message: d.message,
+	}));
+
+	// For an acquisition-driven import, populate a machine-managed
+	// ProvenanceRecord BEFORE serialization so the digest is computed over the
+	// distilled content and the record is written into knowledge.md
+	// (Requirements 18.1, 18.2). The digest of the artifact WITHOUT provenance
+	// is the Base_Digest — the fingerprint of the translated upstream — and it is
+	// what a later re-sync recomputes and compares against.
+	let baseDigest: string | undefined;
+	if (acquisition) {
+		const context: AcquisitionContext = {
+			upstream: acquisition.upstream,
+			sourcePath: acquisition.sourcePath,
+			sourceFormat: format as FormatIdentifier,
+			sourceRevision: acquisition.sourceRevision,
+			contract: SOURCE_CONTRACT_IDENTIFIERS[format],
+			importedAt,
+		};
+		const { provenance, diagnostics: provDiagnostics } = buildProvenanceRecord(
+			artifact,
+			context,
+		);
+		for (const d of provDiagnostics) {
+			mappedDiagnostics.push({ severity: d.severity, message: d.message });
+		}
+		if (provenance) {
+			artifact.frontmatter.provenance = provenance;
+			baseDigest = provenance.baseDigest;
+		}
 	}
 
 	// Request a canonical serializer plan from Rosetta Stone
@@ -246,10 +332,8 @@ function translateViaRosetta(
 					})),
 				}
 			: undefined,
-		diagnostics: diagnostics.map((d) => ({
-			severity: d.severity,
-			message: d.message,
-		})),
+		baseDigest,
+		diagnostics: mappedDiagnostics,
 	};
 }
 
@@ -257,7 +341,17 @@ function translateViaRosetta(
 // Single Directory Import (preserves collision and skip behavior)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-async function importOne(
+/**
+ * Import a single source directory into the canonical knowledge tree.
+ *
+ * Preserves the legacy collision/skip/dry-run behavior. When `opts.acquisition`
+ * is supplied (an upstream-sourced, acquisition-driven import), a machine-managed
+ * ProvenanceRecord is written into the artifact's frontmatter and its normalized
+ * Base_Artifact is cached under the git-ignored `upstream/.kanon-base/` tree for
+ * later three-way reconciliation (Requirements 18.1, 18.2). Exported so the
+ * Sync_Orchestrator can drive a provenance-aware import per acquired artifact.
+ */
+export async function importOne(
 	sourceDir: string,
 	opts: ImportOptions & { dryRun: boolean; knowledgeDir: string },
 ): Promise<ImportResult> {
@@ -321,11 +415,14 @@ async function importOne(
 	// Delegate to Rosetta Stone for translation and canonical plan generation
 	const artifactNameHint = basename(sourceDir);
 	const collections = opts.collections ?? [];
-	const { artifact, plan } = translateViaRosetta(
+	const importedAt = new Date().toISOString();
+	const { artifact, plan, baseDigest } = translateViaRosetta(
 		documents,
 		detectedFormat,
 		artifactNameHint,
 		collections,
+		opts.acquisition,
+		importedAt,
 	);
 
 	if (!artifact || !plan) {
@@ -391,12 +488,49 @@ async function importOne(
 		}
 	}
 
+	// For an acquisition-driven import, cache the normalized Base_Artifact so a
+	// later re-sync can reconstruct the common ancestor for three-way
+	// reconciliation (Requirement 18.2). The cached base is the artifact WITHOUT
+	// its ProvenanceRecord — the exact content the baseDigest fingerprints — so
+	// that self-verification (verifyProvenanceBase) recomputes an identical
+	// digest on re-sync. Skipped in dry-run.
+	const provenanceWritten = Boolean(opts.acquisition && baseDigest);
+	let baseCachePath: string | undefined;
+	if (!opts.dryRun && opts.acquisition && baseDigest) {
+		const baseArtifact = stripProvenance(artifact);
+		const workspaceRoot = opts.acquisition.workspaceRoot ?? process.cwd();
+		const cacheResult = await writeBaseArtifact(
+			baseArtifact,
+			baseDigest,
+			{ upstream: opts.acquisition.upstream },
+			workspaceRoot,
+		);
+		baseCachePath = cacheResult.cachePath;
+	}
+
 	return {
 		name,
 		sourcePath: sourceDir,
 		targetPath,
 		filesWritten,
 		workflowsCopied,
+		provenanceWritten,
+		baseCachePath,
+	};
+}
+
+/**
+ * Return a shallow clone of an artifact with any ProvenanceRecord removed from
+ * its frontmatter. The Base_Artifact cached for reconciliation must exclude
+ * provenance so its recomputed digest equals the recorded baseDigest (which is
+ * computed over the provenance-free artifact).
+ */
+function stripProvenance(artifact: KnowledgeArtifact): KnowledgeArtifact {
+	const { provenance: _provenance, ...frontmatterWithoutProvenance } =
+		artifact.frontmatter;
+	return {
+		...artifact,
+		frontmatter: frontmatterWithoutProvenance,
 	};
 }
 

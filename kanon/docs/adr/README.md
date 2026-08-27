@@ -71,6 +71,8 @@ ADRs document significant architectural decisions made during the project's deve
 | [059](0059-composable-indexing-policy-pipeline.md) | Composable indexing policy pipeline for Souk Compass | Proposed | 2026-08-09 |
 | [060](0060-root-scoped-git-baselines-for-incremental-codebase-indexing.md) | Root-scoped Git baselines for incremental codebase indexing | Proposed | 2026-08-10 |
 
+| [061](0061-discover-namespaced-artifact-evals.md) | Discover namespaced artifact evals | Accepted | 2026-08-26 |
+
 ## Creating a New ADR
 
 Copy the template and fill it in:

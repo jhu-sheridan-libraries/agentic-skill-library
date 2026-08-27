@@ -52,6 +52,8 @@ const KNOWN_FRONTMATTER_FIELDS = new Set([
 	"inherit-hooks",
 	"visibility",
 	"priority",
+	// Machine-managed distillation provenance (see ProvenanceRecordSchema).
+	"provenance",
 ]);
 
 export interface ParseResult<T> {

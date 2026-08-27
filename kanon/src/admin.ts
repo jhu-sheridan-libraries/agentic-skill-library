@@ -1,5 +1,6 @@
 import { exists, mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import matter from "gray-matter";
 import yaml from "js-yaml";
 import { generateCatalog } from "./catalog";
 import {
@@ -103,6 +104,40 @@ export function validateArtifactInput(
 }
 
 /**
+ * Return whether a scalar can remain unquoted without gray-matter changing
+ * its type or value when the generated frontmatter is parsed again.
+ */
+function preservesYamlStringValue(value: string): boolean {
+	try {
+		const parsed: unknown = matter(`---\nvalue: ${value}\n---\n`).data.value;
+		return typeof parsed === "string" && parsed === value;
+	} catch {
+		return false;
+	}
+}
+
+/**
+ * Remove quotes only from strings that survive a gray-matter round-trip as
+ * strings. Non-string values remain in the representation emitted by js-yaml.
+ */
+function unquoteSafeYamlScalars(yamlContent: string): string {
+	return yamlContent
+		.split("\n")
+		.map((line: string): string => {
+			const match = line.match(/^(\s*(?:-\s+|[^:]+:\s+))'((?:[^']|'')*)'\s*$/);
+			if (!match) return line;
+
+			const [, prefix, encodedScalar] = match;
+			const scalar = encodedScalar.replace(/''/g, "'");
+			if (preservesYamlStringValue(scalar)) {
+				return `${prefix}${scalar}`;
+			}
+			return line;
+		})
+		.join("\n");
+}
+
+/**
  * Converts Frontmatter + body into a knowledge.md string.
  * Produces YAML frontmatter wrapped in `---` delimiters, followed by body content.
  */
@@ -114,8 +149,9 @@ export function serializeFrontmatter(
 		lineWidth: -1,
 		noRefs: true,
 		quotingType: "'",
+		forceQuotes: true,
 	});
-	return `---\n${yamlStr}---\n${body}`;
+	return `---\n${unquoteSafeYamlScalars(yamlStr)}---\n${body}`;
 }
 
 /**

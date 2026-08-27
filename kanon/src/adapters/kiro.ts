@@ -202,12 +202,27 @@ function buildAuditComment(resolved: ResolvedKiroInclusion): string {
 	return `<!-- forge:kiro-inclusion: ${resolved.mode} -->`;
 }
 
+function allocateHookPath(baseName: string, usedPaths: Set<string>): string {
+	const normalizedBaseName = `${baseName}.kiro.hook`;
+	let candidate = normalizedBaseName;
+	let suffix = 1;
+
+	while (usedPaths.has(candidate)) {
+		candidate = `${baseName}-${suffix}.kiro.hook`;
+		suffix += 1;
+	}
+
+	usedPaths.add(candidate);
+	return candidate;
+}
+
 export const kiroAdapter: HarnessAdapter = (
 	artifact,
 	templateEnv,
 	context?,
 ) => {
 	const files: OutputFile[] = [];
+	const usedHookPaths = new Set<string>();
 	const warnings: AdapterWarning[] = [];
 	const errors: AdapterError[] = [];
 
@@ -359,7 +374,10 @@ export const kiroAdapter: HarnessAdapter = (
 			hook: kiroHook,
 		});
 		const hookName = hook.name.toLowerCase().replace(/\s+/g, "-");
-		files.push({ relativePath: `${hookName}.kiro.hook`, content: hookContent });
+		files.push({
+			relativePath: allocateHookPath(hookName, usedHookPaths),
+			content: hookContent,
+		});
 	}
 
 	// Handle spec-hooks from harness-config
@@ -375,7 +393,7 @@ export const kiroAdapter: HarnessAdapter = (
 				.toLowerCase()
 				.replace(/\s+/g, "-");
 			files.push({
-				relativePath: `${hookName}.kiro.hook`,
+				relativePath: allocateHookPath(hookName, usedHookPaths),
 				content: hookContent,
 			});
 		}

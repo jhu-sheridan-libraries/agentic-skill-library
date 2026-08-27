@@ -14,7 +14,8 @@ Rosetta Stone replaces five independent subsystems with one coherent component:
 | `src/adapters/` | Target translators + template bundles | Routed through RS |
 | `HARNESS_FORMAT_REGISTRY` | Registry format contracts | Projected from RS |
 | `scripts/sync-upstream.sh` | Validated profiles + orchestrator | In progress |
-| `scripts/sync-kiro-powers.sh` | Validated profiles + orchestrator | In progress |
+| `scripts/sync-kiro-powers.sh` | Retired — use `sync-upstream.sh kiro-powers` | Removed |
+| drift scripts (`compare-*`, `diff-*`) | `kanon rosetta backfill` + reconcile report | Removed |
 
 ## Migration Stages
 
@@ -136,7 +137,7 @@ sorted valid choices.
 harness names, variants, defaults, and Kiro power deprecation behavior
 preserved through projections.
 
-### `scripts/sync-upstream.sh` / `scripts/sync-kiro-powers.sh`
+### `scripts/sync-upstream.sh`
 
 **Before:** Untyped configuration, inline Git operations, direct invocation
 of `kanon import`.
@@ -151,6 +152,35 @@ kanon import --all --format auto --source ./upstream/skills
 
 # New: validated named profile
 kanon rosetta translate ./upstream/skills --profile upstream-kiro --dry-run
+```
+
+### `scripts/sync-kiro-powers.sh` and the drift scripts (retired)
+
+`scripts/sync-kiro-powers.sh` was superseded by the config-driven, multi-profile
+`sync-upstream.sh` (ADR-0048) and is removed. Run the equivalent sync with the
+named profile:
+
+```bash
+# Legacy: single-purpose script
+./scripts/sync-kiro-powers.sh
+
+# New: config-driven profile
+./scripts/sync-upstream.sh kiro-powers
+```
+
+The four hand-maintained drift-comparison scripts
+(`compare-kiro-powers.sh`, `compare-kiro-powers-full.sh`, `diff-kiro-body.sh`,
+`diff-kiro-steering.sh`) are removed (ADR-0049). Their job — detecting how a
+distilled artifact diverged from upstream — is now handled mechanically by the
+provenance backfill plus the reconciliation report:
+
+```bash
+# One-time: record provenance for existing distilled artifacts
+kanon rosetta backfill --dry-run   # preview
+kanon rosetta backfill             # write provenance + seed the base cache
+
+# Thereafter: re-sync reconciles curated artifacts against upstream by provenance
+./scripts/sync-upstream.sh kiro-powers
 ```
 
 ## Compatibility Window

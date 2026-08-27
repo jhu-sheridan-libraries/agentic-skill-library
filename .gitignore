@@ -20,3 +20,9 @@ kanon/kiro-specs-workspace/iteration-1/benchmark.json
 
 # eval workspaces
 kanon/*workspace*
+
+# Rosetta Stone base-artifact cache — normalized upstream Base_Artifacts written
+# at import time and reconstructed on re-sync for three-way reconciliation.
+# Machine-generated, keyed by baseDigest; never committed (ADR-0049).
+upstream/.kanon-base/
+kanon/upstream/.kanon-base/
