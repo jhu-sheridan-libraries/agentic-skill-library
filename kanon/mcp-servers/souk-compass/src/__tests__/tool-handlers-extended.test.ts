@@ -95,46 +95,72 @@ function makeSolrResponse(
 	};
 }
 
-// Mock catalog-reader module (same as tool-handlers.test.ts)
-mock.module("../catalog-reader.js", () => ({
-	loadCatalog: async (_pluginRoot: string) => [
-		{
-			name: "commit-craft",
-			displayName: "Commit Craft",
-			description: "A skill for crafting git commits",
-			type: "skill",
-			maturity: "stable",
-			collections: ["kiro-official"],
-			keywords: ["git", "commit"],
-			author: "test-author",
-			version: "1.0.0",
-			format: "kiro",
-			category: "workflow",
-			path: "knowledge/commit-craft/knowledge.md",
-		},
-		{
-			name: "code-review",
-			displayName: "Code Review",
-			description: "A skill for code reviews",
-			type: "skill",
-			maturity: "beta",
-			collections: ["neon-caravan"],
-			keywords: ["review"],
-			author: "test-author",
-			version: "0.5.0",
-			format: "kiro",
-			category: "workflow",
-			path: "knowledge/code-review/knowledge.md",
-		},
-	],
-	readArtifactContent: async (
-		_pluginRoot: string,
-		entry: { name: string },
-	) => ({
-		frontmatter: {},
-		body: `# ${entry.name}\n\nThis is the body of ${entry.name}.`,
-	}),
-}));
+// Mock catalog-reader module (same stub as tool-handlers.test.ts).
+//
+// mock.module is process-global in Bun and is NOT scoped to this file. A
+// top-level install leaks the stub into other test files sharing the worker
+// (e.g. catalog-reader.test.ts, which needs the REAL module), causing
+// order-dependent failures under parallel runs. Install in beforeEach and undo
+// in afterEach so the mock lives only for this file's tests.
+function installCatalogReaderMock(): void {
+	mock.module("../catalog-reader.js", () => ({
+		loadCatalog: async (_pluginRoot: string) => [
+			{
+				name: "commit-craft",
+				displayName: "Commit Craft",
+				description: "A skill for crafting git commits",
+				type: "skill",
+				maturity: "stable",
+				collections: ["kiro-official"],
+				keywords: ["git", "commit"],
+				author: "test-author",
+				version: "1.0.0",
+				format: "kiro",
+				category: "workflow",
+				path: "knowledge/commit-craft/knowledge.md",
+			},
+			{
+				name: "code-review",
+				displayName: "Code Review",
+				description: "A skill for code reviews",
+				type: "skill",
+				maturity: "beta",
+				collections: ["neon-caravan"],
+				keywords: ["review"],
+				author: "test-author",
+				version: "0.5.0",
+				format: "kiro",
+				category: "workflow",
+				path: "knowledge/code-review/knowledge.md",
+			},
+		],
+		readArtifactContent: async (
+			_pluginRoot: string,
+			entry: { name: string },
+		) => ({
+			frontmatter: {},
+			body: `# ${entry.name}\n\nThis is the body of ${entry.name}.`,
+		}),
+		// Mock the module's full public shape. The production tools
+		// (compass-index/search/reindex) import resolveRequestContentRoot from
+		// this module; omitting it makes Bun throw "Export named
+		// 'resolveRequestContentRoot' not found" when the mock leaks into another
+		// file under parallel/ordered CI runs. Return the provided fallback.
+		resolveRequestContentRoot: async (
+			_input: unknown,
+			fallback: string,
+		): Promise<string> => fallback,
+	}));
+}
+
+beforeEach(() => {
+	installCatalogReaderMock();
+});
+
+afterEach(() => {
+	// Undo the global module mock so it does not leak into other test files.
+	mock.restore();
+});
 
 const sampleDoc = {
 	id: "commit-craft",

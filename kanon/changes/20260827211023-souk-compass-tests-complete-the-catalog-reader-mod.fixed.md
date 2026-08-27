@@ -1,0 +1,1 @@
+Souk Compass tests: complete the catalog-reader module mock with resolveRequestContentRoot so it matches the real module shape, fixing an order-dependent 'Export not found' SyntaxError that failed the CI test gate
