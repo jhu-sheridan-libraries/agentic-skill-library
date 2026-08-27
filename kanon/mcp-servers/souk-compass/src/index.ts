@@ -229,6 +229,16 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 						description:
 							"Split artifact content into chunks before indexing (default: false).",
 					},
+					contentRoot: {
+						type: "string",
+						description:
+							"Absolute path to the Kanon content directory (containing catalog.json and knowledge/) to index. Overrides the server's startup default for this call.",
+					},
+					project: {
+						type: "string",
+						description:
+							"Name of a project registered in ~/.solrcompass/projects.json, resolved to its content root. Ignored when contentRoot is given.",
+					},
 				},
 			},
 		},
@@ -292,6 +302,16 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 						description:
 							"When true, inline knowledge.md content in results (default: false).",
 					},
+					contentRoot: {
+						type: "string",
+						description:
+							"Absolute path to the Kanon content directory used only when includeContent is true, to read full artifact bodies. Overrides the server's startup default for this call.",
+					},
+					project: {
+						type: "string",
+						description:
+							"Name of a project registered in ~/.solrcompass/projects.json, resolved to its content root for includeContent. Ignored when contentRoot is given.",
+					},
 				},
 			},
 		},
@@ -352,6 +372,16 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 						type: "boolean",
 						description:
 							"Force re-index all artifacts regardless of changes (default: false).",
+					},
+					contentRoot: {
+						type: "string",
+						description:
+							"Absolute path to the Kanon content directory (containing catalog.json and knowledge/) to reindex. Overrides the server's startup default for this call.",
+					},
+					project: {
+						type: "string",
+						description:
+							"Name of a project registered in ~/.solrcompass/projects.json, resolved to its content root. Ignored when contentRoot is given.",
 					},
 				},
 			},

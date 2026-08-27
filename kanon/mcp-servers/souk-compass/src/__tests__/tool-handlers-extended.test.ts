@@ -43,6 +43,7 @@ function makeMockSolrClient(
 		}),
 		findByContentHash: async () => null,
 		delete: async () => {},
+		deleteByQuery: async () => {},
 		commit: async () => {},
 		health: async () => true,
 		...overrides,
@@ -902,11 +903,11 @@ describe("compass_reindex handler", () => {
 			{ id: "old-removed-artifact", version: "1.0.0", content_hash: "abc123" },
 		]);
 
-		const deletedIds: string[] = [];
+		const deleteQueries: string[] = [];
 		const ctx = makeCtx({
 			solrClient: makeMockSolrClient({
-				delete: async (docId) => {
-					deletedIds.push(docId);
+				deleteByQuery: async (query: string) => {
+					deleteQueries.push(query);
 				},
 				commit: async () => {},
 			}),
@@ -916,7 +917,48 @@ describe("compass_reindex handler", () => {
 		const data = parseResult(result);
 
 		expect(data.removed).toBe(1);
-		expect(deletedIds).toContain("old-removed-artifact");
+		// Removal deletes the whole artifact — top-level doc AND any chunk docs —
+		// so an artifact previously indexed chunked cannot leave orphans behind.
+		expect(
+			deleteQueries.some(
+				(q) =>
+					q.includes('id:"old-removed-artifact"') &&
+					q.includes('parent_artifact:"old-removed-artifact"'),
+			),
+		).toBe(true);
+	});
+
+	test("reindex replaces an artifact's existing docs before rewriting (no orphaned chunks)", async () => {
+		const handleCompassReindex = await importHandler();
+
+		// commit-craft exists in Solr with a stale version → classified "updated".
+		// The fix deletes all of its docs (top-level + chunks) before rewriting.
+		mockExistingDocs([
+			{ id: "commit-craft", version: "0.0.1", content_hash: "stale" },
+		]);
+
+		const deleteQueries: string[] = [];
+		const ctx = makeCtx({
+			solrClient: makeMockSolrClient({
+				deleteByQuery: async (query: string) => {
+					deleteQueries.push(query);
+				},
+				upsert: async () => {},
+				commit: async () => {},
+			}),
+		});
+
+		const result = await handleCompassReindex({}, ctx);
+		const data = parseResult(result);
+
+		expect(data.updated).toBeGreaterThanOrEqual(1);
+		expect(
+			deleteQueries.some(
+				(q) =>
+					q.includes('id:"commit-craft"') &&
+					q.includes('parent_artifact:"commit-craft"'),
+			),
+		).toBe(true);
 	});
 
 	test("force=true re-indexes all artifacts regardless of change detection", async () => {
