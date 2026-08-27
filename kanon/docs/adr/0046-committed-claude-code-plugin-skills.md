@@ -45,7 +45,12 @@ This intentionally does not touch the `claude-code` adapter, `format-registry.ts
 - `kanon build`'s `dist/claude-code/` output and the `kanon install --harness claude-code` flow are unchanged.
 - This does not add a `skill` format to `format-registry.ts`'s claude-code entry; that remains future scope if per-project `.claude/skills/` installation is wanted.
 
+## Follow-up
+
+2026-08-27: The "Nothing currently fails CI if it drifts from `knowledge/`" downside above is now mitigated by two complementary layers. (1) A `generated-artifacts-check` job in `.github/workflows/ci.yml` regenerates both committed artifacts (`bun run build:skills` and `bun run build:bridge`) and fails the build if the working tree drifts, with a remediation message telling the contributor to regenerate and commit. The trigger `paths` already cover every input to both generators (`knowledge/`, `templates/`, `src/`, `scripts/`, `package.json`, `bun.lock`), so no `paths` change was needed. This is the backstop — it works for fork PRs and keeps generated diffs reviewable. (2) A local Kiro `PostFileSave` hook (`.kiro/hooks/regenerate-plugin-artifacts.json`) auto-runs both generators when a source input changes locally (`knowledge/`, the claude-code skill template, or the bridge generator inputs), so drift rarely reaches CI in the first place; the developer reviews and stages the regenerated output. CI intentionally remains the source of truth (fail-on-drift), not auto-commit — auto-committing from `pull_request` would need write permissions, would not work for forks, and would hide the generated diff from review. Neither layer changes what is generated or how.
+
 ## Links and References
 
 - Supersedes/completes: [ADR-0020](./0020-mcp-bridge-as-claude-code-plugin-integration-layer.md) — delivers the "passive skill file distribution" floor that ADR-0020 described but did not implement.
 - Implementation: `kanon/scripts/generate-plugin-skills.ts`, `kanon/templates/harness-adapters/claude-code/skill.md.njk`, `.claude-plugin/plugin.json`
+- Drift guard: `.github/workflows/ci.yml` (`generated-artifacts-check` job)

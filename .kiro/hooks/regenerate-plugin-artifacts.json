@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Regenerate Committed Plugin Artifacts",
+      "trigger": "PostFileSave",
+      "description": "When a source input to the committed plugin artifacts changes (knowledge/, the claude-code skill template, or the bridge source), regenerate skills/ and bridge/mcp-server.cjs locally so drift never reaches CI. Reports what was regenerated for the developer to review and stage.",
+      "matcher": "kanon/(knowledge/.*|templates/harness-adapters/claude-code/.*|src/mcp-bridge\\.ts|src/catalog\\.ts|src/parser\\.ts|src/resolve-body\\.ts)$",
+      "action": {
+        "type": "command",
+        "command": "cd kanon && bun run build:skills && bun run build:bridge && if [ -n \"$(git status --porcelain skills bridge)\" ]; then echo \"Regenerated committed plugin artifacts (skills/ and/or bridge/mcp-server.cjs). Review and stage the changes:\"; git status --short skills bridge; else echo \"Plugin artifacts already in sync — nothing to regenerate.\"; fi",
+        "timeout": 120
+      }
+    }
+  ]
+}

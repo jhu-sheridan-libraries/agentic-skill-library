@@ -10264,7 +10264,7 @@ function finalize(ctx, schema) {
     result.$schema = "http://json-schema.org/draft-07/schema#";
   } else if (ctx.target === "draft-04") {
     result.$schema = "http://json-schema.org/draft-04/schema#";
-  } else if (ctx.target === "openapi-3.0") {} else {}
+  } else if (ctx.target === "openapi-3.0") {}
   if (ctx.external?.uri) {
     const id = ctx.external.registry.get(schema)?.id;
     if (!id)
@@ -10482,7 +10482,7 @@ var literalProcessor = (schema, ctx, json, _params) => {
     if (val === undefined) {
       if (ctx.unrepresentable === "throw") {
         throw new Error("Literal `undefined` cannot be represented in JSON Schema");
-      } else {}
+      }
     } else if (typeof val === "bigint") {
       if (ctx.unrepresentable === "throw") {
         throw new Error("BigInt literals cannot be represented in JSON Schema");
@@ -13989,7 +13989,7 @@ class StdioServerTransport {
 }
 
 // src/mcp-bridge.ts
-var __filename2 = import_node_url.fileURLToPath("file:///home/user/context-bazaar/kanon/src/mcp-bridge.ts");
+var __filename2 = import_node_url.fileURLToPath("file:///Users/stevenm/jhu.edu/context-bazaar/kanon/src/mcp-bridge.ts");
 var __dirname2 = import_node_path.dirname(__filename2);
 var ENV_PLUGIN_ROOT = process.env.CODEX_PLUGIN_ROOT ?? process.env.CLAUDE_PLUGIN_ROOT;
 var PLUGIN_ROOT_CANDIDATES = [

@@ -1,0 +1,6 @@
+source_id,source_type,year,geography,reported_outcome,verification_status,librarian_note
+A,Journal article,2022,International,Citation advantage,metadata-only,"Abstract located; methods and full text not yet checked"
+B,Policy report,2024,United States,Policy use,full-text-checked,"Defines policy use as citations in a limited set of documents"
+C,Journal article,2021,Global South,Practitioner access,citation-unverified,"Citation was suggested by an AI tool; record not yet located"
+D,Systematic review,2025,International,Multiple outcomes,full-text-checked,"Includes mostly biomedical studies and notes high heterogeneity"
+E,Repository report,2023,International,Downloads,full-text-checked,"Downloads are not evidence of reading or use"
