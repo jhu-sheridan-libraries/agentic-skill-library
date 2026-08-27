@@ -76,9 +76,11 @@ function readPkg() {
 }
 
 function writePkg(pkg: Record<string, unknown>) {
+	// Use tab indentation to match the Biome formatter, so the bumped
+	// package.json stays lint-clean without a follow-up format pass.
 	writeFileSync(
 		resolve(projectRoot, "package.json"),
-		`${JSON.stringify(pkg, null, 2)}\n`,
+		`${JSON.stringify(pkg, null, "\t")}\n`,
 	);
 }
 
