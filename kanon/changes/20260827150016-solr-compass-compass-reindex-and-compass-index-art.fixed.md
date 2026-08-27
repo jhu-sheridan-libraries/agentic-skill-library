@@ -1,0 +1,1 @@
+Solr Compass: compass_reindex and compass_index_artifacts now delete an artifact's existing docs (top-level and chunks) before rewriting, so switching chunked/unchunked or removing an artifact no longer leaves orphaned chunk documents behind

@@ -44,6 +44,7 @@ function makeMockSolrClient(
 		}),
 		findByContentHash: async () => null,
 		delete: async () => {},
+		deleteByQuery: async () => {},
 		commit: async () => {},
 		health: async () => true,
 		...overrides,

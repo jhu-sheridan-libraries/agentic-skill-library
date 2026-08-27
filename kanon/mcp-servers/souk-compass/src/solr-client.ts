@@ -364,6 +364,27 @@ export class SoukVectorClient {
 	}
 
 	/**
+	 * Delete every document matching a Solr query. Auto-commits by default;
+	 * pass `{ commit: false }` to batch with a later explicit commit.
+	 *
+	 * The caller owns the query string; callers that interpolate values must
+	 * escape them (e.g. wrap phrase values in quotes and escape quotes/backslashes).
+	 */
+	async deleteByQuery(
+		query: string,
+		options?: { commit?: boolean },
+	): Promise<void> {
+		const commit = options?.commit ?? true;
+		const url = `${this.baseUrl}/solr/${this.collection}/update${commit ? "?commit=true" : ""}`;
+
+		await this.solrFetch(url, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ delete: { query } }),
+		});
+	}
+
+	/**
 	 * Explicit commit — flush pending changes to the index.
 	 */
 	async commit(): Promise<void> {
