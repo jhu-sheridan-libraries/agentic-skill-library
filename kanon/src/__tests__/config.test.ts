@@ -712,28 +712,42 @@ describe("ForgeConfigSchema acquisitions and translations", () => {
 		expect(a?.remote).toBe("origin");
 	});
 
-	test("rejects acquisition profile with unknown fields (strict mode)", () => {
+	test("accepts acquisition profile with unknown fields (non-strict, Zod 4 shape access)", () => {
 		const result = ForgeConfigSchema.safeParse({
 			acquisitions: {
 				"my-repo": {
 					repo: "https://github.com/org/repo.git",
-					unknownField: "bad",
+					unknownField: "ignored",
 				},
 			},
 		});
-		expect(result.success).toBe(false);
+		expect(result.success).toBe(true);
+		if (!result.success) throw new Error("parse failed");
+		const profile = result.data.acquisitions?.["my-repo"] as Record<
+			string,
+			unknown
+		>;
+		expect(profile.repo).toBe("https://github.com/org/repo.git");
+		expect("unknownField" in profile).toBe(false);
 	});
 
-	test("rejects translation profile with unknown fields (strict mode)", () => {
+	test("accepts translation profile with unknown fields (non-strict, Zod 4 shape access)", () => {
 		const result = ForgeConfigSchema.safeParse({
 			translations: {
 				"my-upstream": {
 					sourceFormat: "kiro-power",
-					unknownField: "bad",
+					unknownField: "ignored",
 				},
 			},
 		});
-		expect(result.success).toBe(false);
+		expect(result.success).toBe(true);
+		if (!result.success) throw new Error("parse failed");
+		const profile = result.data.translations?.["my-upstream"] as Record<
+			string,
+			unknown
+		>;
+		expect(profile.sourceFormat).toBe("kiro-power");
+		expect("unknownField" in profile).toBe(false);
 	});
 });
 

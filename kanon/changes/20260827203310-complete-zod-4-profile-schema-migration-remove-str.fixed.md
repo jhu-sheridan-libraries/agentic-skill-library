@@ -1,0 +1,1 @@
+Complete Zod 4 profile-schema migration: remove .strict() from TranslationProfileSchema (matching AcquisitionProfileSchema) so both profiles expose .shape for the rosetta-docs-generator; update config tests to assert non-strict unknown-field handling
