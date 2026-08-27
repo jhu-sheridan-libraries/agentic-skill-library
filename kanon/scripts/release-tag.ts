@@ -16,11 +16,52 @@
  */
 
 import { execSync } from "node:child_process";
-import { readFileSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join, resolve } from "node:path";
 import { parseArgs } from "node:util";
+import {
+	type ChangelogFragment,
+	validateReleaseFragments,
+} from "./changelog-validation";
 
 const projectRoot = resolve(import.meta.dir, "..");
+
+/**
+ * Read the changelog fragments from `changes/` as filesystem-free records.
+ * Non-fragment files (e.g. `.gitkeep`) are ignored.
+ */
+function readChangelogFragments(): ChangelogFragment[] {
+	const changesDir = join(projectRoot, "changes");
+	let files: string[];
+	try {
+		files = readdirSync(changesDir).filter((file) => file.endsWith(".md"));
+	} catch {
+		return [];
+	}
+	return files.map((file) => ({
+		file,
+		content: readFileSync(join(changesDir, file), "utf-8"),
+	}));
+}
+
+/**
+ * Halt the release unless at least one substantive changelog fragment exists.
+ * Prints actionable guidance and exits nonzero when validation fails.
+ */
+function requireSubstantiveChangelogFragment(): void {
+	const result = validateReleaseFragments(readChangelogFragments());
+	if (result.valid) {
+		console.log(
+			`✓ Found ${result.substantive.length} substantive changelog fragment(s)`,
+		);
+		return;
+	}
+	console.error("Error: Release requires a substantive changelog fragment.");
+	for (const message of result.errors) {
+		console.error(`  - ${message}`);
+	}
+	process.exit(1);
+}
 
 function exec(cmd: string, opts?: { cwd?: string }) {
 	return execSync(cmd, {
@@ -105,6 +146,9 @@ const nextVersion = bumpVersion(currentVersion, bump);
 const tag = `v${nextVersion}`;
 
 console.log(`\n→ ${currentVersion} → ${nextVersion} (${tag})`);
+
+// ── Release validation: require a substantive changelog fragment ──
+requireSubstantiveChangelogFragment();
 
 if (dryRun) {
 	console.log(

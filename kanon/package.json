@@ -25,6 +25,7 @@
 		"build:souk-compass": "bun --cwd mcp-servers/souk-compass run build",
 		"prepublishOnly": "bun test && biome check src/cli.ts src/adapters/ src/backends/ src/guild/ src/help/ src/importers/ src/*.ts templates/ bridge/",
 		"test": "bun test",
+		"validate:rosetta": "bun run scripts/validate-rosetta.ts",
 		"lint": "biome check .",
 		"lint:fix": "biome check --write .",
 		"format": "biome format --write .",

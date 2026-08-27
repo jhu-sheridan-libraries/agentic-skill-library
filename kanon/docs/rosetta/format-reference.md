@@ -15,8 +15,8 @@
 | `kiro` | bidirectional | kiro | — | steering | active | 1.0 |
 | `qdeveloper` | bidirectional | qdeveloper | q-developer, amazon-q | rule | active | 1.0 |
 | `windsurf` | bidirectional | windsurf | — | rule | active | 1.0 |
-| `kiro-power` | source | kiro | — | — | deprecated | 1.0 |
-| `kiro-skill` | source | kiro | — | — | deprecated | 1.0 |
+| `kiro-power` | source | kiro | — | — | active | 1.0 |
+| `kiro-skill` | source | kiro | — | — | active | 1.0 |
 | `superpowers` | source | none | — | — | deprecated | 1.0 |
 
 ## Selection Aliases

@@ -319,10 +319,13 @@ while IFS= read -r name; do
     continue
   fi
 
+  # Note: use `$(( ))` assignment rather than `(( synced++ ))`, whose
+  # post-increment return status is nonzero when the counter is 0 and would
+  # abort the loop under `set -e`.
   if sync_one "$name"; then
-    ((synced++))
+    synced=$((synced + 1))
   else
-    ((failed++))
+    failed=$((failed + 1))
   fi
 done <<< "$ACQ_NAMES"
 

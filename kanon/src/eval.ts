@@ -73,6 +73,11 @@ interface ArtifactEvalDirectory {
 /**
  * Collect artifact directories in both supported canonical layouts:
  * knowledge/<artifact>/ and knowledge/<namespace>/<artifact>/.
+ *
+ * An eval directory is an artifact marker as well as knowledge.md. The eval
+ * scaffold intentionally creates knowledge/<artifact>/evals/ before the
+ * artifact's canonical document exists, so discovery must support that
+ * intermediate state.
  */
 async function collectArtifactEvalDirectories(
 	knowledgeDir: string,
@@ -86,7 +91,9 @@ async function collectArtifactEvalDirectories(
 		if (!entry.isDirectory()) continue;
 
 		const entryPath = join(knowledgeDir, entry.name);
-		if (await exists(join(entryPath, "knowledge.md"))) {
+		const hasKnowledgeDocument = await exists(join(entryPath, "knowledge.md"));
+		const hasEvalDirectory = await exists(join(entryPath, "evals"));
+		if (hasKnowledgeDocument || hasEvalDirectory) {
 			artifactDirectories.push({ artifactName: entry.name, path: entryPath });
 			continue;
 		}
@@ -96,7 +103,11 @@ async function collectArtifactEvalDirectories(
 			if (!nestedEntry.isDirectory()) continue;
 
 			const artifactPath = join(entryPath, nestedEntry.name);
-			if (await exists(join(artifactPath, "knowledge.md"))) {
+			const hasNestedKnowledgeDocument = await exists(
+				join(artifactPath, "knowledge.md"),
+			);
+			const hasNestedEvalDirectory = await exists(join(artifactPath, "evals"));
+			if (hasNestedKnowledgeDocument || hasNestedEvalDirectory) {
 				artifactDirectories.push({
 					artifactName: nestedEntry.name,
 					path: artifactPath,

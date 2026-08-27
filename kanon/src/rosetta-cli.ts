@@ -18,6 +18,7 @@ import { dirname, resolve } from "node:path";
 import chalk from "chalk";
 import type { Command } from "commander";
 import { loadForgeConfig } from "./config";
+import { registerBackfillCommand } from "./provenance-backfill-cli";
 import { PRETTY_PRINTERS } from "./rosetta/builtins/pretty-printers/index";
 import {
 	HARNESS_NATIVE_SOURCE_TRANSLATORS,
@@ -722,6 +723,9 @@ export function registerRosettaCommands(program: Command): void {
 
 	// Register profiles subcommand group
 	registerProfilesCommands(rosettaCmd);
+
+	// Register the provenance backfill command
+	registerBackfillCommand(rosettaCmd);
 
 	rosettaCmd
 		.command("formats")

@@ -57,7 +57,7 @@ function escapeCell(value: string): string {
 // Format Reference
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function generateFormatReference(): string {
+export function generateFormatReference(): string {
 	const lines: string[] = [
 		"# Format Reference",
 		"",
@@ -100,7 +100,7 @@ function generateFormatReference(): string {
 // Variant Reference
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function generateVariantReference(): string {
+export function generateVariantReference(): string {
 	const lines: string[] = [
 		"# Variant Reference",
 		"",
@@ -144,7 +144,7 @@ function generateVariantReference(): string {
 // Detection Reference
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function generateDetectionReference(): string {
+export function generateDetectionReference(): string {
 	const lines: string[] = [
 		"# Detection Reference",
 		"",
@@ -182,7 +182,7 @@ function generateDetectionReference(): string {
 // Lifecycle Reference
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function generateLifecycleReference(): string {
+export function generateLifecycleReference(): string {
 	const lines: string[] = [
 		"# Lifecycle Reference",
 		"",
@@ -231,7 +231,7 @@ function generateLifecycleReference(): string {
 // Compatibility Reference
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function generateCompatibilityReference(): string {
+export function generateCompatibilityReference(): string {
 	const lines: string[] = [
 		"# Compatibility Reference",
 		"",
@@ -265,7 +265,7 @@ function generateCompatibilityReference(): string {
 // Profile Field Reference
 // ═══════════════════════════════════════════════════════════════════════════════
 
-interface ZodFieldInfo {
+export interface ZodFieldInfo {
 	name: string;
 	type: string;
 	default: string;
@@ -280,7 +280,7 @@ function getZodInnerType(def: {
 	return inner?.type ?? "unknown";
 }
 
-function extractZodFields(schema: {
+export function extractZodFields(schema: {
 	shape: Record<string, unknown>;
 }): ZodFieldInfo[] {
 	const fields: ZodFieldInfo[] = [];
@@ -321,7 +321,7 @@ function extractZodFields(schema: {
 	return fields;
 }
 
-function generateProfileFieldReference(): string {
+export function generateProfileFieldReference(): string {
 	const lines: string[] = [
 		"# Profile Field Reference",
 		"",
@@ -384,7 +384,7 @@ function generateProfileFieldReference(): string {
 // Normalization Reference
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function generateNormalizationReference(): string {
+export function generateNormalizationReference(): string {
 	const lines: string[] = [
 		"# Normalization Reference",
 		"",
@@ -416,7 +416,7 @@ function generateNormalizationReference(): string {
 // Security Reference
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function generateSecurityReference(): string {
+export function generateSecurityReference(): string {
 	const lines: string[] = [
 		"# Security Reference",
 		"",
@@ -461,7 +461,7 @@ function generateSecurityReference(): string {
 // CLI Examples
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function generateCliExamples(): string {
+export function generateCliExamples(): string {
 	const lines: string[] = [
 		"# CLI Examples",
 		"",
@@ -586,7 +586,7 @@ function generateCliExamples(): string {
 // Degradation Reference (combined with compatibility)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function generateDegradationReference(): string {
+export function generateDegradationReference(): string {
 	const lines: string[] = [
 		"# Degradation Reference",
 		"",
@@ -636,7 +636,7 @@ function generateDegradationReference(): string {
 // Diagnostic Conventions (generated from DIAGNOSTIC_CODE_REGISTRY)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function generateDiagnosticConventions(): string {
+export function generateDiagnosticConventions(): string {
 	const lines: string[] = [
 		"# Diagnostic Conventions",
 		"",
@@ -714,6 +714,50 @@ function generateDiagnosticConventions(): string {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// Generated Document Manifest
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Manifest of every deterministically generated reference document mapped to
+ * the pure generator function that produces its content. Tests use this to
+ * snapshot output, verify determinism, and compare against checked-in files
+ * without triggering any filesystem writes.
+ */
+export const GENERATED_DOC_MANIFEST: ReadonlyArray<
+	readonly [filename: string, generate: () => string]
+> = [
+	["format-reference.md", generateFormatReference],
+	["variant-reference.md", generateVariantReference],
+	["detection-reference.md", generateDetectionReference],
+	["lifecycle-reference.md", generateLifecycleReference],
+	["compatibility-reference.md", generateCompatibilityReference],
+	["degradation-reference.md", generateDegradationReference],
+	["profile-field-reference.md", generateProfileFieldReference],
+	["normalization-reference.md", generateNormalizationReference],
+	["security-reference.md", generateSecurityReference],
+	["cli-examples.md", generateCliExamples],
+	["diagnostic-conventions.md", generateDiagnosticConventions],
+];
+
+/**
+ * Hand-written guidance documents (produced by task 17.2). The generator does
+ * not regenerate these; it verifies they are present. Tests assert each file
+ * exists in the output directory.
+ */
+export const GUIDANCE_DOC_FILES: readonly string[] = [
+	"architecture-guide.md",
+	"migration-guide.md",
+	"extension-guide.md",
+	"testing-guide.md",
+	"path-boundaries.md",
+	"redaction-guide.md",
+	"inert-content.md",
+];
+
+/** Absolute path to the generated documentation output directory. */
+export const DOCS_OUTPUT_DIR = OUTPUT_DIR;
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // Main
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -727,37 +771,23 @@ function main(): void {
 	console.log("Generating reference documentation...");
 	console.log("");
 
-	writeDoc("format-reference.md", generateFormatReference());
-	writeDoc("variant-reference.md", generateVariantReference());
-	writeDoc("detection-reference.md", generateDetectionReference());
-	writeDoc("lifecycle-reference.md", generateLifecycleReference());
-	writeDoc("compatibility-reference.md", generateCompatibilityReference());
-	writeDoc("degradation-reference.md", generateDegradationReference());
-	writeDoc("profile-field-reference.md", generateProfileFieldReference());
-	writeDoc("normalization-reference.md", generateNormalizationReference());
-	writeDoc("security-reference.md", generateSecurityReference());
-	writeDoc("cli-examples.md", generateCliExamples());
-	writeDoc("diagnostic-conventions.md", generateDiagnosticConventions());
+	for (const [filename, generate] of GENERATED_DOC_MANIFEST) {
+		writeDoc(filename, generate());
+	}
 
 	console.log("");
 	console.log("Guidance documents (hand-written, verified present):");
-	const guidanceFiles = [
-		"architecture-guide.md",
-		"migration-guide.md",
-		"extension-guide.md",
-		"testing-guide.md",
-		"path-boundaries.md",
-		"redaction-guide.md",
-		"inert-content.md",
-	];
-	for (const file of guidanceFiles) {
+	for (const file of GUIDANCE_DOC_FILES) {
 		console.log(`  Present: docs/rosetta/${file}`);
 	}
 
 	console.log("");
 	console.log(
-		`Done. Generated ${11} files, ${guidanceFiles.length} guidance files in docs/rosetta/`,
+		`Done. Generated ${GENERATED_DOC_MANIFEST.length} files, ${GUIDANCE_DOC_FILES.length} guidance files in docs/rosetta/`,
 	);
 }
 
-main();
+// Only run generation when executed directly (not when imported by tests).
+if (import.meta.main !== false) {
+	main();
+}
