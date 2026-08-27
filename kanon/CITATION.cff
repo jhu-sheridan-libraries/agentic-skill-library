@@ -3,8 +3,8 @@ message: "If you use this software, please cite it as below."
 type: software
 title: "Context Bazaar & Kanon "
 abstract: "Kanon is a CLI tool for authoring knowledge artifacts (skills, powers, rules, workflows, prompts, agents, templates, reference packs) in a single canonical format and compiling them to any supported AI coding assistant harness, including Kiro, Claude Code, GitHub Copilot, Cursor, Windsurf, Cline, and Amazon Q Developer. Context Bazaar is the accompanying catalog of artifacts."
-version: 0.6.0
-date-released: "2026-07-27"
+version: 0.7.1
+date-released: "2026-08-27"
 license: MIT
 repository-code: "https://github.com/thinkingsage/context-bazaar"
 authors:
