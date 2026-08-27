@@ -187,7 +187,7 @@ try {
 }
 
 // ── Step 3: Commit ──
-exec("git add package.json CHANGELOG.md changes/");
+exec("git add package.json CITATION.cff CHANGELOG.md changes/");
 exec(`git commit -m "release: ${tag}"`);
 console.log(`✓ Created release commit`);
 
