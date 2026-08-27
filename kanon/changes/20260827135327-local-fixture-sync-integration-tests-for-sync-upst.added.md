@@ -1,0 +1,1 @@
+Local-fixture sync integration tests for sync-upstream.sh and sync-kiro-powers.sh covering success, acquisition failure, pull-only, import-only, dry-run, Kiro power mapping, and multi-profile status isolation with no network access; fixed a set -e counter bug in sync-upstream.sh that made every successful run exit nonzero

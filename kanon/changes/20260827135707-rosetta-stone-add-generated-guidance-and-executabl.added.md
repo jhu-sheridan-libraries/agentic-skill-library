@@ -1,0 +1,1 @@
+rosetta-stone: add generated-guidance and executable-example tests — snapshot deterministic doc-generator output with checked-in parity, validate guidance code-example imports resolve against the public API, invoke CLI examples against a fixture, and fail when any registry/schema inventory entry is undocumented; make the doc generator importable via import.meta.main guard

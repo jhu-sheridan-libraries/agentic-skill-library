@@ -13,6 +13,7 @@
  */
 import { describe, expect, test } from "bun:test";
 import { execSync } from "node:child_process";
+import { homedir } from "node:os";
 import { resolve } from "node:path";
 
 const PROJECT_ROOT = resolve(import.meta.dir, "../..");
@@ -26,13 +27,20 @@ describe("Preservation: Existing Test Suite Passes", () => {
 		let exitCode: number;
 
 		try {
-			// Run bun test excluding this file and the bug-condition exploration test
-			// to avoid infinite recursion and known-failing exploration tests
+			// Run the child suite serially so its filesystem/environment fixtures do
+			// not race while the parent Bun process runs other test files.
 			stdout = execSync(
-				'bun test --path-ignore-patterns="**/tsc-preservation*" --path-ignore-patterns="**/tsc-clean*" 2>&1',
+				'bun test --max-concurrency=1 --path-ignore-patterns="**/tsc-preservation*" --path-ignore-patterns="**/tsc-clean*" 2>&1',
 				{
 					cwd: PROJECT_ROOT,
 					encoding: "utf-8",
+					env: {
+						...process.env,
+						// Parent tests mutate these variables while running concurrently.
+						// Keep the child suite independent of those temporary fixtures.
+						HOME: homedir(),
+						USERPROFILE: homedir(),
+					},
 					timeout: 150_000,
 				},
 			);
@@ -58,9 +66,12 @@ describe("Preservation: Existing Test Suite Passes", () => {
 		//   " K expect() calls"
 		//   "Ran T tests across F files. [Xs]"
 		// We need to match the standalone summary lines, not "(pass)" annotations
-		const passMatch = clean.match(/^\s+(\d+)\s+pass$/m);
-		const failMatch = clean.match(/^\s+(\d+)\s+fail$/m);
-		const totalMatch = clean.match(/Ran\s+(\d+)\s+tests/);
+		const passMatches = [...clean.matchAll(/^\s+(\d+)\s+pass$/gm)];
+		const failMatches = [...clean.matchAll(/^\s+(\d+)\s+fail$/gm)];
+		const totalMatches = [...clean.matchAll(/Ran\s+(\d+)\s+tests/g)];
+		const passMatch = passMatches.at(-1);
+		const failMatch = failMatches.at(-1);
+		const totalMatch = totalMatches.at(-1);
 
 		const passCount = passMatch ? Number.parseInt(passMatch[1], 10) : 0;
 		const failCount = failMatch ? Number.parseInt(failMatch[1], 10) : 0;
@@ -71,6 +82,13 @@ describe("Preservation: Existing Test Suite Passes", () => {
 		console.log(`Tests passed: ${passCount}`);
 		console.log(`Tests failed: ${failCount}`);
 		console.log(`Total tests: ${totalCount}`);
+		if (failCount > 0) {
+			const failureLines: string[] = clean
+				.split("\n")
+				.filter((line: string): boolean => line.trimStart().startsWith("✗"));
+			console.log("Failed child tests:");
+			for (const line of failureLines) console.log(line);
+		}
 		console.log("=== End Report ===\n");
 
 		// Assert: test count should be at least the known baseline

@@ -302,6 +302,21 @@
         "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
         "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
         "timestamp": 1786074898207
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787838425070
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787842797409
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787843475141
       }
     ],
     "6.1 Add shared source accounting and mapping helpers": [
@@ -523,6 +538,16 @@
         "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
         "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
         "timestamp": 1786074898304
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787838425179
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787843476079
       }
     ],
     "10.1 Implement `src/rosetta/engine.ts`": [
@@ -1012,6 +1037,21 @@
         "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
         "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
         "timestamp": 1786074899239
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787838425396
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787839075298
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787839671332
       }
     ],
     "18.3 Enforce and add the Rosetta Stone changelog fragment": [
@@ -1029,6 +1069,21 @@
         "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
         "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
         "timestamp": 1786074899290
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787838425440
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787839076386
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787839672300
       }
     ],
     "19.1 Add provenance and reconciliation schemas": [
@@ -1046,6 +1101,21 @@
         "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
         "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
         "timestamp": 1786074899346
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787838425482
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787839077123
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787839673385
       }
     ],
     "19.2 Implement the pure three-way reconciliation core in `src/rosetta/reconcile.ts`": [
@@ -1063,6 +1133,21 @@
         "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
         "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
         "timestamp": 1786074899404
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787838425525
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787839678821
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787840797351
       }
     ],
     "19.3 Compute and verify Base_Digest via the Canonical_Serializer": [
@@ -1080,6 +1165,21 @@
         "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
         "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
         "timestamp": 1786074899441
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787838425574
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787839679795
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787840798180
       }
     ],
     "19.4 Write provenance at import and cache the base artifact (orchestration)": [
@@ -1097,6 +1197,21 @@
         "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
         "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
         "timestamp": 1786074899489
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787838425619
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787840803608
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787841599347
       }
     ],
     "19.5 Add the `reconcile` collision policy and reconciliation report to the sync orchestrator": [
@@ -1114,6 +1229,21 @@
         "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
         "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
         "timestamp": 1786074899537
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787838425655
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787840804592
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787841600351
       }
     ],
     "19.6 Add a provenance backfill command and retire the drift scripts": [
@@ -1131,6 +1261,21 @@
         "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
         "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
         "timestamp": 1786074899578
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787838425698
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787841604643
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787842288934
       }
     ],
     "20. Final checkpoint - Ensure all tests pass": [
@@ -1148,6 +1293,16 @@
         "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
         "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
         "timestamp": 1786074899756
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787838425849
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787843477172
       }
     ],
     "1. Establish Rosetta Stone public schemas and deterministic contracts": [
@@ -1816,6 +1971,21 @@
         "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
         "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
         "timestamp": 1786074898981
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787838425245
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787838440689
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787839068609
       }
     ],
     "17.3 Write the fast-check test for documentation projections": [
@@ -1828,6 +1998,21 @@
         "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
         "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
         "timestamp": 1786074899113
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787838425306
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787838442078
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787839069560
       }
     ],
     "17.4 Add generated-guidance and executable-example tests": [
@@ -1840,6 +2025,21 @@
         "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
         "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
         "timestamp": 1786074899150
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787838425358
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787838442908
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787839070791
       }
     ],
     "18.1 Add Rosetta Stone architecture-boundary and synchronization tests": [
@@ -1874,6 +2074,21 @@
         "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
         "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
         "timestamp": 1786074899623
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787838425737
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787842294610
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787842778038
       }
     ],
     "19.8 Write the fast-check test for total, stable provenance outcomes": [
@@ -1886,6 +2101,21 @@
         "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
         "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
         "timestamp": 1786074899677
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787838425772
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787842296685
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787842779349
       }
     ],
     "19.9 Add reconciliation config validation and fixture regression tests": [
@@ -1898,6 +2128,21 @@
         "executionId": "a7cf0870-b5ee-4099-86ec-377598e1f0eb",
         "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
         "timestamp": 1786074899714
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787838425808
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787842296903
+      },
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787842780129
       }
     ],
     "10. Coordinate translation phases, redaction, and inspection": [
@@ -1933,6 +2178,41 @@
         "executionId": "7e8d2abc-ab3c-40e9-bfc7-ed8928c78479",
         "chatSessionId": "sess_33cfc6dd-412f-468a-9e8a-b4464216e599",
         "timestamp": 1786106197963
+      }
+    ],
+    "16. Integrate sync acquisition without crossing the pure boundary": [
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787839068700
+      }
+    ],
+    "17. Implement registry-backed guidance and executable examples": [
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787839070852
+      }
+    ],
+    "18. Add architecture enforcement, validation entry points, and release metadata": [
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787839672341
+      }
+    ],
+    "19. Implement curation-preserving reconciliation": [
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787842780193
+      }
+    ],
+    "8. Implement target translators, immutable templates, and plan validation": [
+      {
+        "executionId": "6e758ae5-2fdb-4a44-b5e0-69b2cfe785af",
+        "chatSessionId": "sess_e444ab4a-2695-4356-8be1-d449bbab8d14",
+        "timestamp": 1787843488528
       }
     ]
   }

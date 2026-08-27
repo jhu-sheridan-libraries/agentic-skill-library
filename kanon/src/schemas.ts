@@ -394,6 +394,11 @@ export const FrontmatterSchema = z
 		visibility: VisibilitySchema.optional(),
 		priority: PrioritySchema.optional(),
 		outcomes: z.array(OutcomeSchema).default([]),
+		// Machine-managed distillation provenance (see ProvenanceRecordSchema).
+		// Written by the import/acquisition path, never hand-edited. Absent for
+		// artifacts authored from scratch. Defined later in this file, so we
+		// reference it lazily to avoid a temporal-dead-zone error.
+		provenance: z.lazy(() => ProvenanceRecordSchema).optional(),
 	})
 	.passthrough()
 	.superRefine((data, ctx) => {
@@ -1448,3 +1453,201 @@ export const ProvenanceRecordSchema = z
 	})
 	.strict();
 export type ProvenanceRecord = z.infer<typeof ProvenanceRecordSchema>;
+
+// --- Reconciliation: field ownership and three-way merge ---
+
+/**
+ * The four ownership classes that determine which merge rule applies to a
+ * reconcilable field during Three_Way_Reconciliation (Requirement 18).
+ *
+ * - `curation-owned`: always keep Ours; never overwritten from upstream.
+ * - `upstream-owned`: fast-forward to Theirs when Base == Ours; conflict when
+ *   both sides diverged.
+ * - `merge-by-union`: deterministic union of Ours and Theirs additions minus
+ *   members removed between Base and Theirs.
+ * - `machine-owned`: recomputed from the merged result (never merged directly).
+ */
+export const FieldOwnershipClassSchema = z.enum([
+	"curation-owned",
+	"upstream-owned",
+	"merge-by-union",
+	"machine-owned",
+]);
+export type FieldOwnershipClass = z.infer<typeof FieldOwnershipClassSchema>;
+
+/**
+ * The closed set of canonical fields and capabilities that participate in
+ * reconciliation. A complete Field_Ownership_Policy assigns exactly one
+ * FieldOwnershipClass to every member of this set (Requirement 18.14). The
+ * Configuration_Validator rejects any policy that references a field outside
+ * this set or omits a classification for one of its members.
+ */
+export const ReconcilableFieldSchema = z.enum([
+	// Curation-owned frontmatter fields
+	"categories",
+	"trust",
+	"collections",
+	"audience",
+	"priority",
+	"visibility",
+	"hooks",
+	// Upstream-owned capabilities
+	"body",
+	"workflows",
+	"mcpServers",
+	// Merge-by-union frontmatter fields
+	"keywords",
+	"enhances",
+	"depends",
+	// Machine-owned fields
+	"provenance",
+	"version",
+]);
+export type ReconcilableField = z.infer<typeof ReconcilableFieldSchema>;
+
+/**
+ * A Field_Ownership_Policy maps each reconcilable canonical field to an
+ * ownership class. It is overridable per upstream in configuration; a complete
+ * policy classifies every member of ReconcilableFieldSchema. This base schema
+ * accepts a partial record so that per-upstream overrides can specify only the
+ * fields they change; the Configuration_Validator enforces completeness against
+ * DEFAULT_FIELD_OWNERSHIP_POLICY before use (Requirement 18.14).
+ */
+export const FieldOwnershipPolicySchema = z
+	.record(ReconcilableFieldSchema, FieldOwnershipClassSchema)
+	.refine(
+		(policy) =>
+			Object.keys(policy).every((field) =>
+				(ReconcilableFieldSchema.options as readonly string[]).includes(field),
+			),
+		{
+			message:
+				"Field_Ownership_Policy references a field outside ReconcilableFieldSchema",
+		},
+	);
+export type FieldOwnershipPolicy = z.infer<typeof FieldOwnershipPolicySchema>;
+
+/**
+ * The documented default Field_Ownership_Policy. Every reconcilable field is
+ * classified so the default is complete (Requirement 18.14). Per ADR-0049 and
+ * the Rosetta Stone design:
+ *
+ * - Curation-owned fields (`categories`, `trust`, `collections`, `audience`,
+ *   `priority`, `visibility`, `hooks`) always keep the curated (Ours) value.
+ *   `hooks` is curation-owned because maintainers routinely tune hooks locally.
+ * - Upstream-owned fields (`body`, `workflows`, `mcpServers`) fast-forward to
+ *   the upstream (Theirs) value only when the maintainer never edited them.
+ * - Merge-by-union fields (`keywords`, `enhances`, `depends`) take the
+ *   deterministic union of both sides minus upstream removals.
+ * - Machine-owned fields (`provenance`, `version`) are recomputed from the
+ *   merged result and are never merged directly.
+ */
+export const DEFAULT_FIELD_OWNERSHIP_POLICY: Readonly<
+	Record<ReconcilableField, FieldOwnershipClass>
+> = Object.freeze({
+	categories: "curation-owned",
+	trust: "curation-owned",
+	collections: "curation-owned",
+	audience: "curation-owned",
+	priority: "curation-owned",
+	visibility: "curation-owned",
+	hooks: "curation-owned",
+	body: "upstream-owned",
+	workflows: "upstream-owned",
+	mcpServers: "upstream-owned",
+	keywords: "merge-by-union",
+	enhances: "merge-by-union",
+	depends: "merge-by-union",
+	provenance: "machine-owned",
+	version: "machine-owned",
+});
+
+/**
+ * The per-field and per-artifact classification produced by a
+ * Three_Way_Reconciliation (Requirement 18).
+ */
+export const ReconciliationOutcomeSchema = z.enum([
+	"clean",
+	"fast-forward",
+	"merged",
+	"conflict",
+	"orphaned",
+	"new",
+]);
+export type ReconciliationOutcome = z.infer<typeof ReconciliationOutcomeSchema>;
+
+/**
+ * A Reconciliation_Request. `base` is optional to express the reduced-confidence
+ * two-way path used when the Base_Artifact cannot be reconstructed or its
+ * provenance digest fails self-verification (Requirements 18.11, 18.16).
+ */
+export const ReconciliationRequestSchema = z
+	.object({
+		base: KnowledgeArtifactSchema.optional(),
+		ours: KnowledgeArtifactSchema,
+		theirs: KnowledgeArtifactSchema,
+		policy: FieldOwnershipPolicySchema,
+	})
+	.strict();
+export type ReconciliationRequest = z.infer<typeof ReconciliationRequestSchema>;
+
+/**
+ * A Reconciliation_Diagnostic extends the shared TranslationDiagnostic shape
+ * with reconciliation-specific fields identifying the affected field, its
+ * ownership class, the per-field outcome, whether a Base value was available,
+ * and the confidence of the merge (reduced when Base is absent).
+ */
+export const ReconciliationDiagnosticSchema =
+	TranslationDiagnosticSchema.extend({
+		field: ReconcilableFieldSchema,
+		fieldClass: FieldOwnershipClassSchema,
+		outcome: ReconciliationOutcomeSchema,
+		baseValuePresent: z.boolean(),
+		confidence: z.enum(["full", "reduced"]),
+	}).strict();
+export type ReconciliationDiagnostic = z.infer<
+	typeof ReconciliationDiagnosticSchema
+>;
+
+/**
+ * The result of reconciling a single artifact: the merged KnowledgeArtifact,
+ * its overall outcome, and the ordered reconciliation diagnostics.
+ */
+export const ReconciliationResultSchema = z
+	.object({
+		artifact: KnowledgeArtifactSchema,
+		outcome: ReconciliationOutcomeSchema,
+		diagnostics: z.array(ReconciliationDiagnosticSchema).default([]),
+	})
+	.strict();
+export type ReconciliationResult = z.infer<typeof ReconciliationResultSchema>;
+
+/**
+ * A single entry in a Reconciliation_Report, pairing an artifact's identity
+ * (upstream and name, used for stable ordering) with its reconciliation result.
+ */
+export const ReconciliationReportEntrySchema = z
+	.object({
+		upstream: z.string().min(1),
+		artifactName: z.string().min(1),
+		result: ReconciliationResultSchema,
+	})
+	.strict();
+export type ReconciliationReportEntry = z.infer<
+	typeof ReconciliationReportEntrySchema
+>;
+
+/**
+ * A deterministic Reconciliation_Report aggregating results across every
+ * Provenance_Record-bearing artifact for one or more upstreams. Entries are
+ * ordered by outcome, then upstream identifier, then artifact name
+ * (Requirement 18.15). Carries its own machineSchemaVersion, independent of
+ * InspectionReportEnvelopeSchema and DiagnosticsEnvelopeSchema.
+ */
+export const ReconciliationReportSchema = z
+	.object({
+		machineSchemaVersion: z.literal("1.0"),
+		entries: z.array(ReconciliationReportEntrySchema).default([]),
+	})
+	.strict();
+export type ReconciliationReport = z.infer<typeof ReconciliationReportSchema>;

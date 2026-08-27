@@ -343,6 +343,32 @@ export type {
 export { computeBundleDigest } from "./templates";
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// Reconciliation — Pure three-way merge core
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export type {
+	ReconcileInput,
+	ReconciliationConfidence,
+} from "./reconcile";
+export { reconcileArtifact } from "./reconcile";
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Provenance Digest — Base_Digest computation and self-verification
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export type {
+	BaseDigestResult,
+	ProvenanceVerification,
+	SelfVerifiedReconcileInput,
+} from "./provenance-digest";
+export {
+	computeBaseDigest,
+	readProvenance,
+	selfVerifyReconcileInput,
+	verifyProvenanceBase,
+} from "./provenance-digest";
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // Renderers — Human and versioned JSON output
 // ═══════════════════════════════════════════════════════════════════════════════
 

@@ -97,7 +97,7 @@ Implement Rosetta Stone in TypeScript as a Zod-validated functional core with an
     - Cover malformed frontmatter/YAML, missing `knowledge.md`, invalid body override names, empty auxiliaries, nested workflows, extra-field collisions, and executable/file ordering.
     - _Requirements: 4.5, 4.6, 5.1, 5.2, 5.5, 5.6_
 
-- [ ] 5. Checkpoint - Ensure all foundation tests pass
+- [x] 5. Checkpoint - Ensure all foundation tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 6. Implement complete built-in source translation and pretty-printing
@@ -198,7 +198,7 @@ Implement Rosetta Stone in TypeScript as a Zod-validated functional core with an
     - Verify frozen inputs, in-memory includes/inheritance, no disk fallback, inert command/template strings, redacted translator exceptions, path errors, and normalized collision rejection.
     - _Requirements: 8.7, 12.2, 13.2, 13.6, 13.8_
 
-- [ ] 9. Checkpoint - Ensure all pure translation tests pass
+- [x] 9. Checkpoint - Ensure all pure translation tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 10. Coordinate translation phases, redaction, and inspection
@@ -320,18 +320,18 @@ Implement Rosetta Stone in TypeScript as a Zod-validated functional core with an
     - Verify every target variant/default, `harness-config`, compatibility warning, output byte, executable flag, and current build fixture remains equivalent.
     - _Requirements: 7.9, 14.5, 14.6, 14.7, 14.10, 16.7, 16.8_
 
-- [ ] 16. Integrate sync acquisition without crossing the pure boundary
+- [x] 16. Integrate sync acquisition without crossing the pure boundary
   - [x] 16.1 Add a script-facing validated profile listing/translation command
     - Return machine-readable acquisition and translation profile values/statuses without credentials or Git handles and halt before acquisition on invalid configuration.
     - _Requirements: 10.4, 10.7, 11.2, 11.6, 11.7_
   - [x] 16.2 Update `scripts/sync-upstream.sh` and `scripts/sync-kiro-powers.sh`
     - Keep Git remote/subtree/checkout operations in shell, use validated named profiles, preserve pull-only/import-only/dry-run semantics, and report acquisition and translation statuses independently.
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 14.8, 14.9_
-  - [ ] 16.3 Add local-fixture sync integration tests
+  - [x] 16.3 Add local-fixture sync integration tests
     - Use a temporary local Git repository or mocked Git runner for success, acquisition failure, pull-only, import-only, dry-run, current Kiro mapping, and multi-profile summaries with no network access.
     - _Requirements: 11.3, 11.4, 11.5, 11.6, 11.7, 14.8, 14.9, 16.9_
 
-- [ ] 17. Implement registry-backed guidance and executable examples
+- [x] 17. Implement registry-backed guidance and executable examples
   - [x] 17.1 Implement a Bun generator for registry/profile reference and executable CLI examples
     - Generate checked-in format, variant, detection, lifecycle, compatibility, profile-field/default/precedence, normalization, degradation, and security references from schemas and the frozen registry.
     - Add executable examples for listing, detection, explicit selection, inspection, dry-run, strict/JSON, inbound translation, and outbound translation.
@@ -340,55 +340,55 @@ Implement Rosetta Stone in TypeScript as a Zod-validated functional core with an
     - Add generator inputs/templates for the functional core/imperative shell, registry and sync separation, legacy import/importer/adapter/format/build/sync migration, extension contracts, diagnostic conventions, test obligations, path boundaries, redaction, and inert content.
     - Keep code examples type-checked and sourced from public Rosetta Stone exports rather than duplicated pseudocode.
     - _Requirements: 17.1, 17.5, 17.6, 17.8_
-  - [ ] 17.3 Write the fast-check test for documentation projections
+  - [x] 17.3 Write the fast-check test for documentation projections
     - **Property 28: Schema and registry documentation projections are complete**
     - Create `rosetta-property-28-documentation-projection.property.test.ts` comparing generated metadata with arbitrary profile schemas and immutable snapshots.
     - **Validates: Requirements 17.3, 17.4, 17.7**
-  - [ ] 17.4 Add generated-guidance and executable-example tests
+  - [x] 17.4 Add generated-guidance and executable-example tests
     - Snapshot deterministic generated output, type-check/import code examples, invoke CLI examples against fixtures, and fail when registry/schema inventory is undocumented.
     - _Requirements: 17.1, 17.2, 17.3, 17.4, 17.5, 17.6, 17.7, 17.8_
 
-- [ ] 18. Add architecture enforcement, validation entry points, and release metadata
+- [x] 18. Add architecture enforcement, validation entry points, and release metadata
   - [x] 18.1 Add Rosetta Stone architecture-boundary and synchronization tests
     - Scan `src/rosetta/**` imports for filesystem, subprocess, network, `process`, prompt, and filesystem-template dependencies; verify frozen inputs and compare built-ins with legacy importer/adapter/format/compatibility inventories.
     - _Requirements: 1.3, 1.4, 2.9, 12.1, 12.2, 12.3, 12.7, 16.6, 16.7_
-  - [ ] 18.2 Add a one-shot Bun validation entry point for Rosetta Stone
+  - [x] 18.2 Add a one-shot Bun validation entry point for Rosetta Stone
     - Add a Bun script/package command that runs targeted `rosetta-*.test.ts` suites once, then the full Bun suite, `bun x tsc --noEmit`, and `bun run lint`, preserving raw fast-check failures and nonzero status.
     - _Requirements: 16.1, 16.2, 16.3, 16.4, 16.5, 16.6, 16.7, 16.8, 16.9, 16.10_
-  - [ ] 18.3 Enforce and add the Rosetta Stone changelog fragment
+  - [x] 18.3 Enforce and add the Rosetta Stone changelog fragment
     - Extend Bun release validation to require a substantive fragment and add an `added` fragment summarizing the new CLI/library surface, compatibility window, migration path, and security boundary without claiming legacy removal.
     - _Requirements: 14.11, 17.1, 17.5, 17.8_
 
-- [ ] 19. Implement curation-preserving reconciliation
-  - [ ] 19.1 Add provenance and reconciliation schemas
+- [x] 19. Implement curation-preserving reconciliation
+  - [x] 19.1 Add provenance and reconciliation schemas
     - Add `ProvenanceRecordSchema` to `FrontmatterSchema` (optional, machine-managed) and register `provenance` in `KNOWN_FRONTMATTER_FIELDS` in `src/parser.ts`; add `FieldOwnershipPolicySchema`, `ReconciliationRequestSchema`, `ReconciliationDiagnosticSchema`, `ReconciliationResultSchema`, and `ReconciliationReportSchema` to `src/schemas.ts` with a documented default field-ownership policy.
     - _Requirements: 18.1, 18.8, 18.14_
-  - [ ] 19.2 Implement the pure three-way reconciliation core in `src/rosetta/reconcile.ts`
+  - [x] 19.2 Implement the pure three-way reconciliation core in `src/rosetta/reconcile.ts`
     - Implement field-class dispatch (curation-owned keep-ours, upstream-owned fast-forward/conflict, merge-by-union deterministic union, machine-owned recompute), the reduced-confidence two-way path when base is absent, deterministic diagnostics, and per-artifact outcome classification, all within the Pure_Translation_Boundary.
     - _Requirements: 18.3, 18.4, 18.5, 18.6, 18.7, 18.11, 18.12, 18.13_
-  - [ ] 19.3 Compute and verify Base_Digest via the Canonical_Serializer
+  - [x] 19.3 Compute and verify Base_Digest via the Canonical_Serializer
     - Compute `baseDigest` as `sha256` over the deterministically serialized Theirs_Artifact reusing serializer ordering; add provenance self-verification that routes hand-edited artifacts to the reduced-confidence path with a warning diagnostic.
     - _Requirements: 18.2, 18.16_
-  - [ ] 19.4 Write provenance at import and cache the base artifact (orchestration)
+  - [x] 19.4 Write provenance at import and cache the base artifact (orchestration)
     - In the import/acquisition path, populate `ProvenanceRecord` from the acquired revision and write the normalized base artifact to a git-ignored `upstream/.kanon-base/<upstream>/<name>@<digest>` cache; add the path to `.gitignore`.
     - _Requirements: 18.1, 18.2_
-  - [ ] 19.5 Add the `reconcile` collision policy and reconciliation report to the sync orchestrator
+  - [x] 19.5 Add the `reconcile` collision policy and reconciliation report to the sync orchestrator
     - Extend the PlanApplier collision policy with `reconcile`; derive the reconcile set from `ProvenanceRecord`s (not a hardcoded map); classify `orphaned`/`new`; serialize the merged artifact through existing plan validation and application; build a deterministic `ReconciliationReport` renderable as human text and versioned JSON; exclude provenance-less artifacts (fall back to existing collision behavior).
     - _Requirements: 18.3, 18.9, 18.10, 18.15, 18.17_
-  - [ ] 19.6 Add a provenance backfill command and retire the drift scripts
+  - [x] 19.6 Add a provenance backfill command and retire the drift scripts
     - Add a one-shot command that matches existing distilled artifacts to current upstream by name, records `baseDigest`, and seeds the base cache; delete `scripts/compare-kiro-powers.sh`, `scripts/compare-kiro-powers-full.sh`, `scripts/diff-kiro-body.sh`, `scripts/diff-kiro-steering.sh`, and `scripts/sync-kiro-powers.sh`.
     - _Requirements: 18.1, 18.9_
-  - [ ] 19.7 Write the fast-check test for curation-preserving deterministic reconciliation
+  - [x] 19.7 Write the fast-check test for curation-preserving deterministic reconciliation
     - Property 29: generate Base/Ours/Theirs/policy triples and assert curation preservation, fast-forward-only-when-unchanged, conflict-keeps-ours-while-applying-non-conflicting-fields, deterministic union, and repeat-run canonical equivalence with identical diagnostics; at least 100 cases, unchanged shrinking output.
     - _Requirements: 18.4, 18.5, 18.6, 18.7, 18.12, 18.13, 18.18_
-  - [ ] 19.8 Write the fast-check test for total, stable provenance outcomes
+  - [x] 19.8 Write the fast-check test for total, stable provenance outcomes
     - Property 30: assert digest stability across repeated translation, `clean` on digest equality, reduced-confidence path on missing base or failed self-verify, `orphaned`/`new` classification, and exactly-one-outcome totality.
     - _Requirements: 18.1, 18.2, 18.3, 18.8, 18.9, 18.10, 18.11, 18.16_
-  - [ ] 19.9 Add reconciliation config validation and fixture regression tests
+  - [x] 19.9 Add reconciliation config validation and fixture regression tests
     - Validate `FieldOwnershipPolicy` (reject unknown/unclassified fields), add fixture-based re-sync scenarios (clean, fast-forward, conflict, orphaned, new, no-base) asserting report output and no Curation_Loss.
     - _Requirements: 18.14, 18.15_
 
-- [ ] 20. Final checkpoint - Ensure all tests pass
+- [x] 20. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
