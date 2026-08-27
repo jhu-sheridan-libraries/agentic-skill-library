@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { CatalogEntry } from "../../../../src/schemas.js";
@@ -9,7 +9,12 @@ import { readArtifactContent } from "../catalog-reader.js";
 // them, e.g. knowledge/kiro-official/<name>/, and the catalog records the real
 // location in `path`. Ignoring that field silently excludes those artifacts
 // from the index — they fail with ENOENT and are simply absent from search.
-const ROOT = join(tmpdir(), `souk-catalog-test-${process.pid}`);
+//
+// Use mkdtempSync so each run gets a unique, collision-proof root. Deriving the
+// root from process.pid alone shares one path across every test file in a
+// parallel `bun test` run, letting another suite's cleanup race and delete
+// these fixtures mid-test (an intermittent ENOENT seen only under CI timing).
+const ROOT = mkdtempSync(join(tmpdir(), "souk-catalog-test-"));
 
 function entry(name: string, path: string): CatalogEntry {
 	return {
