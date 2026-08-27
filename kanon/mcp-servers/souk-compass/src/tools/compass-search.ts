@@ -1,4 +1,8 @@
-import { loadCatalog, readArtifactContent } from "../catalog-reader.js";
+import {
+	loadCatalog,
+	readArtifactContent,
+	resolveRequestContentRoot,
+} from "../catalog-reader.js";
 import { ErrorCodes, SoukCompassError } from "../errors.js";
 import { hybridSearch } from "../hybrid-search.js";
 import type { CompassSearchInput } from "../schemas.js";
@@ -46,15 +50,16 @@ export async function handleCompassSearch(
 		// Cross-tool chaining: inline content when includeContent is true
 		if (input.includeContent && results.length > 0) {
 			try {
-				const catalog = await loadCatalog(ctx.contentRoot);
+				const contentRoot = await resolveRequestContentRoot(
+					input,
+					ctx.contentRoot,
+				);
+				const catalog = await loadCatalog(contentRoot);
 				for (const result of results) {
 					const entry = catalog.find((e) => e.name === result.artifactName);
 					if (entry) {
 						try {
-							const { body } = await readArtifactContent(
-								ctx.contentRoot,
-								entry,
-							);
+							const { body } = await readArtifactContent(contentRoot, entry);
 							if (results.length <= 3) {
 								result.content = body;
 							} else {

@@ -546,6 +546,8 @@ export const ToolInputSchemas = {
 		name: z.string().optional(),
 		all: z.boolean().optional(),
 		chunked: z.boolean().default(false),
+		contentRoot: z.string().optional(),
+		project: z.string().optional(),
 	}),
 
 	compass_search: z.object({
@@ -560,10 +562,14 @@ export const ToolInputSchemas = {
 		snippetLength: z.number().int().positive().default(200),
 		minScore: z.number().min(0).max(1).optional(),
 		includeContent: z.boolean().default(false),
+		contentRoot: z.string().optional(),
+		project: z.string().optional(),
 	}),
 
 	compass_reindex: z.object({
 		force: z.boolean().default(false),
+		contentRoot: z.string().optional(),
+		project: z.string().optional(),
 	}),
 
 	compass_index_document: z.object({

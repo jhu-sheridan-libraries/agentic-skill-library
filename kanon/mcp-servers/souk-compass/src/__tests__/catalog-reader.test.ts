@@ -1,9 +1,14 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import type { CatalogEntry } from "../../../../src/schemas.js";
-import { readArtifactContent } from "../catalog-reader.js";
+import {
+	loadCatalog,
+	readArtifactContent,
+	resolveRequestContentRoot,
+} from "../catalog-reader.js";
+import { ErrorCodes, SoukCompassError } from "../errors.js";
 
 // Artifacts do not all live at knowledge/<name>/. Imported collections nest
 // them, e.g. knowledge/kiro-official/<name>/, and the catalog records the real
@@ -67,5 +72,69 @@ describe("readArtifactContent", () => {
 		);
 		expect(frontmatter.title).toBe("t");
 		expect(body).not.toContain("title: t");
+	});
+});
+
+describe("resolveRequestContentRoot", () => {
+	const fallback = "/startup/default";
+
+	test("explicit contentRoot wins over everything", async () => {
+		const root = await resolveRequestContentRoot(
+			{ contentRoot: "/explicit", project: "ignored" },
+			fallback,
+			{ projects: { ignored: "/registry/ignored" } },
+		);
+		expect(root).toBe(resolve("/explicit"));
+	});
+
+	test("project name resolves via the registry when no explicit root", async () => {
+		const root = await resolveRequestContentRoot(
+			{ project: "alpha" },
+			fallback,
+			{
+				projects: { alpha: "/registry/alpha/kanon" },
+			},
+		);
+		expect(root).toBe(resolve("/registry/alpha/kanon"));
+	});
+
+	test("falls back to the startup default when neither is given", async () => {
+		const root = await resolveRequestContentRoot({}, fallback, {
+			projects: {},
+		});
+		expect(root).toBe(fallback);
+	});
+
+	test("throws CONTENT_ROOT_INVALID for an unknown project name", async () => {
+		try {
+			await resolveRequestContentRoot({ project: "missing" }, fallback, {
+				projects: { alpha: "/a" },
+			});
+			throw new Error("expected resolveRequestContentRoot to throw");
+		} catch (err) {
+			expect(err).toBeInstanceOf(SoukCompassError);
+			expect((err as SoukCompassError).code).toBe(
+				ErrorCodes.CONTENT_ROOT_INVALID,
+			);
+			// Names the known projects to make the typo obvious.
+			expect((err as SoukCompassError).message).toContain("alpha");
+		}
+	});
+});
+
+describe("loadCatalog error handling", () => {
+	test("throws a legible CONTENT_ROOT_INVALID error when catalog.json is missing", async () => {
+		const emptyDir = join(ROOT, "no-catalog-here");
+		mkdirSync(emptyDir, { recursive: true });
+		try {
+			await loadCatalog(emptyDir);
+			throw new Error("expected loadCatalog to throw");
+		} catch (err) {
+			expect(err).toBeInstanceOf(SoukCompassError);
+			expect((err as SoukCompassError).code).toBe(
+				ErrorCodes.CONTENT_ROOT_INVALID,
+			);
+			expect((err as SoukCompassError).message).toContain(emptyDir);
+		}
 	});
 });
