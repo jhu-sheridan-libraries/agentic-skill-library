@@ -107,6 +107,12 @@ jobs:
       - run: bun install
 
       - name: Compile binary
+        # Native/optional deps must stay external: they are loaded lazily at
+        # runtime (via dynamic import) and cannot be bundled by bun --compile.
+        # onnxruntime-node ships a platform-specific .node addon that bun cannot
+        # resolve at compile time; @huggingface/transformers pulls it in for the
+        # local embedding provider. Keep them alongside the browser-automation
+        # externals below.
         run: |
           bun build src/cli.ts --compile \
             --target=${{ matrix.target }} \
@@ -114,7 +120,12 @@ jobs:
             --external playwright-core \
             --external playwright \
             --external electron \
-            --external chromium-bidi
+            --external chromium-bidi \
+            --external onnxruntime-node \
+            --external onnxruntime-common \
+            --external onnxruntime-web \
+            --external @huggingface/transformers \
+            --external sharp
 
       - name: Compress binary
         run: tar -czf ${{ matrix.artifact }}.tar.gz ${{ matrix.artifact }}

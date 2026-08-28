@@ -1,0 +1,1 @@
+Release build: mark onnxruntime-node/-common/-web, @huggingface/transformers, and sharp as external in the bun --compile step so the standalone binary builds (these native/optional deps are loaded lazily at runtime and cannot be bundled)
