@@ -1347,15 +1347,13 @@ export type RegistryFailure = z.infer<typeof RegistryFailureSchema>;
 
 // --- Profiles ---
 
-export const AcquisitionProfileSchema = z
-	.object({
-		repo: z.string().min(1),
-		branch: z.string().min(1).default("main"),
-		remote: z.string().min(1).default("origin"),
-		checkoutPrefix: z.string().optional(),
-		credentialReference: z.string().optional(),
-	})
-	.strict();
+export const AcquisitionProfileSchema = z.object({
+	repo: z.string().min(1),
+	branch: z.string().min(1).default("main"),
+	remote: z.string().min(1).default("origin"),
+	checkoutPrefix: z.string().optional(),
+	credentialReference: z.string().optional(),
+});
 export type AcquisitionProfile = z.infer<typeof AcquisitionProfileSchema>;
 
 export const TranslationProfileSchema = z.object({
