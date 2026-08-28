@@ -1,4 +1,8 @@
-import { loadCatalog, readArtifactContent } from "../catalog-reader.js";
+import {
+	loadCatalog,
+	readArtifactContent,
+	resolveRequestContentRoot,
+} from "../catalog-reader.js";
 import { contentHash } from "../embed-cache.js";
 import { modelIdentity } from "../embedding-provider.js";
 import { ErrorCodes, SoukCompassError } from "../errors.js";
@@ -13,8 +17,10 @@ export async function handleCompassReindex(
 	try {
 		const force = input.force ?? false;
 
+		const contentRoot = await resolveRequestContentRoot(input, ctx.contentRoot);
+
 		// 1. Load catalog entries
-		const catalog = await loadCatalog(ctx.contentRoot);
+		const catalog = await loadCatalog(contentRoot);
 
 		// 2. Query Solr for all existing artifact docs
 		const existingDocs = await fetchExistingArtifactDocs(ctx);
@@ -67,7 +73,7 @@ export async function handleCompassReindex(
 			}
 
 			// Check content hash change
-			const { body } = await readArtifactContent(ctx.contentRoot, entry);
+			const { body } = await readArtifactContent(contentRoot, entry);
 			const embeddingText = buildEmbeddingText(
 				entry.displayName,
 				entry.description,
@@ -91,18 +97,35 @@ export async function handleCompassReindex(
 		const removedIds = [...solrMap.keys()];
 		const removed = removedIds.length;
 
-		// 5. Delete removed docs
+		// 5. Delete removed artifacts — all their docs, including chunks.
+		// A removed artifact's top-level id is `entry.name`; its chunk docs carry
+		// `parent_artifact:<name>` (id `<name>__chunk_N`) and are excluded from the
+		// existing-doc query, so a plain delete-by-id would orphan them. Delete by
+		// the whole-artifact predicate instead.
 		for (const id of removedIds) {
 			try {
-				await ctx.solrClient.delete(id);
+				await ctx.solrClient.deleteByQuery(artifactDocsQuery(id), {
+					commit: false,
+				});
 			} catch {
 				// Best-effort deletion; count it anyway
 			}
 		}
 
-		// 6. Re-index added + updated artifacts
+		// 6. Re-index added + updated artifacts. Delete the artifact's existing
+		// docs first (top-level + any chunks) so a representation switch
+		// (chunked <-> unchunked) or a chunk-count change cannot leave stale
+		// chunk docs behind alongside the freshly written ones.
 		for (const { entry } of toIndex) {
-			const { body } = await readArtifactContent(ctx.contentRoot, entry);
+			try {
+				await ctx.solrClient.deleteByQuery(artifactDocsQuery(entry.name), {
+					commit: false,
+				});
+			} catch {
+				// Best-effort; the upsert below still writes the current representation.
+			}
+
+			const { body } = await readArtifactContent(contentRoot, entry);
 			const embeddingText = buildEmbeddingText(
 				entry.displayName,
 				entry.description,
@@ -145,6 +168,18 @@ export async function handleCompassReindex(
 				error: `Solr is unreachable. Ensure Solr is running at the configured URL. ${err.message}`,
 			});
 		}
+		if (
+			err instanceof SoukCompassError &&
+			err.code === ErrorCodes.CONTENT_ROOT_INVALID
+		) {
+			return jsonResult({
+				added: 0,
+				updated: 0,
+				unchanged: 0,
+				removed: 0,
+				error: err.message,
+			});
+		}
 		throw err;
 	}
 }
@@ -177,6 +212,20 @@ async function fetchExistingArtifactDocs(
 	};
 
 	return body.response?.docs ?? [];
+}
+
+/**
+ * Solr query matching every document belonging to one artifact: its top-level
+ * doc (`id`) and all of its chunk docs (`parent_artifact`). Values are quoted
+ * and escaped so a name with Solr-special characters cannot break the query.
+ */
+function artifactDocsQuery(artifactName: string): string {
+	const v = escapeSolrPhrase(artifactName);
+	return `id:"${v}" OR parent_artifact:"${v}"`;
+}
+
+function escapeSolrPhrase(value: string): string {
+	return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 }
 
 function extractMetadata(

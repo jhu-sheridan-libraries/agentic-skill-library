@@ -7,11 +7,20 @@ import {
 	spyOn,
 	test,
 } from "bun:test";
+import * as realCatalogReader from "../catalog-reader.js";
 import type { EmbeddingProvider } from "../embedding-provider.js";
 import type { SoukCompassConfig } from "../schemas.js";
 import type { SolrSearchResponse, SoukVectorClient } from "../solr-client.js";
 import type { ToolContext, ToolResult } from "../tools/types.js";
 import { completeToolContext } from "./test-support.js";
+
+// See tool-handlers.test.ts: mock.restore() does not undo mock.module, so we
+// capture the real catalog-reader module and re-install it after each test to
+// prevent the stub from leaking into other files under Bun's global mock registry.
+const REAL_CATALOG_READER = { ...realCatalogReader };
+function restoreRealCatalogReaderModule(): void {
+	mock.module("../catalog-reader.js", () => REAL_CATALOG_READER);
+}
 
 // ---------------------------------------------------------------------------
 // Mock factories (same patterns as tool-handlers.test.ts)
@@ -43,6 +52,7 @@ function makeMockSolrClient(
 		}),
 		findByContentHash: async () => null,
 		delete: async () => {},
+		deleteByQuery: async () => {},
 		commit: async () => {},
 		health: async () => true,
 		...overrides,
@@ -94,46 +104,75 @@ function makeSolrResponse(
 	};
 }
 
-// Mock catalog-reader module (same as tool-handlers.test.ts)
-mock.module("../catalog-reader.js", () => ({
-	loadCatalog: async (_pluginRoot: string) => [
-		{
-			name: "commit-craft",
-			displayName: "Commit Craft",
-			description: "A skill for crafting git commits",
-			type: "skill",
-			maturity: "stable",
-			collections: ["kiro-official"],
-			keywords: ["git", "commit"],
-			author: "test-author",
-			version: "1.0.0",
-			format: "kiro",
-			category: "workflow",
-			path: "knowledge/commit-craft/knowledge.md",
-		},
-		{
-			name: "code-review",
-			displayName: "Code Review",
-			description: "A skill for code reviews",
-			type: "skill",
-			maturity: "beta",
-			collections: ["neon-caravan"],
-			keywords: ["review"],
-			author: "test-author",
-			version: "0.5.0",
-			format: "kiro",
-			category: "workflow",
-			path: "knowledge/code-review/knowledge.md",
-		},
-	],
-	readArtifactContent: async (
-		_pluginRoot: string,
-		entry: { name: string },
-	) => ({
-		frontmatter: {},
-		body: `# ${entry.name}\n\nThis is the body of ${entry.name}.`,
-	}),
-}));
+// Mock catalog-reader module (same stub as tool-handlers.test.ts).
+//
+// mock.module is process-global in Bun and is NOT scoped to this file. A
+// top-level install leaks the stub into other test files sharing the worker
+// (e.g. catalog-reader.test.ts, which needs the REAL module), causing
+// order-dependent failures under parallel runs. Install in beforeEach and undo
+// in afterEach so the mock lives only for this file's tests.
+function installCatalogReaderMock(): void {
+	mock.module("../catalog-reader.js", () => ({
+		loadCatalog: async (_pluginRoot: string) => [
+			{
+				name: "commit-craft",
+				displayName: "Commit Craft",
+				description: "A skill for crafting git commits",
+				type: "skill",
+				maturity: "stable",
+				collections: ["kiro-official"],
+				keywords: ["git", "commit"],
+				author: "test-author",
+				version: "1.0.0",
+				format: "kiro",
+				category: "workflow",
+				path: "knowledge/commit-craft/knowledge.md",
+			},
+			{
+				name: "code-review",
+				displayName: "Code Review",
+				description: "A skill for code reviews",
+				type: "skill",
+				maturity: "beta",
+				collections: ["neon-caravan"],
+				keywords: ["review"],
+				author: "test-author",
+				version: "0.5.0",
+				format: "kiro",
+				category: "workflow",
+				path: "knowledge/code-review/knowledge.md",
+			},
+		],
+		readArtifactContent: async (
+			_pluginRoot: string,
+			entry: { name: string },
+		) => ({
+			frontmatter: {},
+			body: `# ${entry.name}\n\nThis is the body of ${entry.name}.`,
+		}),
+		// Mock the module's full public shape. The production tools
+		// (compass-index/search/reindex) import resolveRequestContentRoot from
+		// this module; omitting it makes Bun throw "Export named
+		// 'resolveRequestContentRoot' not found" when the mock leaks into another
+		// file under parallel/ordered CI runs. Return the provided fallback.
+		resolveRequestContentRoot: async (
+			_input: unknown,
+			fallback: string,
+		): Promise<string> => fallback,
+	}));
+}
+
+beforeEach(() => {
+	installCatalogReaderMock();
+});
+
+afterEach(() => {
+	// Undo spies, then re-install the REAL catalog-reader module. mock.restore()
+	// alone does not revert mock.module, so re-mock back to the real
+	// implementation to stop the stub leaking into other test files.
+	mock.restore();
+	restoreRealCatalogReaderModule();
+});
 
 const sampleDoc = {
 	id: "commit-craft",
@@ -902,11 +941,11 @@ describe("compass_reindex handler", () => {
 			{ id: "old-removed-artifact", version: "1.0.0", content_hash: "abc123" },
 		]);
 
-		const deletedIds: string[] = [];
+		const deleteQueries: string[] = [];
 		const ctx = makeCtx({
 			solrClient: makeMockSolrClient({
-				delete: async (docId) => {
-					deletedIds.push(docId);
+				deleteByQuery: async (query: string) => {
+					deleteQueries.push(query);
 				},
 				commit: async () => {},
 			}),
@@ -916,7 +955,48 @@ describe("compass_reindex handler", () => {
 		const data = parseResult(result);
 
 		expect(data.removed).toBe(1);
-		expect(deletedIds).toContain("old-removed-artifact");
+		// Removal deletes the whole artifact — top-level doc AND any chunk docs —
+		// so an artifact previously indexed chunked cannot leave orphans behind.
+		expect(
+			deleteQueries.some(
+				(q) =>
+					q.includes('id:"old-removed-artifact"') &&
+					q.includes('parent_artifact:"old-removed-artifact"'),
+			),
+		).toBe(true);
+	});
+
+	test("reindex replaces an artifact's existing docs before rewriting (no orphaned chunks)", async () => {
+		const handleCompassReindex = await importHandler();
+
+		// commit-craft exists in Solr with a stale version → classified "updated".
+		// The fix deletes all of its docs (top-level + chunks) before rewriting.
+		mockExistingDocs([
+			{ id: "commit-craft", version: "0.0.1", content_hash: "stale" },
+		]);
+
+		const deleteQueries: string[] = [];
+		const ctx = makeCtx({
+			solrClient: makeMockSolrClient({
+				deleteByQuery: async (query: string) => {
+					deleteQueries.push(query);
+				},
+				upsert: async () => {},
+				commit: async () => {},
+			}),
+		});
+
+		const result = await handleCompassReindex({}, ctx);
+		const data = parseResult(result);
+
+		expect(data.updated).toBeGreaterThanOrEqual(1);
+		expect(
+			deleteQueries.some(
+				(q) =>
+					q.includes('id:"commit-craft"') &&
+					q.includes('parent_artifact:"commit-craft"'),
+			),
+		).toBe(true);
 	});
 
 	test("force=true re-indexes all artifacts regardless of change detection", async () => {

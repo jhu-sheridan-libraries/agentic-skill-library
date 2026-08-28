@@ -7,12 +7,23 @@ import {
 	spyOn,
 	test,
 } from "bun:test";
+import * as realCatalogReader from "../catalog-reader.js";
 import type { EmbeddingProvider } from "../embedding-provider.js";
 import { ErrorCodes, SoukCompassError } from "../errors.js";
 import type { CompassSetupInput, SoukCompassConfig } from "../schemas.js";
 import type { SolrSearchResponse, SoukVectorClient } from "../solr-client.js";
 import type { ToolContext, ToolResult } from "../tools/types.js";
 import { completeToolContext } from "./test-support.js";
+
+// Capture the real catalog-reader module up front. Bun's mock.module is
+// process-global and mock.restore() does NOT undo a module mock, so simply
+// relying on restore() lets the stub leak into other test files (notably
+// catalog-reader.test.ts, which needs the real loadCatalog to throw). We
+// re-install the real implementation in afterEach to guarantee no leak.
+const REAL_CATALOG_READER = { ...realCatalogReader };
+function restoreRealCatalogReaderModule(): void {
+	mock.module("../catalog-reader.js", () => REAL_CATALOG_READER);
+}
 
 // ---------------------------------------------------------------------------
 // Mock factories
@@ -44,6 +55,7 @@ function makeMockSolrClient(
 		}),
 		findByContentHash: async () => null,
 		delete: async () => {},
+		deleteByQuery: async () => {},
 		commit: async () => {},
 		health: async () => true,
 		...overrides,
@@ -307,46 +319,76 @@ describe("compass_setup handler", () => {
 // compass_index_artifacts
 // ===========================================================================
 
-// We mock the catalog-reader module to avoid filesystem access
-mock.module("../catalog-reader.js", () => ({
-	loadCatalog: async (_pluginRoot: string) => [
-		{
-			name: "commit-craft",
-			displayName: "Commit Craft",
-			description: "A skill for crafting git commits",
-			type: "skill",
-			maturity: "stable",
-			collections: ["kiro-official"],
-			keywords: ["git", "commit"],
-			author: "test-author",
-			version: "1.0.0",
-			format: "kiro",
-			category: "workflow",
-			path: "knowledge/commit-craft/knowledge.md",
-		},
-		{
-			name: "code-review",
-			displayName: "Code Review",
-			description: "A skill for code reviews",
-			type: "skill",
-			maturity: "beta",
-			collections: ["neon-caravan"],
-			keywords: ["review"],
-			author: "test-author",
-			version: "0.5.0",
-			format: "kiro",
-			category: "workflow",
-			path: "knowledge/code-review/knowledge.md",
-		},
-	],
-	readArtifactContent: async (
-		_pluginRoot: string,
-		entry: { name: string },
-	) => ({
-		frontmatter: {},
-		body: `# ${entry.name}\n\nThis is the body of ${entry.name}.`,
-	}),
-}));
+// Mock the catalog-reader module to avoid filesystem access.
+//
+// mock.module is process-global in Bun and is NOT automatically scoped to this
+// file. Installing it at module top level leaks the stub into every other test
+// file that runs in the same worker — notably catalog-reader.test.ts, which
+// needs the REAL module — producing order-dependent failures under parallel
+// runs. Install it in beforeEach and undo it in afterEach so the mock lives
+// only for this file's tests.
+function installCatalogReaderMock(): void {
+	mock.module("../catalog-reader.js", () => ({
+		loadCatalog: async (_pluginRoot: string) => [
+			{
+				name: "commit-craft",
+				displayName: "Commit Craft",
+				description: "A skill for crafting git commits",
+				type: "skill",
+				maturity: "stable",
+				collections: ["kiro-official"],
+				keywords: ["git", "commit"],
+				author: "test-author",
+				version: "1.0.0",
+				format: "kiro",
+				category: "workflow",
+				path: "knowledge/commit-craft/knowledge.md",
+			},
+			{
+				name: "code-review",
+				displayName: "Code Review",
+				description: "A skill for code reviews",
+				type: "skill",
+				maturity: "beta",
+				collections: ["neon-caravan"],
+				keywords: ["review"],
+				author: "test-author",
+				version: "0.5.0",
+				format: "kiro",
+				category: "workflow",
+				path: "knowledge/code-review/knowledge.md",
+			},
+		],
+		readArtifactContent: async (
+			_pluginRoot: string,
+			entry: { name: string },
+		) => ({
+			frontmatter: {},
+			body: `# ${entry.name}\n\nThis is the body of ${entry.name}.`,
+		}),
+		// Mock the module's full public shape. The production tools
+		// (compass-index/search/reindex) import resolveRequestContentRoot from
+		// this module; omitting it makes Bun throw "Export named
+		// 'resolveRequestContentRoot' not found" when the mock leaks into another
+		// file under parallel/ordered CI runs. Return the provided fallback.
+		resolveRequestContentRoot: async (
+			_input: unknown,
+			fallback: string,
+		): Promise<string> => fallback,
+	}));
+}
+
+beforeEach(() => {
+	installCatalogReaderMock();
+});
+
+afterEach(() => {
+	// Undo spies, then re-install the REAL catalog-reader module. mock.restore()
+	// alone does not revert mock.module, so we must explicitly re-mock back to the
+	// real implementation to stop the stub leaking into other test files.
+	mock.restore();
+	restoreRealCatalogReaderModule();
+});
 
 describe("compass_index_artifacts handler", () => {
 	async function importHandler() {
