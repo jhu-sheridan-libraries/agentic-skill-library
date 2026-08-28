@@ -100,8 +100,7 @@ describe("catalog filtering logic", () => {
 	test("filters by collection name", () => {
 		const filtered = sampleCatalog.filter(
 			(e) =>
-				Array.isArray(e.collections) &&
-				e.collections.includes("collection-a"),
+				Array.isArray(e.collections) && e.collections.includes("collection-a"),
 		);
 
 		expect(filtered).toHaveLength(2);

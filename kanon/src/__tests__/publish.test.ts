@@ -1,4 +1,4 @@
-import { describe, expect, mock, test, beforeEach, afterEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import type { PublishOptions, ReleaseManifest } from "../publish";
 
 // Mock external dependencies

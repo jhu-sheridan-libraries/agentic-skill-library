@@ -5,6 +5,7 @@ import {
 	generateStaticHtmlPage,
 } from "../browse-ui";
 import type { CatalogEntry } from "../schemas";
+import { makeCatalogEntry } from "./test-helpers";
 
 describe("escapeHtml utility", () => {
 	test("escapes ampersands", () => {
@@ -63,7 +64,7 @@ describe("generateHtmlPage", () => {
 		const html = generateHtmlPage();
 
 		expect(html).toContain("<!DOCTYPE html>");
-		expect(html).toContain("<html lang=\"en\">");
+		expect(html).toContain('<html lang="en">');
 		expect(html).toContain("<head>");
 		expect(html).toContain("<body>");
 		expect(html).toContain("</html>");
@@ -116,7 +117,7 @@ describe("generateHtmlPage", () => {
 });
 
 describe("generateStaticHtmlPage", () => {
-	const sampleEntry: CatalogEntry = {
+	const sampleEntry: CatalogEntry = makeCatalogEntry({
 		name: "test-artifact",
 		displayName: "Test Artifact",
 		description: "A test artifact for testing",
@@ -124,7 +125,7 @@ describe("generateStaticHtmlPage", () => {
 		harnesses: ["kiro", "claude-code"],
 		path: "/knowledge/test-artifact",
 		type: "skill",
-	};
+	});
 
 	test("embeds catalog data in window.__CATALOG_DATA__", () => {
 		const html = generateStaticHtmlPage([sampleEntry], {});
@@ -144,7 +145,7 @@ describe("generateStaticHtmlPage", () => {
 	});
 
 	test("prevents script injection in embedded JSON data", () => {
-		const maliciousEntry: CatalogEntry = {
+		const maliciousEntry: CatalogEntry = makeCatalogEntry({
 			name: "malicious</script><script>alert(1)</script>",
 			displayName: "Malicious",
 			description: "Test",
@@ -152,7 +153,7 @@ describe("generateStaticHtmlPage", () => {
 			harnesses: ["kiro"],
 			path: "/test",
 			type: "skill",
-		};
+		});
 		const html = generateStaticHtmlPage([maliciousEntry], {});
 
 		// Should escape closing script tags and HTML comments
@@ -177,7 +178,7 @@ describe("generateStaticHtmlPage", () => {
 	});
 
 	test("properly escapes special characters in artifact names", () => {
-		const entry: CatalogEntry = {
+		const entry: CatalogEntry = makeCatalogEntry({
 			name: "test-<special>-artifact",
 			displayName: 'Test "Special" Artifact',
 			description: "Contains & special chars",
@@ -185,7 +186,7 @@ describe("generateStaticHtmlPage", () => {
 			harnesses: ["kiro"],
 			path: "/test",
 			type: "skill",
-		};
+		});
 		const html = generateStaticHtmlPage([entry], {});
 		expect(html).toContain("test-<special>-artifact"); // In JSON, should be safe
 	});
