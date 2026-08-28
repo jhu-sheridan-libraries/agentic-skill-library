@@ -7,12 +7,23 @@ import {
 	spyOn,
 	test,
 } from "bun:test";
+import * as realCatalogReader from "../catalog-reader.js";
 import type { EmbeddingProvider } from "../embedding-provider.js";
 import { ErrorCodes, SoukCompassError } from "../errors.js";
 import type { CompassSetupInput, SoukCompassConfig } from "../schemas.js";
 import type { SolrSearchResponse, SoukVectorClient } from "../solr-client.js";
 import type { ToolContext, ToolResult } from "../tools/types.js";
 import { completeToolContext } from "./test-support.js";
+
+// Capture the real catalog-reader module up front. Bun's mock.module is
+// process-global and mock.restore() does NOT undo a module mock, so simply
+// relying on restore() lets the stub leak into other test files (notably
+// catalog-reader.test.ts, which needs the real loadCatalog to throw). We
+// re-install the real implementation in afterEach to guarantee no leak.
+const REAL_CATALOG_READER = { ...realCatalogReader };
+function restoreRealCatalogReaderModule(): void {
+	mock.module("../catalog-reader.js", () => REAL_CATALOG_READER);
+}
 
 // ---------------------------------------------------------------------------
 // Mock factories
@@ -372,8 +383,11 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-	// Undo the global module mock so it does not leak into other test files.
+	// Undo spies, then re-install the REAL catalog-reader module. mock.restore()
+	// alone does not revert mock.module, so we must explicitly re-mock back to the
+	// real implementation to stop the stub leaking into other test files.
 	mock.restore();
+	restoreRealCatalogReaderModule();
 });
 
 describe("compass_index_artifacts handler", () => {

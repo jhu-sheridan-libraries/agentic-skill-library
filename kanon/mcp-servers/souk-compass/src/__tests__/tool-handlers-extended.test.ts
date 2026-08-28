@@ -7,11 +7,20 @@ import {
 	spyOn,
 	test,
 } from "bun:test";
+import * as realCatalogReader from "../catalog-reader.js";
 import type { EmbeddingProvider } from "../embedding-provider.js";
 import type { SoukCompassConfig } from "../schemas.js";
 import type { SolrSearchResponse, SoukVectorClient } from "../solr-client.js";
 import type { ToolContext, ToolResult } from "../tools/types.js";
 import { completeToolContext } from "./test-support.js";
+
+// See tool-handlers.test.ts: mock.restore() does not undo mock.module, so we
+// capture the real catalog-reader module and re-install it after each test to
+// prevent the stub from leaking into other files under Bun's global mock registry.
+const REAL_CATALOG_READER = { ...realCatalogReader };
+function restoreRealCatalogReaderModule(): void {
+	mock.module("../catalog-reader.js", () => REAL_CATALOG_READER);
+}
 
 // ---------------------------------------------------------------------------
 // Mock factories (same patterns as tool-handlers.test.ts)
@@ -158,8 +167,11 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-	// Undo the global module mock so it does not leak into other test files.
+	// Undo spies, then re-install the REAL catalog-reader module. mock.restore()
+	// alone does not revert mock.module, so re-mock back to the real
+	// implementation to stop the stub leaking into other test files.
 	mock.restore();
+	restoreRealCatalogReaderModule();
 });
 
 const sampleDoc = {
