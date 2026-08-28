@@ -46,9 +46,15 @@ describe("escapeHtml utility", () => {
 	test("prevents XSS attacks in artifact names", () => {
 		const maliciousName = '<img src=x onerror="alert(1)">';
 		const escaped = escapeHtml(maliciousName);
+		// HTML escaping neutralizes the payload by escaping the angle brackets and
+		// quotes so it can never form a live tag. The literal word "onerror" may
+		// remain as inert text; what matters is that <, > and " are escaped.
 		expect(escaped).not.toContain("<img");
-		expect(escaped).not.toContain("onerror");
+		expect(escaped).not.toContain(">");
+		expect(escaped).not.toContain('"');
 		expect(escaped).toContain("&lt;img");
+		expect(escaped).toContain("&gt;");
+		expect(escaped).toContain("&quot;");
 	});
 
 	test("prevents script injection in descriptions", () => {
