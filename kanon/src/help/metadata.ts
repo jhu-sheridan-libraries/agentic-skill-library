@@ -442,4 +442,26 @@ export const commandMetaRegistry: Record<string, CommandHelpMeta> = {
 			},
 		],
 	},
+	man: {
+		examples: [
+			{
+				comment: "Print the man page (roff) to stdout",
+				invocation: "kanon man",
+			},
+			{
+				comment: "Write the man page to a file",
+				invocation: "kanon man --output kanon.1",
+			},
+			{
+				comment: "Generate and view it with man(1)",
+				invocation: "kanon man --output kanon.1 && man ./kanon.1",
+			},
+		],
+		optionGroups: [
+			{
+				label: "Output Options",
+				options: ["--output"],
+			},
+		],
+	},
 };
