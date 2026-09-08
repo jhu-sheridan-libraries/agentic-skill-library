@@ -308,6 +308,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "arm-soc-migration",
+          "authors": [
+            "Arm"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -361,6 +372,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "aws-agentcore",
+          "authors": [
+            "AWS"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -420,6 +442,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "aws-amplify",
+          "authors": [
+            "AWS"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -474,6 +507,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "aws-devops-agent",
+          "authors": [
+            "AWS"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -527,6 +571,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "aws-healthomics",
+          "authors": [
+            "AWS"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -584,6 +639,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "aws-infrastructure-as-code",
+          "authors": [
+            "AWS"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -640,6 +706,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "aws-lambda-managed-instances",
+          "authors": [
+            "AWS"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -694,6 +771,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "aws-mcp",
+          "authors": [
+            "AWS"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -764,6 +852,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "aws-observability",
+          "authors": [
+            "AWS"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -817,6 +916,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "aws-sam",
+          "authors": [
+            "AWS"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -867,6 +977,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "aws-step-functions",
+          "authors": [
+            "AWS"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -933,6 +1054,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "aws-transform",
+          "authors": [
+            "AWS"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -980,6 +1112,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "aws-transform-agent-toolkit",
+          "authors": [
+            "AWS"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -1085,6 +1228,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "checkout-api-reference",
+          "authors": [
+            "Checkout.com"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -1140,6 +1294,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "cloud-architect",
+          "authors": [
+            "Christian Bonzelet"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -1195,6 +1360,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "cloudwatch-application-signals",
+          "authors": [
+            "AWS"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -1308,6 +1484,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "databricks",
+          "authors": [
+            "Databricks"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -1363,6 +1550,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "datadog",
+          "authors": [
+            "Datadog"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -1476,6 +1674,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "dynatrace",
+          "authors": [
+            "Dynatrace"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -1532,6 +1741,20 @@
     "collections": [
       "library-ai-workshop"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "facilitate-library-ai-workshop",
+          "authors": [
+            "Library AI Workshop maintainers"
+          ],
+          "url": "https://github.com/eudaemon-ai/academic-ai-library-workshop",
+          "license": "MPL-2.0",
+          "source-repo": "eudaemon-ai/academic-ai-library-workshop",
+          "relationship": "packaged"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -1593,6 +1816,19 @@
       "Uses the highest-reasoning model available (e.g. Claude Opus, GPT-5-class) for design and orchestration quality"
     ],
     "collections": [],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "factory-harness",
+          "authors": [
+            "robin (revfactory)"
+          ],
+          "license": "Apache-2.0",
+          "relationship": "adapted"
+        }
+      ],
+      "curated-by": "Steven J. Miklovic, Johns Hopkins DRCC"
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -1706,6 +1942,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "figma",
+          "authors": [
+            "Figma"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -1760,6 +2007,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "gcp-aws-migrate",
+          "authors": [
+            "AWS"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -1817,6 +2075,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "graviton-migration-power",
+          "authors": [
+            "AWS"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -1918,6 +2187,19 @@
     "collections": [
       "jh-drcc"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "jhu-editorial-check",
+          "authors": [
+            "Johns Hopkins editorial guidance maintainers"
+          ],
+          "url": "https://github.com/Users/stevenm",
+          "source-repo": "Users/stevenm",
+          "relationship": "packaged"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -2034,6 +2316,18 @@
       "jh-drcc",
       "neon-caravan"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "karpathy-mode",
+          "authors": [
+            "Andrej Karpathy"
+          ],
+          "relationship": "packaged"
+        }
+      ],
+      "curated-by": "Forrest Chang"
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -2204,6 +2498,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "localstack",
+          "authors": [
+            "LocalStack"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -2258,6 +2563,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "migration-to-aws",
+          "authors": [
+            "AWS"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -2371,6 +2687,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "neon",
+          "authors": [
+            "Neon"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -2472,6 +2799,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "postman",
+          "authors": [
+            "Postman"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -2521,6 +2859,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "power-builder",
+          "authors": [
+            "Kiro Team"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -2576,6 +2925,20 @@
     "collections": [
       "library-ai-workshop"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "practice-library-reference-interview",
+          "authors": [
+            "Library AI Workshop maintainers"
+          ],
+          "url": "https://github.com/eudaemon-ai/academic-ai-library-workshop",
+          "license": "MPL-2.0",
+          "source-repo": "eudaemon-ai/academic-ai-library-workshop",
+          "relationship": "packaged"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -2747,6 +3110,21 @@
     "collections": [
       "library-ai-workshop"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "review-ai-research-output",
+          "authors": [
+            "Library AI Workshop maintainers"
+          ],
+          "url": "https://github.com/eudaemon-ai/academic-ai-library-workshop",
+          "license": "MPL-2.0",
+          "source-repo": "eudaemon-ai/academic-ai-library-workshop",
+          "source-commit": "d3743bca0b176670d1694343ef6082d90933141",
+          "relationship": "packaged"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -2861,6 +3239,20 @@
     "collections": [
       "library-ai-workshop"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "run-library-ai-workshop-cohort",
+          "authors": [
+            "Library AI Workshop maintainers"
+          ],
+          "url": "https://github.com/eudaemon-ai/academic-ai-library-workshop",
+          "license": "MPL-2.0",
+          "source-repo": "eudaemon-ai/academic-ai-library-workshop",
+          "relationship": "packaged"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -2921,6 +3313,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "saas-builder",
+          "authors": [
+            "Allen Helton"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -3208,6 +3611,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "spark-troubleshooting-agent",
+          "authors": [
+            "AWS"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -3262,6 +3676,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "stackgen",
+          "authors": [
+            "StackGen"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -3318,6 +3743,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "strands",
+          "authors": [
+            "AWS"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -3371,6 +3807,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "stripe",
+          "authors": [
+            "Stripe"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -3476,6 +3923,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "terraform",
+          "authors": [
+            "HashiCorp"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -3658,6 +4116,30 @@
     "collections": [
       "byron-powers"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "The Elements of Style",
+          "authors": [
+            "William Strunk Jr."
+          ],
+          "url": "https://en.wikisource.org/wiki/The_Elements_of_Style",
+          "license": "public-domain",
+          "relationship": "verbatim"
+        },
+        {
+          "work": "obra/the-elements-of-style",
+          "authors": [
+            "obra"
+          ],
+          "url": "https://github.com/obra/the-elements-of-style",
+          "source-repo": "obra/the-elements-of-style",
+          "source-commit": "05fc4f0d2b97b7c042dd9949ad658568e4a1324e",
+          "relationship": "packaged"
+        }
+      ],
+      "notice": "Contains the complete 1918 public-domain text of William Strunk Jr.'s The Elements of Style, repackaged via obra/the-elements-of-style."
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -3713,6 +4195,17 @@
     "collections": [
       "kiro-official"
     ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "zapier",
+          "authors": [
+            "Zapier"
+          ],
+          "relationship": "verbatim"
+        }
+      ]
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []

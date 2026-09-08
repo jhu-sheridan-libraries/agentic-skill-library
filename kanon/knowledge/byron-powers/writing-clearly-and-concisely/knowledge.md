@@ -28,8 +28,26 @@ inherit-hooks: false
 visibility: public
 priority: 50
 outcomes: []
+attribution:
+  upstream:
+    - work: The Elements of Style
+      authors:
+        - William Strunk Jr.
+      license: public-domain
+      url: https://en.wikisource.org/wiki/The_Elements_of_Style
+      relationship: verbatim
+    - work: obra/the-elements-of-style
+      authors:
+        - obra
+      url: https://github.com/obra/the-elements-of-style
+      source-repo: obra/the-elements-of-style
+      source-commit: 05fc4f0d2b97b7c042dd9949ad658568e4a1324e
+      relationship: packaged
+  notice: >-
+    Contains the complete 1918 public-domain text of William Strunk Jr.'s The
+    Elements of Style, repackaged via obra/the-elements-of-style.
 ---
-> **Source and adaptation:** Faithfully imported from [obra/the-elements-of-style](https://github.com/obra/the-elements-of-style) at commit `05fc4f0d2b97b7c042dd9949ad658568e4a1324e`. The complete 1918 public-domain text by William Strunk Jr. is preserved in `workflows/elements-of-style.md`.
+> **Source & workflows:** The complete 1918 public-domain text by William Strunk Jr. is preserved in `workflows/elements-of-style.md`. Upstream source and credits are recorded in this artifact's attribution metadata (surfaced under "Sources & credits").
 
 # Writing Clearly and Concisely
 

@@ -1,7 +1,9 @@
 ---
 name: zapier
 displayName: Zapier
-description: Connect 9,000+ apps to your AI workflow — discover, enable, and execute Zapier actions directly from your AI assistant.
+description: >-
+  Connect 9,000+ apps to your AI workflow — discover, enable, and execute Zapier
+  actions directly from your AI assistant.
 keywords:
   - zapier
   - automation
@@ -18,10 +20,13 @@ keywords:
   - hubspot
 author: Zapier
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - documentation
 ecosystem: []
@@ -34,10 +39,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - Zapier
+      relationship: verbatim
+      work: zapier
 outcomes: []
-harness-config:
-  kiro:
-    format: power
 ---
 # Zapier Power
 

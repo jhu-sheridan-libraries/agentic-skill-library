@@ -1,7 +1,11 @@
 ---
 name: aws-step-functions
 displayName: AWS Step Functions
-description: Build workflows with AWS Step Functions state machines using the JSONata query language. Covers Amazon States Language (ASL) structure, state types, variables, data transformation, error handling, AWS service integration, and migrating from the JSONPath to the JSONata query language.
+description: >-
+  Build workflows with AWS Step Functions state machines using the JSONata query
+  language. Covers Amazon States Language (ASL) structure, state types,
+  variables, data transformation, error handling, AWS service integration, and
+  migrating from the JSONPath to the JSONata query language.
 keywords:
   - step functions
   - state machine
@@ -13,10 +17,13 @@ keywords:
   - orchestration
 author: AWS
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - documentation
 ecosystem: []
@@ -29,10 +36,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - AWS
+      relationship: verbatim
+      work: aws-step-functions
 outcomes: []
-harness-config:
-  kiro:
-    format: power
 ---
 # AWS Step Functions
 

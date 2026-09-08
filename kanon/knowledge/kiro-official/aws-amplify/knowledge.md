@@ -1,7 +1,11 @@
 ---
 name: aws-amplify
 displayName: Build full-stack apps with AWS Amplify
-description: Build and extend full-stack applications with AWS Amplify Gen 2 using type-safe TypeScript, guided workflows, and best practices. Covers adding features to existing Amplify backends, authentication, data models, storage, serverless functions, and AI/ML integration.
+description: >-
+  Build and extend full-stack applications with AWS Amplify Gen 2 using
+  type-safe TypeScript, guided workflows, and best practices. Covers adding
+  features to existing Amplify backends, authentication, data models, storage,
+  serverless functions, and AI/ML integration.
 keywords:
   - amplify
   - amplify gen 2
@@ -18,14 +22,19 @@ keywords:
   - deployment
 author: AWS
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - architecture
   - devops
-ecosystem: [aws, amplify]
+ecosystem:
+  - aws
+  - amplify
 depends: []
 enhances: []
 maturity: stable
@@ -35,9 +44,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
-harness-config:
-  kiro:
-    format: power
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - AWS
+      relationship: verbatim
+      work: aws-amplify
+outcomes: []
 ---
 # AWS Amplify Gen 2
 

@@ -80,3 +80,7 @@ Load these only when the workflow calls for them (progressive disclosure):
 - `references/AI-TOOL-GUIDE.md` — AI TOOL GUIDE
 - `references/SCENARIOS.md` — SCENARIOS
 - `references/UPSTREAM-LICENSE-MPL-2.0.txt` — UPSTREAM LICENSE MPL 2.0
+---
+
+## Sources & credits
+- **practice-library-reference-interview** — Library AI Workshop maintainers [packaged] (MPL-2.0) — https://github.com/eudaemon-ai/academic-ai-library-workshop

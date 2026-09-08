@@ -1,7 +1,11 @@
 ---
 name: aws-transform
 displayName: AWS Transform
-description: 'Migrate, modernize, and upgrade codebases: .NET Framework to .NET 8/10, mainframe COBOL to Java, VMware VMs to EC2, SQL Server/Oracle/MySQL to Aurora, and Java/Python/Node.js version upgrades or AWS SDK migrations. Assess, plan, and execute code transformations from your IDE.'
+description: >-
+  Migrate, modernize, and upgrade codebases: .NET Framework to .NET 8/10,
+  mainframe COBOL to Java, VMware VMs to EC2, SQL Server/Oracle/MySQL to Aurora,
+  and Java/Python/Node.js version upgrades or AWS SDK migrations. Assess, plan,
+  and execute code transformations from your IDE.
 keywords:
   - migrate
   - modernize
@@ -29,10 +33,13 @@ keywords:
   - AWS Transform - continuous modernization
 author: AWS
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - documentation
 ecosystem: []
@@ -45,10 +52,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - AWS
+      relationship: verbatim
+      work: aws-transform
 outcomes: []
-harness-config:
-  kiro:
-    format: power
 ---
 # AWS Transform Power
 

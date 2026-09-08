@@ -1,0 +1,27 @@
+{
+  "decisions": [
+    {
+      "id": "capture-point",
+      "title": "How attribution is captured",
+      "options": ["Import-time wizard (derive + confirm)", "Hand-authored frontmatter block only"],
+      "recommended": "Import-time wizard (derive + confirm)",
+      "answer": "Import-time wizard (derive + confirm)"
+    },
+    {
+      "id": "storage-shape",
+      "title": "Where attribution lives",
+      "options": ["New curation-owned `attribution` block, separate from `provenance`", "Extend the machine-owned `provenance` block"],
+      "recommended": "New curation-owned `attribution` block, separate from `provenance`",
+      "answer": "New curation-owned `attribution` block, separate from `provenance`"
+    },
+    {
+      "id": "author-compat",
+      "title": "Relationship to the existing `author` field",
+      "options": ["Keep `author` as display string, `attribution` is additive", "Replace `author` with structured attribution"],
+      "recommended": "Keep `author` as display string, `attribution` is additive",
+      "answer": "Keep `author` as display string, `attribution` is additive"
+    }
+  ],
+  "blocking": null,
+  "context": { "template": "rosetta-stone", "adr": "0064-structured-upstream-attribution" }
+}

@@ -1,7 +1,9 @@
 ---
 name: stripe
 displayName: Stripe Payments
-description: Build payment integrations with Stripe - accept payments, manage subscriptions, handle billing, and process refunds
+description: >-
+  Build payment integrations with Stripe - accept payments, manage
+  subscriptions, handle billing, and process refunds
 keywords:
   - stripe
   - payments
@@ -13,14 +15,18 @@ keywords:
   - payment-intents
 author: Stripe
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - devops
   - security
-ecosystem: [stripe]
+ecosystem:
+  - stripe
 depends: []
 enhances: []
 maturity: stable
@@ -30,9 +36,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
-harness-config:
-  kiro:
-    format: power
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - Stripe
+      relationship: verbatim
+      work: stripe
+outcomes: []
 ---
 # Stripe Payments Power
 

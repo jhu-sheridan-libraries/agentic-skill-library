@@ -1,7 +1,9 @@
 ---
 name: arm-soc-migration
 displayName: Perform Migration between Arm SoC
-description: Guides migration of code from one Arm SoC to another, with architecture-aware analysis and safe migration practices.
+description: >-
+  Guides migration of code from one Arm SoC to another, with architecture-aware
+  analysis and safe migration practices.
 keywords:
   - arm
   - soc
@@ -15,14 +17,19 @@ keywords:
   - cross-compile
 author: Arm
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - architecture
   - devops
-ecosystem: [arm, embedded]
+ecosystem:
+  - arm
+  - embedded
 depends: []
 enhances: []
 maturity: stable
@@ -32,9 +39,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
-harness-config:
-  kiro:
-    format: power
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - Arm
+      relationship: verbatim
+      work: arm-soc-migration
+outcomes: []
 ---
 # Kiro Arm SoC Migration Power
 

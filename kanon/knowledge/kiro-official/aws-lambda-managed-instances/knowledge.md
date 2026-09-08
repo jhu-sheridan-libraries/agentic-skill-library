@@ -1,7 +1,10 @@
 ---
 name: aws-lambda-managed-instances
 displayName: AWS Lambda Managed Instances
-description: Evaluate, configure, and migrate workloads to AWS Lambda Managed Instances (LMI). Run Lambda functions on EC2 instances in your account while AWS manages provisioning, patching, scaling, routing, and load balancing.
+description: >-
+  Evaluate, configure, and migrate workloads to AWS Lambda Managed Instances
+  (LMI). Run Lambda functions on EC2 instances in your account while AWS manages
+  provisioning, patching, scaling, routing, and load balancing.
 keywords:
   - lambda
   - lmi
@@ -19,10 +22,13 @@ keywords:
   - scheduled-scaling
 author: AWS
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - documentation
 ecosystem: []
@@ -35,10 +41,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - AWS
+      relationship: verbatim
+      work: aws-lambda-managed-instances
 outcomes: []
-harness-config:
-  kiro:
-    format: power
 ---
 # AWS Lambda Managed Instances (LMI)
 

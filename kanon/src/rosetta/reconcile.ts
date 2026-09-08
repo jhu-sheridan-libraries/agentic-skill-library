@@ -146,6 +146,11 @@ const FIELD_ACCESSORS: Readonly<Record<ReconcilableField, FieldAccessor>> = {
 		read: (a) => a.hooks,
 		isArray: true,
 	},
+	attribution: {
+		fieldPath: "frontmatter.attribution",
+		read: (a) => a.frontmatter.attribution,
+		isArray: false,
+	},
 	// Upstream-owned capabilities
 	body: {
 		fieldPath: "body",
@@ -211,6 +216,7 @@ const FRONTMATTER_FIELDS: ReadonlySet<ReconcilableField> =
 		"audience",
 		"priority",
 		"visibility",
+		"attribution",
 		"keywords",
 		"enhances",
 		"depends",

@@ -1,7 +1,9 @@
 ---
 name: power-builder
 displayName: Power Builder
-description: Complete guide for building and testing new Kiro Powers with templates, best practices, and validation
+description: >-
+  Complete guide for building and testing new Kiro Powers with templates, best
+  practices, and validation
 keywords:
   - kiro power
   - power builder
@@ -11,10 +13,13 @@ keywords:
   - power documentation
 author: Kiro Team
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - documentation
   - devops
@@ -28,9 +33,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
-harness-config:
-  kiro:
-    format: power
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - Kiro Team
+      relationship: verbatim
+      work: power-builder
+outcomes: []
 ---
 # Power Builder
 

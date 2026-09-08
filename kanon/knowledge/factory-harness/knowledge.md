@@ -45,6 +45,14 @@ harness-config:
     format: claude-md
   codex:
     format: skill
+attribution:
+  upstream:
+    - work: factory-harness
+      authors:
+        - robin (revfactory)
+      license: Apache-2.0
+      relationship: adapted
+  curated-by: Steven J. Miklovic, Johns Hopkins DRCC
 ---
 # Factory Harness — Agent Team & Skill Architect
 
