@@ -73,6 +73,8 @@ async function loadArtifactEntry(
 		successor: fm.successor,
 		replaces: fm.replaces,
 		collections: fm.collections,
+		// Human/legal attribution (ADR-0064) — projected verbatim when present.
+		...(fm.attribution ? { attribution: fm.attribution } : {}),
 		// Catalog visibility & ordering (Req 4). Default when omitted in frontmatter.
 		visibility: fm.visibility ?? "public",
 		priority: fm.priority ?? 50,

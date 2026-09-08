@@ -120,3 +120,7 @@ Load these only when the workflow calls for them (progressive disclosure):
 - `references/course/sample-data/evidence-notes.csv` — Course Sample Data Evidence Notes
 - `references/course/sample-data/research-request.txt` — Course Sample Data Research Request
 - `references/course/sample-data/usage-report.csv` — Course Sample Data Usage Report
+---
+
+## Sources & credits
+- **facilitate-library-ai-workshop** — Library AI Workshop maintainers [packaged] (MPL-2.0) — https://github.com/eudaemon-ai/academic-ai-library-workshop

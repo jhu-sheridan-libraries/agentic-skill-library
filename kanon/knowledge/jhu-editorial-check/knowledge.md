@@ -1,30 +1,59 @@
 ---
 name: jhu-editorial-check
 displayName: JHU Editorial Check
-description: Review and revise Johns Hopkins communications for editorial style, voice, ethical AI use, official asset risks, and escalation needs without claiming institutional approval.
-keywords: [johns-hopkins, editorial-style, copyediting, voice-and-tone, ethical-ai, brand-review, accessibility, escalation]
+description: >-
+  Review and revise Johns Hopkins communications for editorial style, voice,
+  ethical AI use, official asset risks, and escalation needs without claiming
+  institutional approval.
+keywords:
+  - johns-hopkins
+  - editorial-style
+  - copyediting
+  - voice-and-tone
+  - ethical-ai
+  - brand-review
+  - accessibility
+  - escalation
 author: Johns Hopkins editorial guidance maintainers
 version: 0.1.1
-harnesses: [codex, claude-code]
 type: skill
+harnesses:
+  - codex
+  - claude-code
 inclusion: manual
-categories: [documentation, writing, accessibility]
-ecosystem: [johns-hopkins, editorial]
+harness-config:
+  claude-code:
+    format: claude-md
+  codex:
+    format: skill
+categories:
+  - documentation
+  - writing
+  - accessibility
+ecosystem:
+  - johns-hopkins
+  - editorial
 depends: []
 enhances: []
 maturity: beta
 trust: community
 audience: advanced
 model-assumptions: []
-collections: [jh-drcc]
+collections:
+  - jh-drcc
 inherit-hooks: false
-harness-config:
-  codex:
-    format: skill
-  claude-code:
-    format: claude-md
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - Johns Hopkins editorial guidance maintainers
+      relationship: packaged
+      source-repo: Users/stevenm
+      url: https://github.com/Users/stevenm
+      work: jhu-editorial-check
+outcomes: []
 ---
-
 > **Source and adaptation:** Transposed from the local Codex skill source at `/Users/stevenm/.codex/skills/jhu-editorial-check/`. The bundled references include a source snapshot dated May 29, 2026, so verify current official guidance before high-stakes or public-facing use. This artifact does not certify Johns Hopkins approval, legal compliance, accessibility compliance, licensing, or policy clearance.
 
 # JHU Editorial Check

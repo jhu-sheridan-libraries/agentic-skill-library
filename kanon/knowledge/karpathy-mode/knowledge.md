@@ -33,6 +33,13 @@ maturity: experimental
 model-assumptions: []
 collections: [jh-drcc, neon-caravan]
 inherit-hooks: false
+attribution:
+  upstream:
+    - work: karpathy-mode
+      authors:
+        - Andrej Karpathy
+      relationship: packaged
+  curated-by: Forrest Chang
 ---
 # Karpathy Mode
 

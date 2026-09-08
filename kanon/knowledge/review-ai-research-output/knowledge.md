@@ -1,30 +1,59 @@
 ---
 name: review-ai-research-output
 displayName: Review AI Research Output
-description: Audit an AI-assisted research output for evidence, citation fit, source coverage, calculations, reproducibility, disclosure, privacy, and human review before it is shared or used.
-keywords: [academic-libraries, research-review, evidence, citations, reproducibility, privacy, human-review]
+description: >-
+  Audit an AI-assisted research output for evidence, citation fit, source
+  coverage, calculations, reproducibility, disclosure, privacy, and human review
+  before it is shared or used.
+keywords:
+  - academic-libraries
+  - research-review
+  - evidence
+  - citations
+  - reproducibility
+  - privacy
+  - human-review
 author: Library AI Workshop maintainers
 version: 0.1.0
-harnesses: [codex, claude-code]
 type: skill
+harnesses:
+  - codex
+  - claude-code
 inclusion: manual
-categories: [documentation, accessibility]
-ecosystem: [academic-libraries, research]
-depends: []
-enhances: []
-maturity: experimental
-trust: community
-license: MPL-2.0
-audience: advanced
-model-assumptions: []
-collections: [library-ai-workshop]
-inherit-hooks: false
 harness-config:
   codex:
     format: skill
+categories:
+  - documentation
+  - accessibility
+ecosystem:
+  - academic-libraries
+  - research
+depends: []
+enhances: []
+license: MPL-2.0
+maturity: experimental
+trust: community
+audience: advanced
+model-assumptions: []
+collections:
+  - library-ai-workshop
+inherit-hooks: false
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - license: MPL-2.0
+      authors:
+        - Library AI Workshop maintainers
+      relationship: packaged
+      source-repo: eudaemon-ai/academic-ai-library-workshop
+      source-commit: d3743bca0b176670d1694343ef6082d90933141
+      url: https://github.com/eudaemon-ai/academic-ai-library-workshop
+      work: review-ai-research-output
+outcomes: []
 ---
-
-> **Source and adaptation:** Imported from [eudaemon-ai/academic-ai-library-workshop](https://github.com/eudaemon-ai/academic-ai-library-workshop) at commit `d3743bca0b176670d1694343ef6082d90933141`. The Kanon artifact preserves the upstream skill and focused references under `workflows/` for Codex progressive disclosure. Review local library policy, privacy, accessibility, and retention requirements before use.
+> **Before use:** Review local library policy, privacy, accessibility, and retention requirements. Upstream source and credits are recorded in this artifact's attribution metadata (surfaced under "Sources & credits").
 
 # Review AI-Assisted Research Output
 

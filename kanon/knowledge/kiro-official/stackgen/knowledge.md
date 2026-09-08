@@ -1,7 +1,9 @@
 ---
 name: stackgen
 displayName: StackGen Infrastructure as Code
-description: Design, manage, and deploy cloud infrastructure with StackGen - create appstacks, manage resources, configure environments, and push IaC to Git
+description: >-
+  Design, manage, and deploy cloud infrastructure with StackGen - create
+  appstacks, manage resources, configure environments, and push IaC to Git
 keywords:
   - infrastructure
   - iac
@@ -13,14 +15,19 @@ keywords:
   - deployment
 author: StackGen
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - architecture
   - devops
-ecosystem: [stackgen, terraform]
+ecosystem:
+  - stackgen
+  - terraform
 depends: []
 enhances: []
 maturity: stable
@@ -30,9 +37,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
-harness-config:
-  kiro:
-    format: power
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - StackGen
+      relationship: verbatim
+      work: stackgen
+outcomes: []
 ---
 # StackGen Power
 

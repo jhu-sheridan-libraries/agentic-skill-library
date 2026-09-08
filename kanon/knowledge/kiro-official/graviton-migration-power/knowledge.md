@@ -1,7 +1,11 @@
 ---
 name: graviton-migration-power
 displayName: Graviton Migration Power
-description: Analyzes source code to identify compatibilities with Graviton processors(Arm64 architecture). Generates reports with incompatibilities and provides suggestions for minimal required and recommended versions for language runtimes and dependency libraries.
+description: >-
+  Analyzes source code to identify compatibilities with Graviton
+  processors(Arm64 architecture). Generates reports with incompatibilities and
+  provides suggestions for minimal required and recommended versions for
+  language runtimes and dependency libraries.
 keywords:
   - ec2
   - graviton
@@ -14,15 +18,21 @@ keywords:
   - aarch64
 author: AWS
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - architecture
   - devops
   - performance
-ecosystem: [aws, graviton, arm]
+ecosystem:
+  - aws
+  - graviton
+  - arm
 depends: []
 enhances: []
 maturity: stable
@@ -32,9 +42,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
-harness-config:
-  kiro:
-    format: power
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - AWS
+      relationship: verbatim
+      work: graviton-migration-power
+outcomes: []
 ---
 # Graviton Migration Power
 

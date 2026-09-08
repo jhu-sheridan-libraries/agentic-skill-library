@@ -1,7 +1,10 @@
 ---
 name: checkout-api-reference
 displayName: Checkout.com Global Payments
-description: Access Checkout.com's comprehensive API documentation with intelligent search and detailed operation information for payments, customers, disputes, and more.
+description: >-
+  Access Checkout.com's comprehensive API documentation with intelligent search
+  and detailed operation information for payments, customers, disputes, and
+  more.
 keywords:
   - checkout
   - payments
@@ -13,13 +16,17 @@ keywords:
   - identity verification
 author: Checkout.com
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - documentation
-ecosystem: [checkout-com]
+ecosystem:
+  - checkout-com
 depends: []
 enhances: []
 maturity: stable
@@ -29,9 +36,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
-harness-config:
-  kiro:
-    format: power
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - Checkout.com
+      relationship: verbatim
+      work: checkout-api-reference
+outcomes: []
 ---
 # Checkout.com Global Payments
 

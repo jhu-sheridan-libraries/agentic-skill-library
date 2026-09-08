@@ -90,6 +90,51 @@ The frontmatter must stay between the opening and closing `---` markers. The sch
 
 Set `inclusion: manual` for reference material users invoke explicitly. Use `always` only for guidance that's genuinely useful in every session.
 
+#### Crediting an upstream (`attribution`)
+
+If your artifact derives from an external work, record who to credit in a
+structured `attribution` block (ADR-0064). It is the human/legal counterpart to
+the machine-managed `provenance` block: `provenance` answers "where do I re-sync
+from" and is overwritten on every import; `attribution` answers "who do I credit
+and under what license" and is **curation-owned** — preserved across re-sync.
+`author` stays as the display string; `attribution` is additive.
+
+```yaml
+attribution:
+  upstream:                          # one or more upstream works
+    - work: The Elements of Style
+      authors: [William Strunk Jr.]
+      url: https://en.wikisource.org/wiki/The_Elements_of_Style
+      license: public-domain         # SPDX id, or public-domain
+      source-repo: obra/the-elements-of-style   # optional
+      source-commit: 05fc4f0                     # optional
+      relationship: verbatim         # verbatim | adapted | inspired-by | packaged
+  curated-by: Your Name, Your Org    # optional
+  notice: One-line license notice.   # optional
+```
+
+`relationship` is the one field that cannot be derived — pick the copyright-relevant
+one: `verbatim` (vendored unchanged), `adapted` (materially edited), `inspired-by`
+(your own expression of an upstream idea), or `packaged` (repackaged, authorship
+unchanged). A work under an attribution-required license (`CC-BY*`, `MPL-2.0`,
+`Apache-2.0`, `BSD-*`) with no `authors` and no `notice` triggers a validation
+warning.
+
+You rarely hand-write this block:
+
+- **Importing** with `kanon import <path>` runs an interactive wizard that
+  pre-fills everything derivable and asks only for `relationship`. Use
+  `--attribution-defaults` for a non-interactive `verbatim` block, or
+  `--no-attribution` to skip it.
+- **Backfilling** existing artifacts: `kanon attribute backfill --dry-run` reports
+  the clean/manual-review split; drop `--dry-run` to write the clean drafts.
+- **`kanon attribute`** emits a NOTICES report of all upstream credit, grouped by
+  license.
+
+Attribution is surfaced as a relationship chip on the gallery card, a
+"Sources & credits" section in the artifact detail view, and a footer in every
+compiled harness output.
+
 ### 3. Write the body
 
 The body is Markdown. Write for the assistant and the human reviewer. State when the artifact applies, the task it supports, source ownership, concrete instructions, examples, exclusions, uncertainty handling, escalation points, and how to test the guidance.

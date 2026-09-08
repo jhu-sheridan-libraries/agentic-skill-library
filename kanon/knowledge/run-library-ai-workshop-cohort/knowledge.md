@@ -1,29 +1,56 @@
 ---
 name: run-library-ai-workshop-cohort
 displayName: Run a Library AI Workshop
-description: Plan, facilitate, and debrief a live Research with AI workshop for a cohort of research librarians, keeping the facilitator in charge of teaching decisions and participant welfare.
-keywords: [academic-libraries, workshop-facilitation, cohort-learning, ai-literacy, accessibility, research-support]
+description: >-
+  Plan, facilitate, and debrief a live Research with AI workshop for a cohort of
+  research librarians, keeping the facilitator in charge of teaching decisions
+  and participant welfare.
+keywords:
+  - academic-libraries
+  - workshop-facilitation
+  - cohort-learning
+  - ai-literacy
+  - accessibility
+  - research-support
 author: Library AI Workshop maintainers
 version: 0.1.0
-harnesses: [codex, claude-code]
 type: skill
+harnesses:
+  - codex
+  - claude-code
 inclusion: manual
-categories: [documentation, accessibility]
-ecosystem: [academic-libraries, research]
-depends: []
-enhances: []
-maturity: experimental
-trust: community
-license: MPL-2.0
-audience: advanced
-model-assumptions: []
-collections: [library-ai-workshop]
-inherit-hooks: false
 harness-config:
   codex:
     format: skill
+categories:
+  - documentation
+  - accessibility
+ecosystem:
+  - academic-libraries
+  - research
+depends: []
+enhances: []
+license: MPL-2.0
+maturity: experimental
+trust: community
+audience: advanced
+model-assumptions: []
+collections:
+  - library-ai-workshop
+inherit-hooks: false
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - license: MPL-2.0
+      authors:
+        - Library AI Workshop maintainers
+      relationship: packaged
+      source-repo: eudaemon-ai/academic-ai-library-workshop
+      url: https://github.com/eudaemon-ai/academic-ai-library-workshop
+      work: run-library-ai-workshop-cohort
+outcomes: []
 ---
-
 > **Source and adaptation:** Imported from [eudaemon-ai/academic-ai-library-workshop](https://github.com/eudaemon-ai/academic-ai-library-workshop) at commit `d3743bca0b1766709d1694343ef6082d90933141`. The Kanon artifact preserves the upstream skill and reference tree under `workflows/` for Codex progressive disclosure. Review local library policy, privacy, accessibility, and retention requirements before use.
 
 # Run a Library AI Workshop Cohort

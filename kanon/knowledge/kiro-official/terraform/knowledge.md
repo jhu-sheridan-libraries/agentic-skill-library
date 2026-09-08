@@ -1,7 +1,9 @@
 ---
 name: terraform
 displayName: Deploy infrastructure with Terraform
-description: Build and manage Infrastructure as Code with Terraform - access registry providers, modules, policies, and HCP Terraform workflow management
+description: >-
+  Build and manage Infrastructure as Code with Terraform - access registry
+  providers, modules, policies, and HCP Terraform workflow management
 keywords:
   - terraform
   - hashicorp
@@ -13,14 +15,19 @@ keywords:
   - registry
 author: HashiCorp
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - architecture
   - devops
-ecosystem: [terraform, hashicorp]
+ecosystem:
+  - terraform
+  - hashicorp
 depends: []
 enhances: []
 maturity: stable
@@ -30,9 +37,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
-harness-config:
-  kiro:
-    format: power
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - HashiCorp
+      relationship: verbatim
+      work: terraform
+outcomes: []
 ---
 # Terraform Power
 

@@ -1,7 +1,9 @@
 ---
 name: saas-builder
 displayName: SaaS Builder
-description: Build production-ready multi-tenant SaaS applications with serverless architecture, integrated billing, and enterprise-grade security
+description: >-
+  Build production-ready multi-tenant SaaS applications with serverless
+  architecture, integrated billing, and enterprise-grade security
 keywords:
   - saas
   - multi-tenant
@@ -15,15 +17,23 @@ keywords:
   - typescript
 author: Allen Helton
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - architecture
   - devops
   - security
-ecosystem: [aws, lambda, dynamodb, stripe, react]
+ecosystem:
+  - aws
+  - lambda
+  - dynamodb
+  - stripe
+  - react
 depends: []
 enhances: []
 maturity: stable
@@ -33,9 +43,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
-harness-config:
-  kiro:
-    format: power
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - Allen Helton
+      relationship: verbatim
+      work: saas-builder
+outcomes: []
 ---
 # SaaS Builder Power
 
