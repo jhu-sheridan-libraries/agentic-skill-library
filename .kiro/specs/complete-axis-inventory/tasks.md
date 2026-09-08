@@ -104,8 +104,9 @@ Each property test carries the comment `Feature: complete-axis-inventory, Proper
   - [ ] 9.3 Add the worked-artifact example (fields sorted by axis)
     - Annotate a real catalog artifact (e.g. `jhsomcv`) axis-by-axis in the docs
     - _Requirements: 10.5_
-  - [ ] 9.4 Write ADR-0069 — "The complete axis inventory"
-    - Records the 10-axis model and total-mapping rule; ratifies `type`=Structure (extends ADR-0051); documents `ecosystem`/`depends`/`enhances`/`outcomes` placements and the `outcomes`→Destination rationale; completes ADR-0007 and supersedes the taxonomy framing of ADR-0014; links the prior spec's ADR-0067/0068; add to the ADR index
+  - [x] 9.4 Write ADR-0069 — "Complete axis inventory for frontmatter classification"
+    - Drafted at `kanon/docs/adr/0069-complete-axis-inventory-for-frontmatter-classification.md` (Status: Proposed) and added to the ADR index
+    - Records the 10-axis model and total-mapping rule; ratifies `type`=Structure (builds on ADR-0014, ratifies ADR-0051); documents `ecosystem`/`depends`/`enhances`/`outcomes` placements and the `outcomes`→Destination rationale; builds on ADR-0007; generalizes the prior spec's ADR-0067/0068
     - _Requirements: 1.4, 3.4, 7.5, 10.3, 10.4_
   - [ ] 9.5 Add a changelog fragment
     - One `added` fragment for the complete axis model + total-coverage guard
