@@ -8,7 +8,8 @@ on:
       - "v[0-9]+.[0-9]+.[0-9]+-*" # pre-releases like v0.2.0-beta.1
 
 permissions:
-  contents: write # create GitHub releases
+  contents: write # create GitHub releases + push the changelog-sync branch
+  pull-requests: write # open the changelog-sync PR (main is protected)
   id-token: write # npm provenance (if publishing)
 
 jobs:
@@ -225,17 +226,36 @@ jobs:
             kanon/bridge/mcp-server.cjs
           generate_release_notes: false
 
-      # Commit the updated CHANGELOG.md back to main so the repo stays in sync
-      - name: Commit changelog update
-        working-directory: .
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout main
-          git add kanon/CHANGELOG.md kanon/changes/
-          git diff --cached --quiet && echo "No changelog changes to commit" && exit 0
-          git commit -m "chore: compile changelog for ${{ github.ref_name }}"
-          git push origin main
+      # Sync the compiled CHANGELOG.md back to main via a PR.
+      #
+      # main is a protected branch (PR-only, verified signatures, CodeQL), so a
+      # direct `git push origin main` of an unsigned github-actions[bot] commit is
+      # rejected by repository rules (GH013) and fails the release job on its very
+      # last step — even though the GitHub Release itself has already published.
+      # Opening a PR instead keeps the changelog sync working within the rules.
+      # continue-on-error: the release is already out; a failure to open the sync
+      # PR must not red the release.
+      - name: Open changelog-sync PR
+        continue-on-error: true
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          base: main
+          branch: chore/changelog-${{ github.ref_name }}
+          add-paths: |
+            kanon/CHANGELOG.md
+            kanon/changes/
+          commit-message: "chore: compile changelog for ${{ github.ref_name }}"
+          title: "chore: compile changelog for ${{ github.ref_name }}"
+          body: |
+            Automated changelog sync for release ${{ github.ref_name }}.
+
+            The release workflow compiled the `changes/` fragments into
+            `CHANGELOG.md`. This PR lands that compiled state back on `main`
+            (direct pushes are blocked by branch protection). Squash-merge once
+            checks pass.
+          delete-branch: true
 
   # ── Optional: publish to npm registry ──
   publish-npm:
