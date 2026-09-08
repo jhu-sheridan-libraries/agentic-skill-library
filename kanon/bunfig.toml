@@ -2,3 +2,8 @@
 peer = false
 
 [test]
+# Anchor test discovery at the CLI source tree. Without this, `bun test`
+# walks the whole repo and picks up throwaway eval fixtures under the
+# gitignored kiro-specs-workspace/ (which carry intentionally-broken code),
+# failing the suite and the prepublishOnly gate. See scripts in package.json.
+root = "src"

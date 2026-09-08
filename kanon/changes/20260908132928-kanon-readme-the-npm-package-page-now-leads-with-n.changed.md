@@ -1,0 +1,1 @@
+kanon README (the npm package page) now leads with npm/CI/license badges, an Installation section (bunx / bun add -g / from-source with the scoped-name caveat), a corrected non-duplicated Quick Start, a full author -> validate -> build -> install walkthrough, and a worked knowledge.md example with a frontmatter field reference

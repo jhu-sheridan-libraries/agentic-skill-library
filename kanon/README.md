@@ -1,43 +1,164 @@
 # Kanon
 
+[![npm version](https://img.shields.io/npm/v/@thinkingsage/kanon?label=npm)](https://www.npmjs.com/package/@thinkingsage/kanon)
+[![CI](https://img.shields.io/github/actions/workflow/status/jhu-sheridan-libraries/agentic-skill-library/ci.yml?label=CI)](https://github.com/jhu-sheridan-libraries/agentic-skill-library/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/jhu-sheridan-libraries/agentic-skill-library?label=License)](LICENSE)
+
 Write knowledge once, compile to every AI coding assistant harness.
 
 Kanon is a CLI tool that lets you author **knowledge artifacts** (skills, powers, rules, workflows, prompts, agents, templates, reference packs) in a single canonical format and compile them to any supported AI coding assistant.
 
+## Installation
+
+Kanon runs on [Bun]( (≥ 1.0.0). Pick one:
+
+```bash
+# Run without installing (scoped package name)
+bunx @thinkingsage/kanon --help
+
+# Install globally
+bun add -g @thinkingsage/kanon
+kanon --help
+
+# From source (for development or to hack on Kanon itself)
+git clone https://github.com/jhu-sheridan-libraries/agentic-skill-library.git
+cd agentic-skill-library/kanon
+bun install
+bun run dev --help          # `bun run dev` === `bun run src/cli.ts`
+```
+
+> **Note:** the bare npm name `kanon` is an unrelated package — always install the scoped `@thinkingsage/kanon`. When working from a source checkout, invoke the CLI with `bun run dev <command>` rather than a global `kanon`.
+
 ## Quick Start
 
 ```bash
-# Build all artifacts for all harnesses
+# Scaffold a new knowledge artifact (interactive wizard)
+kanon new my-artifact
+
+# Compile all artifacts for all harnesses
 kanon build
 
-# Build for a single harness
+# Compile for a single harness
 kanon build --harness kiro
 kanon build --harness codex
 
-# Validate artifacts (including security checks)
+# Validate artifacts (add --security for injection/obfuscation checks)
 kanon validate
 kanon validate --security
 
 # Browse the catalog in your browser
 kanon catalog browse
 
-# Validate artifacts (including security checks)
-bun run dev validate
-bun run dev validate --security
-
-# Browse the catalog in your browser
-bun run dev catalog browse
-
-# Install into your project
+# Install a compiled artifact into the current project
 kanon install my-artifact --harness kiro --source .
-kanon install my-artifact --harness codex --source .
-
-# Scaffold a new knowledge artifact
-kanon new my-artifact
-
-# Guided walkthrough for first-time authors
-bun run dev tutorial
 ```
+
+From a source checkout, prefix each command with `bun run dev` (e.g. `bun run dev build --harness kiro`).
+
+## End-to-End Walkthrough
+
+Author an artifact once, compile it, and install it into a project — the full `source → parse → adapt → write` loop.
+
+### 1. Author
+
+Scaffold a new artifact. The wizard prompts for type, harnesses, and metadata; pass `--yes` to skip it and take template defaults.
+
+```bash
+kanon new commit-conventions
+```
+
+This creates `knowledge/commit-conventions/knowledge.md` (plus optional `hooks.yaml`, `mcp-servers.yaml`, and a `workflows/` directory). Edit the frontmatter and body — see [the worked example](#a-worked-knowledgemd) below.
+
+### 2. Validate
+
+Check the artifact against the Zod schemas, and optionally run the security scan (prompt-injection markers, obfuscation, dangerous hook commands):
+
+```bash
+kanon validate knowledge/commit-conventions
+kanon validate --security
+```
+
+### 3. Build
+
+Compile to harness-native output under `dist/<harness>/<artifact>/`:
+
+```bash
+kanon build --harness claude-code    # one harness
+kanon build                          # all harnesses
+kanon build --strict                 # fail on any unsupported-capability warning
+```
+
+For example, `--harness kiro` emits a steering file (and hooks / MCP config when declared); `--harness claude-code` emits a `CLAUDE.md` fragment; `--harness codex` emits `AGENTS.md` and a native skill.
+
+### 4. Install
+
+Copy the compiled output into a target project's harness-native location:
+
+```bash
+cd ~/my-project
+kanon install commit-conventions --harness kiro --source /path/to/kanon
+```
+
+The artifact now lives at `.kiro/steering/commit-conventions.md` (Kiro), `CLAUDE.md` (Claude Code), and so on — wherever that harness reads its rules.
+
+## A Worked `knowledge.md`
+
+An artifact is a directory containing `knowledge.md`: YAML frontmatter (metadata, validated by Zod) plus a Markdown body (the actual instructions the AI assistant reads).
+
+```markdown
+---
+name: commit-conventions
+displayName: Commit Message Conventions
+description: Enforce Conventional Commits with an imperative subject and a scoped type.
+keywords:
+  - git
+  - commits
+  - conventional-commits
+author: Your Name
+version: 0.1.0
+harnesses:
+  - kiro
+  - claude-code
+  - codex
+type: skill
+inclusion: always
+categories:
+  - code-style
+ecosystem: []
+maturity: experimental
+license: MIT
+---
+
+# Commit Message Conventions
+
+## Overview
+
+Write commit messages that follow Conventional Commits so history stays
+machine-parseable and changelogs generate cleanly.
+
+## Best Practices
+
+- Start the subject with a type: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`.
+- Keep the subject imperative and under 72 characters.
+- Put motivation and context in the body, wrapped at 72 columns.
+
+## Examples
+
+    feat(parser): support namespaced artifact layouts
+    fix(build): mark chromium-bidi external so --compile succeeds
+```
+
+Key frontmatter fields:
+
+| Field | Purpose |
+|-------|---------|
+| `name` / `displayName` | Kebab-case identifier and human-readable title |
+| `harnesses` | Which assistants this artifact compiles to |
+| `type` | `skill` · `power` · `rule` · `workflow` · `agent` · `prompt` · `template` · `reference-pack` |
+| `inclusion` | Kiro loading mode: `always` · `auto` (fileMatch) · `manual` |
+| `categories` / `ecosystem` | Catalog facets for browse/filter |
+
+Unknown frontmatter fields are preserved (the schema uses `.passthrough()`), so harness-specific config under `harness-config:` survives round-trips.
 
 ## CLI Commands
 
