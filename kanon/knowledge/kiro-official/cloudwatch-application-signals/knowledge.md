@@ -51,6 +51,14 @@ attribution:
       relationship: verbatim
       work: cloudwatch-application-signals
 outcomes: []
+provenance:
+  baseDigest: sha256:5d9ff7296ad557c96e13d6e02de2f018a4ca3c41735715d0414e6793cb0e9c4c
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.831Z'
+  sourceFormat: kiro-power
+  sourcePath: cloudwatch-application-signals
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # Migrating to AWS Observability power
 

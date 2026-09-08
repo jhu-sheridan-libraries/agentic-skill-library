@@ -47,6 +47,14 @@ attribution:
       relationship: verbatim
       work: datadog
 outcomes: []
+provenance:
+  baseDigest: sha256:e65b1fab05b2802e4afcb05fce1ce7e498cb8b189b5c3a89135d1bdfbae678d5
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.834Z'
+  sourceFormat: kiro-power
+  sourcePath: datadog
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # Onboarding
 

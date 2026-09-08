@@ -1,0 +1,1 @@
+provenance backfill for the 30 kiro-official artifacts — each knowledge.md gains a provenance block (baseDigest, contract kiro-power@1, sourceFormat kiro-power, sourcePath, sourceRevision, upstream kiro-powers) so ADR-0049 reconciliation can answer 're-sync from where' for the imported powers

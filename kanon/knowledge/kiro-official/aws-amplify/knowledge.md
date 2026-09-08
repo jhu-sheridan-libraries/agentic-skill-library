@@ -53,6 +53,14 @@ attribution:
       relationship: verbatim
       work: aws-amplify
 outcomes: []
+provenance:
+  baseDigest: sha256:cd6a1101ba97e972c4eb08e0b86514db9412ec8c1cf307a1dd9ab7c7c6a59bc4
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.791Z'
+  sourceFormat: kiro-power
+  sourcePath: aws-amplify
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # AWS Amplify Gen 2
 

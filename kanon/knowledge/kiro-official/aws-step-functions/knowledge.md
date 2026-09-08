@@ -45,6 +45,14 @@ attribution:
       relationship: verbatim
       work: aws-step-functions
 outcomes: []
+provenance:
+  baseDigest: sha256:230fe1b57f1e01ef00c16a6d6b92612bfb968d585293cb4d20186793c048dbae
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.811Z'
+  sourceFormat: kiro-power
+  sourcePath: aws-step-functions
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # AWS Step Functions
 

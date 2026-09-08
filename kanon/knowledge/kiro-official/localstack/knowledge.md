@@ -55,6 +55,14 @@ attribution:
       relationship: verbatim
       work: localstack
 outcomes: []
+provenance:
+  baseDigest: sha256:bbc5f87fba79659311017e7580d348452908561b2712b79163988a490084276c
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.841Z'
+  sourceFormat: kiro-power
+  sourcePath: localstack
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # LocalStack Power
 

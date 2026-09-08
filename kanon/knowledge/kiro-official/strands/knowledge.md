@@ -48,6 +48,14 @@ attribution:
       relationship: verbatim
       work: strands
 outcomes: []
+provenance:
+  baseDigest: sha256:f942343069b98a8ccdd70c0f65b69711b817e017cc2a20cb8c2313d60e07a2f0
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.866Z'
+  sourceFormat: kiro-power
+  sourcePath: strands
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # Strands Agents SDK Power
 

@@ -61,6 +61,14 @@ attribution:
       relationship: verbatim
       work: aws-transform
 outcomes: []
+provenance:
+  baseDigest: sha256:c444c765e9c0b4b924bc6fe8952d7efcff11722b0d37df5e46a5ad3a00c43e9e
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.816Z'
+  sourceFormat: kiro-power
+  sourcePath: aws-transform
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # AWS Transform Power
 

@@ -50,6 +50,14 @@ attribution:
       relationship: verbatim
       work: aws-lambda-managed-instances
 outcomes: []
+provenance:
+  baseDigest: sha256:8902921250f08720815d6c84bf233118ee8851a6c3a28444531a4708e3938bf5
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.802Z'
+  sourceFormat: kiro-power
+  sourcePath: aws-lambda-managed-instances
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # AWS Lambda Managed Instances (LMI)
 

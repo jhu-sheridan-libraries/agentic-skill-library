@@ -46,6 +46,14 @@ attribution:
       relationship: verbatim
       work: databricks
 outcomes: []
+provenance:
+  baseDigest: sha256:3f248e15260cc5c67476bbf8692778c9397852acb4a55890fbc6901f8175a6fd
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.833Z'
+  sourceFormat: kiro-power
+  sourcePath: databricks
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # Databricks AI Dev Kit Power
 
