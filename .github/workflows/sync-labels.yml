@@ -1,0 +1,36 @@
+name: Sync labels
+
+# Reconcile the repository's labels to match .github/labels.yml.
+# Runs on push to main when the definitions change, and can be dispatched
+# manually. Use dry-run first (workflow_dispatch input) to preview.
+
+on:
+  push:
+    branches: [jhu-main]
+    paths:
+      - ".github/labels.yml"
+      - ".github/workflows/sync-labels.yml"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Preview changes without applying"
+        type: boolean
+        default: false
+
+permissions:
+  issues: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: crazy-max/ghaction-github-labeler@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          yaml-file: .github/labels.yml
+          # Do NOT delete labels absent from the file — the repo also carries
+          # GitHub's stock defaults (bug, enhancement, question). Flip to true
+          # only after intentionally pruning those.
+          skip-delete: true
+          dry-run: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}

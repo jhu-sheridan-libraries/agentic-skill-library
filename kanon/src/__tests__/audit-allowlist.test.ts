@@ -22,6 +22,18 @@ describe("audit-allowlist — packageNameFromKey", () => {
 	test("nested path with scoped leaf keeps the scope", () => {
 		expect(packageNameFromKey("a/b/@scope/leaf")).toBe("@scope/leaf");
 	});
+	test("scoped parent with scoped nested leaf keeps the leaf's scope", () => {
+		// Real bun.lock shape, e.g. "@actions/github/@actions/http-client":
+		// prev is the leaf's own scope segment, not the parent's name.
+		expect(packageNameFromKey("@actions/github/@actions/http-client")).toBe(
+			"@actions/http-client",
+		);
+	});
+	test("scoped nested leaf under a non-scoped parent keeps the scope", () => {
+		// The finding Amazon Q raised: prev binds to the leaf's @scope segment,
+		// not the non-scoped ancestor, so the scope is preserved.
+		expect(packageNameFromKey("parent/@scope/pkg")).toBe("@scope/pkg");
+	});
 });
 
 describe("audit-allowlist — isAcceptedRoot", () => {
