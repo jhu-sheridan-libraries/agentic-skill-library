@@ -15,11 +15,12 @@
 		"./adapters": "./src/adapters/index.ts"
 	},
 	"engines": {
-		"bun": ">=1.4.2"
+		"bun": ">=1.0.0"
 	},
 	"scripts": {
 		"dev": "bun run src/cli.ts",
-		"build": "bun build src/cli.ts --compile --outfile forge",
+		"build": "bun build src/cli.ts --compile --external chromium-bidi --outfile forge",
+		"build:kanon": "bun build src/cli.ts --compile --external chromium-bidi --outfile kanon",
 		"build:bridge": "bun build src/mcp-bridge.ts --outfile bridge/mcp-server.cjs --target node --format cjs",
 		"build:skills": "bun run scripts/generate-plugin-skills.ts",
 		"build:souk-compass": "bun --cwd mcp-servers/souk-compass run build",
@@ -76,6 +77,17 @@
 		"typescript": "^7.0.2"
 	},
 	"license": "MIT",
+	"files": [
+		"src",
+		"!src/**/__tests__",
+		"!src/**/*.test.ts",
+		"!src/**/*.property.test.ts",
+		"templates",
+		"bridge/mcp-server.cjs",
+		"README.md",
+		"LICENSE",
+		"CHANGELOG.md"
+	],
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/jhu-sheridan-libraries/agentic-skill-forge.git"

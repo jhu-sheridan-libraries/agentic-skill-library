@@ -1,0 +1,1 @@
+kanon binary build: add a build:kanon script that compiles a native kanon executable, and mark chromium-bidi external in both build and build:kanon --compile steps so the standalone binaries build (playwright-core is pulled in transitively via promptfoo and its optional chromium-bidi require cannot be bundled)

@@ -1,0 +1,1 @@
+package.json files allowlist so npm publishes only the runtime surface (src minus tests, templates, bridge/mcp-server.cjs, README/LICENSE/CHANGELOG) — shrinks the tarball from 1713 files / 8.0 MB to 199 files / 0.5 MB by excluding the eval workspace, skills, powers, and fixtures
