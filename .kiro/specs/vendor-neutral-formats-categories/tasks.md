@@ -2,7 +2,7 @@
 
 ## Overview
 
-Apply one classification model — structure / craft / subject / origin / destination, with vendor confined to the edge — to the two axes that currently mis-carry a vendor. Track A collapses `kiro-skill` + `superpowers` into a vendor-neutral `skill-md` Source_Format with deprecated aliases and provenance continuity. Track B adds a curation-owned `domains` subject axis alongside the `categories` craft enum and surfaces it in catalog and browse. Tracks A and B touch disjoint code and may land as separate PRs; the shared invariants (INV-1..INV-3) and ADRs bind them into one system. Implementation is TypeScript + Zod on Bun, tested with `fast-check` property tests and `bun:test` unit tests.
+Apply one classification model — structure / craft / subject / origin / destination, with vendor confined to the edge — to the axes that currently mis-carry a vendor, then make the model's invariants mechanically enforced. Track A collapses `kiro-skill` + `superpowers` into a vendor-neutral `skill-md` Source_Format with deprecated aliases and provenance continuity. Track B adds a curation-owned `domains` subject axis (freeform, governed by a Known_Domains_Registry warning) alongside the `categories` craft enum and surfaces it in catalog and browse. Track C defines `harnesses` as the Destination-axis allow-list and adds a `checkModelInvariants` guard that enforces INV-1..INV-3 across every contract and artifact — so a future change cannot silently reintroduce a vendor onto an intrinsic axis. Tracks A and B touch disjoint code and may land as separate PRs; Track C is cross-cutting and lands last because it depends on the field set A and B settle. The shared invariants and ADRs bind all three into one system. Implementation is TypeScript + Zod on Bun, tested with `fast-check` property tests and `bun:test` unit tests.
 
 Each property test carries the comment `Feature: vendor-neutral-formats-categories, Property {N}: {title}`.
 
@@ -119,6 +119,16 @@ Each property test carries the comment `Feature: vendor-neutral-formats-categori
     - Author-set `domains` survives an import/re-sync of upstream unchanged
     - Extend the reconciliation test suite
     - **Validates: Requirements 6.4**
+  - [ ] 7.4 Add the Known_Domains_Registry and governance-by-warning check
+    - Add `KNOWN_DOMAINS` as an exported `readonly string[]` (e.g. `src/domains.ts`) plus a `closestKnownDomain(value)` helper (edit-distance over the registry)
+    - In `validate.ts` cross-artifact pass, warn (never error) for a well-formed `domains` value not in `KNOWN_DOMAINS`, naming the value and suggesting the closest known domain when within threshold; keep the artifact valid
+    - Adding a domain is a one-line append to `KNOWN_DOMAINS` with NO `FrontmatterSchema` change
+    - _Requirements: 12.1, 12.2, 12.6, 12.7_
+  - [ ] 7.5 Write test: unrecognized domains warn without failing, and suggest a canonical form (Property 13)
+    - **Property 13: Unrecognized domains warn without failing, and suggest a canonical form**
+    - Well-formed unknown value → exactly one warning, artifact stays valid; near match → warning names closest known domain; known value → no warning
+    - File: `src/__tests__/domain-governance.test.ts` (also cover 12.6 extend-without-schema-change)
+    - **Validates: Requirements 12.2, 12.3, 12.4, 12.5**
 
 - [ ] 8. Track B — Surface `domains` in the browse UI
   - [ ] 8.1 Add a Domain facet and detail-view chips in `src/browse-ui.ts`
@@ -131,25 +141,49 @@ Each property test carries the comment `Feature: vendor-neutral-formats-categori
   - Run `bun test`, `bun x tsc --noEmit`, `bun run lint`; run `bun run dev catalog generate` and diff against the pre-change `catalog.json` — the only differences shall be added `domains` fields. Ask the user if questions arise.
   - _Requirements: 9.2, 9.3, 9.4_
 
-- [ ] 10. Shared — Documentation, scaffold, and ADRs
-  - [ ] 10.1 Add a commented `domains: []` block to `templates/knowledge/knowledge.md.njk`
+- [ ] 10. Track C — Enforce the model invariants registry-wide
+  - _Depends on Tracks A and B: C1 inspects the field set both settle, so this track lands last._
+  - [ ] 10.1 Define `harnesses` as the Destination-axis allow-list (Requirement 13)
+    - Add/adjust the `harnesses` field doc comment defining it as the export-target allow-list (which harnesses an artifact may build to), explicitly not a classification and not influencing Structure determination
+    - Introduce `VENDOR_BEARING_FIELDS = {harnesses, provenance, attribution}` as the set of fields permitted to contain a Harness_Name
+    - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5_
+  - [ ] 10.2 Implement `checkModelInvariants` in `src/validate.ts`
+    - INV-1a (ERROR): no built-in Source_Format except `kiro-power` asserts a non-null `harness`
+    - INV-1b (WARNING): no `categories`/`domains` value equals a Harness_Name
+    - INV-3 (WARNING): no frontmatter field outside `VENDOR_BEARING_FIELDS` contains a Harness_Name
+    - INV-2: assert no code path derives `categories`/`domains` from the source format (structural + Property 9)
+    - Wire into `kanon validate`; registry violation → error, authored-metadata violation → warning
+    - _Requirements: 11.1, 11.2, 11.4, 11.5, 11.6, 13.2_
+  - [ ] 10.3 Write property test: model invariants hold across the whole model (Property 11)
+    - **Property 11: Model invariants hold across the whole model**
+    - Clean corpus (all built-in contracts + all artifacts) passes; inject a violation and assert it is flagged — error for a built-in-registry violation, warning for an authored-metadata violation
+    - File: `src/__tests__/model-invariants.property.test.ts`
+    - **Validates: Requirements 11.1, 11.2, 11.4, 11.5, 11.6**
+  - [ ] 10.4 Write guard test: invariant check tracks the schema's intrinsic fields (Property 12)
+    - **Property 12: Invariant check tracks the schema's intrinsic fields**
+    - Assert the Intrinsic_Axis field set `checkModelInvariants` inspects equals the classification fields declared on `FrontmatterSchema`; adding an intrinsic field without registering it fails this test
+    - In `src/__tests__/model-invariants.property.test.ts`; also assert `harnesses` is exempt (Req 13.2)
+    - **Validates: Requirements 11.3, 11.7, 13.2**
+
+- [ ] 11. Shared — Documentation, scaffold, and ADRs
+  - [ ] 11.1 Add a commented `domains: []` block to `templates/knowledge/knowledge.md.njk`
     - _Requirements: 10.1_
-  - [ ] 10.2 Update `CONTRIBUTING.md` and import docs
-    - Use `--format skill-md`; mark `kiro-skill`/`superpowers` as deprecated aliases; add a worked `categories` vs `domains` example (e.g. `jhsomcv`: `categories: [documentation]`, `domains: [academic, healthcare, publishing]`)
-    - _Requirements: 10.2, 10.4_
-  - [ ] 10.3 Verify `rosetta formats` output presents `skill-md` active + old ids as deprecated aliases
+  - [ ] 11.2 Update `CONTRIBUTING.md` and import docs
+    - Use `--format skill-md`; mark `kiro-skill`/`superpowers` as deprecated aliases; add a worked `categories` vs `domains` example (e.g. `jhsomcv`: `categories: [documentation]`, `domains: [academic, healthcare, publishing]`); document the Known_Domains_Registry and how to propose additions; note `harnesses` is the Destination allow-list, distinct from the removed source-format `harness`
+    - _Requirements: 10.2, 10.4, 12.7, 13.5_
+  - [ ] 11.3 Verify `rosetta formats` output presents `skill-md` active + old ids as deprecated aliases
     - No code change expected (renderer already reads `lifecycle`/`aliases`); add/adjust a snapshot test
     - _Requirements: 10.3_
-  - [ ] 10.4 Write ADR-0067 — "Format identifiers describe structure, not vendor"
-    - Accepts/realizes ADR-0066; states the naming rule (Requirement 3), applies it (`skill-md` `harness: null`; `kiro-power` unchanged), documents the alias + provenance-id migration; add to the ADR index
+  - [ ] 11.4 Write ADR-0067 — "Format identifiers describe structure, not vendor"
+    - Accepts/realizes ADR-0066; states the naming rule (Requirement 3), applies it (`skill-md` `harness: null`; `kiro-power` unchanged), documents the alias + provenance-id migration, and records the model-invariant check as the registry-wide enforcement mechanism; add to the ADR index
     - _Requirements: 3.5, 10.5_
-  - [ ] 10.5 Write ADR-0068 — "Categories for craft, domains for subject"
-    - Extends ADR-0007; documents the two-axis split and why `domains` is freeform curation-owned rather than a second enum; add to the ADR index
-    - _Requirements: 10.5_
-  - [ ] 10.6 Add changelog fragments
-    - One `changed` fragment for the format rename/aliases; one `added` fragment for the `domains` field
+  - [ ] 11.5 Write ADR-0068 — "Categories for craft, domains for subject"
+    - Extends ADR-0007; documents the two-axis split, why `domains` is freeform-with-warning (Known_Domains_Registry) rather than a second closed enum, and defines `harnesses` as the Destination axis so INV-1 does not contradict itself; add to the ADR index
+    - _Requirements: 10.5, 13.5_
+  - [ ] 11.6 Add changelog fragments
+    - One `changed` fragment for the format rename/aliases; one `added` fragment for the `domains` field + domain governance; one `added` fragment for the model-invariant check
     - _Requirements: 10.2_
 
-- [ ] 11. Final verification — the unified model holds
-  - Full `bun test` (all property tests ≥100 runs) and `bun x tsc --noEmit` pass; `bun run dev validate` and `--security` pass for all artifacts; a whole-catalog before/after build+catalog diff is empty except for added `domains` fields; re-import of a `SKILL.md` source under `skill-md` and under each deprecated alias produces identical artifacts; confirm INV-1..INV-3 are each exercised by a passing property (P3, P9, P4/P5).
-  - _Requirements: 4.5, 5.3, 9.2, 9.3, 9.4_
+- [ ] 12. Final verification — the unified model holds
+  - Full `bun test` (all property tests ≥100 runs) and `bun x tsc --noEmit` pass; `bun run dev validate` and `--security` pass for all artifacts; a whole-catalog before/after build+catalog diff is empty except for added `domains` fields; re-import of a `SKILL.md` source under `skill-md` and under each deprecated alias produces identical artifacts; `checkModelInvariants` reports clean over the full corpus; confirm INV-1..INV-3 are each exercised by a passing property (INV-1 → P3/P11, INV-2 → P9, INV-3 → P4/P5/P11) and that the C2 guard test (P12) is present.
+  - _Requirements: 4.5, 5.3, 9.2, 9.3, 9.4, 11.1, 11.7_

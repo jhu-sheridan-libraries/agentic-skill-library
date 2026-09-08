@@ -14,7 +14,7 @@ Both are the same defect (a dimension carrying a value that belongs on a differe
 - Collapse `kiro-skill` and `superpowers` into one vendor-neutral `skill-md` Source_Format (`harness: null`); keep the old names as deprecated aliases; keep recorded provenance resolvable. Leave `kiro-power` alone because `POWER.md` + `steering/` really is Kiro-native — its qualifier is factual, which is exactly the rule the unified model prescribes.
 - Add a curation-owned, freeform `domains` axis for subject matter, leaving `categories` to mean technical craft, and surface `domains` in the catalog and browse UI.
 
-The two changes are separately *deliverable* (Parts A and B below can land as independent PRs) but they are not separately *conceived*: they are one model applied twice. The next section states that model; everything after it is an application of it.
+The two fixes are separately *deliverable* (Parts A and B below can land as independent PRs) but they are not separately *conceived*: they are one model applied to two axes, with a third part (C) that makes the model's invariants mechanically enforced rather than a convention. The next section states that model; everything after it is an application of it.
 
 The change is deliberately low-risk. The `FormatContract` schema already supports everything the format side needs (`harness: null`, an `aliases` array, `lifecycle` diagnostics), so no schema change is required there — only contract data, one merged translator, and a provenance-id resolver. The subject side mirrors the existing `catalog-metadata-evolution` precedent (`ecosystem`/`depends`/`enhances` are already freeform kebab-case arrays), so `domains` slots in the same way with no adapter changes.
 
@@ -28,15 +28,17 @@ Every way Kanon labels a canonical artifact answers exactly one question and liv
 | **Craft** | "What engineering skill does it encode?" | `categories` | controlled enum | curation | No |
 | **Subject** | "What is it about?" | `domains` | freeform kebab-case | curation | No |
 | **Origin** | "Where did it come from?" | `provenance` (machine), `attribution` (human) | free / structured | machine + curation | Named, never used to classify |
-| **Destination** | "Which harness must discover it?" | Target_Format + `Install_Path_Map` | `HarnessName` | export-time | **Yes — this is vendor's only home** |
+| **Destination** | "Which harness must discover it?" | `harnesses` allow-list → Target_Format + `Install_Path_Map` | `HarnessName` | curation (allow-list) + export-time | **Yes — this is vendor's only home** |
 
-Three invariants fall out of this table, and the whole design exists to enforce them:
+The `harnesses` frontmatter field sits on the **Destination** axis: it is an export-target allow-list (which harnesses this artifact may be built for), *not* a classification. This distinction matters for INV-1 — `harnesses` is the one frontmatter field that legitimately contains vendor names, precisely because naming Destination harnesses is its job. It is therefore explicitly exempted from the "no vendor in frontmatter" check.
 
-- **INV-1 (no vendor on intrinsic axes).** Structure, Craft, and Subject never encode a vendor — with the single, testable exception that a Structure *may* carry a vendor when that vendor genuinely defines the shape. This is what makes `kiro-skill` wrong and `kiro-power` right, and it is checked by a registry self-test (Property 3).
+Three invariants fall out of this table, and the whole design exists to enforce them. They are not merely descriptive: a single **model-invariant check** verifies all three across every Format_Contract and every Knowledge_Artifact (see Component C1), so the guarantee holds for the *whole* model, not just the two axes this refactor edits.
+
+- **INV-1 (no vendor on intrinsic axes).** Structure, Craft, and Subject never encode a vendor — with the single, testable exception that a Structure *may* carry a vendor when that vendor genuinely defines the shape (`kiro-power` yes; `skill-md` no). Concretely: no `categories` or `domains` value equals a Harness_Name, no Source_Format other than `kiro-power` asserts a non-null `harness`, and no frontmatter field *except* `harnesses`/`provenance`/`attribution` contains a Harness_Name. Checked by C1 (Properties 3, 11).
 - **INV-2 (orthogonality).** The axes are independent: an artifact may take any combination of values across them. A `domains` value is never validated as a `Category`, a `Category` never as a domain, and neither is ever derived from the source format (Property 9).
-- **INV-3 (vendor at the edge only).** The vendor an artifact came *from* (Origin) is recorded but never drives behavior; the vendor it goes *to* (Destination) is resolved solely from the Target_Format and `Install_Path_Map` at export. One canonical artifact therefore installs into `~/.claude/skills/`, `.codex/skills/`, or `.kiro/` with no change to how it was authored or classified (Properties 4, 5).
+- **INV-3 (vendor at the edge only).** The vendor an artifact came *from* (Origin) is recorded but never drives behavior; the vendor it goes *to* (Destination) is the `harnesses` allow-list resolved through the Target_Format and `Install_Path_Map` at export. One canonical artifact therefore installs into `~/.claude/skills/`, `.codex/skills/`, or `.kiro/` with no change to how it was authored or classified (Properties 4, 5).
 
-Read this way the two "halves" are one system: Part A removes an illegitimate vendor from the **Structure** axis and relocates the legitimate vendor concern to **Destination**; Part B splits an overloaded label into the distinct **Craft** and **Subject** axes. Same model, two axes.
+Read this way the two "halves" are one system: Part A removes an illegitimate vendor from the **Structure** axis and relocates the legitimate vendor concern to **Destination**; Part B splits an overloaded label into the distinct **Craft** and **Subject** axes; and the model-invariant check (Part C) makes all three invariants mechanically enforced rather than conventions a reviewer must remember. Same model, three parts.
 
 ## Scope
 
@@ -46,7 +48,10 @@ Read this way the two "halves" are one system: Part A removes an illegitimate ve
 | Provenance_Contract_Id resolution for old ids | Bulk on-disk rewrite of existing provenance blocks (deferred to an explicit opt-in migration) |
 | `domains` frontmatter + catalog + browse facet | Populating `domains` on existing artifacts (author/curator task, tracked separately) |
 | The format-naming rule as an ADR (realizing ADR-0066) | The recursive all-file source read and binary-safe workflow content (separate specs) |
-| Docs, scaffold, `rosetta formats` output | A controlled enum for `domains` (kept freeform, mirroring `ecosystem`) |
+| Docs, scaffold, `rosetta formats` output | A *closed enum* for `domains` (kept freeform, governed by a warning against a Known_Domains_Registry) |
+| Model-invariant check (Part C) enforcing INV-1..3 registry-wide | Enforcing invariants beyond the three defined (future axes handled by their own specs) |
+| Known_Domains_Registry + governance-by-warning for `domains` | Auto-correcting or rejecting unrecognized domains (they warn, never fail) |
+| Defining `harnesses` as the Destination-axis allow-list | Changing `harnesses` semantics or export behavior (only its model placement is clarified) |
 
 ## Architecture
 
@@ -213,10 +218,70 @@ Add a Domain facet alongside the existing Category facet, and render Domain chip
 - `CONTRIBUTING.md` / import docs: `--format skill-md`; note deprecated aliases; add the categories-vs-domains worked example.
 - `rosetta formats` renderer: already reads `lifecycle` + `aliases`, so `skill-md` shows active and the old ids show as deprecated aliases once the contract changes land.
 
+#### B8. Domain governance by warning (Known_Domains_Registry)
+
+`domains` stays freeform at the *schema* level (any well-formed kebab-case string parses), but gains a curation layer so it does not fragment the way `ecosystem` did. A `KNOWN_DOMAINS` list (a plain exported `readonly string[]`, e.g. in `src/domains.ts`, alongside the docs that publish it) drives a Validator check:
+
+```ts
+// in validate.ts, cross-artifact pass — warning, never error (mirrors the
+// existing unresolved-dependency check)
+for (const d of fm.domains) {
+  if (!KNOWN_DOMAINS.includes(d)) {
+    const suggestion = closestKnownDomain(d); // Levenshtein over KNOWN_DOMAINS
+    warnings.push({
+      field: "domains",
+      message: suggestion
+        ? `Unrecognized domain "${d}" — did you mean "${suggestion}"?`
+        : `Unrecognized domain "${d}" — add it to KNOWN_DOMAINS if intentional.`,
+      filePath,
+    });
+  }
+}
+```
+
+Key properties: unrecognized-but-well-formed values **warn, never fail** (the artifact stays valid); a near match suggests the canonical form (steering `k8s` → `kubernetes`); and adding a domain is a one-line append to `KNOWN_DOMAINS` with **no `FrontmatterSchema` change** — the schema regex is unchanged. This is deliberately the same mechanism ADR-0007 chose for `depends`/`enhances` (warn on unresolved reference), extended from "does it exist" to "is it canonical."
+
+### Part C — Model-invariant enforcement
+
+#### C1. `checkModelInvariants` (new, in `src/validate.ts`)
+
+A single check that runs over all registered Format_Contracts and all loaded Knowledge_Artifacts and verifies INV-1..INV-3. It is the mechanism that makes the model a guarantee rather than a convention, and it is where a *future* leak (a new field, a new format) gets caught.
+
+```ts
+const HARNESS_NAMES: ReadonlySet<string> = new Set(SUPPORTED_HARNESSES);
+// The only frontmatter fields permitted to contain a Harness_Name:
+const VENDOR_BEARING_FIELDS = new Set(["harnesses", "provenance", "attribution"]);
+
+function checkModelInvariants(
+  contracts: readonly FormatContract[],
+  artifacts: readonly KnowledgeArtifact[],
+): { errors: ValidationError[]; warnings: ValidationWarning[] } {
+  // INV-1a (registry, ERROR): only a genuinely vendor-owned Structure may set harness.
+  //   Of built-ins, kiro-power is the sole permitted non-null source `harness`.
+  // INV-1b (artifact, WARNING): no categories/domains value is a Harness_Name.
+  // INV-3  (artifact, WARNING): no frontmatter field outside VENDOR_BEARING_FIELDS
+  //   contains a Harness_Name value.
+  // INV-2 is enforced structurally by the schema (separate enum vs. pattern) and by
+  //   Property 9; C1 additionally asserts no code path derives domains/categories
+  //   from the source format.
+  // ...
+}
+```
+
+Severity split follows Requirement 11.5/11.6: a violation in the **built-in registry** is an error (project-controlled code), while a violation in an **authored artifact's** metadata is a warning (author-fixable, non-blocking). `checkModelInvariants` is wired into `kanon validate` and also exercised directly by a test.
+
+#### C2. Extensibility guard (the test that keeps the guard honest)
+
+Requirement 11.7: a test enumerates the Intrinsic_Axis fields the invariant check knows about and asserts it matches the set of classification fields on `FrontmatterSchema`. If someone adds a new intrinsic field (a future "fifth axis") without teaching `checkModelInvariants` about it, that test fails — so the guardrail cannot silently fall behind the schema. This is what turns "we have three invariants today" into "the model stays enforced as it grows."
+
+#### C3. `harnesses` clarified as Destination (Requirement 13)
+
+No code change to `harnesses` behavior; the work is (a) exempting `harnesses` in `VENDOR_BEARING_FIELDS` above, (b) a doc/ADR note defining it as the Destination-axis export allow-list and contrasting it with the *removed* source-format `harness` field, so the two vendor-bearing concepts are not conflated.
+
 ### ADRs
 
-- **ADR-0067 — Format identifiers describe structure, not vendor** (accepts/realizes ADR-0066): states the rule from Requirement 3, applies it (`skill-md`, `harness: null`; `kiro-power` unchanged), documents the alias migration.
-- **ADR-0068 — Categories for craft, domains for subject** (extends ADR-0007): documents the two-axis split and why `domains` is freeform curation-owned rather than a second enum.
+- **ADR-0067 — Format identifiers describe structure, not vendor** (accepts/realizes ADR-0066): states the rule from Requirement 3, applies it (`skill-md`, `harness: null`; `kiro-power` unchanged), documents the alias migration, and records the model-invariant check as the mechanism enforcing it registry-wide.
+- **ADR-0068 — Categories for craft, domains for subject** (extends ADR-0007): documents the two-axis split, why `domains` is freeform-with-warning (a Known_Domains_Registry) rather than a second closed enum, and defines `harnesses` as the Destination axis so INV-1 does not contradict itself.
 
 ## Data Models
 
@@ -318,6 +383,21 @@ Before this refactor only the first line was expressible, so the artifact read a
 *For any* existing valid Knowledge_Artifact that omits `domains`, parsing shall succeed with `domains = []`, validation shall report no new errors, and its built harness output shall be unchanged.
 **Validates: Requirements 9.1, 9.2, 9.3, 9.5**
 
+### Property 11: Model invariants hold across the whole model
+
+*For all* registered Format_Contracts and *for all* Knowledge_Artifacts, `checkModelInvariants` shall report no INV-1/INV-3 violation: no `categories` or `domains` value equals a Harness_Name; no Source_Format other than `kiro-power` asserts a non-null `harness`; and no frontmatter field outside `harnesses`/`provenance`/`attribution` contains a Harness_Name. *For any* synthetic artifact or contract that injects such a violation, the check shall flag it — as an error for a built-in-registry violation and a warning for an authored-metadata violation.
+**Validates: Requirements 11.1, 11.2, 11.4, 11.5, 11.6**
+
+### Property 12: Invariant check tracks the schema's intrinsic fields
+
+*For* the set of classification fields declared on `FrontmatterSchema`, the set of Intrinsic_Axis fields `checkModelInvariants` inspects shall equal it; adding a classification field to the schema without registering it with the check shall cause the guard test to fail.
+**Validates: Requirements 11.3, 11.7**
+
+### Property 13: Unrecognized domains warn without failing, and suggest a canonical form
+
+*For any* well-formed `domains` value not in the Known_Domains_Registry, the Validator shall emit exactly one warning naming the value and shall keep the artifact valid; *for any* such value within edit-distance threshold of a known domain, the warning shall name that closest known domain. *For any* value present in the registry, no warning shall be emitted.
+**Validates: Requirements 12.2, 12.3, 12.4, 12.5**
+
 ## Error Handling
 
 ### Resolve vs. warn (the two alias mechanisms)
@@ -337,12 +417,16 @@ Both are needed: `aliases` guarantees resolution; `SELECTION_ALIASES` guarantees
 | `domains` omitted | none | defaults to `[]` (Req 6.3, 9.1) |
 | `categories` value not in `CategoryEnum` | Error | unchanged from today (Req 7.1) |
 | Source selector `kiro-skill`/`superpowers` used | Warning | resolves to `skill-md`, deprecation diagnostic (Req 2.3) |
-| Built-in registry asserts a false vendor `harness` | Error (registry self-check) | registry validation fails at load (Req 3.4) |
+| Built-in registry asserts a false vendor `harness` | Error (registry self-check / C1) | registry validation fails at load (Req 3.4, 11.5) |
 | Recorded provenance `kiro-skill@1` on re-sync | none | resolved to `skill-md@1` transparently (Req 5.2) |
+| `categories`/`domains` value equals a Harness_Name | Warning (C1) | model-invariant check flags the axis + value; artifact stays valid (Req 11.2, 11.6) |
+| Frontmatter field outside `harnesses`/`provenance`/`attribution` contains a Harness_Name | Warning (C1) | flagged; `harnesses` is exempt as the Destination allow-list (Req 11.4, 13.2) |
+| Well-formed `domains` value not in Known_Domains_Registry | Warning | names the value, suggests closest known domain; artifact stays valid (Req 12.3, 12.4, 12.5) |
+| New intrinsic-axis field added without registering with C1 | Error (guard test) | C2 extensibility test fails in CI (Req 11.7) |
 
 ### Failure isolation
 
-Although Parts A and B are one model (the axes of [The Unified Classification Model](#the-unified-classification-model)), they touch disjoint code paths, so a fault in one cannot corrupt the other: a bug in the `domains` schema cannot change source translation, and the format rename cannot change catalog category behavior. This is a *delivery* property, not a conceptual seam — it lets the two axes land as separate PRs behind the same spec while remaining a single coherent system. The shared invariants (INV-1..INV-3) are what a reviewer checks across both PRs to confirm the model held.
+Although Parts A, B, and C are one model (the axes of [The Unified Classification Model](#the-unified-classification-model)), Parts A and B touch disjoint code paths, so a fault in one cannot corrupt the other: a bug in the `domains` schema cannot change source translation, and the format rename cannot change catalog category behavior. This is a *delivery* property, not a conceptual seam — it lets the two axes land as separate PRs behind the same spec while remaining a single coherent system. Part C (the model-invariant check) is the cross-cutting piece: it depends on the field set both A and B settle, so it lands last and is the shared gate a reviewer uses to confirm INV-1..INV-3 held across both PRs — turning the invariants from something a reviewer must remember into something CI enforces.
 
 ## Testing Strategy
 
@@ -362,6 +446,9 @@ Runtime Bun (`bun test`); property tests via `fast-check` (min 100 runs), tagged
 | P8 Domains curation-owned | `src/__tests__/reconciliation-*.test.ts` (extend) | re-sync preserves domains |
 | P9 Categories/domains independence | `schema-roundtrip.property.test.ts` | cross-product accept |
 | P10 Backward compat | new `src/__tests__/backcompat-domains.test.ts` + full build in CI | existing artifacts unchanged |
+| P11 Model invariants hold model-wide | new `src/__tests__/model-invariants.property.test.ts` | clean corpus passes; injected violation flagged (error vs. warning by source) |
+| P12 Invariant check tracks schema fields | `model-invariants.property.test.ts` (guard test, C2) | intrinsic-field set equals schema's; unregistered field fails |
+| P13 Unrecognized domain warns + suggests | `src/__tests__/domain-governance.test.ts` | warn-not-fail; near-match suggestion; known value silent |
 
 ### Example-based tests
 
@@ -376,6 +463,9 @@ Runtime Bun (`bun test`); property tests via `fast-check` (min 100 runs), tagged
 | catalog entry populated from `domains` | `catalog.test.ts` | 8.2 |
 | browse Domain facet renders | `browse` test | 8.4, 8.5 |
 | scaffold emits commented `domains: []` | `new.test.ts` | 10.1 |
+| `harnesses` exempt from vendor-in-frontmatter check | `model-invariants.property.test.ts` | 13.2 |
+| Known_Domains_Registry extends without schema change | `domain-governance.test.ts` | 12.6 |
+| `checkModelInvariants` wired into `kanon validate` | `validate.test.ts` | 11.1 |
 
 ### Whole-catalog regression
 

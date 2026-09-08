@@ -8,7 +8,7 @@ First, **source format identifiers** carry a vendor qualifier where no real vend
 
 Second, **knowledge categories** are a single closed enum drawn entirely from a developer-tooling taxonomy (`testing`, `security`, `code-style`, …). Domain artifacts — a Johns Hopkins promotions-CV skill, a library reference-interview practice — have no honest home and are forced into `documentation`. This refactor separates the technical-craft axis (kept as a controlled enum) from a subject-matter axis (a new curation-owned `domains` field), so an artifact can be filed by what it *is about* as well as by the *technical skill* it encodes.
 
-The unifying principle for both halves: **classify canonical artifacts by structure and subject, not by vendor; let vendor bind only at export/install time.** The refactor must be backward compatible — existing artifacts, imports, and re-syncs continue to work — and must not break recorded provenance.
+The unifying principle: **classify canonical artifacts by structure and subject, not by vendor; let vendor bind only at export/install time.** This refactor fixes the two axes that violate it today (source formats, categories) and adds a mechanical guard so the principle stays enforced as the model grows. It must be backward compatible — existing artifacts, imports, and re-syncs continue to work — and must not break recorded provenance.
 
 ## Glossary
 
@@ -32,6 +32,12 @@ The unifying principle for both halves: **classify canonical artifacts by struct
 - **Domain**: A curation-owned subject-matter label describing what an artifact is *about* (e.g. `academic`, `healthcare`, `publishing`), independent of the technical skill it encodes.
 - **Validator**: The `src/validate.ts` module that checks Knowledge_Artifacts against schemas and emits errors and warnings.
 - **Format_Registry**: The registry (`src/rosetta/registry.ts`) that registers Format_Contracts, enforces id/alias uniqueness, resolves selectors to contracts, and emits lifecycle diagnostics.
+- **Classification_Axis**: One of the intrinsic dimensions by which the canonical model describes an artifact — Structure, Craft, and Subject — as distinct from the origin/destination edges. Each answers one question and lives on one field or mechanism.
+- **Intrinsic_Axis**: A Classification_Axis (Structure, Craft, Subject) that describes what an artifact *is* or is *about*, as opposed to where it came from (Origin) or where it is sent (Destination).
+- **Model_Invariant**: One of the three properties the unified model guarantees across all artifacts and contracts — no vendor on an Intrinsic_Axis (except a genuinely vendor-owned Structure), axis orthogonality, and vendor confined to the export/install edge.
+- **Harness_Name**: A value of the `HarnessName` enum (`kiro`, `claude-code`, `codex`, `copilot`, `cursor`, `windsurf`, `cline`, `qdeveloper`, `gemini-cli`) — the identifier of a harness Kanon can export to.
+- **Harnesses_Field**: The `harnesses` array in a Knowledge_Artifact's frontmatter listing the Harness_Names an artifact may be exported to — an export-target allow-list on the Destination axis, not a classification.
+- **Known_Domains_Registry**: A curated list of recognized Domain values used to warn (not reject) on unrecognized domains, preventing near-duplicate drift (e.g. `k8s` vs `kubernetes`) while keeping the field open.
 
 ## Requirements
 
@@ -158,3 +164,44 @@ The unifying principle for both halves: **classify canonical artifacts by struct
 3. THE `rosetta formats` command output SHALL list `skill-md` as active and SHALL present `kiro-skill` and `superpowers` as deprecated aliases of it.
 4. THE guidance for authors SHALL explain the distinction between `categories` (technical craft) and `domains` (subject matter) with at least one worked example.
 5. THE format-naming rule (Requirement 3) and the categories/domains split SHALL each be captured in an Architecture Decision Record and linked from the ADR index.
+
+
+### Requirement 11: Model Invariants Are Enforced Across the Whole Model
+
+**User Story:** As a maintainer, I want the unified model's invariants checked mechanically across every artifact and format contract, not just for the two axes this refactor touches, so that a future change cannot silently reintroduce a vendor onto an intrinsic axis or blur two axes together.
+
+#### Acceptance Criteria
+
+1. THE Validator SHALL provide a model-invariant check that runs over all registered Format_Contracts and all Knowledge_Artifacts in one pass.
+2. THE model-invariant check SHALL enforce Model_Invariant "no vendor on an Intrinsic_Axis": no `categories` value and no `domains` value SHALL equal a Harness_Name, and no Source_Format SHALL assert a non-null `harness` unless its recognized structure is genuinely owned by that vendor (of the built-in Source_Formats, only `kiro-power`).
+3. THE model-invariant check SHALL enforce Model_Invariant "axis orthogonality": a `domains` value SHALL NOT be validated against the CategoryEnum, and a `categories` value SHALL NOT be validated against the Domain pattern, and neither field SHALL be derived from the source format.
+4. THE model-invariant check SHALL enforce Model_Invariant "vendor at the edge only": no frontmatter field other than `harnesses`, `provenance`, and `attribution` SHALL contain a Harness_Name value, so that vendor identity appears only on the Destination axis or as recorded origin.
+5. IF the model-invariant check finds a violation in the built-in Format_Contract registry, THEN THE Kanon_CLI SHALL fail (error), because the built-in registry is code the project controls.
+6. IF the model-invariant check finds a violation in a Knowledge_Artifact's authored metadata, THEN THE Validator SHALL emit a warning identifying the artifact, the axis, and the offending value, without necessarily failing the whole validation run.
+7. THE model-invariant check SHALL be covered by a test that fails if a new intrinsic-axis field is added without being accounted for, so the guardrail keeps pace with the schema.
+
+### Requirement 12: Domain Governance by Warning
+
+**User Story:** As a curator, I want unrecognized `domains` values to be flagged against a known-domains list without being rejected, so that the subject axis stays open for genuinely new domains but does not fragment into near-duplicates the way a freeform field does.
+
+#### Acceptance Criteria
+
+1. THE project SHALL maintain a Known_Domains_Registry of recognized Domain values.
+2. WHEN the user runs `kanon validate`, THE Validator SHALL compare each artifact's `domains` values against the Known_Domains_Registry.
+3. IF a `domains` value is well-formed (matches the kebab-case pattern) but is not present in the Known_Domains_Registry, THEN THE Validator SHALL emit a warning naming the unrecognized value and the artifact that declares it.
+4. THE Validator SHALL NOT treat an unrecognized-but-well-formed `domains` value as a validation error (the artifact SHALL remain valid).
+5. THE warning message SHALL suggest the closest known domain when a near match exists, to steer authors toward the canonical form rather than a synonym.
+6. THE Known_Domains_Registry SHALL be extensible by adding an entry, and adding a new recognized domain SHALL NOT require changing the FrontmatterSchema.
+7. THE Known_Domains_Registry SHALL be documented so authors can see the recognized domains and propose additions.
+
+### Requirement 13: Harnesses Is the Destination Axis, Not a Classification
+
+**User Story:** As a maintainer applying the model's "no vendor on intrinsic axes" invariant, I want the `harnesses` field explicitly defined as a Destination-axis export allow-list, so that the presence of vendor names in `harnesses` is understood as legitimate rather than flagged as a leak, and the model does not contradict itself.
+
+#### Acceptance Criteria
+
+1. THE `harnesses` field SHALL be defined as the Destination-axis export-target allow-list: the set of Harness_Names an artifact may be exported to.
+2. THE model-invariant check (Requirement 11) SHALL exempt `harnesses` from the "no Harness_Name in frontmatter" rule, because `harnesses` is the one field whose purpose is to name Destination harnesses.
+3. THE `harnesses` field SHALL NOT be treated as a Classification_Axis: it SHALL NOT participate in Craft or Subject filtering, and it SHALL NOT influence Structure determination.
+4. WHEN the Kanon_CLI exports an artifact, THE choice of which harnesses to build SHALL be constrained by the `harnesses` allow-list, and the install destination for each SHALL still be resolved from the Install_Path_Map per Requirement 4.
+5. THE distinction between `harnesses` (Destination allow-list) and the removed source-format `harness` field (a false Structure claim) SHALL be documented so the two are not conflated.
