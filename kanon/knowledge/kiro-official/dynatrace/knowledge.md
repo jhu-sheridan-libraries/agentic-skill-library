@@ -47,6 +47,14 @@ attribution:
       relationship: verbatim
       work: dynatrace
 outcomes: []
+provenance:
+  baseDigest: sha256:63a399892f9b3bbba09924c83627905f876ef4e531df5a5ed6cfdecc57393f0f
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.836Z'
+  sourceFormat: kiro-power
+  sourcePath: dynatrace
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # Dynatrace Observability Power
 

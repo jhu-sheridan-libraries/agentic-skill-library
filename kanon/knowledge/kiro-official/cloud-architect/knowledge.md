@@ -47,6 +47,14 @@ attribution:
       relationship: verbatim
       work: cloud-architect
 outcomes: []
+provenance:
+  baseDigest: sha256:550cbe6b82e806d890fd53a235f09c76f7de2b0cc958957d07676ef0b162c2a3
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.829Z'
+  sourceFormat: kiro-power
+  sourcePath: cloud-architect
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # Cloud Architect Power
 
