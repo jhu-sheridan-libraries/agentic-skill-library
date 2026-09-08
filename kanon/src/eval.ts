@@ -10,7 +10,7 @@ import {
 import { tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
 import chalk from "chalk";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 import {
 	gradeProgressiveSteering,
 	type Workload,

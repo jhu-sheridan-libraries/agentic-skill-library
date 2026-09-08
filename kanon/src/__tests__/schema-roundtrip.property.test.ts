@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import fc from "fast-check";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 import {
 	CATEGORIES,
 	type CanonicalHook,

@@ -1,7 +1,7 @@
 import { exists, mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import matter from "gray-matter";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 import { generateCatalog } from "./catalog";
 import {
 	type CatalogEntry,
@@ -148,7 +148,7 @@ export function serializeFrontmatter(
 	const yamlStr = yaml.dump(frontmatter, {
 		lineWidth: -1,
 		noRefs: true,
-		quotingType: "'",
+		quoteStyle: "single",
 		forceQuotes: true,
 	});
 	return `---\n${unquoteSafeYamlScalars(yamlStr)}---\n${body}`;

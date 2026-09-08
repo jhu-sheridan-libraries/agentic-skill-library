@@ -1,7 +1,7 @@
 import { exists, readdir, readFile } from "node:fs/promises";
 import { basename, join, resolve } from "node:path";
 import matter from "gray-matter";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 import { parseCanonical } from "./rosetta/canonical";
 import {
 	type CanonicalHook,
