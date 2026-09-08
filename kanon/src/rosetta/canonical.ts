@@ -16,7 +16,7 @@
  */
 
 import matter from "gray-matter";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 import {
 	type CanonicalHook,
 	type Frontmatter,
@@ -223,7 +223,12 @@ export function parseCanonical(
 
 		let hooksParsed: unknown;
 		try {
-			hooksParsed = yaml.load(hooksContent);
+			// js-yaml 5.x throws "expected a document, but the input is empty" on
+			// empty/whitespace-only input, where 4.x returned undefined. Treat
+			// blank content as an empty document so the empty-array contract below
+			// holds across both versions.
+			hooksParsed =
+				hooksContent.trim() === "" ? undefined : yaml.load(hooksContent);
 		} catch (e: unknown) {
 			const msg = e instanceof Error ? e.message : String(e);
 			diagnostics.push(
@@ -271,7 +276,8 @@ export function parseCanonical(
 
 		let mcpParsed: unknown;
 		try {
-			mcpParsed = yaml.load(mcpContent);
+			// See the hooks.yaml note above: js-yaml 5.x throws on empty input.
+			mcpParsed = mcpContent.trim() === "" ? undefined : yaml.load(mcpContent);
 		} catch (e: unknown) {
 			const msg = e instanceof Error ? e.message : String(e);
 			diagnostics.push(
@@ -502,7 +508,6 @@ export interface CanonicalSerializerOutput {
  *
  * Uses js-yaml's dump() with:
  * - sortKeys: custom comparison function based on priority table
- * - noCompatMode: true
  * - lineWidth: 80
  * - noRefs: true (disables aliases)
  *
@@ -533,7 +538,10 @@ export function renderDeterministicYaml(
 
 	const result = yaml.dump(data, {
 		sortKeys: sortKeysFn,
-		noCompatMode: true,
+		// js-yaml 5.x removed the `noCompatMode` dump option. Its reworked scalar
+		// styler quotes YAML-1.1-ambiguous scalars (yes/no/on/off/true/null) by
+		// default, which is safe: values round-trip identically. No replacement
+		// flag is needed for deterministic canonical output.
 		lineWidth: 80,
 		noRefs: true,
 	});

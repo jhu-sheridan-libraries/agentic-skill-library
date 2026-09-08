@@ -2,7 +2,7 @@ import { exists, mkdir, readdir, writeFile } from "node:fs/promises";
 import { join, relative } from "node:path";
 import * as p from "@clack/prompts";
 import chalk from "chalk";
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 import type { HarnessName } from "../schemas";
 import { SUPPORTED_HARNESSES } from "../schemas";
 import { parseClaudeCode } from "./claude-code";
