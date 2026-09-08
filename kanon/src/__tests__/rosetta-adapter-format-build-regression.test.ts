@@ -18,6 +18,7 @@ import {
 	CODEX_CONTRACT,
 	COPILOT_CONTRACT,
 	CURSOR_CONTRACT,
+	GEMINI_CLI_CONTRACT,
 	KIRO_CONTRACT,
 	QDEVELOPER_CONTRACT,
 	WINDSURF_CONTRACT,
@@ -47,6 +48,7 @@ describe("Adapter/Format/Build Regression: Target variant defaults", () => {
 		windsurf: "rule",
 		cline: "rule",
 		qdeveloper: "rule",
+		"gemini-cli": "gemini-md",
 	};
 
 	for (const harness of SUPPORTED_HARNESSES) {
@@ -72,6 +74,7 @@ describe("Adapter/Format/Build Regression: Target variant defaults", () => {
 			windsurf: WINDSURF_CONTRACT,
 			cline: CLINE_CONTRACT,
 			qdeveloper: QDEVELOPER_CONTRACT,
+			"gemini-cli": GEMINI_CLI_CONTRACT,
 		};
 
 		for (const harness of SUPPORTED_HARNESSES) {

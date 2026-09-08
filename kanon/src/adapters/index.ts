@@ -313,6 +313,7 @@ export const adapterRegistry: Record<HarnessName, HarnessAdapter> = {
 	windsurf: createRosettaAdapter("windsurf"),
 	cline: createRosettaAdapter("cline"),
 	qdeveloper: createRosettaAdapter("qdeveloper"),
+	"gemini-cli": createRosettaAdapter("gemini-cli"),
 };
 
 /**

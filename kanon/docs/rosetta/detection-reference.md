@@ -58,6 +58,15 @@ Threshold: 0.5
 | `cursor-rules` | path-glob | `.cursor/rules/*.mdc` | 50 | no | Cursor rules directory |
 | `cursorrules` | basename | `.cursorrules` | 30 | no | Legacy .cursorrules file |
 
+## gemini-cli
+
+Threshold: 0.5
+
+| Rule ID | Kind | Pattern | Weight | Required | Evidence Label |
+|---|---|---|---|---|---|
+| `gemini-md` | basename | `GEMINI.md` | 50 | no | GEMINI.md present |
+| `gemini-settings` | path-glob | `.gemini/settings.json` | 30 | no | Gemini settings directory |
+
 ## kiro
 
 Threshold: 0.5

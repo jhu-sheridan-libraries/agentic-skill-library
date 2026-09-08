@@ -63,6 +63,18 @@ for capabilities with `partial` or `none` support levels.
 | workflow | partial | inline |
 | workflows | none | inline |
 
+## gemini-cli
+
+| Capability | Support | Degradation Action |
+|---|---|---|
+| agent | none | omit |
+| file-match-inclusion | none | omit |
+| hooks | none | inline |
+| path-scoping | none | comment |
+| toggleable-rules | none | omit |
+| workflow | partial | inline |
+| workflows | none | inline |
+
 ## kiro
 
 | Capability | Support | Degradation Action |

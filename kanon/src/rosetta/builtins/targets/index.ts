@@ -18,6 +18,7 @@ import { translateClineTarget } from "./cline";
 import { translateCodexTarget } from "./codex";
 import { translateCopilotTarget } from "./copilot";
 import { translateCursorTarget } from "./cursor";
+import { translateGeminiCliTarget } from "./gemini-cli";
 import { translateKiroTarget } from "./kiro";
 import { translateQDeveloperTarget } from "./qdeveloper";
 import { translateWindsurfTarget } from "./windsurf";
@@ -31,6 +32,7 @@ export { translateClineTarget } from "./cline";
 export { translateCodexTarget } from "./codex";
 export { translateCopilotTarget } from "./copilot";
 export { translateCursorTarget } from "./cursor";
+export { translateGeminiCliTarget } from "./gemini-cli";
 export { translateKiroTarget } from "./kiro";
 export { translateQDeveloperTarget } from "./qdeveloper";
 export { translateWindsurfTarget } from "./windsurf";
@@ -57,4 +59,5 @@ export const TARGET_TRANSLATORS: ReadonlyMap<
 	["windsurf" as FormatIdentifier, translateWindsurfTarget],
 	["cline" as FormatIdentifier, translateClineTarget],
 	["qdeveloper" as FormatIdentifier, translateQDeveloperTarget],
+	["gemini-cli" as FormatIdentifier, translateGeminiCliTarget],
 ]);

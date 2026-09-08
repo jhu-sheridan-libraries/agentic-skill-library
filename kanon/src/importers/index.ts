@@ -10,6 +10,7 @@ import { parseCline } from "./cline";
 import { parseCodex } from "./codex";
 import { parseCopilot } from "./copilot";
 import { parseCursor } from "./cursor";
+import { parseGeminiCli } from "./gemini-cli";
 import { parseKiro } from "./kiro";
 import { parseQDeveloper } from "./qdeveloper";
 import type { ImportedFile, ImporterRegistry } from "./types";
@@ -38,6 +39,7 @@ export const HARNESS_NATIVE_PATHS: Record<HarnessName, string[]> = {
 	windsurf: [".windsurfrules", ".windsurf/rules/*.md"],
 	cline: [".clinerules/*.md"],
 	qdeveloper: [".q/rules/*.md", ".amazonq/rules/*.md"],
+	"gemini-cli": ["GEMINI.md", ".gemini/settings.json"],
 };
 
 // ── Importer Registry ─────────────────────────────────────────────────────────
@@ -77,6 +79,10 @@ export const importerRegistry: ImporterRegistry = {
 	qdeveloper: {
 		nativePaths: HARNESS_NATIVE_PATHS.qdeveloper,
 		parse: parseQDeveloper,
+	},
+	"gemini-cli": {
+		nativePaths: HARNESS_NATIVE_PATHS["gemini-cli"],
+		parse: parseGeminiCli,
 	},
 };
 
@@ -168,6 +174,7 @@ export async function detectHarnessFiles(
 		windsurf: [],
 		cline: [],
 		qdeveloper: [],
+		"gemini-cli": [],
 	};
 
 	const allFiles = await collectRelativePaths(cwd);

@@ -70,6 +70,7 @@ const HARNESS_INSTALL_PATHS: Record<HarnessName, string> = {
 	windsurf: ".",
 	cline: ".",
 	qdeveloper: ".",
+	"gemini-cli": ".",
 };
 
 async function collectFiles(dir: string, base: string = ""): Promise<string[]> {

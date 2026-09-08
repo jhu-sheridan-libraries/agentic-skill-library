@@ -12,6 +12,7 @@
 | `codex` | reference-only | `\$\{[A-Z_]+\}` |
 | `copilot` | reject | — |
 | `cursor` | reject | — |
+| `gemini-cli` | reference-only | `\$\{[A-Z_]+\}` |
 | `kiro` | reference-only | `\$\{[A-Z_]+\}` |
 | `qdeveloper` | reject | — |
 | `windsurf` | reject | — |

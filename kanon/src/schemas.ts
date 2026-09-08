@@ -12,6 +12,7 @@ export const SUPPORTED_HARNESSES = [
 	"windsurf",
 	"cline",
 	"qdeveloper",
+	"gemini-cli",
 ] as const;
 
 export const HarnessNameSchema = z.enum(SUPPORTED_HARNESSES);

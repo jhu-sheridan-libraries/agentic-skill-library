@@ -117,6 +117,21 @@ export const CAPABILITY_MATRIX: CapabilityMatrix = {
 		file_match_inclusion: { support: "full" },
 		system_prompt_merging: { support: "none", degradation: "inline" },
 	},
+	"gemini-cli": {
+		// Gemini CLI has no declarative event-hook system.
+		hooks: { support: "none", degradation: "inline" },
+		// MCP servers are first-class via .gemini/settings.json "mcpServers".
+		mcp: { support: "full" },
+		// Scoping is via hierarchical/nested GEMINI.md, not glob file patterns.
+		path_scoping: { support: "none", degradation: "comment" },
+		workflows: { support: "none", degradation: "inline" },
+		toggleable_rules: { support: "none", degradation: "omit" },
+		// Sub-agents are not a declarative file surface.
+		agents: { support: "none", degradation: "omit" },
+		file_match_inclusion: { support: "none", degradation: "omit" },
+		// GEMINI.md files are concatenated into the model context every prompt.
+		system_prompt_merging: { support: "full" },
+	},
 };
 
 // --- Zod Validation at Module Load Time ---

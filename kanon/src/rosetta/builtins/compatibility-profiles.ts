@@ -226,6 +226,10 @@ export const CLINE_PROFILE: RosettaCompatibilityProfile =
 export const QDEVELOPER_PROFILE: RosettaCompatibilityProfile =
 	buildCompatibilityProfile("qdeveloper", "rule");
 
+/** Gemini CLI (gemini-md variant) profile */
+export const GEMINI_CLI_PROFILE: RosettaCompatibilityProfile =
+	buildCompatibilityProfile("gemini-cli", "gemini-md");
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // Lookup
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -260,6 +264,9 @@ const PROFILE_LOOKUP: Readonly<Record<string, RosettaCompatibilityProfile>> = {
 	// Q Developer
 	qdeveloper: QDEVELOPER_PROFILE,
 	"qdeveloper:rule": QDEVELOPER_PROFILE,
+	// Gemini CLI
+	"gemini-cli": GEMINI_CLI_PROFILE,
+	"gemini-cli:gemini-md": GEMINI_CLI_PROFILE,
 };
 
 /**
