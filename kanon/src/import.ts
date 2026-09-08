@@ -12,22 +12,28 @@
 
 import { exists, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { basename, extname, join } from "node:path";
+import * as p from "@clack/prompts";
 import chalk from "chalk";
+import {
+	type AttributionPrompts,
+	type AttributionWizardMode,
+	deriveAttributionDraft,
+	runAttributionWizard,
+} from "./attribution";
 import {
 	type AcquisitionContext,
 	buildProvenanceRecord,
 	writeBaseArtifact,
 } from "./base-cache";
-import { translateKiroPower } from "./rosetta/builtins/sources/kiro-power";
-import { translateKiroSkill } from "./rosetta/builtins/sources/kiro-skill";
-import { translateSuperpowers } from "./rosetta/builtins/sources/superpowers";
+import { isParseError, parseKnowledgeMd } from "./parser";
 import { serializeCanonical } from "./rosetta/canonical";
-import type { SourceTranslatorContext } from "./rosetta/registry";
+import { getSharedEngine } from "./rosetta/engine-bootstrap";
 import type {
 	FormatIdentifier,
 	KnowledgeArtifact,
 	NormalizedRelativePath,
 	SourceDocument,
+	TranslationRequest,
 } from "./schemas";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -55,6 +61,17 @@ export interface ImportOptions {
 	 * carry no provenance and are excluded from reconciliation (Requirement 18.17).
 	 */
 	acquisition?: ImportAcquisitionOptions;
+	/**
+	 * How the import-time Attribution_Wizard behaves (ADR-0064, Requirement 3/4).
+	 * `interactive` prompts to confirm the derived draft and pick a relationship;
+	 * `defaults` writes the derived draft unchanged; `skip` writes no block.
+	 * Absent → treated as `defaults` with a recorded warning (non-TTY path).
+	 */
+	attributionMode?: AttributionWizardMode;
+	/** Prompt bindings for the wizard (injected in tests; real @clack in the CLI). */
+	attributionPrompts?: AttributionPrompts;
+	/** Curator identity recorded as `curated-by` in a derived draft. */
+	curatedBy?: string;
 }
 
 /**
@@ -87,7 +104,7 @@ export interface ImportResult {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// Format Detection (same logic as before)
+// Format Detection
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function detectFormat(_sourceDir: string, entries: string[]): ImportFormat {
@@ -213,14 +230,21 @@ const SOURCE_CONTRACT_IDENTIFIERS: Record<
 	superpowers: "superpowers@1",
 };
 
-function translateViaRosetta(
+async function translateViaRosetta(
 	documents: readonly SourceDocument[],
 	format: "kiro-power" | "kiro-skill" | "superpowers",
 	artifactNameHint: string,
 	collections: string[],
 	acquisition: ImportAcquisitionOptions | undefined,
 	importedAt: string,
-): {
+	attribution?: {
+		mode: AttributionWizardMode;
+		prompts?: AttributionPrompts;
+		curatedBy?: string;
+		/** True when the on-disk target already carries an attribution block. */
+		existingHasAttribution: boolean;
+	},
+): Promise<{
 	artifact: KnowledgeArtifact | undefined;
 	plan:
 		| {
@@ -233,57 +257,60 @@ function translateViaRosetta(
 		| undefined;
 	baseDigest: string | undefined;
 	diagnostics: Array<{ severity: string; message: string }>;
-} {
-	// Build translator context
-	const context: SourceTranslatorContext = {
-		format: {
-			id: format as FormatIdentifier,
-		} as SourceTranslatorContext["format"],
+}> {
+	// Route source translation through the SHARED Rosetta Stone engine — the same
+	// pipeline `kanon rosetta translate` uses (ADR-0065). Building an inbound
+	// TranslationRequest and calling engine.translate() gives us the engine's
+	// request guard, registry-driven format resolution, and canonical-schema
+	// validation, instead of calling the source translators by hand. The engine
+	// is pure: for an inbound request it returns the validated `canonical`
+	// KnowledgeArtifact and NO plan, so this facade decorates that artifact
+	// (collections, provenance, attribution) and serializes it below.
+	const engine = getSharedEngine();
+	const request: TranslationRequest = {
+		mode: "inbound",
+		sourceDocuments: documents.map((d) => ({
+			path: d.path,
+			content: d.content,
+			executable: d.executable,
+			...(d.mediaType ? { mediaType: d.mediaType } : {}),
+		})),
+		source: {
+			formatId: format,
+			options: {},
+		},
+		canonical: {
+			emitEmptyAuxiliaryFiles: false,
+		},
 		canonicalSchemaVersion: "1.0.0",
-		options: {},
+		strict: false,
 		callerContext: { artifactNameHint },
 	};
 
-	// Delegate to the appropriate source translator
-	let translationOutput: ReturnType<typeof translateKiroPower>;
-	switch (format) {
-		case "kiro-power":
-			translationOutput = translateKiroPower(documents, context);
-			break;
-		case "kiro-skill":
-			translationOutput = translateKiroSkill(documents, context);
-			break;
-		case "superpowers":
-			translationOutput = translateSuperpowers(documents, context);
-			break;
-	}
+	const translationResult = engine.translate(request);
 
-	const { candidate, diagnostics } = translationOutput;
+	const mappedDiagnostics = translationResult.diagnostics.map((d) => ({
+		severity: d.severity,
+		message: d.message,
+	}));
 
-	if (!candidate) {
+	if (!translationResult.canonical) {
 		return {
 			artifact: undefined,
 			plan: undefined,
 			baseDigest: undefined,
-			diagnostics: diagnostics.map((d) => ({
-				severity: d.severity,
-				message: d.message,
-			})),
+			diagnostics: mappedDiagnostics,
 		};
 	}
 
-	// The translator returns a KnowledgeArtifact-shaped value typed as Record<string, unknown>
-	const artifact = candidate as unknown as KnowledgeArtifact;
+	// The engine already validated this against KnowledgeArtifactSchema; it is a
+	// freshly-parsed object this facade owns and may decorate before serializing.
+	const artifact = translationResult.canonical;
 
 	// Inject CLI-provided collections into the candidate
 	if (collections.length > 0) {
 		artifact.frontmatter.collections = collections;
 	}
-
-	const mappedDiagnostics = diagnostics.map((d) => ({
-		severity: d.severity,
-		message: d.message,
-	}));
 
 	// For an acquisition-driven import, populate a machine-managed
 	// ProvenanceRecord BEFORE serialization so the digest is computed over the
@@ -311,6 +338,37 @@ function translateViaRosetta(
 		if (provenance) {
 			artifact.frontmatter.provenance = provenance;
 			baseDigest = provenance.baseDigest;
+		}
+	}
+
+	// Resolve curation-owned attribution BEFORE serialization so the block is
+	// written into knowledge.md (Requirement 3). First-import-only: if the target
+	// already carries an attribution block, leave it to reconciliation and skip
+	// the wizard entirely (Requirement 3, 5).
+	if (attribution && !attribution.existingHasAttribution) {
+		const draft = deriveAttributionDraft({
+			upstreamFrontmatter: artifact.frontmatter as Record<string, unknown>,
+			sourceRepo: acquisition?.upstream,
+			sourceCommit: acquisition?.sourceRevision,
+			sourcePath: acquisition?.sourcePath,
+			curatedBy: attribution.curatedBy,
+		});
+		const resolved = await runAttributionWizard(draft, {
+			mode: attribution.mode,
+			prompts: attribution.prompts,
+		});
+		if (resolved) {
+			// Only write a block that actually credits something — skip a no-signal
+			// draft (empty authors and no source-repo), which would otherwise add an
+			// empty attribution block to an author-less local import.
+			const first = resolved.upstream[0];
+			const hasSignal =
+				resolved.upstream.length > 1 ||
+				(first?.authors?.length ?? 0) > 0 ||
+				Boolean(first?.["source-repo"]);
+			if (hasSignal) {
+				artifact.frontmatter.attribution = resolved;
+			}
 		}
 	}
 
@@ -416,13 +474,43 @@ export async function importOne(
 	const artifactNameHint = basename(sourceDir);
 	const collections = opts.collections ?? [];
 	const importedAt = new Date().toISOString();
-	const { artifact, plan, baseDigest } = translateViaRosetta(
+
+	// First-import-only guard for attribution: if the predicted target already
+	// carries a curation-owned attribution block, the wizard must not run — the
+	// block is preserved across re-sync (Requirement 3, 5). The importer derives
+	// the artifact name from the source dir, so the predicted target matches.
+	const attributionMode = opts.attributionMode ?? "skip";
+	let existingHasAttribution = false;
+	if (attributionMode !== "skip") {
+		const predictedTarget = join(
+			opts.knowledgeDir,
+			artifactNameHint,
+			"knowledge.md",
+		);
+		if (await exists(predictedTarget)) {
+			const existing = await parseKnowledgeMd(predictedTarget);
+			if (
+				!isParseError(existing) &&
+				existing.data.frontmatter.attribution?.upstream?.length
+			) {
+				existingHasAttribution = true;
+			}
+		}
+	}
+
+	const { artifact, plan, baseDigest } = await translateViaRosetta(
 		documents,
 		detectedFormat,
 		artifactNameHint,
 		collections,
 		opts.acquisition,
 		importedAt,
+		{
+			mode: attributionMode,
+			prompts: opts.attributionPrompts,
+			curatedBy: opts.curatedBy,
+			existingHasAttribution,
+		},
 	);
 
 	if (!artifact || !plan) {
@@ -538,6 +626,35 @@ function stripProvenance(artifact: KnowledgeArtifact): KnowledgeArtifact {
 // CLI Command (public interface preserved)
 // ═══════════════════════════════════════════════════════════════════════════════
 
+/**
+ * `@clack/prompts`-backed bindings for the interactive attribution wizard.
+ * Reuses the same cancel semantics as the `kanon new` wizard: a cancelled
+ * prompt aborts the import cleanly without writing a partial artifact.
+ */
+const clackPrompts: AttributionPrompts = {
+	text: (opts) =>
+		p.text({
+			message: opts.message,
+			initialValue: opts.initialValue,
+			placeholder: opts.placeholder,
+		}),
+	select: (opts) =>
+		p.select({
+			message: opts.message,
+			// The AttributionPrompts.select option shape ({value,label,hint}) matches
+			// clack's Option at runtime; cast at this adapter boundary to bridge the
+			// generic-parameter variance clack's stricter Option<T> type imposes.
+			options: opts.options as Parameters<typeof p.select>[0]["options"],
+			initialValue: opts.initialValue,
+		}),
+	handleCancel: (value) => {
+		if (p.isCancel(value)) {
+			p.cancel("Import cancelled. No files were written.");
+			process.exit(0);
+		}
+	},
+};
+
 export async function importCommand(
 	sourcePath: string,
 	options: Record<string, unknown> = {},
@@ -552,13 +669,40 @@ export async function importCommand(
 		: [];
 	const format = (options.format as ImportFormat | undefined) ?? "auto";
 
+	// Attribution wizard mode (Requirement 3, 4). `--no-attribution` writes no
+	// block; `--attribution-defaults` accepts the derived draft with no prompt;
+	// an interactive TTY prompts. A plain non-interactive local import defaults
+	// to `skip` — attribution is an upstream-credit concern, so a local import of
+	// your own content is not forced to carry a block (this also keeps legacy
+	// import byte-output stable). Upstream/acquisition imports and the backfill
+	// are the paths that populate attribution.
+	let attributionMode: AttributionWizardMode;
+	if (options.attribution === false) {
+		// commander sets `attribution: false` for `--no-attribution`
+		attributionMode = "skip";
+	} else if (options.attributionDefaults) {
+		attributionMode = "defaults";
+	} else if (process.stdout.isTTY) {
+		attributionMode = "interactive";
+	} else {
+		attributionMode = "skip";
+	}
+
 	const resolved = sourcePath.replace(/^~/, process.env.HOME ?? "~");
 
 	if (dryRun) {
 		console.error(chalk.dim("  Dry run — no files will be written\n"));
 	}
 
-	const opts = { dryRun, knowledgeDir, collections, format };
+	const opts = {
+		dryRun,
+		knowledgeDir,
+		collections,
+		format,
+		attributionMode,
+		attributionPrompts:
+			attributionMode === "interactive" ? clackPrompts : undefined,
+	};
 
 	let sources: string[];
 
