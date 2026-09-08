@@ -1,0 +1,1 @@
+ADR-0065: kanon import is now a thin shell over the shared Rosetta Stone engine (getSharedEngine), so import and rosetta translate drive one translation pipeline instead of two parallel paths; import inherits the engine's request guard and canonical validation

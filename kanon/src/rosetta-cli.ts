@@ -19,23 +19,13 @@ import chalk from "chalk";
 import type { Command } from "commander";
 import { loadForgeConfig } from "./config";
 import { registerBackfillCommand } from "./provenance-backfill-cli";
-import { PRETTY_PRINTERS } from "./rosetta/builtins/pretty-printers/index";
+import { getSharedEngine, getSharedRegistry } from "./rosetta/engine-bootstrap";
 import {
-	HARNESS_NATIVE_SOURCE_TRANSLATORS,
-	PATH_BASED_SOURCE_TRANSLATORS,
-} from "./rosetta/builtins/sources/index";
-import { TARGET_TRANSLATORS } from "./rosetta/builtins/targets/index";
-import {
-	BUILTIN_FORMAT_CONTRACTS,
-	createEngine,
-	createRegistryBuilder,
 	type JsonRenderOptions,
-	type RegistryExtension,
 	renderHuman,
 	renderJson,
 	type TranslationRegistrySnapshot,
 } from "./rosetta/index";
-import type { ImmutableTemplateBundle } from "./rosetta/templates";
 import { registerProfilesCommands } from "./rosetta-profiles-cli";
 import type {
 	FormatContract,
@@ -43,60 +33,23 @@ import type {
 	TranslationProfile,
 	TranslationRequest,
 } from "./schemas";
-import { loadTemplateBundle } from "./template-bundle-loader";
 import {
 	readArtifactDocuments,
 	resolveAllowedRoot,
 } from "./translation-orchestrator";
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// Registry and Engine Bootstrap (lazy, cached)
+// Registry and Engine Bootstrap (lazy, cached — shared with the import facade)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-let cachedRegistry: TranslationRegistrySnapshot | null = null;
-let cachedTemplates: ImmutableTemplateBundle | null = null;
-
 /**
- * Get or create the default registry snapshot with all built-in contracts.
- * Wires source translators, target translators, and pretty-printers from
- * the builtin modules alongside each contract.
+ * Registry accessor. Delegates to the shared engine bootstrap so this command
+ * namespace and the `kanon import` facade resolve against one registry snapshot
+ * (ADR-0065). Kept as a local alias for the call sites that read
+ * `registry.version` / pass `registrySnapshot`.
  */
 function getRegistry(): TranslationRegistrySnapshot {
-	if (cachedRegistry !== null) {
-		return cachedRegistry;
-	}
-
-	const builder = createRegistryBuilder("1.0.0");
-	for (const contract of BUILTIN_FORMAT_CONTRACTS) {
-		const id = contract.id;
-		const sourceTranslator =
-			PATH_BASED_SOURCE_TRANSLATORS.get(id) ??
-			HARNESS_NATIVE_SOURCE_TRANSLATORS.get(id);
-		const targetTranslator = TARGET_TRANSLATORS.get(id);
-		const prettyPrinter = PRETTY_PRINTERS.get(id);
-
-		const extension: RegistryExtension = {
-			contract,
-			...(sourceTranslator ? { sourceTranslator } : {}),
-			...(targetTranslator ? { targetTranslator } : {}),
-			...(prettyPrinter ? { prettyPrinter } : {}),
-		};
-		builder.register(extension);
-	}
-	cachedRegistry = builder.freeze();
-	return cachedRegistry;
-}
-
-/**
- * Get or create the immutable template bundle from the templates directory.
- */
-function getTemplates(): ImmutableTemplateBundle {
-	if (cachedTemplates !== null) {
-		return cachedTemplates;
-	}
-	const templatesDir = resolve("templates/harness-adapters");
-	cachedTemplates = loadTemplateBundle(templatesDir);
-	return cachedTemplates;
+	return getSharedRegistry();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -283,8 +236,7 @@ async function detectCommand(
 	options: DetectOptions,
 ): Promise<void> {
 	const registry = getRegistry();
-	const templates = getTemplates();
-	const engine = createEngine(registry, templates);
+	const engine = getSharedEngine();
 
 	const documents = await loadSourceDocuments(sourcePath);
 
@@ -402,8 +354,7 @@ async function inspectCommand(
 	}
 
 	const registry = getRegistry();
-	const templates = getTemplates();
-	const engine = createEngine(registry, templates);
+	const engine = getSharedEngine();
 
 	// Validate explicit format identifiers against direction
 	if (direction.sourceFormatId) {
@@ -509,8 +460,7 @@ async function translateCommand(
 	}
 
 	const registry = getRegistry();
-	const templates = getTemplates();
-	const engine = createEngine(registry, templates);
+	const engine = getSharedEngine();
 
 	// Validate explicit format identifiers against direction
 	if (direction.sourceFormatId) {
