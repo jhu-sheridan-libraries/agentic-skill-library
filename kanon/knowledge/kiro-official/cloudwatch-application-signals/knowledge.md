@@ -1,7 +1,13 @@
 ---
 name: cloudwatch-application-signals
 displayName: '[DEPRECATED] Amazon CloudWatch Application Signals'
-description: ':warning: DEPRECATED: This power has been merged into the AWS Observability power, which provides expanded capabilities including CloudWatch Logs, Metrics, Alarms, Application Signals (APM), CloudTrail security auditing, and automated codebase observability gap analysis. We recommend installing the AWS Observability power for a more comprehensive monitoring experience. See steps in `Migrating to AWS Observability power`'
+description: >-
+  :warning: DEPRECATED: This power has been merged into the AWS Observability
+  power, which provides expanded capabilities including CloudWatch Logs,
+  Metrics, Alarms, Application Signals (APM), CloudTrail security auditing, and
+  automated codebase observability gap analysis. We recommend installing the AWS
+  Observability power for a more comprehensive monitoring experience. See steps
+  in `Migrating to AWS Observability power`
 keywords:
   - application-signals
   - aws
@@ -14,14 +20,19 @@ keywords:
   - audit
 author: AWS
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - devops
   - performance
-ecosystem: [aws, cloudwatch]
+ecosystem:
+  - aws
+  - cloudwatch
 depends: []
 enhances: []
 maturity: stable
@@ -31,9 +42,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
-harness-config:
-  kiro:
-    format: power
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - AWS
+      relationship: verbatim
+      work: cloudwatch-application-signals
+outcomes: []
 ---
 # Migrating to AWS Observability power
 

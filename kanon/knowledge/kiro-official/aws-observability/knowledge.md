@@ -1,7 +1,11 @@
 ---
 name: aws-observability
 displayName: AWS Observability
-description: Comprehensive AWS observability platform combining CloudWatch Logs, Metrics, Alarms, Application Signals (APM), CloudTrail security auditing, Amazon Managed Prometheus (AMP) metric querying, and automated codebase observability gap analysis, for complete monitoring, troubleshooting, and optimization.
+description: >-
+  Comprehensive AWS observability platform combining CloudWatch Logs, Metrics,
+  Alarms, Application Signals (APM), CloudTrail security auditing, Amazon
+  Managed Prometheus (AMP) metric querying, and automated codebase observability
+  gap analysis, for complete monitoring, troubleshooting, and optimization.
 keywords:
   - cloudwatch
   - observability
@@ -28,15 +32,20 @@ keywords:
   - amazon managed prometheus
 author: AWS
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - devops
   - debugging
   - performance
-ecosystem: [aws, cloudwatch]
+ecosystem:
+  - aws
+  - cloudwatch
 depends: []
 enhances: []
 maturity: stable
@@ -46,9 +55,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
-harness-config:
-  kiro:
-    format: power
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - AWS
+      relationship: verbatim
+      work: aws-observability
+outcomes: []
 ---
 # ⚠️ CRITICAL: ALWAYS LOAD STEERING FILES FIRST
 

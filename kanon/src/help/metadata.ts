@@ -215,6 +215,14 @@ export const commandMetaRegistry: Record<string, CommandHelpMeta> = {
 				invocation: "kanon import path/to/power --collections my-collection",
 			},
 			{
+				comment: "Import accepting derived upstream attribution (no prompt)",
+				invocation: "kanon import path/to/power --attribution-defaults",
+			},
+			{
+				comment: "Import without capturing attribution",
+				invocation: "kanon import path/to/power --no-attribution",
+			},
+			{
 				comment: "Preview what would be imported",
 				invocation: "kanon import path/to/power --dry-run",
 			},
@@ -225,8 +233,49 @@ export const commandMetaRegistry: Record<string, CommandHelpMeta> = {
 				options: ["--format", "--all"],
 			},
 			{
+				label: "Attribution Options",
+				options: ["--attribution-defaults", "--no-attribution"],
+			},
+			{
 				label: "Behavior Options",
 				options: ["--dry-run", "--collections", "--knowledge-dir"],
+			},
+		],
+	},
+	attribute: {
+		examples: [
+			{
+				comment: "Print a NOTICES report of upstream attribution by license",
+				invocation: "kanon attribute",
+			},
+			{
+				comment: "Write the NOTICES report to a file",
+				invocation: "kanon attribute --output NOTICES",
+			},
+		],
+		optionGroups: [
+			{
+				label: "Output Options",
+				options: ["--output"],
+			},
+		],
+	},
+	"attribute backfill": {
+		examples: [
+			{
+				comment:
+					"Preview the attribution backfill (clean vs manual-review split)",
+				invocation: "kanon attribute backfill --dry-run",
+			},
+			{
+				comment: "Backfill attribution blocks for imported artifacts",
+				invocation: "kanon attribute backfill",
+			},
+		],
+		optionGroups: [
+			{
+				label: "Behavior Options",
+				options: ["--dry-run"],
 			},
 		],
 	},

@@ -1,7 +1,9 @@
 ---
 name: datadog
 displayName: Datadog Observability
-description: Query logs, metrics, traces, RUM events, incidents, and monitors from Datadog for production debugging and performance analysis
+description: >-
+  Query logs, metrics, traces, RUM events, incidents, and monitors from Datadog
+  for production debugging and performance analysis
 keywords:
   - datadog
   - observability
@@ -14,15 +16,19 @@ keywords:
   - incidents
 author: Datadog
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - devops
   - debugging
   - performance
-ecosystem: [datadog]
+ecosystem:
+  - datadog
 depends: []
 enhances: []
 maturity: stable
@@ -32,9 +38,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
-harness-config:
-  kiro:
-    format: power
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - Datadog
+      relationship: verbatim
+      work: datadog
+outcomes: []
 ---
 # Onboarding
 

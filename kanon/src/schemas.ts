@@ -399,6 +399,11 @@ export const FrontmatterSchema = z
 		// artifacts authored from scratch. Defined later in this file, so we
 		// reference it lazily to avoid a temporal-dead-zone error.
 		provenance: z.lazy(() => ProvenanceRecordSchema).optional(),
+		// Curation-owned human/legal attribution (see AttributionRecordSchema and
+		// ADR-0064). Additive to `author` (which stays as the display string);
+		// captured by the import Attribution_Wizard, preserved across re-sync.
+		// Referenced lazily since AttributionRecordSchema is defined later.
+		attribution: z.lazy(() => AttributionRecordSchema).optional(),
 	})
 	.passthrough()
 	.superRefine((data, ctx) => {
@@ -512,6 +517,10 @@ export const CatalogEntrySchema = z.object({
 	successor: z.string().optional(),
 	replaces: z.string().optional(),
 	collections: z.array(z.string()).default([]),
+	// Projected human/legal attribution (ADR-0064). Copied verbatim from the
+	// artifact's curation-owned `attribution` block during catalog generation;
+	// powers the gallery relationship chip and the detail "Sources & credits".
+	attribution: z.lazy(() => AttributionRecordSchema).optional(),
 	// Catalog visibility & ordering (Req 4.4, 4.6)
 	visibility: VisibilitySchema,
 	priority: PrioritySchema,
@@ -1450,6 +1459,56 @@ export const ProvenanceRecordSchema = z
 	.strict();
 export type ProvenanceRecord = z.infer<typeof ProvenanceRecordSchema>;
 
+// --- Attribution Record ---
+
+/**
+ * The copyright-relevant relationship between this artifact and an upstream
+ * work. Captured (not inferred) at import time by the Attribution_Wizard.
+ *
+ * - `verbatim`: vendored unchanged; the body is upstream's.
+ * - `adapted`: materially edited from upstream.
+ * - `inspired-by`: original expression here, only the idea is upstream's.
+ * - `packaged`: repackaged/reformatted, authorship unchanged.
+ */
+export const RelationshipSchema = z.enum([
+	"verbatim",
+	"adapted",
+	"inspired-by",
+	"packaged",
+]);
+export type Relationship = z.infer<typeof RelationshipSchema>;
+
+/**
+ * One upstream work this artifact derives from. `source-repo`/`source-commit`
+ * may overlap with the machine-owned ProvenanceRecord intentionally; that
+ * overlap is not deduplicated. `license` reuses the SPDX conventions of the
+ * frontmatter `license` field.
+ */
+export const UpstreamWorkSchema = z.object({
+	work: z.string().min(1),
+	authors: z.array(z.string().min(1)).min(1),
+	url: z.string().url().optional(),
+	license: z.string().optional(),
+	"source-repo": z.string().min(1).optional(),
+	"source-commit": z.string().min(1).optional(),
+	relationship: RelationshipSchema.default("verbatim"),
+});
+export type UpstreamWork = z.infer<typeof UpstreamWorkSchema>;
+
+/**
+ * Curation-owned, human/legal attribution for an artifact (see ADR-0064). The
+ * counterpart to the machine-owned ProvenanceRecord: `provenance` answers
+ * "where do I re-sync from" and is overwritten on every import; `attribution`
+ * answers "who do I credit and under what license" and is preserved across
+ * every re-sync (classified `curation-owned` in the Field_Ownership_Policy).
+ */
+export const AttributionRecordSchema = z.object({
+	upstream: z.array(UpstreamWorkSchema).min(1),
+	"curated-by": z.string().min(1).optional(),
+	notice: z.string().optional(),
+});
+export type AttributionRecord = z.infer<typeof AttributionRecordSchema>;
+
 // --- Reconciliation: field ownership and three-way merge ---
 
 /**
@@ -1487,6 +1546,7 @@ export const ReconcilableFieldSchema = z.enum([
 	"priority",
 	"visibility",
 	"hooks",
+	"attribution",
 	// Upstream-owned capabilities
 	"body",
 	"workflows",
@@ -1529,8 +1589,10 @@ export type FieldOwnershipPolicy = z.infer<typeof FieldOwnershipPolicySchema>;
  * the Rosetta Stone design:
  *
  * - Curation-owned fields (`categories`, `trust`, `collections`, `audience`,
- *   `priority`, `visibility`, `hooks`) always keep the curated (Ours) value.
- *   `hooks` is curation-owned because maintainers routinely tune hooks locally.
+ *   `priority`, `visibility`, `hooks`, `attribution`) always keep the curated
+ *   (Ours) value. `hooks` is curation-owned because maintainers routinely tune
+ *   hooks locally; `attribution` is curation-owned so an upstream re-sync never
+ *   clobbers hand-confirmed credit (ADR-0064).
  * - Upstream-owned fields (`body`, `workflows`, `mcpServers`) fast-forward to
  *   the upstream (Theirs) value only when the maintainer never edited them.
  * - Merge-by-union fields (`keywords`, `enhances`, `depends`) take the
@@ -1548,6 +1610,7 @@ export const DEFAULT_FIELD_OWNERSHIP_POLICY: Readonly<
 	priority: "curation-owned",
 	visibility: "curation-owned",
 	hooks: "curation-owned",
+	attribution: "curation-owned",
 	body: "upstream-owned",
 	workflows: "upstream-owned",
 	mcpServers: "upstream-owned",

@@ -1,29 +1,56 @@
 ---
 name: practice-library-reference-interview
 displayName: Practice a Library Reference Interview
-description: Role-play and debrief a fictional research-library reference interview so a librarian or workshop participant can practice question negotiation, privacy boundaries, and a research brief without using real patron data.
-keywords: [academic-libraries, reference-interview, question-negotiation, privacy, research-support, role-play]
+description: >-
+  Role-play and debrief a fictional research-library reference interview so a
+  librarian or workshop participant can practice question negotiation, privacy
+  boundaries, and a research brief without using real patron data.
+keywords:
+  - academic-libraries
+  - reference-interview
+  - question-negotiation
+  - privacy
+  - research-support
+  - role-play
 author: Library AI Workshop maintainers
 version: 0.1.0
-harnesses: [codex, claude-code]
 type: skill
+harnesses:
+  - codex
+  - claude-code
 inclusion: manual
-categories: [documentation, accessibility]
-ecosystem: [academic-libraries, research]
-depends: []
-enhances: []
-maturity: experimental
-trust: community
-license: MPL-2.0
-audience: intermediate
-model-assumptions: []
-collections: [library-ai-workshop]
-inherit-hooks: false
 harness-config:
   codex:
     format: skill
+categories:
+  - documentation
+  - accessibility
+ecosystem:
+  - academic-libraries
+  - research
+depends: []
+enhances: []
+license: MPL-2.0
+maturity: experimental
+trust: community
+audience: intermediate
+model-assumptions: []
+collections:
+  - library-ai-workshop
+inherit-hooks: false
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - license: MPL-2.0
+      authors:
+        - Library AI Workshop maintainers
+      relationship: packaged
+      source-repo: eudaemon-ai/academic-ai-library-workshop
+      url: https://github.com/eudaemon-ai/academic-ai-library-workshop
+      work: practice-library-reference-interview
+outcomes: []
 ---
-
 > **Source and adaptation:** Imported from [eudaemon-ai/academic-ai-library-workshop](https://github.com/eudaemon-ai/academic-ai-library-workshop) at commit `d3743bca0b1766709d1694343ef6082d90933141`. The Kanon artifact preserves the upstream skill and focused references under `workflows/` for Codex progressive disclosure. Review local library policy, privacy, accessibility, and retention requirements before use.
 
 # Practice a Library Reference Interview

@@ -323,6 +323,14 @@ function generateStyles(): string {
     .badge-trust-partner         { background: #e2d9f3; color: #41217a; }
     .badge-trust-community       { background: #e0e0dc; color: #444; }
     .badge-trust-experimental    { background: #fff3cd; color: #856404; }
+    .badge-attribution {
+      background: #eef2ff;
+      color: #3730a3;
+      text-transform: none;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      margin-left: 6px;
+    }
     #detail-view {
       padding: 32px 40px;
       max-width: 860px;
@@ -996,6 +1004,23 @@ function generateClientScript(): string {
         var maturity = entry.maturity || 'experimental';
         var maturityBadge = '<span class="badge badge-maturity-' + escapeHtmlJs(maturity) + '">' + escapeHtmlJs(maturity) + '</span>';
         var trustBadge = entry.trust ? '<span class="badge badge-trust-' + escapeHtmlJs(entry.trust) + '">' + escapeHtmlJs(entry.trust) + '</span>' : '';
+
+        // Attribution relationship chip (Option A): shown only when the entry
+        // carries projected upstream attribution. One upstream → "↳ <work> ·
+        // <relationship>"; two or more → "↳ N sources". Absent for in-house.
+        var attributionChip = '';
+        var upstream = entry.attribution && entry.attribution.upstream;
+        if (upstream && upstream.length > 0) {
+          var chipText;
+          if (upstream.length === 1) {
+            var u0 = upstream[0];
+            chipText = '↳ ' + u0.work + ' · ' + (u0.relationship || 'verbatim');
+          } else {
+            chipText = '↳ ' + upstream.length + ' sources';
+          }
+          attributionChip = '<span class="badge badge-attribution" title="' + escapeHtmlJs(chipText) + '">' + escapeHtmlJs(chipText) + '</span>';
+        }
+
         var descHtml = entry.description ? '<div class="card-description">' + escapeHtmlJs(entry.description) + '</div>' : '';
         var kwHtml = keywordsHtml ? '<div class="card-keywords">' + keywordsHtml + '</div>' : '';
 
@@ -1008,7 +1033,7 @@ function generateClientScript(): string {
           descHtml +
           kwHtml +
           '<div class="card-footer">' +
-            '<span class="card-harnesses">' + harnessesHtml + '</span>' +
+            '<span class="card-harnesses">' + harnessesHtml + attributionChip + '</span>' +
             '<div class="card-badges">' + maturityBadge + trustBadge + '</div>' +
           '</div>';
 
@@ -1406,6 +1431,35 @@ function generateClientScript(): string {
         collectionBadgesHtml += '</div>';
       }
 
+      // Sources & credits — human/legal upstream attribution (ADR-0064, Req 7).
+      // Rendered from the projected attribution block; absent for in-house
+      // artifacts. Replaces hand-written body "Source and adaptation" banners.
+      var attributionHtml = '';
+      var detailUpstream = entry.attribution && entry.attribution.upstream;
+      if (detailUpstream && detailUpstream.length > 0) {
+        attributionHtml = '<div class="detail-section-label">Sources &amp; credits</div>' +
+          '<div style="font-size:0.875rem;color:#444;margin-bottom:20px;line-height:1.7">';
+        for (var ui = 0; ui < detailUpstream.length; ui++) {
+          var uw = detailUpstream[ui];
+          var authorsStr = (uw.authors && uw.authors.length > 0) ? uw.authors.join(', ') : '(author unknown)';
+          var titleStr = uw.url
+            ? '<a href="' + escapeHtmlJs(uw.url) + '" target="_blank" rel="noopener" style="color:#3730a3;text-decoration:none">' + escapeHtmlJs(uw.work) + '</a>'
+            : '<strong style="font-weight:600">' + escapeHtmlJs(uw.work) + '</strong>';
+          attributionHtml += '<div style="margin-bottom:6px">' +
+            '<span class="badge badge-attribution" style="margin-right:8px">' + escapeHtmlJs(uw.relationship || 'verbatim') + '</span>' +
+            titleStr + ' — ' + escapeHtmlJs(authorsStr) +
+            (uw.license ? ' <span style="color:#999">(' + escapeHtmlJs(uw.license) + ')</span>' : '') +
+            '</div>';
+        }
+        if (entry.attribution['curated-by']) {
+          attributionHtml += '<div style="margin-top:8px;color:#888">Curated by ' + escapeHtmlJs(entry.attribution['curated-by']) + '</div>';
+        }
+        if (entry.attribution.notice) {
+          attributionHtml += '<div style="margin-top:6px;color:#888;font-style:italic">' + escapeHtmlJs(entry.attribution.notice) + '</div>';
+        }
+        attributionHtml += '</div>';
+      }
+
       var html =
         '<div class="detail-back" id="detail-back-link"><span class="detail-back-arrow">\u2190</span> Catalog</div>' +
         '<div class="detail-title-row">' +
@@ -1424,6 +1478,7 @@ function generateClientScript(): string {
         '</div>') +
         '<div id="detail-version-section" class="version-section"></div>' +
         collectionBadgesHtml +
+        attributionHtml +
         '<div class="detail-section-label">Targets</div>' +
         '<div style="font-size:0.875rem;color:#444;margin-bottom:20px;line-height:2">' +
         entry.harnesses.map(function(h) {

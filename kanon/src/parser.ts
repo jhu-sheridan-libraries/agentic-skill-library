@@ -54,6 +54,8 @@ const KNOWN_FRONTMATTER_FIELDS = new Set([
 	"priority",
 	// Machine-managed distillation provenance (see ProvenanceRecordSchema).
 	"provenance",
+	// Curation-owned human/legal attribution (see AttributionRecordSchema).
+	"attribution",
 ]);
 
 export interface ParseResult<T> {

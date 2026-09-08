@@ -1,7 +1,9 @@
 ---
 name: postman
 displayName: API Testing with Postman
-description: Automate API testing and collection management with Postman - create workspaces, collections, environments, and run tests programmatically
+description: >-
+  Automate API testing and collection management with Postman - create
+  workspaces, collections, environments, and run tests programmatically
 keywords:
   - postman
   - api
@@ -11,14 +13,18 @@ keywords:
   - automation
 author: Postman
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - testing
   - devops
-ecosystem: [postman]
+ecosystem:
+  - postman
 depends: []
 enhances: []
 maturity: stable
@@ -28,9 +34,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
-harness-config:
-  kiro:
-    format: power
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - Postman
+      relationship: verbatim
+      work: postman
+outcomes: []
 ---
 # Onboarding
 

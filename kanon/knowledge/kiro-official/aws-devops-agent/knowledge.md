@@ -1,7 +1,10 @@
 ---
 name: aws-devops-agent
 displayName: AWS DevOps Agent
-description: AI agent for AWS operational intelligence via the AWS MCP Server. Investigate incidents, optimize costs, review architecture, map topology, and get remediation — using the aws___call_aws tool with DevOps Agent APIs.
+description: >-
+  AI agent for AWS operational intelligence via the AWS MCP Server. Investigate
+  incidents, optimize costs, review architecture, map topology, and get
+  remediation — using the aws___call_aws tool with DevOps Agent APIs.
 keywords:
   - incident
   - troubleshoot
@@ -14,14 +17,18 @@ keywords:
   - runbooks
 author: AWS
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - devops
   - debugging
-ecosystem: [aws]
+ecosystem:
+  - aws
 depends: []
 enhances: []
 maturity: stable
@@ -31,9 +38,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
-harness-config:
-  kiro:
-    format: power
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - AWS
+      relationship: verbatim
+      work: aws-devops-agent
+outcomes: []
 ---
 # AWS DevOps Agent — Kiro Power (AWS MCP Server)
 

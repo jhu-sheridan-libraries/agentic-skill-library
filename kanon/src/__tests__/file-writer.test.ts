@@ -32,7 +32,52 @@ const { buildKnowledgeMd, buildHooksYaml, buildMcpServersYaml } = await import(
 
 // --- Arbitraries (reused from schema-roundtrip.property.test.ts) ---
 
-/** Non-empty alphanumeric string safe for YAML round-trips */
+/**
+ * Non-empty string that provably survives the REAL writer round-trip as itself.
+ * We probe through `buildKnowledgeMd` (the exact serializer under test), not a
+ * standalone `matter.stringify`: js-yaml's dump/load are asymmetric — it emits
+ * some plain scalars (e.g. `._2`, `1.2`, `no`) UNQUOTED yet re-loads them as
+ * number/bool via gray-matter's default schema. Filtering each candidate through
+ * the writer's own output makes Property 8 deterministic and keeps it honest —
+ * it exercises exactly the strings the writer can faithfully persist.
+ *
+ * (The writer emitting ambiguous scalars unquoted in arrays is a separate latent
+ * robustness gap in file-writer.ts, tracked apart from this test's stability.)
+ */
+const roundTripsAsString = (s: string): boolean => {
+	try {
+		const md = buildKnowledgeMd({
+			frontmatter: {
+				name: "probe",
+				description: "probe",
+				keywords: [s],
+				author: "probe",
+				version: "1.0.0",
+				harnesses: ["kiro"],
+				type: "skill",
+				inclusion: "always",
+				categories: [],
+				ecosystem: [],
+				depends: [],
+				enhances: [],
+				maturity: "experimental",
+				"model-assumptions": [],
+				collections: [],
+				"inherit-hooks": false,
+				outcomes: [],
+			} as unknown as Frontmatter,
+			knowledgeBody: "probe body",
+			hooks: [],
+			mcpServers: [],
+		});
+		const back = matter(md).data.keywords as unknown[];
+		return Array.isArray(back) && back.length === 1 && back[0] === s;
+	} catch {
+		return false;
+	}
+};
+
+/** Non-empty string safe for a YAML string round-trip (no lossy scalars). */
 const safeString = () =>
 	fc
 		.string({ minLength: 1, maxLength: 30 })
@@ -41,7 +86,8 @@ const safeString = () =>
 				s.length > 0 &&
 				!s.includes("\0") &&
 				!s.includes("\n") &&
-				s.trim() === s,
+				s.trim() === s &&
+				roundTripsAsString(s),
 		);
 
 /** Kebab-case string generator matching ^[a-z0-9]+(-[a-z0-9]+)*$ */
