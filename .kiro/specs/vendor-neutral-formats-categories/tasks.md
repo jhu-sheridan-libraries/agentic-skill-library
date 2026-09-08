@@ -174,11 +174,13 @@ Each property test carries the comment `Feature: vendor-neutral-formats-categori
   - [ ] 11.3 Verify `rosetta formats` output presents `skill-md` active + old ids as deprecated aliases
     - No code change expected (renderer already reads `lifecycle`/`aliases`); add/adjust a snapshot test
     - _Requirements: 10.3_
-  - [ ] 11.4 Write ADR-0067 — "Format identifiers describe structure, not vendor"
-    - Accepts/realizes ADR-0066; states the naming rule (Requirement 3), applies it (`skill-md` `harness: null`; `kiro-power` unchanged), documents the alias + provenance-id migration, and records the model-invariant check as the registry-wide enforcement mechanism; add to the ADR index
+  - [x] 11.4 Write ADR-0067 — "Format identifiers describe structure, not vendor"
+    - Drafted at `kanon/docs/adr/0067-format-identifiers-describe-structure-not-vendor.md` (Status: Proposed) and added to the ADR index
+    - Realizes ADR-0066; states the naming rule (Requirement 3), applies it (`skill-md` `harness: null`; `kiro-power` unchanged), documents the alias + provenance-id migration, and records the model-invariant check as the registry-wide enforcement mechanism
     - _Requirements: 3.5, 10.5_
-  - [ ] 11.5 Write ADR-0068 — "Categories for craft, domains for subject"
-    - Extends ADR-0007; documents the two-axis split, why `domains` is freeform-with-warning (Known_Domains_Registry) rather than a second closed enum, and defines `harnesses` as the Destination axis so INV-1 does not contradict itself; add to the ADR index
+  - [x] 11.5 Write ADR-0068 — "Categories for craft, domains for subject"
+    - Drafted at `kanon/docs/adr/0068-categories-for-craft-domains-for-subject.md` (Status: Proposed) and added to the ADR index
+    - Extends ADR-0007; documents the two-axis split, why `domains` is freeform-with-warning (Known_Domains_Registry) rather than a second closed enum, and defines `harnesses` as the Destination axis so INV-1 does not contradict itself
     - _Requirements: 10.5, 13.5_
   - [ ] 11.6 Add changelog fragments
     - One `changed` fragment for the format rename/aliases; one `added` fragment for the `domains` field + domain governance; one `added` fragment for the model-invariant check
