@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-09-08
+
+### Fixed
+- Progressive-steering rubric grader now grades the harness build, not its wrapper. When `--build` points at a directory that wraps the harness folder (`…/expected-build` or `…/expected-build/dist`), the grader descends into `kiro`/`dist/kiro` so artifact names resolve correctly instead of collapsing to `kiro`/`dist` and zeroing FMP/MD into a false RED. The grader now loads the workload that belongs to the build being graded: an explicit `--workload <path>` wins, else the scenario's own `workload.json` when `--build` points inside its `expected-build` tree, else the first discovered fixture workload. Adds the `--workload` CLI flag on `kanon eval rubric`.
+
 ## [0.7.1] - 2026-08-27
 
 ### Added

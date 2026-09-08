@@ -398,6 +398,10 @@ if (import.meta.main !== false) {
 			"--build <dir>",
 			"Point the rubric grader at an already-compiled build directory",
 		)
+		.option(
+			"--workload <path>",
+			"Workload JSON for the rubric grader (default: the scenario matching --build)",
+		)
 		.option("--json", "Output rubric result as canonical JSON")
 		.option("--threshold <score>", "Minimum passing score (0.0–1.0)", "0.7")
 		.option("--output <path>", "Write detailed results as JSON")
