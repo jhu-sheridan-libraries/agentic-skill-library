@@ -1,0 +1,1 @@
+Add `.github/labels.yml` as the single source of truth for the repository's issue/PR label set (type/area/harness/status), reconciled to the repo on push to the default branch by a new `sync-labels` workflow (crazy-max/ghaction-github-labeler, `skip-delete` so GitHub's stock defaults are preserved).

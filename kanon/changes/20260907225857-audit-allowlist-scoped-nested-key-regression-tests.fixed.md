@@ -1,0 +1,1 @@
+Add `packageNameFromKey` regression tests for scoped nested lockfile keys (e.g. `@actions/github/@actions/http-client` and `parent/@scope/pkg`), locking in that the leaf's own `@scope` is preserved rather than the ancestor's name.
