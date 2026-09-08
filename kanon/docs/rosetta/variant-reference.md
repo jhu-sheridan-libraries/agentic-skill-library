@@ -44,6 +44,14 @@ Default variant: `rule`
 |---|---|---|---|
 | `rule` | Cursor rule format | `.cursor/rules/*.mdc` | — |
 
+## gemini-cli
+
+Default variant: `gemini-md`
+
+| Variant | Description | Path Conventions | Option Overrides |
+|---|---|---|---|
+| `gemini-md` | GEMINI.md Markdown format | `GEMINI.md` | — |
+
 ## kiro
 
 Default variant: `steering`

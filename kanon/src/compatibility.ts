@@ -36,6 +36,7 @@ export const ASSET_HARNESS_COMPATIBILITY: Record<
 		cursor: "partial", // emitted as rule file
 		windsurf: "partial",
 		cline: "partial",
+		"gemini-cli": "partial", // emitted as GEMINI.md sections
 	},
 	// This table answers a build-level question ("does the harness produce
 	// meaningful output for this asset type, or should getCompatibility's
@@ -58,6 +59,7 @@ export const ASSET_HARNESS_COMPATIBILITY: Record<
 		windsurf: "none",
 		cline: "none",
 		qdeveloper: "full",
+		"gemini-cli": "partial", // no agent surface; rendered as generic GEMINI.md prose
 	},
 	prompt: {
 		// Prompts are universally representable as steering/rule content
@@ -69,6 +71,7 @@ export const ASSET_HARNESS_COMPATIBILITY: Record<
 		windsurf: "full",
 		cline: "full",
 		qdeveloper: "full",
+		"gemini-cli": "full",
 	},
 	template: {
 		// Templates are reference material — includable in any harness context
@@ -79,6 +82,7 @@ export const ASSET_HARNESS_COMPATIBILITY: Record<
 		windsurf: "partial",
 		cline: "partial",
 		qdeveloper: "partial",
+		"gemini-cli": "full",
 	},
 	"reference-pack": {
 		// Reference packs are manual-inclusion only; all harnesses can host them
@@ -90,6 +94,7 @@ export const ASSET_HARNESS_COMPATIBILITY: Record<
 		windsurf: "full",
 		cline: "full",
 		qdeveloper: "full",
+		"gemini-cli": "full",
 	},
 };
 

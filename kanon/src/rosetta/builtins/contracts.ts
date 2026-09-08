@@ -22,6 +22,7 @@ import {
 	CODEX_PROFILE,
 	COPILOT_PROFILE,
 	CURSOR_PROFILE,
+	GEMINI_CLI_PROFILE,
 	KIRO_STEERING_PROFILE,
 	QDEVELOPER_PROFILE,
 	WINDSURF_PROFILE,
@@ -804,6 +805,85 @@ export const QDEVELOPER_CONTRACT: FormatContract = {
 };
 
 /**
+ * Gemini CLI harness format — GEMINI.md context files and settings.
+ *
+ * Gemini CLI sources project context from a hierarchical set of GEMINI.md
+ * Markdown files (global, workspace, and nested directories) that are
+ * concatenated into the model context on every prompt. MCP servers are
+ * declared in .gemini/settings.json under an "mcpServers" object.
+ */
+export const GEMINI_CLI_CONTRACT: FormatContract = {
+	id: "gemini-cli" as FormatIdentifier,
+	contractVersion: "1.0",
+	direction: "bidirectional",
+	harness: "gemini-cli",
+	aliases: ["gemini" as FormatIdentifier],
+	lifecycle: { status: "active", introducedIn: "1.0.0" },
+	canonicalVersions: { minInclusive: "1.0.0", maxExclusive: "2.0.0" },
+	schemaReference: {
+		type: "none",
+		description: "Gemini CLI GEMINI.md and settings conventions",
+	},
+	pathConventions: [
+		{
+			pattern: "GEMINI.md",
+			required: false,
+			description: "Root Gemini CLI context/instructions",
+		},
+		{
+			pattern: ".gemini/settings.json",
+			required: false,
+			description: "Gemini CLI settings (including mcpServers)",
+		},
+	],
+	detection: {
+		threshold: 0.5,
+		rules: [
+			{
+				id: "gemini-md",
+				kind: "basename",
+				pattern: "GEMINI.md",
+				weight: 50,
+				required: false,
+				evidenceLabel: "GEMINI.md present",
+			},
+			{
+				id: "gemini-settings",
+				kind: "path-glob",
+				pattern: ".gemini/settings.json",
+				weight: 30,
+				required: false,
+				evidenceLabel: "Gemini settings directory",
+			},
+		],
+	},
+	variants: {
+		"gemini-md": {
+			id: "gemini-md" as FormatIdentifier,
+			description: "GEMINI.md Markdown format",
+			pathConventions: [{ pattern: "GEMINI.md", required: true }],
+			defaults: {},
+			optionOverrides: {},
+		},
+	},
+	defaultVariant: "gemini-md" as FormatIdentifier,
+	optionDefinitions: {},
+	defaults: {},
+	normalizationRules: [
+		{
+			id: "merge-sections",
+			description: "Merge duplicate heading sections",
+			scope: "source",
+		},
+	],
+	compatibility: GEMINI_CLI_PROFILE,
+	security: {
+		sensitiveValuePolicy: "reference-only",
+		allowedReferencePatterns: ["\\$\\{[A-Z_]+\\}"],
+	},
+};
+
+/**
  * Kiro Power format — source-only, path-based POWER.md plus steering/.
  */
 export const KIRO_POWER_CONTRACT: FormatContract = {
@@ -1024,6 +1104,7 @@ export const BUILTIN_FORMAT_CONTRACTS: readonly FormatContract[] = [
 	CODEX_CONTRACT,
 	COPILOT_CONTRACT,
 	CURSOR_CONTRACT,
+	GEMINI_CLI_CONTRACT,
 	KIRO_CONTRACT,
 	QDEVELOPER_CONTRACT,
 	WINDSURF_CONTRACT,

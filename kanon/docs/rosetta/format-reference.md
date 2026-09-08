@@ -12,6 +12,7 @@
 | `codex` | bidirectional | codex | — | agents-md | active | 1.0 |
 | `copilot` | bidirectional | copilot | github-copilot | instructions | active | 1.0 |
 | `cursor` | bidirectional | cursor | — | rule | active | 1.0 |
+| `gemini-cli` | bidirectional | gemini-cli | gemini | gemini-md | active | 1.0 |
 | `kiro` | bidirectional | kiro | — | steering | active | 1.0 |
 | `qdeveloper` | bidirectional | qdeveloper | q-developer, amazon-q | rule | active | 1.0 |
 | `windsurf` | bidirectional | windsurf | — | rule | active | 1.0 |
