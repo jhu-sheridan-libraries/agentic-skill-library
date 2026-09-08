@@ -6519,7 +6519,6 @@ var require_dist = __commonJS((exports2, module2) => {
 // src/mcp-bridge.ts
 var import_promises = require("node:fs/promises");
 var import_node_path = require("node:path");
-var import_node_url = require("node:url");
 
 // node_modules/zod/v4/core/core.js
 var _a;
@@ -13989,12 +13988,12 @@ class StdioServerTransport {
 }
 
 // src/mcp-bridge.ts
-var __filename2 = import_node_url.fileURLToPath("file:///Users/stevenm/jhu.edu/context-bazaar/kanon/src/mcp-bridge.ts");
-var __dirname2 = import_node_path.dirname(__filename2);
+var ENTRYPOINT_PATH = process.argv[1];
+var RUNTIME_DIR = ENTRYPOINT_PATH ? import_node_path.dirname(import_node_path.resolve(ENTRYPOINT_PATH)) : process.cwd();
 var ENV_PLUGIN_ROOT = process.env.CODEX_PLUGIN_ROOT ?? process.env.CLAUDE_PLUGIN_ROOT;
 var PLUGIN_ROOT_CANDIDATES = [
   ...ENV_PLUGIN_ROOT ? [import_node_path.join(ENV_PLUGIN_ROOT, "kanon"), ENV_PLUGIN_ROOT] : [],
-  import_node_path.resolve(__dirname2, "..")
+  import_node_path.resolve(RUNTIME_DIR, "..")
 ];
 async function resolvePluginRoot() {
   for (const root of PLUGIN_ROOT_CANDIDATES) {
