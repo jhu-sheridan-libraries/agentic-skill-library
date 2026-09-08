@@ -64,6 +64,14 @@ attribution:
       relationship: verbatim
       work: migration-to-aws
 outcomes: []
+provenance:
+  baseDigest: sha256:28c97777bce8a282d3e8645b8f45a7c2eb8de76e5fdffbe513583d888a482a3d
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.847Z'
+  sourceFormat: kiro-power
+  sourcePath: migration-to-aws
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # GCP-to-AWS Migration Advisor
 

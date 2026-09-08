@@ -64,6 +64,14 @@ attribution:
       relationship: verbatim
       work: aws-observability
 outcomes: []
+provenance:
+  baseDigest: sha256:89328fd1c1bb1404c22c3ebad0ce1ed65a9a6ca95ee7faa9f567eaed7ddf4782
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.807Z'
+  sourceFormat: kiro-power
+  sourcePath: aws-observability
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # ⚠️ CRITICAL: ALWAYS LOAD STEERING FILES FIRST
 

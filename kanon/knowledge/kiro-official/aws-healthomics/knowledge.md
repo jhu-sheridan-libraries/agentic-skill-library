@@ -43,6 +43,14 @@ attribution:
       relationship: verbatim
       work: aws-healthomics
 outcomes: []
+provenance:
+  baseDigest: sha256:9bb1026248adbbf681dca0e1c7a17b010014e6892c535552cf5a093a6ec61ff6
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.798Z'
+  sourceFormat: kiro-power
+  sourcePath: aws-healthomics
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # When to use this power
 

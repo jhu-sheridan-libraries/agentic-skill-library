@@ -48,6 +48,14 @@ attribution:
       relationship: verbatim
       work: zapier
 outcomes: []
+provenance:
+  baseDigest: sha256:bfa8712605702d82d48c83b7143ab240ad5c8592e58b85d940df25f44409f566
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.872Z'
+  sourceFormat: kiro-power
+  sourcePath: zapier
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # Zapier Power
 

@@ -42,6 +42,14 @@ attribution:
       relationship: verbatim
       work: power-builder
 outcomes: []
+provenance:
+  baseDigest: sha256:b26822b60db5e2905f578d60e6f4d80ba98780f309fbc33b032c43d79afffc85
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.859Z'
+  sourceFormat: kiro-power
+  sourcePath: power-builder
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # Power Builder
 

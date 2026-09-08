@@ -45,6 +45,14 @@ attribution:
       relationship: verbatim
       work: stripe
 outcomes: []
+provenance:
+  baseDigest: sha256:ed273fb1bf2142d16f2aa33fb8b477c06872edf919d4be1a7439cc4b17e4e084
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.868Z'
+  sourceFormat: kiro-power
+  sourcePath: stripe
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # Stripe Payments Power
 

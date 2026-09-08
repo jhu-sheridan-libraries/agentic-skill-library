@@ -50,6 +50,14 @@ attribution:
       relationship: verbatim
       work: aws-infrastructure-as-code
 outcomes: []
+provenance:
+  baseDigest: sha256:fdc0afc63ee6679e9f5cb6a024bd7aee3507c7fa5983bbe30ea9584b9fe94c32
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.801Z'
+  sourceFormat: kiro-power
+  sourcePath: aws-infrastructure-as-code
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # AWS Infrastructure as Code
 

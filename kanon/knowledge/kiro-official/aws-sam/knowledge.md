@@ -45,6 +45,14 @@ attribution:
       relationship: verbatim
       work: aws-sam
 outcomes: []
+provenance:
+  baseDigest: sha256:aef973b86bede2c8d1cdb794d9245c9e632503c37346e753e489213aba6cc63b
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.810Z'
+  sourceFormat: kiro-power
+  sourcePath: aws-sam
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # AWS Serverless Application Model (SAM) Power
 

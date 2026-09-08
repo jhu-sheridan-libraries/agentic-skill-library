@@ -43,6 +43,14 @@ attribution:
       relationship: verbatim
       work: postman
 outcomes: []
+provenance:
+  baseDigest: sha256:8e8080acce0ac9ed0755b454d95ce325d8f2915c7cb14beaffd4f900b24bfa1a
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.858Z'
+  sourceFormat: kiro-power
+  sourcePath: postman
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # Onboarding
 

@@ -44,6 +44,14 @@ attribution:
       relationship: verbatim
       work: neon
 outcomes: []
+provenance:
+  baseDigest: sha256:1cf0d04f476478e55fd1590990a4f99370b318cf5baefe7818c469289e9227d3
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.856Z'
+  sourceFormat: kiro-power
+  sourcePath: neon
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # Neon Database Power
 

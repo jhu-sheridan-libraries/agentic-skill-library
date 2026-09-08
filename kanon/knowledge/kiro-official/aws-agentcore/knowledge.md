@@ -46,6 +46,14 @@ attribution:
       relationship: verbatim
       work: aws-agentcore
 outcomes: []
+provenance:
+  baseDigest: sha256:38e560d8059df398832e955a780b3d54b818845cf2cf49f877274db3cca52e12
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.788Z'
+  sourceFormat: kiro-power
+  sourcePath: aws-agentcore
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # AWS Bedrock AgentCore
 

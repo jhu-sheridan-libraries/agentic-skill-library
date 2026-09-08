@@ -52,6 +52,14 @@ attribution:
       relationship: verbatim
       work: saas-builder
 outcomes: []
+provenance:
+  baseDigest: sha256:c131267775ee26f30e0eacf47deed2290c965e6194adb1416bb954d883be1610
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.861Z'
+  sourceFormat: kiro-power
+  sourcePath: saas-builder
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # SaaS Builder Power
 

@@ -43,6 +43,14 @@ attribution:
       relationship: verbatim
       work: aws-transform-agent-toolkit
 outcomes: []
+provenance:
+  baseDigest: sha256:45b65b5ed12186ee589a34181f27246f4cf763475d62963ea7cdc7216e4fdcc5
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.824Z'
+  sourceFormat: kiro-power
+  sourcePath: aws-transform-agent-toolkit
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 ## Onboarding
 
