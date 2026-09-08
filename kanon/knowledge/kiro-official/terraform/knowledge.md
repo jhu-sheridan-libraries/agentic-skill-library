@@ -46,6 +46,14 @@ attribution:
       relationship: verbatim
       work: terraform
 outcomes: []
+provenance:
+  baseDigest: sha256:fee910fd4297efc579b44147d6e093fa6db166826d9db3c42e8d741e5aff7302
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.870Z'
+  sourceFormat: kiro-power
+  sourcePath: terraform
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # Terraform Power
 

@@ -47,6 +47,14 @@ attribution:
       relationship: verbatim
       work: aws-devops-agent
 outcomes: []
+provenance:
+  baseDigest: sha256:dc4f0b78e95d04e707e2dcff1fe9b52d8bf5b3f8d55a0f0fe35d87dc82f94cab
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.795Z'
+  sourceFormat: kiro-power
+  sourcePath: aws-devops-agent
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # AWS DevOps Agent — Kiro Power (AWS MCP Server)
 

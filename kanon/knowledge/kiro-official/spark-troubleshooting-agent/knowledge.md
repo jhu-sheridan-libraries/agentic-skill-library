@@ -50,6 +50,14 @@ attribution:
       relationship: verbatim
       work: spark-troubleshooting-agent
 outcomes: []
+provenance:
+  baseDigest: sha256:387e93c1f5546263a710874ad6e809d5ddd4d132788382c0f631cec3f3a9d1d4
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.863Z'
+  sourceFormat: kiro-power
+  sourcePath: spark-troubleshooting-agent
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # Onboarding
 

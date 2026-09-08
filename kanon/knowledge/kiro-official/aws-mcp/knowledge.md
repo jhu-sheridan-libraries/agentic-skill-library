@@ -47,6 +47,14 @@ attribution:
       relationship: verbatim
       work: aws-mcp
 outcomes: []
+provenance:
+  baseDigest: sha256:1b19aa3740f75dc65f5f022b2eab46ed497a3d8b17f2128b97f8c8ca21fffc65
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.805Z'
+  sourceFormat: kiro-power
+  sourcePath: aws-mcp
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # Work with AWS Power
 

@@ -48,6 +48,14 @@ attribution:
       relationship: verbatim
       work: arm-soc-migration
 outcomes: []
+provenance:
+  baseDigest: sha256:3d13fb97f2cdeda4b1e6801b0e07ed43abc8e1a7072325c55495d18fdb2642a4
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.783Z'
+  sourceFormat: kiro-power
+  sourcePath: arm-soc-migration
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # Kiro Arm SoC Migration Power
 

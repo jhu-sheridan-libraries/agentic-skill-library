@@ -46,6 +46,14 @@ attribution:
       relationship: verbatim
       work: stackgen
 outcomes: []
+provenance:
+  baseDigest: sha256:3f12bfd78ae538c8490c3c5640b2d24ff31a328cf0da5c7b9ddc5bf7f60a8e65
+  contract: kiro-power@1
+  importedAt: '2026-09-08T05:21:31.864Z'
+  sourceFormat: kiro-power
+  sourcePath: stackgen
+  sourceRevision: backfill:cb411907b25f5baec9e659c2c3f59d42160b92d7
+  upstream: kiro-powers
 ---
 # StackGen Power
 
