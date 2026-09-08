@@ -936,6 +936,21 @@ async function runProgressiveSteeringRubric(
 			);
 			process.exit(1);
 		}
+
+		// Descend to the harness directory when handed a parent that wraps it.
+		// The grader derives each artifact's name from the FIRST path segment
+		// (<artifact>/<artifact>.md), so a build dir one level above the harness
+		// folder makes every name resolve to "kiro" (or "dist"), silently
+		// zeroing FMP and MD and producing a false RED. Auto-correct the common
+		// wrappers — …/expected-build (→ kiro) and …/expected-build/dist
+		// (→ dist/kiro) — so the metric still reflects the real build.
+		for (const wrapper of ["dist/kiro", "kiro"]) {
+			const candidate = join(effectiveBuildDir, wrapper);
+			if (await exists(candidate)) {
+				effectiveBuildDir = candidate;
+				break;
+			}
+		}
 	} else {
 		// Build into a tempdir from source artifacts
 		const { build, SOURCE_DIRS } = await import("./build");
@@ -955,18 +970,69 @@ async function runProgressiveSteeringRubric(
 		effectiveBuildDir = join(tempDir, "kiro");
 	}
 
-	// Load workload from the first discovered fixture that has a workload.json,
-	// or use an empty workload when none is found.
+	// Load the workload that BELONGS to the build being graded.
+	//
+	// Precedence:
+	//   1. An explicit --workload path always wins.
+	//   2. When --build points inside a scenario's expected-build tree, use
+	//      that same scenario's workload.json — pairing a build with a
+	//      different scenario's workload produces a spurious RED (a scenario's
+	//      workload encodes its own expectedFired[] / openedFiles[] ground
+	//      truth, so a mismatch zeroes out FMP and MD).
+	//   3. Otherwise fall back to the first discovered fixture workload.
+	//   4. Empty workload when none is found.
 	let workload: Workload[] = [];
+	const explicitWorkload = opts.workload as string | undefined;
 	const fixturesBase = "fixtures/eval/kiro-progressive-steering";
-	if (await exists(fixturesBase)) {
+
+	async function readWorkload(path: string): Promise<Workload[]> {
+		const raw = await readFile(path, "utf-8");
+		return JSON.parse(raw) as Workload[];
+	}
+
+	if (explicitWorkload) {
+		const resolvedWorkload = resolve(explicitWorkload);
+		if (!(await exists(resolvedWorkload))) {
+			console.error(
+				chalk.red(`Error: Workload file does not exist: ${resolvedWorkload}`),
+			);
+			process.exit(1);
+		}
+		workload = await readWorkload(resolvedWorkload);
+	} else if (buildDir && (await exists(fixturesBase))) {
+		// Match the build against a scenario's expected-build directory.
+		const scenarios = await readdir(fixturesBase, { withFileTypes: true });
+		for (const scenario of scenarios) {
+			if (!scenario.isDirectory()) continue;
+			const scenarioBuild = resolve(
+				join(fixturesBase, scenario.name, "expected-build"),
+			);
+			const workloadPath = join(fixturesBase, scenario.name, "workload.json");
+			// effectiveBuildDir is the resolved --build path; it sits at or under
+			// the scenario's expected-build tree (e.g. .../expected-build/kiro).
+			if (
+				(effectiveBuildDir === scenarioBuild ||
+					effectiveBuildDir.startsWith(`${scenarioBuild}/`)) &&
+				(await exists(workloadPath))
+			) {
+				workload = await readWorkload(workloadPath);
+				break;
+			}
+		}
+	}
+
+	// Fallback: first discovered fixture workload (e.g. grading a real dist/kiro).
+	if (
+		workload.length === 0 &&
+		!explicitWorkload &&
+		(await exists(fixturesBase))
+	) {
 		const scenarios = await readdir(fixturesBase, { withFileTypes: true });
 		for (const scenario of scenarios) {
 			if (!scenario.isDirectory()) continue;
 			const workloadPath = join(fixturesBase, scenario.name, "workload.json");
 			if (await exists(workloadPath)) {
-				const raw = await readFile(workloadPath, "utf-8");
-				workload = JSON.parse(raw) as Workload[];
+				workload = await readWorkload(workloadPath);
 				break;
 			}
 		}

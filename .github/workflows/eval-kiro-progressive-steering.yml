@@ -49,16 +49,16 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
-      - name: Build scenario-mixed fixture
-        run: bun run dev build --harness kiro
-        working-directory: kanon/fixtures/eval/kiro-progressive-steering/scenario-mixed
-
       - name: Run progressive-steering rubric
+        # Grade the committed golden build. --build must point at the harness
+        # directory itself (…/expected-build/kiro), the level that directly
+        # contains the artifact folders — pointing one level higher makes every
+        # artifact name resolve to "kiro" and zeroes out the FMP and MD metrics.
         run: |
           bun run dev eval \
             --harness kiro \
             --rubric progressive-steering \
-            --build fixtures/eval/kiro-progressive-steering/scenario-mixed/expected-build \
+            --build fixtures/eval/kiro-progressive-steering/scenario-mixed/expected-build/kiro \
             --json \
             --output rubric.json
 
