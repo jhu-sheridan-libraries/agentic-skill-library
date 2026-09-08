@@ -191,7 +191,7 @@ describe("Feature: team-mode-distribution, Property 2: Unknown top-level keys pr
  * Validates: Requirements 2.3, 2.11
  */
 
-import yaml from "js-yaml";
+import * as yaml from "js-yaml";
 
 describe("Feature: team-mode-distribution, Property 3: Mutual exclusivity of name and collection", () => {
 	test("parseManifest rejects entries that have both name and collection set", () => {
