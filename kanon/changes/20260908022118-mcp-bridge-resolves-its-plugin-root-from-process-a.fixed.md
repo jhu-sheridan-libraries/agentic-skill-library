@@ -1,0 +1,1 @@
+MCP bridge resolves its plugin root from process.argv[1] at runtime instead of a bundler-baked absolute path, so build:bridge output is deterministic across machines and the generated-artifact drift check passes on CI

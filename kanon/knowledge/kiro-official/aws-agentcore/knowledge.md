@@ -1,7 +1,10 @@
 ---
 name: aws-agentcore
 displayName: Build an agent with Amazon Bedrock AgentCore
-description: Build, test, and deploy AI agents using AWS Bedrock AgentCore with local development workflow. Amazon Bedrock AgentCore is an agentic platform for building, deploying, and operating effective agents.
+description: >-
+  Build, test, and deploy AI agents using AWS Bedrock AgentCore with local
+  development workflow. Amazon Bedrock AgentCore is an agentic platform for
+  building, deploying, and operating effective agents.
 keywords:
   - agentcore
   - bedrock
@@ -12,14 +15,19 @@ keywords:
   - agent
 author: AWS
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - architecture
   - devops
-ecosystem: [aws, bedrock]
+ecosystem:
+  - aws
+  - bedrock
 depends: []
 enhances: []
 maturity: stable
@@ -29,9 +37,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
-harness-config:
-  kiro:
-    format: power
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - AWS
+      relationship: verbatim
+      work: aws-agentcore
+outcomes: []
 ---
 # AWS Bedrock AgentCore
 

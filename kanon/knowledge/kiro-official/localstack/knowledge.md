@@ -1,7 +1,11 @@
 ---
 name: localstack
 displayName: Develop AWS apps with LocalStack
-description: Build, test, and debug AWS applications locally and in CI/CD using LocalStack. Manage the local cloud environment, deploy infrastructure with CDK/Terraform/SAM, analyze logs, enforce IAM policies, inject chaos faults, and manage state snapshots.
+description: >-
+  Build, test, and debug AWS applications locally and in CI/CD using LocalStack.
+  Manage the local cloud environment, deploy infrastructure with
+  CDK/Terraform/SAM, analyze logs, enforce IAM policies, inject chaos faults,
+  and manage state snapshots.
 keywords:
   - localstack
   - aws
@@ -23,10 +27,13 @@ keywords:
   - local-dev
 author: LocalStack
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - documentation
 ecosystem: []
@@ -39,10 +46,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - LocalStack
+      relationship: verbatim
+      work: localstack
 outcomes: []
-harness-config:
-  kiro:
-    format: power
 ---
 # LocalStack Power
 

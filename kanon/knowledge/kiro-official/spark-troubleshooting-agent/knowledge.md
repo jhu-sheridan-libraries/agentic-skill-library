@@ -1,7 +1,11 @@
 ---
 name: spark-troubleshooting-agent
 displayName: Troubleshoot Spark applications on AWS
-description: 'Troubleshoot Spark applications on AWS EMR, Glue, and SageMaker - analyze failures, identify bottlenecks, get code recommendations. For more info, please see: https://docs.aws.amazon.com/emr/latest/ReleaseGuide/spark-troubleshoot.html'
+description: >-
+  Troubleshoot Spark applications on AWS EMR, Glue, and SageMaker - analyze
+  failures, identify bottlenecks, get code recommendations. For more info,
+  please see:
+  https://docs.aws.amazon.com/emr/latest/ReleaseGuide/spark-troubleshoot.html
 keywords:
   - spark
   - emr
@@ -13,15 +17,21 @@ keywords:
   - aws
 author: AWS
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - debugging
   - devops
   - performance
-ecosystem: [aws, spark, emr]
+ecosystem:
+  - aws
+  - spark
+  - emr
 depends: []
 enhances: []
 maturity: stable
@@ -31,9 +41,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
-harness-config:
-  kiro:
-    format: power
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - AWS
+      relationship: verbatim
+      work: spark-troubleshooting-agent
+outcomes: []
 ---
 # Onboarding
 

@@ -1,7 +1,9 @@
 ---
 name: strands
 displayName: Build an agent with Strands SDK
-description: Build AI agents with Strands SDK using Bedrock, Anthropic, OpenAI, Gemini, or Llama models
+description: >-
+  Build AI agents with Strands SDK using Bedrock, Anthropic, OpenAI, Gemini, or
+  Llama models
 keywords:
   - agents
   - ai
@@ -14,14 +16,20 @@ keywords:
   - tools
 author: AWS
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - architecture
   - devops
-ecosystem: [aws, strands, bedrock]
+ecosystem:
+  - aws
+  - strands
+  - bedrock
 depends: []
 enhances: []
 maturity: stable
@@ -31,9 +39,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
-harness-config:
-  kiro:
-    format: power
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - AWS
+      relationship: verbatim
+      work: strands
+outcomes: []
 ---
 # Strands Agents SDK Power
 

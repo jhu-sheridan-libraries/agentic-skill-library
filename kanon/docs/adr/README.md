@@ -74,6 +74,7 @@ ADRs document significant architectural decisions made during the project's deve
 | [061](0061-discover-namespaced-artifact-evals.md) | Discover namespaced artifact evals | Accepted | 2026-08-26 |
 | [062](0062-per-request-content-root-and-project-registry.md) | Per-request content root and cross-project registry for Solr Compass | Accepted | 2026-08-27 |
 | [063](0063-non-strict-profile-schemas-for-zod-4-shape-access.md) | Non-strict profile schemas for Zod 4 shape access | Accepted | 2026-08-27 |
+| [064](0064-structured-upstream-attribution.md) | Structured upstream attribution captured by an import wizard | Accepted | 2026-09-08 |
 
 ## Creating a New ADR
 

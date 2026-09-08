@@ -1,29 +1,57 @@
 ---
 name: facilitate-library-ai-workshop
 displayName: Library AI Workshop Coach
-description: Coach one learner through the Research with AI workshop for research librarians, using fictional or simulated material and keeping source checks and professional judgment with the learner.
-keywords: [academic-libraries, research-support, ai-literacy, reference-interview, source-verification, evidence-synthesis, reproducibility]
+description: >-
+  Coach one learner through the Research with AI workshop for research
+  librarians, using fictional or simulated material and keeping source checks
+  and professional judgment with the learner.
+keywords:
+  - academic-libraries
+  - research-support
+  - ai-literacy
+  - reference-interview
+  - source-verification
+  - evidence-synthesis
+  - reproducibility
 author: Library AI Workshop maintainers
 version: 0.1.1
-harnesses: [codex, claude-code]
 type: skill
+harnesses:
+  - codex
+  - claude-code
 inclusion: manual
-categories: [documentation, accessibility]
-ecosystem: [academic-libraries, research]
-depends: []
-enhances: []
-maturity: experimental
-trust: community
-license: MPL-2.0
-audience: intermediate
-model-assumptions: []
-collections: [library-ai-workshop]
-inherit-hooks: false
 harness-config:
   codex:
     format: skill
+categories:
+  - documentation
+  - accessibility
+ecosystem:
+  - academic-libraries
+  - research
+depends: []
+enhances: []
+license: MPL-2.0
+maturity: experimental
+trust: community
+audience: intermediate
+model-assumptions: []
+collections:
+  - library-ai-workshop
+inherit-hooks: false
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - license: MPL-2.0
+      authors:
+        - Library AI Workshop maintainers
+      relationship: packaged
+      source-repo: eudaemon-ai/academic-ai-library-workshop
+      url: https://github.com/eudaemon-ai/academic-ai-library-workshop
+      work: facilitate-library-ai-workshop
+outcomes: []
 ---
-
 > **Source and adaptation:** Imported from [eudaemon-ai/academic-ai-library-workshop](https://github.com/eudaemon-ai/academic-ai-library-workshop) at commit `d3743bca0b1766709d1694343ef6082d90933141`. The Kanon artifact preserves the upstream skill and reference tree under `workflows/` for Codex progressive disclosure. Review local library policy, privacy, accessibility, and retention requirements before use.
 
 # Facilitate the Library AI Workshop

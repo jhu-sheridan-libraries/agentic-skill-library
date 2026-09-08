@@ -1,7 +1,9 @@
 ---
 name: dynatrace
 displayName: Dynatrace Observability
-description: Query logs, metrics, traces, problems, and Kubernetes events from Dynatrace using DQL for production debugging and performance analysis
+description: >-
+  Query logs, metrics, traces, problems, and Kubernetes events from Dynatrace
+  using DQL for production debugging and performance analysis
 keywords:
   - dynatrace
   - observability
@@ -14,15 +16,19 @@ keywords:
   - grail
 author: Dynatrace
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - devops
   - debugging
   - performance
-ecosystem: [dynatrace]
+ecosystem:
+  - dynatrace
 depends: []
 enhances: []
 maturity: stable
@@ -32,9 +38,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
-harness-config:
-  kiro:
-    format: power
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - Dynatrace
+      relationship: verbatim
+      work: dynatrace
+outcomes: []
 ---
 # Dynatrace Observability Power
 

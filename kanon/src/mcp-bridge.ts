@@ -14,7 +14,6 @@
 
 import { access, readFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -24,13 +23,15 @@ import {
 
 // Resolve the Kanon data root — works when installed as a Claude or Codex
 // plugin, and also when run from the checked-out source tree.
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const ENTRYPOINT_PATH = process.argv[1];
+const RUNTIME_DIR = ENTRYPOINT_PATH
+	? dirname(resolve(ENTRYPOINT_PATH))
+	: process.cwd();
 const ENV_PLUGIN_ROOT =
 	process.env.CODEX_PLUGIN_ROOT ?? process.env.CLAUDE_PLUGIN_ROOT;
 const PLUGIN_ROOT_CANDIDATES = [
 	...(ENV_PLUGIN_ROOT ? [join(ENV_PLUGIN_ROOT, "kanon"), ENV_PLUGIN_ROOT] : []),
-	resolve(__dirname, ".."),
+	resolve(RUNTIME_DIR, ".."),
 ];
 
 async function resolvePluginRoot() {

@@ -3,7 +3,7 @@ name: writing-clearly-and-concisely
 description: "Apply Strunk's timeless writing rules to ANY prose humans will read—documentation, commit messages, error messages, explanations, reports, or UI text. Makes your writing clearer, stronger, and more professional."
 ---
 
-> **Source and adaptation:** Faithfully imported from [obra/the-elements-of-style](https://github.com/obra/the-elements-of-style) at commit `05fc4f0d2b97b7c042dd9949ad658568e4a1324e`. The complete 1918 public-domain text by William Strunk Jr. is preserved in `workflows/elements-of-style.md`.
+> **Source & workflows:** The complete 1918 public-domain text by William Strunk Jr. is preserved in `workflows/elements-of-style.md`. Upstream source and credits are recorded in this artifact's attribution metadata (surfaced under "Sources & credits").
 
 # Writing Clearly and Concisely
 
@@ -68,3 +68,8 @@ Writing for humans? Read `elements-of-style.md` and apply the rules. Low on toke
 Load these only when the workflow calls for them (progressive disclosure):
 
 - `references/elements-of-style.md` — Elements Of Style
+---
+
+## Sources & credits
+- **The Elements of Style** — William Strunk Jr. [verbatim] (public-domain) — https://en.wikisource.org/wiki/The_Elements_of_Style- **obra/the-elements-of-style** — obra [packaged] — https://github.com/obra/the-elements-of-style
+Contains the complete 1918 public-domain text of William Strunk Jr.'s The Elements of Style, repackaged via obra/the-elements-of-style.

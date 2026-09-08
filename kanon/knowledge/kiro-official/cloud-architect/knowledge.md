@@ -1,7 +1,9 @@
 ---
 name: cloud-architect
 displayName: Build infrastructure on AWS
-description: Build AWS infrastructure with CDK in Python following AWS Well-Architected framework best practices
+description: >-
+  Build AWS infrastructure with CDK in Python following AWS Well-Architected
+  framework best practices
 keywords:
   - aws
   - cdk
@@ -13,14 +15,20 @@ keywords:
   - well-architected
 author: Christian Bonzelet
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - architecture
   - devops
-ecosystem: [aws, cdk, python]
+ecosystem:
+  - aws
+  - cdk
+  - python
 depends: []
 enhances: []
 maturity: stable
@@ -30,9 +38,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
-harness-config:
-  kiro:
-    format: power
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - Christian Bonzelet
+      relationship: verbatim
+      work: cloud-architect
+outcomes: []
 ---
 # Cloud Architect Power
 

@@ -1,7 +1,9 @@
 ---
 name: neon
 displayName: Build a database with Neon
-description: Serverless Postgres with database branching, autoscaling, and scale-to-zero - perfect for modern development workflows
+description: >-
+  Serverless Postgres with database branching, autoscaling, and scale-to-zero -
+  perfect for modern development workflows
 keywords:
   - neon
   - postgres
@@ -12,13 +14,18 @@ keywords:
   - postgresql
 author: Neon
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - devops
-ecosystem: [neon, postgres]
+ecosystem:
+  - neon
+  - postgres
 depends: []
 enhances: []
 maturity: stable
@@ -28,9 +35,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
-harness-config:
-  kiro:
-    format: power
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - Neon
+      relationship: verbatim
+      work: neon
+outcomes: []
 ---
 # Neon Database Power
 

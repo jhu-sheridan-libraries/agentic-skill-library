@@ -1,7 +1,10 @@
 ---
 name: databricks
 displayName: Databricks AI Dev Kit
-description: Comprehensive Databricks development toolkit with 44 MCP tools (180+ operations) and expert guidance for building data pipelines, ML workflows, dashboards, jobs, and applications on Databricks platform.
+description: >-
+  Comprehensive Databricks development toolkit with 44 MCP tools (180+
+  operations) and expert guidance for building data pipelines, ML workflows,
+  dashboards, jobs, and applications on Databricks platform.
 keywords:
   - databricks
   - spark
@@ -15,10 +18,13 @@ keywords:
   - machine learning
 author: Databricks
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - documentation
 ecosystem: []
@@ -31,10 +37,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - Databricks
+      relationship: verbatim
+      work: databricks
 outcomes: []
-harness-config:
-  kiro:
-    format: power
 ---
 # Databricks AI Dev Kit Power
 

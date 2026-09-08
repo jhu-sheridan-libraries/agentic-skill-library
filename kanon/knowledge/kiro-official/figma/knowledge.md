@@ -1,7 +1,10 @@
 ---
 name: figma
 displayName: Design to Code with Figma
-description: Connect Figma designs to code components - automatically generate design system rules, map UI components to Figma designs, and maintain design-code consistency
+description: >-
+  Connect Figma designs to code components - automatically generate design
+  system rules, map UI components to Figma designs, and maintain design-code
+  consistency
 keywords:
   - ui
   - design
@@ -13,13 +16,17 @@ keywords:
   - frontend
 author: Figma
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - architecture
-ecosystem: [figma]
+ecosystem:
+  - figma
 depends: []
 enhances: []
 maturity: stable
@@ -29,9 +36,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
-harness-config:
-  kiro:
-    format: power
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - Figma
+      relationship: verbatim
+      work: figma
+outcomes: []
 ---
 # Workflow 
 

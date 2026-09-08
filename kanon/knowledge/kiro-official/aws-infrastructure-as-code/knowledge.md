@@ -1,7 +1,10 @@
 ---
 name: aws-infrastructure-as-code
 displayName: Build AWS infrastructure with CDK and CloudFormation
-description: Build well-architected AWS infrastructure with CDK using latest documentation, best practices, and code samples. Validate CloudFormation templates, check resource configuration security compliance, and troubleshoot deployments.
+description: >-
+  Build well-architected AWS infrastructure with CDK using latest documentation,
+  best practices, and code samples. Validate CloudFormation templates, check
+  resource configuration security compliance, and troubleshoot deployments.
 keywords:
   - cdk
   - cloudformation
@@ -15,14 +18,20 @@ keywords:
   - deployment
 author: AWS
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - architecture
   - devops
-ecosystem: [aws, cdk, cloudformation]
+ecosystem:
+  - aws
+  - cdk
+  - cloudformation
 depends: []
 enhances: []
 maturity: stable
@@ -32,9 +41,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
-harness-config:
-  kiro:
-    format: power
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - AWS
+      relationship: verbatim
+      work: aws-infrastructure-as-code
+outcomes: []
 ---
 # AWS Infrastructure as Code
 

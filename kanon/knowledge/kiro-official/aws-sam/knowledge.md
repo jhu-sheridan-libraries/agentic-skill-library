@@ -1,7 +1,9 @@
 ---
 name: aws-sam
 displayName: AWS SAM
-description: An opinionated Kiro Power to aid development with AWS Serverless Application Model (SAM). Includes MCP tooling and common usage patterns.
+description: >-
+  An opinionated Kiro Power to aid development with AWS Serverless Application
+  Model (SAM). Includes MCP tooling and common usage patterns.
 keywords:
   - aws
   - sam
@@ -11,14 +13,20 @@ keywords:
   - deployment
 author: AWS
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - architecture
   - devops
-ecosystem: [aws, sam, lambda]
+ecosystem:
+  - aws
+  - sam
+  - lambda
 depends: []
 enhances: []
 maturity: stable
@@ -28,9 +36,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
-harness-config:
-  kiro:
-    format: power
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - AWS
+      relationship: verbatim
+      work: aws-sam
+outcomes: []
 ---
 # AWS Serverless Application Model (SAM) Power
 

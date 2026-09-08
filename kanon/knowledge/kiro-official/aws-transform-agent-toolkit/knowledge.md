@@ -1,7 +1,12 @@
 ---
 name: aws-transform-agent-toolkit
 displayName: AWS Transform Agent Toolkit
-description: Build agents to run in AWS Transform. This power provides a self-service agent lifecycle from inception to development to production. Build modernization and migration agents with citation-backed AWS Transform documentation search, package agents as containers, deploy to Bedrock AgentCore across platforms (Windows/macOS/Linux), and register with AWS Transform.
+description: >-
+  Build agents to run in AWS Transform. This power provides a self-service agent
+  lifecycle from inception to development to production. Build modernization and
+  migration agents with citation-backed AWS Transform documentation search,
+  package agents as containers, deploy to Bedrock AgentCore across platforms
+  (Windows/macOS/Linux), and register with AWS Transform.
 keywords:
   - aws transform
   - agent development
@@ -10,10 +15,13 @@ keywords:
   - migration
 author: AWS
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - documentation
 ecosystem: []
@@ -26,10 +34,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - AWS
+      relationship: verbatim
+      work: aws-transform-agent-toolkit
 outcomes: []
-harness-config:
-  kiro:
-    format: power
 ---
 ## Onboarding
 

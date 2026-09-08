@@ -334,3 +334,8 @@ def sort_scores(scores):
 Load these only when the workflow calls for them (progressive disclosure):
 
 - `references/examples.md` — Examples
+---
+
+## Sources & credits
+- **karpathy-mode** — Andrej Karpathy [packaged]
+Curated by Forrest Chang.

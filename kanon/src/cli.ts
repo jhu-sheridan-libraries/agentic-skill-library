@@ -9,11 +9,14 @@ if (typeof globalThis.Bun === "undefined") {
 	process.exit(1);
 }
 
+import { writeFile } from "node:fs/promises";
 import chalk from "chalk";
 import { Command } from "commander";
+import { runAttributionBackfill } from "./attribution-backfill";
+import { renderAttributionReport } from "./attribution-report";
 import { browseCommand, exportCommand } from "./browse";
 import { buildCommand } from "./build";
-import { catalogCommand } from "./catalog";
+import { catalogCommand, generateCatalog, SOURCE_DIRS } from "./catalog";
 import {
 	collectionBuildCommand,
 	collectionNewCommand,
@@ -290,6 +293,14 @@ if (import.meta.main !== false) {
 			"--knowledge-dir <dir>",
 			"Target knowledge directory (default: knowledge)",
 		)
+		.option(
+			"--attribution-defaults",
+			"Accept derived upstream attribution without prompting (relationship=verbatim)",
+		)
+		.option(
+			"--no-attribution",
+			"Skip attribution capture; write no attribution block",
+		)
 		.action(async (path, options) => {
 			// If --harness is provided or no path argument, use multi-harness import
 			if (options.harness || !path) {
@@ -303,6 +314,59 @@ if (import.meta.main !== false) {
 				// Delegate to existing Kiro import (path-based)
 				await kiroImportCommand(path, options);
 			}
+		});
+
+	const attributeCmd = program
+		.command("attribute")
+		.description(
+			"Generate a NOTICES report of upstream attribution, grouped by license",
+		)
+		.option(
+			"--output <file>",
+			"Write the report to a file instead of stdout (e.g. NOTICES)",
+		)
+		.action(async (options) => {
+			const entries = await generateCatalog([...SOURCE_DIRS]);
+			const report = renderAttributionReport(entries);
+			if (options.output) {
+				await writeFile(String(options.output), report, "utf-8");
+				console.error(
+					chalk.green(`✓ Wrote attribution report to ${options.output}`),
+				);
+			} else {
+				console.log(report);
+			}
+		});
+
+	attributeCmd
+		.command("backfill")
+		.description(
+			"Backfill attribution blocks for imported artifacts (author untouched)",
+		)
+		.option("--dry-run", "Classify and report without writing any file")
+		.action(async (options) => {
+			const summary = await runAttributionBackfill({
+				knowledgeDirs: [...SOURCE_DIRS],
+				dryRun: Boolean(options.dryRun),
+			});
+			const verb = options.dryRun ? "would backfill" : "backfilled";
+			console.error("");
+			console.error(
+				`  ${chalk.green(`${summary.clean} ${verb} clean`)}, ` +
+					`${chalk.yellow(`${summary.manualReview} need manual review`)}, ` +
+					`${chalk.dim(`${summary.skipInHouse} in-house`)}, ` +
+					`${chalk.dim(`${summary.skipHasAttribution} already attributed`)}`,
+			);
+			for (const plan of summary.plans) {
+				if (plan.classification === "manual-review") {
+					console.error(
+						chalk.yellow(
+							`  ⚠ ${plan.name} — ${plan.reason ?? "manual review"}`,
+						),
+					);
+				}
+			}
+			console.error("");
 		});
 
 	program

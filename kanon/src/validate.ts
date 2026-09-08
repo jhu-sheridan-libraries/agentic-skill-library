@@ -129,6 +129,25 @@ const OBFUSCATION_PATTERNS: Array<{ pattern: RegExp; message: string }> = [
 ];
 
 /**
+ * SPDX license identifiers (or families) whose terms require attribution be
+ * preserved. Kept small and explicit (ADR-0064); `CC-BY*` matches by prefix.
+ * Used only to raise an advisory under-credited warning, never to fail a build.
+ */
+const ATTRIBUTION_REQUIRED_LICENSES = new Set([
+	"MPL-2.0",
+	"Apache-2.0",
+	"BSD-3-Clause",
+	"BSD-2-Clause",
+]);
+
+function isAttributionRequiredLicense(license: string): boolean {
+	const id = license.trim();
+	if (id.length === 0) return false;
+	if (/^CC-BY/i.test(id)) return true;
+	return ATTRIBUTION_REQUIRED_LICENSES.has(id);
+}
+
+/**
  * Run security-focused checks on an artifact.
  * Returns additional errors and warnings to merge into the validation result.
  */
@@ -409,6 +428,36 @@ export async function validateArtifact(
 				message: `Artifact has risk-level "high" but no "trust" lane set. Set "trust" to signal governance oversight.`,
 				filePath: knowledgeMdPath,
 			});
+		}
+
+		// ── Attribution warnings (ADR-0064; advisory, never fail the build) ──────
+		// 1. Un-credited import: has machine provenance but no human attribution.
+		const attribution = fm.attribution;
+		if (fm.provenance && !attribution?.upstream?.length) {
+			warnings.push({
+				field: "attribution",
+				message: `Artifact "${artifactName}" has a provenance record (imported) but no "attribution.upstream" credit. Run the import wizard or backfill to record upstream authorship.`,
+				filePath: knowledgeMdPath,
+			});
+		}
+		// 2. Under-credited attribution-required license: an upstream work under an
+		//    attribution-required license with neither per-entry authors nor a
+		//    block-level notice.
+		if (attribution?.upstream?.length) {
+			for (const [i, u] of attribution.upstream.entries()) {
+				if (
+					u.license &&
+					isAttributionRequiredLicense(u.license) &&
+					u.authors.length === 0 &&
+					!attribution.notice
+				) {
+					warnings.push({
+						field: `attribution.upstream[${i}]`,
+						message: `Upstream work "${u.work}" is under attribution-required license "${u.license}" but has no authors and no block-level notice. Add authors or a notice to satisfy the license.`,
+						filePath: knowledgeMdPath,
+					});
+				}
+			}
 		}
 
 		// Asset-type-aware validation rules

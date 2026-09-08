@@ -1,7 +1,10 @@
 ---
 name: aws-mcp
 displayName: Work with AWS
-description: Perform complex, multi-step AWS tasks by combining real-time access to AWS documentation, syntactically correct API calls and executions, and pre-built workflows called Agent SOPs that follow AWS best practices
+description: >-
+  Perform complex, multi-step AWS tasks by combining real-time access to AWS
+  documentation, syntactically correct API calls and executions, and pre-built
+  workflows called Agent SOPs that follow AWS best practices
 keywords:
   - aws
   - aws-mcp
@@ -15,13 +18,17 @@ keywords:
   - aws-best-practices
 author: AWS
 version: 0.1.0
+type: skill
 harnesses:
   - kiro
-type: skill
 inclusion: manual
+harness-config:
+  kiro:
+    format: power
 categories:
   - devops
-ecosystem: [aws]
+ecosystem:
+  - aws
 depends: []
 enhances: []
 maturity: stable
@@ -31,9 +38,15 @@ model-assumptions: []
 collections:
   - kiro-official
 inherit-hooks: false
-harness-config:
-  kiro:
-    format: power
+visibility: public
+priority: 50
+attribution:
+  upstream:
+    - authors:
+        - AWS
+      relationship: verbatim
+      work: aws-mcp
+outcomes: []
 ---
 # Work with AWS Power
 

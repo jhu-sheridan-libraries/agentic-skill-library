@@ -94,3 +94,7 @@ Load these only when the workflow calls for them (progressive disclosure):
 - `references/scoring-rubric.md` — Scoring Rubric
 - `references/scripts/editorial_check.py` — Scripts Editorial_check
 - `references/website-audit.md` — Website Audit
+---
+
+## Sources & credits
+- **jhu-editorial-check** — Johns Hopkins editorial guidance maintainers [packaged] — https://github.com/Users/stevenm

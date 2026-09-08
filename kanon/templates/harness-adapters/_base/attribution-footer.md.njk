@@ -1,0 +1,17 @@
+{%- if artifact.frontmatter.attribution and artifact.frontmatter.attribution.upstream | length -%}
+
+---
+
+## Sources & credits
+{% for u in artifact.frontmatter.attribution.upstream %}
+- **{{ u.work }}** — {{ u.authors | join(", ") if u.authors | length else "(author unknown)" }} [{{ u.relationship }}]{% if u.license %} ({{ u.license }}){% endif %}{% if u.url %} — {{ u.url }}{% endif %}
+{% endfor %}
+{%- if artifact.frontmatter.attribution["curated-by"] %}
+
+Curated by {{ artifact.frontmatter.attribution["curated-by"] }}.
+{%- endif %}
+{%- if artifact.frontmatter.attribution.notice %}
+
+{{ artifact.frontmatter.attribution.notice }}
+{%- endif %}
+{%- endif -%}
