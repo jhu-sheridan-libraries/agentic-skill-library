@@ -12,6 +12,7 @@ if (typeof globalThis.Bun === "undefined") {
 import { writeFile } from "node:fs/promises";
 import chalk from "chalk";
 import { Command } from "commander";
+import pkg from "../package.json" with { type: "json" };
 import { runAttributionBackfill } from "./attribution-backfill";
 import { renderAttributionReport } from "./attribution-report";
 import { browseCommand, exportCommand } from "./browse";
@@ -24,6 +25,7 @@ import {
 } from "./collection-builder";
 import { evalCommand } from "./eval";
 import { registerGuildCommands } from "./guild/cli";
+import { renderManPage } from "./help/man-renderer";
 import { commandMetaRegistry } from "./help/metadata";
 import {
 	type RootCommand,
@@ -61,6 +63,9 @@ import {
 import { tutorialCommand } from "./tutorial";
 import { validateCommand } from "./validate";
 import { upgradeCommand } from "./versioning";
+
+/** CLI version, read from package.json so it never drifts from the release. */
+const VERSION = (pkg as { version: string }).version;
 
 // Banner lines — stored without trailing padding; printBanner normalises widths.
 const bannerLines = [
@@ -585,6 +590,73 @@ if (import.meta.main !== false) {
 	// Register rosetta commands
 	registerRosettaCommands(program);
 
+	// Register `kanon man` — generate a roff man page from the live command tree
+	program
+		.command("man")
+		.description("Generate a man(1) page (roff) for kanon")
+		.option(
+			"--output <file>",
+			"Write the man page to a file (e.g. kanon.1) instead of stdout",
+		)
+		.action(async (options) => {
+			const cleanUsage = (raw: string | undefined): string =>
+				(raw ?? "")
+					.replace(/\[options\]\s*/g, "")
+					.replace(/\[options\]$/g, "")
+					.trim();
+
+			// Flatten the live Commander tree (top level + nested subcommands),
+			// excluding `man` and `help`, so the man page never drifts from --help.
+			const flat: {
+				name: string;
+				description: string;
+				usage: string;
+				options: { flags: string; description: string }[];
+			}[] = [];
+
+			const collect = (cmd: Command, prefix: string): void => {
+				const fullName = prefix ? `${prefix} ${cmd.name()}` : cmd.name();
+				if (fullName === "man" || fullName === "help") {
+					return;
+				}
+				flat.push({
+					name: fullName,
+					description: cmd.description(),
+					usage: cleanUsage(cmd.usage()),
+					options: cmd.options.map((o) => ({
+						flags: o.flags,
+						description: o.description ?? "",
+					})),
+				});
+				for (const sub of cmd.commands) {
+					collect(sub, fullName);
+				}
+			};
+
+			for (const cmd of program.commands) {
+				collect(cmd, "");
+			}
+
+			const manPage = renderManPage({
+				version: VERSION,
+				description: "write knowledge once, compile to every harness",
+				commands: flat,
+				globalOptions: [
+					{ flags: "-V, --version", description: "Output version information" },
+					{ flags: "-h, --help", description: "Show help" },
+					{ flags: "--no-color", description: "Disable color output" },
+				],
+				metadata: commandMetaRegistry,
+			});
+
+			if (options.output) {
+				await writeFile(String(options.output), manPage, "utf-8");
+				console.error(chalk.green(`✓ Wrote man page to ${options.output}`));
+			} else {
+				process.stdout.write(manPage);
+			}
+		});
+
 	// Register `kanon help [command]` subcommand
 	program
 		.command("help [command]")
@@ -634,7 +706,7 @@ if (import.meta.main !== false) {
 	// Custom version option using renderVersion
 	program.option("-V, --version", "Output version information");
 	program.on("option:version", () => {
-		console.log(renderVersion("0.2.0", { useColor }));
+		console.log(renderVersion(VERSION, { useColor }));
 		process.exit(0);
 	});
 
