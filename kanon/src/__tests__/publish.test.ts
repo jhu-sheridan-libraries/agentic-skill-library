@@ -23,7 +23,7 @@ const mockLoadForgeConfig = mock(() =>
 );
 
 // Mock file system
-const mockExists = mock((path: string) => Promise.resolve(true));
+const mockExists = mock((_path: string) => Promise.resolve(true));
 const mockMkdir = mock(() => Promise.resolve(undefined));
 const mockWriteFile = mock(() => Promise.resolve(undefined));
 const mockReaddir = mock(() => Promise.resolve([]));
@@ -46,7 +46,7 @@ describe("publish utilities", () => {
 
 	test("resolveVersion extracts version from package.json", async () => {
 		// This tests the resolveVersion utility
-		const mockPackageJson = { version: "1.2.3" };
+		const _mockPackageJson = { version: "1.2.3" };
 		// In a real test, we'd mock Bun.file, but for now we test the logic
 		const expectedVersion = "v1.2.3";
 		expect(expectedVersion).toBe("v1.2.3");
