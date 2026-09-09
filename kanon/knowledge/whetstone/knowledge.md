@@ -30,12 +30,17 @@ keywords:
   - test-optimization
   - vertical-slices
 author: Steven J. Miklovic
-version: 0.4.3
+version: 0.4.4
 harnesses:
   - kiro
   - claude-code
   - codex
+  - copilot
   - cursor
+  - windsurf
+  - cline
+  - qdeveloper
+  - gemini-cli
 type: skill
 inclusion: auto
 categories:
