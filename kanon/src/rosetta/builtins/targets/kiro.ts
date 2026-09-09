@@ -105,12 +105,13 @@ export function translateKiroTarget(
 			executable: false,
 		});
 
-		// Workflow files under steering/
+		// Workflow files under steering/ (binary assets and scripts pass
+		// through byte-for-byte; the executable bit follows the workflow flag).
 		for (const wf of art.workflows) {
 			outputFiles.push({
 				relativePath: `steering/${wf.filename}`,
 				content: wf.content,
-				executable: false,
+				executable: wf.executable ?? false,
 			});
 		}
 

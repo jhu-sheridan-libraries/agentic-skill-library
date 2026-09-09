@@ -2155,11 +2155,12 @@
       "docx"
     ],
     "author": "jhsomCV contributors (David Stonko)",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "harnesses": [
       "claude-code",
       "codex",
-      "cursor"
+      "cursor",
+      "copilot"
     ],
     "type": "skill",
     "path": "knowledge/jhsomcv",
@@ -2175,7 +2176,8 @@
     "formatByHarness": {
       "claude-code": "claude-md",
       "codex": "skill",
-      "cursor": "rule"
+      "cursor": "rule",
+      "copilot": "instructions"
     },
     "features": {
       "hooks": false,
@@ -4113,12 +4115,17 @@
       "vertical-slices"
     ],
     "author": "Steven J. Miklovic",
-    "version": "0.4.3",
+    "version": "0.4.4",
     "harnesses": [
       "kiro",
       "claude-code",
       "codex",
-      "cursor"
+      "copilot",
+      "cursor",
+      "windsurf",
+      "cline",
+      "qdeveloper",
+      "gemini-cli"
     ],
     "type": "skill",
     "path": "knowledge/whetstone",
@@ -4137,7 +4144,12 @@
       "kiro": "power",
       "claude-code": "claude-md",
       "codex": "agents-md",
-      "cursor": "rule"
+      "copilot": "instructions",
+      "cursor": "rule",
+      "windsurf": "rule",
+      "cline": "rule",
+      "qdeveloper": "rule",
+      "gemini-cli": "gemini-md"
     },
     "features": {
       "hooks": true,

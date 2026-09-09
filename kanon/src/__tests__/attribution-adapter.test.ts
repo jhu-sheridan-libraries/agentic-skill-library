@@ -23,11 +23,13 @@ beforeAll(() => {
 	templateEnv = createTemplateEnv(TEMPLATES_DIR);
 });
 
-function bodyFile(files: { relativePath: string; content: string }[]): string {
+function bodyFile(
+	files: { relativePath: string; content: string | Uint8Array }[],
+): string {
 	const md = files.find(
 		(f) => f.relativePath.endsWith(".md") && !f.relativePath.endsWith(".json"),
 	);
-	return md?.content ?? "";
+	return typeof md?.content === "string" ? md.content : "";
 }
 
 describe("adapter attribution footer", () => {

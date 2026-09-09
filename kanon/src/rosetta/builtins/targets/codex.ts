@@ -102,10 +102,12 @@ export function translateCodexTarget(
 
 		// Workflow phase files under references/
 		for (const wf of art.workflows) {
+			// Binary assets and scripts are passed through byte-for-byte; the
+			// executable bit follows the workflow file's flag.
 			outputFiles.push({
 				relativePath: `.codex/skills/${skillName}/references/${wf.filename}`,
 				content: wf.content,
-				executable: false,
+				executable: wf.executable ?? false,
 			});
 		}
 

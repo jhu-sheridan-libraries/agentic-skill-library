@@ -1,69 +1,8 @@
 ---
 name: jhsomcv
-displayName: jhsomCV
-description: >-
-  Convert any CV (Word, PDF, Excel, text, or pasted) into the ABMF-required
-  Johns Hopkins University School of Medicine promotions CV as a Microsoft Word
-  .docx — full I–XII section taxonomy with NONE in every empty category,
-  PubMed-verified publication classification, bolded author name, underlined
-  mentees, and a confirmed-correct departmental CV's spacing as the default
-  layout. Trigger on '/jhsomcv', 'put my CV in the Hopkins format', 'Silver Book
-  CV', 'ABMF CV format', 'promotions committee CV', or any request to reformat
-  an academic CV for a Johns Hopkins School of Medicine appointment or
-  promotion.
-keywords:
-  - johns-hopkins
-  - jhsom
-  - abmf-cv
-  - promotions-cv
-  - silver-book
-  - academic-cv
-  - curriculum-vitae
-  - pubmed-verification
-  - publication-classification
-  - docx
-author: jhsomCV contributors (David Stonko)
-version: 0.1.2
-type: skill
-harnesses:
-  - claude-code
-  - codex
-  - cursor
-  - copilot
-inclusion: manual
-harness-config:
-  claude-code:
-    format: claude-md
-  codex:
-    format: skill
-categories:
-  - documentation
-ecosystem: []
-depends: []
-enhances: []
-maturity: beta
-trust: community
-audience: advanced
-model-assumptions: []
-collections:
-  - jh-dsai
-inherit-hooks: false
-visibility: public
-priority: 50
-attribution:
-  upstream:
-    - work: jhsomcv
-      authors:
-        - jhsomCV contributors
-      url: https://github.com/davidstonko/jhsomcv
-      license: MIT
-      source-repo: davidstonko/jhsomcv
-      source-commit: 91a315df7e1e9391b6285a44153ff969f2a444dc
-      relationship: adapted
-  curated-by: JH DSAI maintainers
-  notice: "MIT License. Copyright (c) 2026 jhsomCV contributors."
-outcomes: []
+description: "Convert any CV (Word, PDF, Excel, text, or pasted) into the ABMF-required Johns Hopkins University School of Medicine promotions CV as a Microsoft Word .docx — full I–XII section taxonomy with NONE in every empty category, PubMed-verified publication classification, bolded author name, underlined mentees, and a confirmed-correct departmental CV's spacing as the default layout. Trigger on '/jhsomcv', 'put my CV in the Hopkins format', 'Silver Book CV', 'ABMF CV format', 'promotions committee CV', or any request to reformat an academic CV for a Johns Hopkins School of Medicine appointment or promotion."
 ---
+
 # jhsomCV — the Johns Hopkins SOM promotions CV
 
 Builds a Word CV in the format **required** by the Advisory Board of the Medical Faculty (ABMF) and the Board of Trustees for every candidate seeking appointment or promotion at the Johns Hopkins University School of Medicine. The Silver Book itself contains no CV rules — it points to the ABMF CV Template and CV Instructions, which are what this skill implements.
@@ -289,3 +228,27 @@ Then render to PDF and *look at it* — first page, a dense publications page, a
 Deliver the `.docx` plus a short memo covering: sections that now read NONE, every publication that changed category and why, every PubMed discrepancy found, every non-required item and where it went, and every placeholder the person still has to write. Name the file `CV_<Lastname>_<Month>_<Year>.docx`.
 
 Never assert that a CV is "committee ready." Say what was checked, what was changed, and what still needs the person's decision.
+
+## Reference Pointers
+
+Load these only when the workflow calls for them (progressive disclosure):
+
+- `references/abmf-rules.md` — Abmf Rules
+- `references/assets/jhsom-cv-template.docx` — Assets Jhsom Cv Template
+- `references/scripts/build_template.py` — Scripts Build_template
+- `references/scripts/excel-reference/README.md` — Scripts Excel Reference README
+- `references/scripts/excel-reference/audit_layout.py` — Scripts Excel Reference Audit_layout
+- `references/scripts/excel-reference/check_clipping.py` — Scripts Excel Reference Check_clipping
+- `references/scripts/excel-reference/fix_layout.py` — Scripts Excel Reference Fix_layout
+- `references/scripts/fill_template.py` — Scripts Fill_template
+- `references/scripts/p052_widths.json` — Scripts P052_widths
+- `references/scripts/taxonomy.py` — Scripts Taxonomy
+- `references/scripts/verify_pubs.py` — Scripts Verify_pubs
+- `references/scripts/wrapcalc.py` — Scripts Wrapcalc
+- `references/word-format-spec.md` — Word Format Spec
+---
+
+## Sources & credits
+- **jhsomcv** — jhsomCV contributors [adapted] (MIT) — https://github.com/davidstonko/jhsomcv
+Curated by JH DSAI maintainers.
+MIT License. Copyright (c) 2026 jhsomCV contributors.

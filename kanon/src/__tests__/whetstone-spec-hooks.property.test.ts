@@ -186,7 +186,10 @@ describe("Whetstone spec-hook compilation properties", () => {
 				expect(hookFiles.length).toBe(1);
 
 				// Parse the output — must be valid JSON
-				const parsed = JSON.parse(hookFiles[0].content);
+				const hookContent = hookFiles[0].content;
+				const parsed = JSON.parse(
+					typeof hookContent === "string" ? hookContent : "",
+				);
 
 				// All input fields must be preserved unchanged
 				expect(parsed.name).toBe(specHook.name);

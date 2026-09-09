@@ -61,6 +61,23 @@ import { createTemplateEnv } from "./template-engine";
 import { embedVersion } from "./versioning";
 import { loadWorkspaceConfig, mergeKnowledgeSources } from "./workspace";
 
+/**
+ * Write an output file, preserving binary content byte-for-byte. String
+ * content is written as UTF-8; Uint8Array content is written as raw bytes
+ * (an explicit encoding would be ignored for bytes anyway, but keeping the
+ * branch explicit documents the intent).
+ */
+async function writeOutputFile(
+	outPath: string,
+	content: string | Uint8Array,
+): Promise<void> {
+	if (typeof content === "string") {
+		await writeFile(outPath, content, "utf-8");
+	} else {
+		await writeFile(outPath, content);
+	}
+}
+
 export interface BuildOptions {
 	/** One or more source directories to scan for artifacts. */
 	knowledgeDirs?: string[];
@@ -613,7 +630,9 @@ async function buildWithWorkspace(
 						})();
 					for (const file of result.files) {
 						let content = file.content;
-						if (!skipVersionEmbed1) {
+						// Version embedding only applies to text output; binary
+						// assets (Uint8Array) are written through untouched.
+						if (!skipVersionEmbed1 && typeof content === "string") {
 							if (file.relativePath.endsWith(".md")) {
 								content = embedVersion(content, artifactVersion, "markdown");
 							} else if (file.relativePath.endsWith(".json")) {
@@ -629,7 +648,7 @@ async function buildWithWorkspace(
 						);
 						const outDir = outPath.substring(0, outPath.lastIndexOf("/"));
 						await mkdir(outDir, { recursive: true });
-						await writeFile(outPath, content, "utf-8");
+						await writeOutputFile(outPath, content);
 						if (file.executable) {
 							await chmod(outPath, 0o755);
 						}
@@ -936,9 +955,10 @@ export async function build(options: BuildOptions): Promise<BuildResult> {
 						return resolveFormat("kiro", kcRaw).format === "power";
 					})();
 				for (const file of result.files) {
-					// Embed version in markdown and JSON files
+					// Embed version in markdown and JSON files. Binary assets
+					// (Uint8Array) are written through untouched.
 					let content = file.content;
-					if (!skipVersionEmbed2) {
+					if (!skipVersionEmbed2 && typeof content === "string") {
 						if (file.relativePath.endsWith(".md")) {
 							content = embedVersion(content, artifactVersion, "markdown");
 						} else if (file.relativePath.endsWith(".json")) {
@@ -949,7 +969,7 @@ export async function build(options: BuildOptions): Promise<BuildResult> {
 					const outPath = join(distDir, h, artifact.name, file.relativePath);
 					const outDir = outPath.substring(0, outPath.lastIndexOf("/"));
 					await mkdir(outDir, { recursive: true });
-					await writeFile(outPath, content, "utf-8");
+					await writeOutputFile(outPath, content);
 					if (file.executable) {
 						await chmod(outPath, 0o755);
 					}
