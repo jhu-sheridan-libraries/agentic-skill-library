@@ -4,6 +4,8 @@ inclusion: always
 
 # Tech Stack & Build System
 
+The package is `@thinkingsage/kanon` (currently v0.8.0). The primary binary is `kanon`; `forge` is a deprecated alias kept for backward compatibility.
+
 ## Runtime & Tooling
 
 - **Runtime**: Bun (≥ 1.0)
@@ -15,8 +17,10 @@ inclusion: always
 - **Validation**: Zod v4 schemas
 - **CLI framework**: Commander
 - **Interactive prompts**: @clack/prompts
+- **Terminal styling**: chalk
 - **Frontmatter parsing**: gray-matter
 - **YAML**: js-yaml
+- **Token counting**: tiktoken
 - **Property-based testing**: fast-check (devDependency)
 - **Eval framework**: promptfoo
 
@@ -28,7 +32,7 @@ All commands run from the `kanon/` directory:
 # Install dependencies
 bun install
 
-# Run CLI in dev mode
+# Run CLI in dev mode (alias for `bun run src/cli.ts`)
 bun run dev <command>
 
 # Build all artifacts for all harnesses
@@ -43,13 +47,39 @@ bun run dev validate
 # Run security validation
 bun run dev validate --security
 
-# Browse catalog
+# Browse / export the catalog
+bun run dev catalog generate
 bun run dev catalog browse
+bun run dev catalog export
 
-# Scaffold a new artifact
+# Scaffold a new artifact (or run the guided tutorial)
 bun run dev new my-artifact --type skill
+bun run dev tutorial
 
-# Run tests (all 333+ must pass)
+# Import from an external source, then report/backfill attribution
+bun run dev import <path>
+bun run dev attribute
+bun run dev attribute backfill
+
+# Rosetta Stone — bidirectional format translation
+bun run dev rosetta formats
+bun run dev rosetta detect <path>
+bun run dev rosetta inspect <path> --from <id>
+bun run dev rosetta translate <path> --from <id> --to <id>
+
+# Preview the compiled AI experience for an artifact-harness pair
+bun run dev temper <artifact>
+
+# Coordinate multi-agent work on Kiro Specs
+bun run dev spec list
+bun run dev spec status [spec]
+
+# Install / upgrade / publish
+bun run dev install [artifact]
+bun run dev upgrade
+bun run dev publish
+
+# Run the test suite (170+ files, 2400+ cases — all must pass)
 bun test
 
 # Type check (ignore Dirent<NonSharedBuffer> errors in test files — Bun type def issue)
@@ -68,8 +98,9 @@ bun run build:bridge
 # Changelog fragment
 bun run changelog:new --type added --message "description"
 
-# Compile changelog
+# Compile / preview the changelog
 bun run changelog:compile
+bun run changelog:draft
 ```
 
 ## Module System
@@ -80,7 +111,7 @@ bun run changelog:compile
 ## Key Conventions
 
 - Adapters are **pure functions** — no side effects, no I/O. They receive a parsed artifact and a Nunjucks environment, return `AdapterResult` with files and warnings.
-- Schemas are defined centrally in `src/schemas.ts` using Zod.
+- Schemas are defined centrally in `src/schemas.ts` using Zod; `SUPPORTED_HARNESSES` and `AssetTypeSchema` there are the source of truth for the harness and asset-type lists.
 - Templates live in `templates/harness-adapters/<harness>/` as `.njk` files.
 - Names use **kebab-case** everywhere: artifact names, collection names, directory names.
 - Every substantive change requires a **changelog fragment** in `kanon/changes/`.
