@@ -76,6 +76,8 @@ ADRs document significant architectural decisions made during the project's deve
 | [064](0064-structured-upstream-attribution.md) | Structured upstream attribution captured by an import wizard | Accepted | 2026-09-08 |
 | [065](0065-unify-import-and-translate-on-one-engine.md) | Unify `kanon import` and `rosetta translate` on one engine | Accepted | 2026-09-08 |
 | [066](0066-source-format-identifiers-describe-structure-not-vendor.md) | Source format identifiers describe structure, not vendor | Proposed | 2026-09-08 |
+| [067](0067-format-identifiers-describe-structure-not-vendor.md) | Format identifiers describe structure, not vendor | Proposed | 2026-09-08 |
+| [068](0068-categories-for-craft-domains-for-subject.md) | Categories for craft, domains for subject | Proposed | 2026-09-08 |
 
 ## Creating a New ADR
 
