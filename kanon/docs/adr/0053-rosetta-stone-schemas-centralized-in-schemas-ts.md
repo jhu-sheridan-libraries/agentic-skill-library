@@ -21,7 +21,7 @@ All Rosetta Stone public data shapes are defined in `src/schemas.ts` alongside e
 Primitive schemas (identifiers, paths, versions), domain objects (format contracts, detection rules, translation diagnostics), request/result envelopes, profiles, and provenance all live in the single central schema file.
 
 Key design rules:
-- Object schemas use `.strict()` unless an explicit extension map exists
+- Object schemas use `.strict()` unless an explicit extension map exists (the `AcquisitionProfileSchema` and `TranslationProfileSchema` profile schemas are scoped exceptions — see [ADR-0063](0063-non-strict-profile-schemas-for-zod-4-shape-access.md))
 - Compatibility profiles enforce completeness via Zod refinement against the `CanonicalCapabilitySchema` enum
 - The `NormalizedRelativePathSchema` uses `superRefine` to validate path safety (no traversal, NFC, forward-slash only)
 - Recursive `JsonValueSchema` uses `z.lazy()` for JSON-compatible values
