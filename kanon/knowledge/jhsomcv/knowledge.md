@@ -23,7 +23,7 @@ keywords:
   - publication-classification
   - docx
 author: jhsomCV contributors (David Stonko)
-version: 0.1.0
+version: 0.1.1
 type: skill
 harnesses:
   - claude-code
@@ -58,7 +58,7 @@ attribution:
       license: MIT
       source-repo: davidstonko/jhsomcv
       source-commit: 91a315df7e1e9391b6285a44153ff969f2a444dc
-      relationship: verbatim
+      relationship: adapted
   curated-by: JH DSAI maintainers
   notice: "MIT License. Copyright (c) 2026 jhsomCV contributors."
 outcomes: []

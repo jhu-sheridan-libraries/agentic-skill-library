@@ -55,10 +55,14 @@ def build():
             die('build command ran but did not produce the %s %s: %s' % (what, f, BUILD))
 
 def load():
-    return json.load(open(EXTRA)) if os.path.exists(EXTRA) else {}
+    if not os.path.exists(EXTRA):
+        return {}
+    with open(EXTRA) as f:
+        return json.load(f)
 
 def save(e):
-    json.dump(e, open(EXTRA, 'w'), indent=1)
+    with open(EXTRA, 'w') as f:
+        json.dump(e, f, indent=1)
 
 def pdf_lines(pdf):
     out = subprocess.run(['pdftotext', '-bbox', pdf, '-'], capture_output=True, text=True).stdout

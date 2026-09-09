@@ -4,7 +4,9 @@ Advance widths come from URW P052, which is metric-compatible with Palatino /
 Book Antiqua. Points-per-width-unit is calibrated from the user's own Excel-printed CV.
 """
 import json, os, re
-_W = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'p052_widths.json')))
+_WIDTHS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'p052_widths.json')
+with open(_WIDTHS_PATH, 'r', encoding='utf-8') as _f:
+    _W = json.load(_f)
 _DEF = 0.5
 FONT_PT = 14.0
 PT_PER_UNIT = 6.20          # calibrated against 95 entries of the user's own CV

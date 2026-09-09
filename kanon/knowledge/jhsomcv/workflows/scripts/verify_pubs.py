@@ -25,7 +25,7 @@ Flags worth reading before trusting suggested_category:
                 pubmed_records_not_on_cv so the missing full paper is still reported.
     EXCLUDE     reads as in preparation, submitted or under review.
 """
-import argparse, json, re, sys, time, urllib.parse, urllib.request
+import argparse, json, re, sys, time, urllib.error, urllib.parse, urllib.request
 import xml.etree.ElementTree as ET
 
 E = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
@@ -35,7 +35,7 @@ def _get(url, tries=5):
     for _ in range(tries):
         try:
             return urllib.request.urlopen(url, timeout=60).read()
-        except Exception:
+        except (urllib.error.URLError, OSError):
             time.sleep(2)
     return b''
 
@@ -82,7 +82,7 @@ def author_corpus(author):
                  % (start, urllib.parse.quote(author + '[Author]')))
         try:
             got = json.loads(d)['esearchresult']['idlist']
-        except Exception:
+        except (ValueError, KeyError, TypeError):
             break
         ids += got
         if len(got) < 200:
@@ -108,7 +108,7 @@ def title_search(title):
         d = _get(E + "esearch.fcgi?db=pubmed&retmode=json&retmax=10&term=" + urllib.parse.quote(term))
         try:
             ids = json.loads(d)['esearchresult']['idlist']
-        except Exception:
+        except (ValueError, KeyError, TypeError):
             ids = []
         if ids:
             return parse_articles(_get(E + "efetch.fcgi?db=pubmed&retmode=xml&id=" + ",".join(ids)))
@@ -156,9 +156,11 @@ def main():
     args = ap.parse_args()
 
     if args.text:
-        cites = [l.strip() for l in open(args.text, encoding='utf-8') if l.strip()]
+        with open(args.text, encoding='utf-8') as f:
+            cites = [l.strip() for l in f if l.strip()]
     elif args.citations:
-        cites = json.load(open(args.citations, encoding='utf-8'))
+        with open(args.citations, encoding='utf-8') as f:
+            cites = json.load(f)
     else:
         cites = [l.strip() for l in sys.stdin if l.strip()]
 
@@ -173,12 +175,12 @@ def main():
         best, bs = None, 0.0
         for tset, tsh, r in idx:
             if not tset: continue
-            sc = 0.4 * (len(tset & cset) / len(tset)) + 0.6 * (len(tsh & cs) / max(1, len(tsh)))
+            sc = 0.4 * (len(tset & cset) / max(1, len(tset))) + 0.6 * (len(tsh & cs) / max(1, len(tsh)))
             if sc > bs: bs, best = sc, r
         if bs < MATCH:
             for r in title_search(extract_title(c)):
                 tset = set(toks(r['title'])); tsh = shingles(toks(r['title']))
-                sc = 0.4 * (len(tset & cset) / len(tset or {1})) + 0.6 * (len(tsh & cs) / max(1, len(tsh)))
+                sc = 0.4 * (len(tset & cset) / max(1, len(tset))) + 0.6 * (len(tsh & cs) / max(1, len(tsh)))
                 if sc > bs: bs, best = sc, r
             time.sleep(0.34)
         rec = best if bs >= MATCH else None

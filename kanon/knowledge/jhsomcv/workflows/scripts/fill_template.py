@@ -170,7 +170,8 @@ def main():
         for i in LEAVES: print('%3d  %s' % (i, PATHS[i]))
         return
     if not (a.content and a.out): ap.error('content.json and out.docx are required (or --list)')
-    c = json.load(open(a.content, encoding='utf-8'))
+    with open(a.content, encoding='utf-8') as f:
+        c = json.load(f)
     shade = bool(c.get('shade', True)) and not a.no_shade
     legend = dict(LEGEND, **c.get('legend', {}))
     doc = Document(a.template)
@@ -183,6 +184,8 @@ def main():
         while pi < len(paras) and paras[pi].text.strip() != title.strip(): pi += 1
         if pi >= len(paras): raise SystemExit('fill_template.py: heading not found in template: %s' % title)
         if idx not in LEAVES: continue
+        if pi + 1 >= len(paras):
+            raise SystemExit('fill_template.py: expected NONE after %r in the template, but it is the last paragraph' % title)
         none_p = paras[pi + 1]
         if none_p.text != 'NONE':
             raise SystemExit('fill_template.py: expected NONE after %r in the template, found %r' % (title, none_p.text))
