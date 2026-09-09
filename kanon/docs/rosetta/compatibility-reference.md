@@ -262,6 +262,32 @@ Harness: windsurf
 | workflow | partial | inline |
 | workflows | full | — |
 
+## agents
+
+Harness: agents
+
+| Capability | Support | Degradation Action |
+|---|---|---|
+| agent | none | omit |
+| body | full | — |
+| body-overrides | full | — |
+| extra-fields | full | — |
+| file-match-inclusion | none | omit |
+| frontmatter | full | — |
+| hooks | none | inline |
+| mcp-servers | none | comment |
+| path-scoping | none | comment |
+| power | full | — |
+| prompt | full | — |
+| reference-pack | full | — |
+| rule | full | — |
+| skill | full | — |
+| system-prompt-merging | full | — |
+| template | full | — |
+| toggleable-rules | none | omit |
+| workflow | partial | inline |
+| workflows | none | inline |
+
 ## kiro-power
 
 Harness: kiro

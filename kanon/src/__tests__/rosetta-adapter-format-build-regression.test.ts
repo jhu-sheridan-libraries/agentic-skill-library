@@ -12,6 +12,7 @@ import { describe, expect, test } from "bun:test";
 import { adapterRegistry } from "../adapters/index";
 import { HARNESS_FORMAT_REGISTRY, resolveFormat } from "../format-registry";
 import {
+	AGENTS_CONTRACT,
 	BUILTIN_FORMAT_CONTRACTS,
 	CLAUDE_CODE_CONTRACT,
 	CLINE_CONTRACT,
@@ -49,6 +50,7 @@ describe("Adapter/Format/Build Regression: Target variant defaults", () => {
 		cline: "rule",
 		qdeveloper: "rule",
 		"gemini-cli": "gemini-md",
+		agents: "agents-md",
 	};
 
 	for (const harness of SUPPORTED_HARNESSES) {
@@ -75,6 +77,7 @@ describe("Adapter/Format/Build Regression: Target variant defaults", () => {
 			cline: CLINE_CONTRACT,
 			qdeveloper: QDEVELOPER_CONTRACT,
 			"gemini-cli": GEMINI_CLI_CONTRACT,
+			agents: AGENTS_CONTRACT,
 		};
 
 		for (const harness of SUPPORTED_HARNESSES) {

@@ -17,6 +17,7 @@
 
 import type { FormatIdentifier } from "../../../schemas";
 import type { PrettyPrinter } from "../../registry";
+import { prettyPrintAgentsNative } from "./agents-native";
 import { prettyPrintClaudeCodeNative } from "./claude-code-native";
 import { prettyPrintClineNative } from "./cline-native";
 import { prettyPrintCodexNative } from "./codex-native";
@@ -50,6 +51,7 @@ export { prettyPrintKiroNative } from "./kiro-native";
 // Re-exports — Simple harness pretty-printers
 // ═══════════════════════════════════════════════════════════════════════════════
 
+export { prettyPrintAgentsNative } from "./agents-native";
 export { prettyPrintClineNative } from "./cline-native";
 export { prettyPrintCopilotNative } from "./copilot-native";
 export { prettyPrintCursorNative } from "./cursor-native";
@@ -81,4 +83,5 @@ export const PRETTY_PRINTERS: ReadonlyMap<FormatIdentifier, PrettyPrinter> =
 		["cline" as FormatIdentifier, prettyPrintClineNative],
 		["qdeveloper" as FormatIdentifier, prettyPrintQDeveloperNative],
 		["gemini-cli" as FormatIdentifier, prettyPrintGeminiCliNative],
+		["agents" as FormatIdentifier, prettyPrintAgentsNative],
 	]);

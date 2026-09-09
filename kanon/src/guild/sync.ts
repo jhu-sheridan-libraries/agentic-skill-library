@@ -105,6 +105,7 @@ const HARNESS_INSTALL_PATHS: Record<HarnessName, string> = {
 	cline: ".",
 	qdeveloper: ".",
 	"gemini-cli": ".",
+	agents: ".",
 };
 
 // ---------------------------------------------------------------------------

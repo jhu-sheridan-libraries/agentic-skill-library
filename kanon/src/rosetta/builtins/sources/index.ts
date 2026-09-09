@@ -13,6 +13,7 @@
 
 import type { FormatIdentifier } from "../../../schemas";
 import type { SourceTranslator } from "../../registry";
+import { translateAgentsNative } from "./agents-native";
 import { translateClaudeCodeNative } from "./claude-code-native";
 import { translateClineNative } from "./cline-native";
 import { translateCodexNative } from "./codex-native";
@@ -46,6 +47,7 @@ export { translateKiroNative } from "./kiro-native";
 // Re-exports — Harness-native source translators (task 6.4)
 // ═══════════════════════════════════════════════════════════════════════════════
 
+export { translateAgentsNative } from "./agents-native";
 export { translateClineNative } from "./cline-native";
 export { translateCopilotNative } from "./copilot-native";
 export { translateCursorNative } from "./cursor-native";
@@ -95,4 +97,5 @@ export const HARNESS_NATIVE_SOURCE_TRANSLATORS: ReadonlyMap<
 	["cline" as FormatIdentifier, translateClineNative],
 	["qdeveloper" as FormatIdentifier, translateQDeveloperNative],
 	["gemini-cli" as FormatIdentifier, translateGeminiCliNative],
+	["agents" as FormatIdentifier, translateAgentsNative],
 ]);

@@ -77,6 +77,7 @@ const HARNESSES: readonly HarnessName[] = [
 	"windsurf",
 	"cline",
 	"qdeveloper",
+	"agents",
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -351,6 +352,31 @@ describe("Capability classification snapshot", () => {
 				"agent",
 				"file-match-inclusion",
 				"hooks",
+				"path-scoping",
+				"toggleable-rules",
+				"workflows",
+			],
+		},
+		agents: {
+			full: [
+				"body",
+				"body-overrides",
+				"extra-fields",
+				"frontmatter",
+				"power",
+				"prompt",
+				"reference-pack",
+				"rule",
+				"skill",
+				"system-prompt-merging",
+				"template",
+			],
+			partial: ["workflow"],
+			none: [
+				"agent",
+				"file-match-inclusion",
+				"hooks",
+				"mcp-servers",
 				"path-scoping",
 				"toggleable-rules",
 				"workflows",

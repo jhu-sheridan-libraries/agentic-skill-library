@@ -436,8 +436,8 @@ describe("Required list fields", () => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 describe("All legacy formats (inventory test)", () => {
-	it("all 13 built-in contracts are present", () => {
-		expect(BUILTIN_FORMAT_CONTRACTS).toHaveLength(13);
+	it("all 14 built-in contracts are present", () => {
+		expect(BUILTIN_FORMAT_CONTRACTS).toHaveLength(14);
 	});
 
 	it("all built-in contracts register successfully with stub translators", () => {
@@ -469,10 +469,10 @@ describe("All legacy formats (inventory test)", () => {
 		}
 
 		const snapshot = builder.freeze();
-		expect(snapshot.registrationCount).toBe(13);
+		expect(snapshot.registrationCount).toBe(14);
 	});
 
-	it("all 13 contracts are queryable after freeze", () => {
+	it("all 14 contracts are queryable after freeze", () => {
 		const builder = createRegistryBuilder("1.0.0");
 
 		for (const contract of BUILTIN_FORMAT_CONTRACTS) {
@@ -498,7 +498,7 @@ describe("All legacy formats (inventory test)", () => {
 
 		const snapshot = builder.freeze();
 		const all = snapshot.listContracts();
-		expect(all).toHaveLength(13);
+		expect(all).toHaveLength(14);
 
 		// Verify each contract resolves
 		for (const contract of BUILTIN_FORMAT_CONTRACTS) {
@@ -521,6 +521,7 @@ describe("All legacy formats (inventory test)", () => {
 			"kiro",
 			"qdeveloper",
 			"windsurf",
+			"agents",
 			"kiro-power",
 			"kiro-skill",
 			"superpowers",

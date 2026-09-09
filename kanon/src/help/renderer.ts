@@ -20,6 +20,7 @@ export const SUPPORTED_HARNESSES = [
 	"cline",
 	"qdeveloper",
 	"gemini-cli",
+	"agents",
 ] as const;
 
 /**

@@ -13,6 +13,7 @@
 
 import type { FormatIdentifier } from "../../../schemas";
 import type { TargetTranslator } from "../../registry";
+import { translateAgentsTarget } from "./agents";
 import { translateClaudeCodeTarget } from "./claude-code";
 import { translateClineTarget } from "./cline";
 import { translateCodexTarget } from "./codex";
@@ -27,6 +28,7 @@ import { translateWindsurfTarget } from "./windsurf";
 // Re-exports
 // ═══════════════════════════════════════════════════════════════════════════════
 
+export { translateAgentsTarget } from "./agents";
 export { translateClaudeCodeTarget } from "./claude-code";
 export { translateClineTarget } from "./cline";
 export { translateCodexTarget } from "./codex";
@@ -60,4 +62,5 @@ export const TARGET_TRANSLATORS: ReadonlyMap<
 	["cline" as FormatIdentifier, translateClineTarget],
 	["qdeveloper" as FormatIdentifier, translateQDeveloperTarget],
 	["gemini-cli" as FormatIdentifier, translateGeminiCliTarget],
+	["agents" as FormatIdentifier, translateAgentsTarget],
 ]);
