@@ -32,12 +32,15 @@ function makeHook(overrides: Partial<CanonicalHook> = {}): CanonicalHook {
 }
 
 function expectFileContent(
-	file: { content: string } | undefined,
+	file: { content: string | Uint8Array } | undefined,
 	relativePath: string,
 ): string {
 	expect(file).toBeDefined();
 	if (!file) {
 		throw new Error(`Expected generated file ${relativePath}`);
+	}
+	if (typeof file.content !== "string") {
+		throw new Error(`Expected text content for ${relativePath}, got bytes`);
 	}
 	return file.content;
 }

@@ -1,0 +1,7 @@
+name: jh-dsai
+displayName: "JH DSAI"
+description: "Johns Hopkins Data Science and AI knowledge artifacts — domain-specific skills that automate document, publication, and research workflows for the Johns Hopkins community."
+version: "0.1.0"
+author: JH DSAI maintainers
+trust: community
+tags: [johns-hopkins, data-science, ai, academic, healthcare]

@@ -156,10 +156,9 @@ function mapToAdapterResult(
 	};
 	const files = (plan.outputFiles ?? []).map((f) => ({
 		relativePath: f.relativePath,
-		content:
-			typeof f.content === "string"
-				? f.content
-				: new TextDecoder().decode(f.content),
+		// Preserve binary content byte-for-byte; decoding bytes to a string
+		// here would corrupt bundled assets (e.g. a .docx).
+		content: f.content,
 		...(f.executable ? { executable: true } : {}),
 	}));
 

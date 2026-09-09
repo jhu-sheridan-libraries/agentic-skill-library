@@ -1,0 +1,1 @@
+jhsomcv: remove an unused import in build_template.py and wrap all script file I/O in context managers, resolving the PR #82 code-quality findings; attribution relationship for the bundled scripts is now 'adapted'

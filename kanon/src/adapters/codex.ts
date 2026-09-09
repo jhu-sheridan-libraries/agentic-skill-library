@@ -127,10 +127,12 @@ export const codexAdapter: HarnessAdapter = (
 		});
 
 		// Workflow phase files live under references/ for progressive disclosure.
+		// Binary assets and executable scripts are passed through unchanged.
 		for (const wf of artifact.workflows) {
 			files.push({
 				relativePath: `.codex/skills/${skillName}/references/${wf.filename}`,
 				content: wf.content,
+				...(wf.executable ? { executable: true } : {}),
 			});
 		}
 

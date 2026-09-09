@@ -1,0 +1,1 @@
+Binary workflow assets (e.g. bundled .docx/.xlsx templates) are now preserved byte-for-byte through parse → canonical → adapters → write, instead of being corrupted by a UTF-8 round-trip. Executable workflow scripts are written with the executable bit set. Classification is by a conservative extension allowlist in the new `binary-assets` module (see ADR-0070).

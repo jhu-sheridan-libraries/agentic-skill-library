@@ -550,10 +550,8 @@ export async function importOne(
 
 	for (const file of plan.outputFiles) {
 		const destPath = join(targetPath, file.relativePath);
-		const content =
-			typeof file.content === "string"
-				? file.content
-				: new TextDecoder().decode(file.content);
+		// Preserve binary content byte-for-byte; only decode/copy text as UTF-8.
+		const content = file.content;
 
 		if (!opts.dryRun) {
 			// Ensure parent directory exists for nested paths (e.g., workflows/)
@@ -566,7 +564,11 @@ export async function importOne(
 			if (dir !== targetPath) {
 				await mkdir(dir, { recursive: true });
 			}
-			await writeFile(destPath, content, "utf-8");
+			if (typeof content === "string") {
+				await writeFile(destPath, content, "utf-8");
+			} else {
+				await writeFile(destPath, content);
+			}
 		}
 
 		filesWritten.push(destPath);

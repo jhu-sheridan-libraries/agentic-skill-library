@@ -452,7 +452,18 @@ export type Frontmatter = z.infer<typeof FrontmatterSchema>;
 export const WorkflowFileSchema = z.object({
 	name: z.string(),
 	filename: z.string(),
-	content: z.string(),
+	// Text workflow files carry a decoded string; binary workflow files (e.g.
+	// a bundled .docx/.xlsx template) carry raw bytes so they survive the
+	// pipeline byte-for-byte instead of being mangled by a UTF-8 round-trip.
+	content: z.union([z.string(), z.instanceof(Uint8Array)]),
+	// True when `content` is raw bytes rather than decoded text. Optional so
+	// hand-constructed text workflow objects stay valid; treated as false when
+	// absent.
+	binary: z.boolean().optional(),
+	// True when the file should be written with the executable bit (e.g. a
+	// bundled script). Carried through to disk writers. Optional; false when
+	// absent.
+	executable: z.boolean().optional(),
 });
 export type WorkflowFile = z.infer<typeof WorkflowFileSchema>;
 

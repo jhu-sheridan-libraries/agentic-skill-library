@@ -267,7 +267,11 @@ describe("Property 10: Canonical serialization and parsing preserve canonical me
 							(w) => w.filename === origWf.filename,
 						);
 						expect(parsedWf).toBeDefined();
-						expect(parsedWf!.content.trim()).toEqual(origWf.content.trim());
+						const parsedContent =
+							typeof parsedWf!.content === "string" ? parsedWf!.content : "";
+						const origContent =
+							typeof origWf.content === "string" ? origWf.content : "";
+						expect(parsedContent.trim()).toEqual(origContent.trim());
 					}
 
 					// Body overrides (deep equality)
