@@ -44,6 +44,12 @@ export async function generateCollectionRegistry(
 	collection: string,
 	opts: { out?: string; sourceDirs?: string[]; dateAdded?: string } = {},
 ): Promise<{ written: number; out: string }> {
+	if (!collection || !collection.trim()) {
+		throw new Error("collection name cannot be empty");
+	}
+	if (collection.includes("/") || collection.includes("\\")) {
+		throw new Error("collection name cannot contain path separators");
+	}
 	const sources = opts.sourceDirs ?? [...SOURCE_DIRS];
 	const out = opts.out ?? join("knowledge", collection, "registry.yaml");
 	const entries = await generateCatalog(sources);
@@ -59,8 +65,9 @@ export async function generateCollectionRegistry(
 function parseArgs(argv: string[]): { collection?: string; out?: string } {
 	const args: { collection?: string; out?: string } = {};
 	for (let i = 0; i < argv.length; i++) {
-		if (argv[i] === "--collection") args.collection = argv[++i];
-		else if (argv[i] === "--out") args.out = argv[++i];
+		if (argv[i] === "--collection" && i + 1 < argv.length)
+			args.collection = argv[++i];
+		else if (argv[i] === "--out" && i + 1 < argv.length) args.out = argv[++i];
 	}
 	return args;
 }

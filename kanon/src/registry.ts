@@ -54,9 +54,12 @@ export function toRegistryEntry(
 	entry: CatalogEntry,
 	dateAdded: string,
 ): RegistryEntry {
-	const category = entry.categories[0] ?? "uncategorized";
+	const category = entry.categories?.[0] ?? "uncategorized";
 	// Surface remaining categories + ecosystem as cross-cutting tags.
-	const tags = [...entry.categories.slice(1), ...entry.ecosystem];
+	const tags = [
+		...(entry.categories?.slice(1) ?? []),
+		...(entry.ecosystem ?? []),
+	];
 	return {
 		name: entry.name,
 		type: entry.type,
