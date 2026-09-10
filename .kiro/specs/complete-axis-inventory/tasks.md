@@ -1,117 +1,153 @@
 # Implementation Plan: Complete Axis Inventory
 
+## ⚠️ MANDATORY - READ BEFORE EVERY TASK ⚠️
+
+**YOU MUST FOLLOW THESE RULES FOR EVERY TASK:**
+
+1. **Shell Commands**: Use `controlPwshProcess` ONLY. NEVER use `executePwsh`.
+2. **Gap Analysis**: Perform TWO gap analysis passes BEFORE marking any task complete.
+3. **Show Your Work**: Gap analysis must be visible in your response.
+
+If you skip any of these, you have violated the protocol.
+
+---
+
 ## Overview
 
-Close the classification model: name the full 10-axis set, map **every** `FrontmatterSchema` field to exactly one axis in a single `FIELD_AXIS` registry, and extend the `checkModelInvariants` guard so total coverage is mechanically enforced. This is a classification-and-enforcement refactor only — no field's Zod definition, default, or runtime behavior changes, and all build/catalog output stays byte-identical. Implementation is TypeScript + Zod on Bun, tested with `fast-check` property tests and `bun:test` unit tests. Depends on the `vendor-neutral-formats-categories` spec (which introduced `checkModelInvariants`, the `domains`/`skill-md` work, and the Property-12 guard this generalizes).
+Implement a total inventory over Kanon's recognized canonical frontmatter keys, using `getKnownFrontmatterKeys()` and a single `FIELD_AXIS` registry. Preserve schema and runtime behavior. The refreshed model is informed by Academic Research Skills' scoped behavior/control/channel dimensions and SciAgent-Skills' category/subtype/tag/resource separation, but it does not add those external fields to Kanon.
 
-Each property test carries the comment `Feature: complete-axis-inventory, Property {N}: {title}`.
+## Development Principles
+
+**IMPORTANT**: Follow these principles strictly during implementation:
+
+1. **Build ugly and working before making it clean**
+   - Get it working first
+   - Refactor later if needed
+   - Don't optimize prematurely
+
+2. **If something isn't specified, ask - don't invent**
+   - No assumptions
+   - No "improvements"
+   - No "I noticed we could also..."
+
+3. **Build exactly what's specified. Nothing more.**
+   - No extra features
+   - No extra abstractions
+   - No extra config options
+
+4. **Stop and ask if stuck for 10+ minutes**
+   - Don't waste time debugging hallucinated APIs
+   - Use Context7 to check library docs
+   - Ask for clarification on ambiguous requirements
+
+5. **Property tests are optional for MVP**
+   - Tasks marked with `*` can be skipped
+   - Focus on getting core functionality working
+   - Add comprehensive tests in v2
+
+## Non-Requirements (What NOT to Build)
+
+❌ New frontmatter fields such as `domains`, `sub_type`, `tags`, `mode`, or `channel`
+
+❌ Changes to category values, asset types, outcome kinds, or defaults
+
+❌ Recursive vendor-name scanning across descriptions or other free text
+
+❌ Catalog or browse facets for the new axis names
+
+❌ Classification of arbitrary passthrough extension keys
+
+❌ Adapter, format, compatibility, or degradation changes
+
+**System Characteristics:**
+
+✅ One authoritative field-to-axis map
+
+✅ Bidirectional canonical-key parity
+
+✅ Recognized passthrough keys included
+
+✅ Unknown passthrough fields preserved but excluded
+
+✅ Documentation and proposed ADR synchronized
+
+## Context7 MCP Usage (CRITICAL)
+
+**Before writing ANY code that uses a library, query Context7 for current documentation.**
+
+**Required libraries to query Context7 for:**
+
+- `zod` - Public object-key and refinement APIs if schema-key derivation must change
+- `fast-check` - Only if optional property tests are implemented
+
+**Don't assume you know the API. Don't use outdated patterns. Check Context7 first.**
+
+---
 
 ## Tasks
 
-- [ ] 1. Define the axis model and the `FIELD_AXIS` registry
-  - [ ] 1.1 Add the `Axis` type, `INTRINSIC_AXES` set, and `FIELD_AXIS` map (`src/model-axes.ts`)
-    - `Axis` union of the ten axes; `INTRINSIC_AXES` = the eight intrinsic axes; `FIELD_AXIS` mapping every current `FrontmatterSchema` field to exactly one axis per the design table
-    - Derive `EDGE_OR_VENDOR_BEARING` from `FIELD_AXIS` (origin + destination fields), replacing the prior spec's hard-coded `VENDOR_BEARING_FIELDS`
-    - _Requirements: 1.1, 1.2, 2.1, 2.2, 2.5_
-  - [ ] 1.2 Assign the Intrinsic-axis fields
-    - `type`→structure; `categories`→craft; `domains`→subject; `ecosystem`→applicability; `depends`/`enhances`→relation
-    - `trust`/`risk-level`/`license`/`audience`/`model-assumptions`/`visibility`→governance; `maturity`/`version`/`successor`/`replaces`/`migrations`→lifecycle; `name`/`displayName`/`description`/`keywords`/`author`/`id`/`priority`/`collections`→presentation
-    - _Requirements: 3.1, 4.1, 5.1, 6.1, 6.2, 6.3_
-  - [ ] 1.3 Assign the Edge-axis fields
-    - `provenance`/`attribution`→origin; `harnesses`/`inclusion`/`file_patterns`/`harness-config`/`inherit-hooks`/`outcomes`→destination
-    - _Requirements: 7.1, 7.5_
+- [ ] 1. Establish the canonical key boundary
+  - [ ] 1.1 Add a focused parity test for `getKnownFrontmatterKeys()` covering declared optional/defaulted keys and recognized `harness-config`
+  - [ ] 1.2 Replace or derive the parser's deprecated `KNOWN_FRONTMATTER_FIELDS` authority so parser and Rosetta classify known versus extra fields identically
+  - [ ] 1.3 Verify unknown passthrough keys still round-trip through `extraFields`
+  - _Requirements: 2.1-2.5, 8.6, 9.1_
 
-- [ ] 2. Derive the schema field set for coverage checking
-  - [ ] 2.1 Add `frontmatterFieldNames()` reading `FrontmatterSchema._def.shape()` keys (`src/model-axes.ts` or `src/schemas.ts`)
-    - Authoritative list of declared fields; used by the coverage check and the guard test so there is no second hand-maintained list
-    - _Requirements: 2.1, 8.2_
+- [ ] 2. Add the axis registry
+  - [ ] 2.1 Create `src/model-axes.ts` with `AxisName`, `AxisDefinition`, and readonly `FIELD_AXIS`
+  - [ ] 2.2 Map Identity, Structure, Classification, Applicability, and Relation fields exactly as designed
+  - [ ] 2.3 Map Governance, Lifecycle, Behavior, Origin, and Distribution fields exactly as designed
+  - [ ] 2.4 Derive grouped axis definitions from `FIELD_AXIS` or add an equality guard against duplicate hand-maintained field lists
+  - _Requirements: 1.1-1.5, 3.1-3.7, 4.1-4.5, 5.1-5.4, 6.1-6.5, 7.1-7.5_
 
-- [ ] 3. Extend `checkModelInvariants` to consult the registry (`src/validate.ts`)
-  - [ ] 3.1 Add the Total_Coverage check (ERROR)
-    - Error naming any `FrontmatterSchema` field missing from `FIELD_AXIS`; error naming any `FIELD_AXIS` key that is not a schema field
-    - _Requirements: 2.3, 2.4, 8.1, 8.2, 8.5_
-  - [ ] 3.2 Generalize INV-1 to all Intrinsic-axis fields (WARNING for authored metadata)
-    - For every field whose `FIELD_AXIS` axis ∈ `INTRINSIC_AXES`, warn if any value equals a `Harness_Name`; treat a `Harness_Name` as a `type` value as an INV-1 violation
-    - Preserve the built-in-registry `harness` self-check as an ERROR (unchanged from prior spec)
-    - _Requirements: 3.5, 4.4, 5.4, 6.4, 8.4, 8.5_
-  - [ ] 3.3 Wire `EDGE_OR_VENDOR_BEARING` (from 1.1) as the INV-3 exemption set
-    - Vendor/`Harness_Name` values permitted only on origin+destination fields; confirm `inclusion`/`file_patterns`/`harness-config`/`inherit-hooks`/`outcomes` are now exempt alongside `harnesses`
-    - _Requirements: 7.2, 7.4_
+- [ ] 3. Implement deterministic inventory validation
+  - [ ] 3.1 Add `validateAxisInventory(knownFields, fieldAxis)` as a pure function returning typed missing/stale diagnostics
+  - [ ] 3.2 Report all differences once, sorted deterministically
+  - [ ] 3.3 Wire the self-check into the narrowest existing validation or test boundary without generating duplicate per-artifact diagnostics
+  - [ ] 3.4 Confirm the implementation does not inspect arbitrary field values for harness-name strings
+  - _Requirements: 8.1-8.6_
 
-- [ ] 4. Generalize the extensibility guard (Property 2)
-  - [ ] 4.1 Update the guard test to compare the full field set, not just intrinsic fields
-    - Assert `frontmatterFieldNames()` set equals `Object.keys(FIELD_AXIS)` set; adding any field without a `FIELD_AXIS` entry fails
-    - **Property 2: Closed under growth**
-    - File: `src/__tests__/axis-inventory.property.test.ts`
-    - **Validates: Requirements 1.4, 8.2, 8.3**
-  - [ ] 4.2 Write property test: Total coverage (Property 1)
-    - **Property 1: Total coverage — every field is on exactly one axis**
-    - Schema field-set === `FIELD_AXIS` key-set; no field mapped twice; injected mismatch errors
-    - File: `src/__tests__/axis-inventory.property.test.ts`
-    - **Validates: Requirements 1.1, 2.1, 2.2, 2.3, 2.4**
+- [ ] 4. Add targeted tests
+  - [ ] 4.1 Test real Canonical_Key set equality with `FIELD_AXIS`
+  - [ ] 4.2 Test missing and stale assignments, including multiple simultaneous differences
+  - [ ] 4.3 Test recognized and unknown passthrough boundaries
+  - [ ] 4.4 Test `type` changes do not alter per-harness `resolveFormat()` results
+  - [ ]* 4.5 Add `fast-check` properties for finite set differences and unknown extension-key round trips
+  - _Requirements: 2.1-2.5, 3.4, 8.1-8.6, 9.1-9.5_
 
-- [ ] 5. Checkpoint — model + guard green
-  - Run `bun test`, `bun x tsc --noEmit`, `bun run lint`; confirm `checkModelInvariants` reports clean Total_Coverage over the real corpus and that removing/adding a `FIELD_AXIS` entry fails the guard. Ask the user if questions arise.
-  - _Requirements: 2.1, 8.1, 8.2_
+- [ ] 5. Refresh documentation and ADR-0069
+  - [ ] 5.1 Publish the authoritative ten-axis table and cardinality/source-of-truth notes
+  - [ ] 5.2 Add the Kanon/Academic Research Skills/SciAgent-Skills comparison, clearly separating observations from Kanon decisions
+  - [ ] 5.3 Add a worked Kanon artifact and a hypothetical profile/tag extension
+  - [ ] 5.4 Update proposed ADR-0069 to remove `domains`, place `collections` on Relation and `outcomes` on Behavior, and use the canonical-key boundary
+  - [ ] 5.5 Add a changelog fragment
+  - _Requirements: 10.1-10.6_
 
-- [ ] 6. Ratify and verify `type` as the Structure axis
-  - [ ] 6.1 Confirm no output-format meaning on `type`
-    - Audit that `resolveFormat` / adapters never branch on `frontmatter.type` for output format (ratifying ADR-0051); add a guard/comment if any coupling is found
-    - _Requirements: 3.2, 3.3, 7.3_
-  - [ ] 6.2 Write property test: `type` carries no output-format meaning (Property 5)
-    - **Property 5: `type` carries no output-format meaning**
-    - Vary `type` across valid `AssetType` values; assert resolved export format (from `harness-config.<harness>.format` + fallbacks) is unchanged
-    - File: `src/__tests__/type-structure.test.ts`
-    - **Validates: Requirements 3.2, 3.3, 7.3**
-  - [ ] 6.3 Document `power` as a Destination concept misfiled onto Structure
-    - Kept as a backward-compat alias for `skill`; captured in the ADR (see task 9)
-    - _Requirements: 3.4_
+- [ ] 6. Verify behavior preservation
+  - [ ] 6.1 Run targeted axis, parser, Rosetta canonical, schema round-trip, and format-resolution tests
+  - [ ] 6.2 Run `bun x tsc --noEmit` and `bun run lint`
+  - [ ] 6.3 Run `bun run dev validate` and `bun run dev validate --security`
+  - [ ] 6.4 Generate catalog and build all harnesses; confirm no semantic output change attributable to the inventory
+  - [ ] 6.5 Perform two visible gap-analysis passes: first against every acceptance criterion, then against the reference-repository lessons and non-requirements
+  - _Requirements: 9.1-9.5, 10.1-10.6_
 
-- [ ] 7. Intrinsic-axis and edge tests
-  - [ ] 7.1 Write property test: No vendor on any intrinsic axis (Property 3)
-    - **Property 3: No vendor on any intrinsic axis**
-    - Inject a `Harness_Name` on each intrinsic field in turn; assert each is flagged (warning for authored metadata)
-    - Extend `src/__tests__/model-invariants.property.test.ts`
-    - **Validates: Requirements 3.5, 4.4, 5.4, 6.4, 8.4**
-  - [ ] 7.2 Write property test: Vendor confined to edge fields (Property 4)
-    - **Property 4: Vendor confined to edge fields**
-    - Assert `EDGE_OR_VENDOR_BEARING` derived from `FIELD_AXIS` exactly equals the origin+destination field set
-    - In `model-invariants.property.test.ts`
-    - **Validates: Requirements 7.1, 7.2, 7.4**
-  - [ ] 7.3 Example tests: axis presence/banding, ecosystem/relation placements, unresolved-ref warning preserved
-    - All 10 axes present with correct intrinsic/edge banding; `ecosystem`→applicability (harness value warns); `depends`/`enhances`→relation and the ADR-0007 unresolved-reference warning still fires
-    - File: `src/__tests__/axis-inventory.test.ts` (+ `validate.test.ts` for the reference warning)
-    - _Requirements: 1.1, 1.2, 4.1, 4.4, 5.1, 5.5_
-  - [ ] 7.4 Example test: `outcomes` placed on Destination as a capability contract
-    - _Requirements: 7.5_
+## Task Dependency Graph
 
-- [ ] 8. Backward compatibility verification (Property 6)
-  - [ ] 8.1 Write test + CI diff: placement preserves behavior
-    - **Property 6: Placement preserves behavior (backward compatibility)**
-    - No Zod definition/default/behavior changed; full `bun run dev build` (all harnesses) and `bun run dev catalog generate` before/after diff empty; existing artifacts validate identically except genuine new INV-1/coverage diagnostics
-    - File: `src/__tests__/backcompat-axes.test.ts` + whole-catalog CI diff
-    - **Validates: Requirements 9.1, 9.2, 9.3, 9.4**
+```json
+{
+  "waves": [
+    { "id": 0, "tasks": ["1"] },
+    { "id": 1, "tasks": ["2"] },
+    { "id": 2, "tasks": ["3", "5"] },
+    { "id": 3, "tasks": ["4"] },
+    { "id": 4, "tasks": ["6"] }
+  ]
+}
+```
 
-- [ ] 9. Documentation and decision record
-  - [ ] 9.1 Add the authoritative axis table to contributor docs
-    - One place listing all ten axes, their question, and their fields; state the placement rule (every field on exactly one axis; vendor only on Edge axes)
-    - _Requirements: 10.1, 10.2, 6.5, 9.5_
-  - [ ] 9.2 Write property test: Axis map is single-sourced (Property 7)
-    - **Property 7: Axis map is single-sourced**
-    - Docs axis table field→axis assignments equal `FIELD_AXIS`; mismatch fails
-    - File: `src/__tests__/axis-docs-sync.test.ts`
-    - **Validates: Requirements 10.1, 10.2**
-  - [ ] 9.3 Add the worked-artifact example (fields sorted by axis)
-    - Annotate a real catalog artifact (e.g. `jhsomcv`) axis-by-axis in the docs
-    - _Requirements: 10.5_
-  - [x] 9.4 Write ADR-0069 — "Complete axis inventory for frontmatter classification"
-    - Drafted at `kanon/docs/adr/0069-complete-axis-inventory-for-frontmatter-classification.md` (Status: Proposed) and added to the ADR index
-    - Records the 10-axis model and total-mapping rule; ratifies `type`=Structure (builds on ADR-0014, ratifies ADR-0051); documents `ecosystem`/`depends`/`enhances`/`outcomes` placements and the `outcomes`→Destination rationale; builds on ADR-0007; generalizes the prior spec's ADR-0067/0068
-    - _Requirements: 1.4, 3.4, 7.5, 10.3, 10.4_
-  - [ ] 9.5 Add a changelog fragment
-    - One `added` fragment for the complete axis model + total-coverage guard
-    - _Requirements: 10.3_
+Tasks 3 and 5 may proceed in parallel after task 2. Task 6 depends on all prior tasks.
 
-- [ ] 10. Final verification — the model is complete, orthogonal, and closed
-  - Full `bun test` (property tests ≥100 runs) and `bun x tsc --noEmit` pass; `bun run dev validate` (+`--security`) clean for all artifacts; `checkModelInvariants` reports clean Total_Coverage; whole-catalog build+catalog before/after diff empty; confirm P1 (complete), P2 (closed under growth), P3/P4 (vendor only at edge), P5 (`type` no output-format meaning), P6 (backward compat), P7 (docs single-sourced) all pass.
-  - _Requirements: 1.1, 2.1, 8.2, 8.3, 9.3, 9.4_
+## Notes
+
+- Property-based task 4.5 is optional; deterministic unit coverage is required.
+- Do not mark an implementation task complete until its two visible gap-analysis passes are complete.
+- ADR-0069 is already Proposed but must be refreshed before acceptance.
