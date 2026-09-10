@@ -5,18 +5,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Repository layout
 
 ```
-agentic-skill-forge/
+context-bazaar/          ← repo root (git remote is still named agentic-skill-*)
 ├── kanon/                ← the kanon CLI tool (TypeScript, Bun)
-│   ├── src/              ← all source code
+│   ├── src/              ← all source code (see Architecture below for subsystems)
 │   ├── knowledge/        ← canonical knowledge artifacts
+│   ├── skills/ powers/   ← additional committed source artifacts
 │   ├── collections/      ← collection manifests (*.yaml)
+│   ├── mcp-servers/      ← bundled MCP server projects (e.g. souk-compass)
+│   ├── upstream/         ← vendored upstream sources for imported artifacts
 │   ├── dist/             ← compiled harness output (git-ignored in practice)
 │   ├── templates/        ← Nunjucks templates for harness adapters
 │   ├── bridge/           ← compiled MCP server (bridge/mcp-server.cjs)
+│   ├── docs/adr/         ← Architecture Decision Records
 │   ├── changes/          ← towncrier-style changelog fragments
 │   ├── scripts/          ← release and changelog helpers
 │   └── evals/            ← cross-artifact eval configs
 ├── .claude-plugin/       ← Claude Code plugin manifests
+├── .codex-plugin/        ← Codex plugin manifest
 ├── .mcp.json             ← MCP server config (points to bridge/mcp-server.cjs)
 ├── README.md
 ├── CONTRIBUTING.md
@@ -60,6 +65,24 @@ The scan logic in `catalog.ts` and `build.ts` handles two directory layouts:
 - **Flat**: `knowledge/<artifact>/knowledge.md`
 - **Namespaced**: `packages/@org/<artifact>/knowledge.md`
 
+Adapters are the **outbound** (canonical → harness) half. The **inbound** half lives in `src/importers/<harness>.ts` — one importer per harness (including `gemini-cli`), registered in `importers/index.ts` and driven by `kanon import`.
+
+### Rosetta Stone (bidirectional translation)
+
+`src/rosetta/` is a contract-driven translation engine, exposed via `kanon rosetta` (registered from `rosetta-cli.ts`). It detects a document's source format, inspects a translation as a dry run, and translates in both directions (inbound source → canonical, outbound canonical → target). Each format is a versioned **format contract** under `rosetta/builtins/` with a capability matrix, detection rules, direction, and security policy. The engine dispatches by direction and runs explicit phases (request → registry → detection → resolution → plan → apply), emitting diagnostics rather than hardcoding per-harness logic.
+
+### Provenance & attribution
+
+Imported artifacts carry recorded origin (provenance) and license lineage (attribution). `kanon import` records where an artifact came from; `kanon attribute` emits a NOTICES report grouped by license and `kanon attribute backfill` adds attribution blocks without touching `author`. Three-way reconciliation (`reconcile-*.ts`, `translation-*.ts`) keeps curation-owned and upstream-owned frontmatter fields in sync.
+
+### Outcomes registry
+
+`src/outcomes/` tracks declared, testable results an artifact should produce (`specification | operation | invariant`) with globally unique `out-`-prefixed IDs, plus normalization and collision detection.
+
+### Spec coordination
+
+`kanon spec` (`spec-coordination.ts`) coordinates multi-agent work on Kiro Specs under `.kiro/specs/` via a `COORDINATION.md` + `tasks.md` protocol (list / status / next / claim / release / done / reconcile / handoff).
+
 ### The type system
 
 `src/schemas.ts` is the single source of truth for every data shape. All schemas use Zod and export both the schema and the inferred TypeScript type. The key types:
@@ -67,8 +90,8 @@ The scan logic in `catalog.ts` and `build.ts` handles two directory layouts:
 - `Frontmatter` — artifact metadata (name, type, harnesses, maturity, trust, collections, …)
 - `KnowledgeArtifact` — parsed artifact including body, hooks, mcpServers, workflows
 - `CatalogEntry` — the shape written to `catalog.json`
-- `AssetTypeSchema` — `skill | power | rule | workflow | agent | prompt | template | reference-pack`
-- `HarnessNameSchema` — `kiro | claude-code | copilot | cursor | windsurf | cline | qdeveloper`
+- `AssetTypeSchema` — `skill | power | rule | workflow | agent | prompt | template | reference-pack` (`power` is a deprecated alias for `skill`; see ADR-0051)
+- `HarnessNameSchema` (from `SUPPORTED_HARNESSES`) — `kiro | claude-code | codex | copilot | cursor | windsurf | cline | qdeveloper | gemini-cli`
 
 `FrontmatterSchema` uses `.passthrough()` so unknown fields survive round-trips. New frontmatter fields must be added to both `FrontmatterSchema` and `KNOWN_FRONTMATTER_FIELDS` in `parser.ts`.
 
@@ -102,7 +125,7 @@ The Kiro hooks in `.kiro/hooks/` enforce two conventions:
 
 1. **Changelog fragments**: every substantive change needs a fragment in `changes/` (`bun run changelog:new`). Fragments are compiled into `CHANGELOG.md` at release.
 
-2. **ADRs**: changes to `.ts`, `.json`, `.yaml`, `.njk`, schema, config, module, or adapter files should be assessed for architectural significance. If a real decision with trade-offs was made, document it in `kanon/docs/adr/` (next number after `0020-*.md`). ADR-0001 through ADR-0020 are in the index at `docs/adr/README.md`.
+2. **ADRs**: changes to `.ts`, `.json`, `.yaml`, `.njk`, schema, config, module, or adapter files should be assessed for architectural significance. If a real decision with trade-offs was made, document it in `kanon/docs/adr/` using the next sequential number (the highest is currently `0070-*.md`, so the next is `0071`). The full index lives at `docs/adr/README.md` — check it for the current highest number before creating a new ADR.
 
 ## Configuration boundaries
 

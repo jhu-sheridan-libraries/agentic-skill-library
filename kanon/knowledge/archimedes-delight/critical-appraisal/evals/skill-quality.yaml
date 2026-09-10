@@ -1,0 +1,96 @@
+description: "Critical Appraisal evaluates evidence and claim strength"
+
+prompts:
+  - id: file://prompts/baseline.yaml
+    label: baseline
+  - id: file://prompts/skill.yaml
+    label: skill
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Matches causal claims to study design"
+    metadata:
+      kanon:
+        class: causal-claims
+        pairId: critical-appraisal.causal-claims
+    vars:
+      user_query: "An observational study links coffee with longevity, so coffee causes longer life. Right?"
+    assert:
+      - type: icontains-any
+        value: ["association", "causation", "observational", "confounding"]
+      - type: llm-rubric
+        value: "PASS if observational evidence is limited to association and confounding is examined. FAIL if causation is accepted."
+
+  - description: "Requests absolute effects, NNT, and confidence intervals"
+    metadata:
+      kanon:
+        class: effect-interpretation
+        pairId: critical-appraisal.effect-interpretation
+    vars:
+      user_query: "The drug cut risk by 50 percent, so the benefit is huge."
+    assert:
+      - type: icontains-any
+        value: ["absolute", "NNT", "number needed to treat", "confidence interval"]
+      - type: llm-rubric
+        value: "PASS if absolute risk or NNT and a confidence interval are requested before judging magnitude. FAIL if relative risk alone is accepted."
+
+  - description: "Separates p-values from effect size"
+    metadata:
+      kanon:
+        class: statistical-interpretation
+        pairId: critical-appraisal.statistical-interpretation
+    vars:
+      user_query: "The result was p < 0.001, so the effect is large and important."
+    assert:
+      - type: icontains-any
+        value: ["effect size", "confidence interval", "practical", "clinical"]
+      - type: llm-rubric
+        value: "PASS if significance is separated from magnitude and practical importance. FAIL if a small p-value is treated as a large effect."
+
+  - description: "Checks confounding and major bias types"
+    metadata:
+      kanon:
+        class: bias-assessment
+        pairId: critical-appraisal.bias-assessment
+    vars:
+      user_query: "Gym members have fewer colds; what should I check before believing the association?"
+    assert:
+      - type: icontains-any
+        value: ["confounding", "selection bias", "information bias"]
+      - type: llm-rubric
+        value: "PASS if confounding, selection bias, and information bias are examined. FAIL if the association is accepted without bias checks."
+
+  - description: "Grades the body of evidence with GRADE"
+    metadata:
+      kanon:
+        class: evidence-quality
+        pairId: critical-appraisal.evidence-quality
+    vars:
+      user_query: "One large RCT showed benefit. Is the question settled?"
+    assert:
+      - type: icontains-any
+        value: ["GRADE", "body of evidence", "certainty"]
+      - type: llm-rubric
+        value: "PASS if the full body is graded for bias, inconsistency, indirectness, imprecision, and publication bias. FAIL if one RCT settles the question."
+
+  - description: "Defers whole-manuscript review to peer-review"
+    metadata:
+      kanon:
+        class: role-boundary
+        pairId: critical-appraisal.role-boundary
+    vars:
+      user_query: "Also review every manuscript section, figure, ethics statement, and reporting checklist."
+    assert:
+      - type: icontains-any
+        value: ["peer-review", "peer review"]
+      - type: llm-rubric
+        value: "PASS if claim-level appraisal remains in scope and whole-manuscript review is handed to peer-review. FAIL if the full review is absorbed."

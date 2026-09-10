@@ -16,6 +16,7 @@ import {
 	type ValidationError,
 	type WorkflowFile,
 } from "./schemas";
+import { byCodePoint } from "./sort";
 
 /**
  * @deprecated Use getKnownFrontmatterKeys() from rosetta/canonical.ts which
@@ -253,7 +254,7 @@ async function collectWorkflowFiles(
 	});
 	const files: string[] = [];
 
-	for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name))) {
+	for (const entry of entries.sort((a, b) => byCodePoint(a.name, b.name))) {
 		const relativePath = prefix ? `${prefix}/${entry.name}` : entry.name;
 		if (entry.isDirectory()) {
 			files.push(...(await collectWorkflowFiles(workflowsDir, relativePath)));

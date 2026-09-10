@@ -17,11 +17,13 @@ import type {
 	RosettaCompatibilityProfile,
 } from "../../schemas";
 import {
+	AGENTS_PROFILE,
 	CLAUDE_CODE_PROFILE,
 	CLINE_PROFILE,
 	CODEX_PROFILE,
 	COPILOT_PROFILE,
 	CURSOR_PROFILE,
+	GEMINI_CLI_PROFILE,
 	KIRO_STEERING_PROFILE,
 	QDEVELOPER_PROFILE,
 	WINDSURF_PROFILE,
@@ -600,7 +602,15 @@ export const WINDSURF_CONTRACT: FormatContract = {
 	direction: "bidirectional",
 	harness: "windsurf",
 	aliases: [],
-	lifecycle: { status: "active", introducedIn: "1.0.0" },
+	// Deprecated: consolidating tool-specific rule harnesses onto the
+	// vendor-neutral "agents" (AGENTS.md) target. Existing artifacts still
+	// build with a warning; migrate to "agents". See ADR-0067.
+	lifecycle: {
+		status: "deprecated",
+		introducedIn: "1.0.0",
+		deprecatedIn: "1.1.0",
+		replacement: "agents" as FormatIdentifier,
+	},
 	canonicalVersions: { minInclusive: "1.0.0", maxExclusive: "2.0.0" },
 	schemaReference: {
 		type: "none",
@@ -734,7 +744,16 @@ export const QDEVELOPER_CONTRACT: FormatContract = {
 	direction: "bidirectional",
 	harness: "qdeveloper",
 	aliases: ["q-developer" as FormatIdentifier, "amazon-q" as FormatIdentifier],
-	lifecycle: { status: "active", introducedIn: "1.0.0" },
+	// Deprecated: Amazon Q Developer is reaching end-of-support (new signups
+	// blocked 2026-05-15, IDE plugins/subscriptions end 2027-04-30). Existing
+	// artifacts still build with a warning; migrate to the vendor-neutral
+	// "agents" (AGENTS.md) target. See ADR-0067.
+	lifecycle: {
+		status: "deprecated",
+		introducedIn: "1.0.0",
+		deprecatedIn: "1.1.0",
+		replacement: "agents" as FormatIdentifier,
+	},
 	canonicalVersions: { minInclusive: "1.0.0", maxExclusive: "2.0.0" },
 	schemaReference: {
 		type: "none",
@@ -801,6 +820,154 @@ export const QDEVELOPER_CONTRACT: FormatContract = {
 	],
 	compatibility: QDEVELOPER_PROFILE,
 	security: { sensitiveValuePolicy: "reject", allowedReferencePatterns: [] },
+};
+
+/**
+ * Gemini CLI harness format — GEMINI.md context files and settings.
+ *
+ * Gemini CLI sources project context from a hierarchical set of GEMINI.md
+ * Markdown files (global, workspace, and nested directories) that are
+ * concatenated into the model context on every prompt. MCP servers are
+ * declared in .gemini/settings.json under an "mcpServers" object.
+ */
+export const GEMINI_CLI_CONTRACT: FormatContract = {
+	id: "gemini-cli" as FormatIdentifier,
+	contractVersion: "1.0",
+	direction: "bidirectional",
+	harness: "gemini-cli",
+	aliases: ["gemini" as FormatIdentifier],
+	lifecycle: { status: "active", introducedIn: "1.0.0" },
+	canonicalVersions: { minInclusive: "1.0.0", maxExclusive: "2.0.0" },
+	schemaReference: {
+		type: "none",
+		description: "Gemini CLI GEMINI.md and settings conventions",
+	},
+	pathConventions: [
+		{
+			pattern: "GEMINI.md",
+			required: false,
+			description: "Root Gemini CLI context/instructions",
+		},
+		{
+			pattern: ".gemini/settings.json",
+			required: false,
+			description: "Gemini CLI settings (including mcpServers)",
+		},
+	],
+	detection: {
+		threshold: 0.5,
+		rules: [
+			{
+				id: "gemini-md",
+				kind: "basename",
+				pattern: "GEMINI.md",
+				weight: 50,
+				required: false,
+				evidenceLabel: "GEMINI.md present",
+			},
+			{
+				id: "gemini-settings",
+				kind: "path-glob",
+				pattern: ".gemini/settings.json",
+				weight: 30,
+				required: false,
+				evidenceLabel: "Gemini settings directory",
+			},
+		],
+	},
+	variants: {
+		"gemini-md": {
+			id: "gemini-md" as FormatIdentifier,
+			description: "GEMINI.md Markdown format",
+			pathConventions: [{ pattern: "GEMINI.md", required: true }],
+			defaults: {},
+			optionOverrides: {},
+		},
+	},
+	defaultVariant: "gemini-md" as FormatIdentifier,
+	optionDefinitions: {},
+	defaults: {},
+	normalizationRules: [
+		{
+			id: "merge-sections",
+			description: "Merge duplicate heading sections",
+			scope: "source",
+		},
+	],
+	compatibility: GEMINI_CLI_PROFILE,
+	security: {
+		sensitiveValuePolicy: "reference-only",
+		allowedReferencePatterns: ["\\$\\{[A-Z_]+\\}"],
+	},
+};
+
+/**
+ * Vendor-neutral AGENTS.md harness format.
+ *
+ * AGENTS.md is an open, tool-agnostic standard: a single Markdown file at the
+ * repository root that any compliant coding agent reads on task start. Unlike
+ * the Codex contract, this target emits ONLY the root AGENTS.md — no
+ * vendor-specific sidecar files (no .codex/, no MCP config), because the
+ * standard itself defines nothing beyond the Markdown file. It is the
+ * recommended replacement for tool-specific rule harnesses that have been
+ * deprecated. See ADR-0067.
+ */
+export const AGENTS_CONTRACT: FormatContract = {
+	id: "agents" as FormatIdentifier,
+	contractVersion: "1.0",
+	direction: "bidirectional",
+	harness: "agents",
+	aliases: ["agents-md" as FormatIdentifier],
+	lifecycle: { status: "active", introducedIn: "1.0.0" },
+	canonicalVersions: { minInclusive: "1.0.0", maxExclusive: "2.0.0" },
+	schemaReference: {
+		type: "none",
+		description: "Vendor-neutral AGENTS.md open standard",
+	},
+	pathConventions: [
+		{
+			pattern: "AGENTS.md",
+			required: false,
+			description: "Root vendor-neutral agent instructions",
+		},
+	],
+	detection: {
+		threshold: 0.5,
+		rules: [
+			{
+				id: "agents-md",
+				kind: "basename",
+				pattern: "AGENTS.md",
+				weight: 50,
+				required: false,
+				evidenceLabel: "AGENTS.md present",
+			},
+		],
+	},
+	variants: {
+		"agents-md": {
+			id: "agents-md" as FormatIdentifier,
+			description: "Vendor-neutral AGENTS.md Markdown format",
+			pathConventions: [{ pattern: "AGENTS.md", required: true }],
+			defaults: {},
+			optionOverrides: {},
+		},
+	},
+	defaultVariant: "agents-md" as FormatIdentifier,
+	optionDefinitions: {},
+	defaults: {},
+	normalizationRules: [
+		{
+			id: "merge-sections",
+			description: "Merge duplicate heading sections",
+			scope: "source",
+		},
+	],
+	compatibility: AGENTS_PROFILE,
+	security: {
+		sensitiveValuePolicy: "reference-only",
+		allowedReferencePatterns: ["\\$\\{[A-Z_]+\\}"],
+	},
 };
 
 /**
@@ -1024,9 +1191,11 @@ export const BUILTIN_FORMAT_CONTRACTS: readonly FormatContract[] = [
 	CODEX_CONTRACT,
 	COPILOT_CONTRACT,
 	CURSOR_CONTRACT,
+	GEMINI_CLI_CONTRACT,
 	KIRO_CONTRACT,
 	QDEVELOPER_CONTRACT,
 	WINDSURF_CONTRACT,
+	AGENTS_CONTRACT,
 	KIRO_POWER_CONTRACT,
 	KIRO_SKILL_CONTRACT,
 	SUPERPOWERS_CONTRACT,

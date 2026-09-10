@@ -403,7 +403,7 @@ export async function collectionNewCommand(name?: string): Promise<void> {
 		`name: ${collectionName}`,
 		`displayName: "${resolvedDisplayName}"`,
 		`description: "${(description as string).trim()}"`,
-		`trust: ${trust}`,
+		`trust: ${trust as string}`,
 		`tags: []`,
 	].join("\n")}\n`;
 

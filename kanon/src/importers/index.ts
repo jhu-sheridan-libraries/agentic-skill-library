@@ -5,11 +5,13 @@ import chalk from "chalk";
 import * as yaml from "js-yaml";
 import type { HarnessName } from "../schemas";
 import { SUPPORTED_HARNESSES } from "../schemas";
+import { parseAgents } from "./agents";
 import { parseClaudeCode } from "./claude-code";
 import { parseCline } from "./cline";
 import { parseCodex } from "./codex";
 import { parseCopilot } from "./copilot";
 import { parseCursor } from "./cursor";
+import { parseGeminiCli } from "./gemini-cli";
 import { parseKiro } from "./kiro";
 import { parseQDeveloper } from "./qdeveloper";
 import type { ImportedFile, ImporterRegistry } from "./types";
@@ -38,6 +40,11 @@ export const HARNESS_NATIVE_PATHS: Record<HarnessName, string[]> = {
 	windsurf: [".windsurfrules", ".windsurf/rules/*.md"],
 	cline: [".clinerules/*.md"],
 	qdeveloper: [".q/rules/*.md", ".amazonq/rules/*.md"],
+	"gemini-cli": ["GEMINI.md", ".gemini/settings.json"],
+	// The vendor-neutral AGENTS.md standard. A root AGENTS.md is also detected
+	// by `codex`; both are legitimate consumers, so the import wizard lets the
+	// user choose which harness to import it as.
+	agents: ["AGENTS.md"],
 };
 
 // ── Importer Registry ─────────────────────────────────────────────────────────
@@ -77,6 +84,14 @@ export const importerRegistry: ImporterRegistry = {
 	qdeveloper: {
 		nativePaths: HARNESS_NATIVE_PATHS.qdeveloper,
 		parse: parseQDeveloper,
+	},
+	"gemini-cli": {
+		nativePaths: HARNESS_NATIVE_PATHS["gemini-cli"],
+		parse: parseGeminiCli,
+	},
+	agents: {
+		nativePaths: HARNESS_NATIVE_PATHS.agents,
+		parse: parseAgents,
 	},
 };
 
@@ -168,6 +183,8 @@ export async function detectHarnessFiles(
 		windsurf: [],
 		cline: [],
 		qdeveloper: [],
+		"gemini-cli": [],
+		agents: [],
 	};
 
 	const allFiles = await collectRelativePaths(cwd);

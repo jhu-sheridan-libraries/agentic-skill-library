@@ -1,0 +1,24 @@
+- name: bibliographic-mcp
+  command: bun
+  args:
+    - "run"
+    - "${BIBLIOGRAPHIC_MCP_DIR}/bridge/mcp-server.mjs"
+  env:
+    # Polite-pool contact email for higher Crossref / OpenAlex rate limits.
+    # Referenced as an env var, never a literal, per the credential boundary.
+    # Leave unset to run in anonymous (lower-rate-limit) mode.
+    CROSSREF_POLITE_EMAIL: "${CROSSREF_POLITE_EMAIL}"
+    # Path to the in-repo build (kanon/mcp-servers/bibliographic-mcp).
+    BIBLIOGRAPHIC_MCP_DIR: "${BIBLIOGRAPHIC_MCP_DIR}"
+  description: >-
+    Deterministic bibliographic MCP server bundled in-repo at
+    kanon/mcp-servers/bibliographic-mcp/ (see the bibliographic-mcp spec). Gives
+    the literature-review agent real, read-only literature search and
+    verification over public bibliographic APIs (Crossref, OpenAlex) — DOI
+    resolution with title cross-check, deduplicated title search, and retraction
+    status. Launched from the in-repo build (no registry publish required),
+    which suits academic non-commercial use; the core logic is adapted from
+    academic-research-skills (CC-BY-NC-4.0) — see the server's NOTICE. For a
+    shared JHU-hosted deployment, swap this for an SSE/HTTP entry pointing at
+    ${BIBLIOGRAPHIC_MCP_URL} as documented in that server's README.
+  autoApprove: []

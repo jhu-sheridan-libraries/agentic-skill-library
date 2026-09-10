@@ -1,0 +1,94 @@
+description: "Manuscript Writing structures rigorous research reports"
+
+prompts:
+  - id: file://prompts/baseline.yaml
+    label: baseline
+  - id: file://prompts/skill.yaml
+    label: skill
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Structures original research with IMRAD"
+    metadata:
+      kanon:
+        class: structure
+        pairId: manuscript-writing.structure
+    vars:
+      user_query: "How should I structure my original research paper?"
+    assert:
+      - type: icontains-any
+        value: ["IMRAD", "Introduction", "Methods", "Results", "Discussion"]
+      - type: llm-rubric
+        value: "PASS if IMRAD is used and each section's role is explained. FAIL if the outline lacks a recognized structure."
+
+  - description: "Separates Results from Discussion"
+    metadata:
+      kanon:
+        class: section-boundary
+        pairId: manuscript-writing.section-boundary
+    vars:
+      user_query: "Can I interpret findings directly in the Results section?"
+    assert:
+      - type: llm-rubric
+        value: "PASS if Results reports findings while Discussion interprets, compares, and limits them. FAIL if interpretation is mixed into Results."
+
+  - description: "Uses the reporting guideline for the study type"
+    metadata:
+      kanon:
+        class: reporting-standards
+        pairId: manuscript-writing.reporting-standards
+    vars:
+      user_query: "I am drafting a systematic review; what guideline should I follow?"
+    assert:
+      - type: icontains-any
+        value: ["PRISMA", "reporting guideline", "checklist"]
+      - type: llm-rubric
+        value: "PASS if PRISMA is selected and used from the start. FAIL if the guideline is omitted or mismatched."
+
+  - description: "Requires complete statistical reporting"
+    metadata:
+      kanon:
+        class: statistical-reporting
+        pairId: manuscript-writing.statistical-reporting
+    vars:
+      user_query: "Can Results simply say that the difference was significant?"
+    assert:
+      - type: icontains-any
+        value: ["effect size", "confidence interval", "exact p", "p-value", "CI"]
+      - type: llm-rubric
+        value: "PASS if estimates, variability, sample size, effect size, and exact p-values are required. FAIL if significant alone is accepted."
+
+  - description: "Matches claim strength to study design"
+    metadata:
+      kanon:
+        class: claim-strength
+        pairId: manuscript-writing.claim-strength
+    vars:
+      user_query: "My observational study found a link, so I will write that X causes Y."
+    assert:
+      - type: icontains-any
+        value: ["associated", "association", "observational", "causal"]
+      - type: llm-rubric
+        value: "PASS if causal wording is replaced with association language appropriate to the design. FAIL if the causal overclaim stands."
+
+  - description: "Hands citation and figure work to sibling skills"
+    metadata:
+      kanon:
+        class: role-boundary
+        pairId: manuscript-writing.role-boundary
+    vars:
+      user_query: "Format my references in APA and prepare my main figure for submission."
+    assert:
+      - type: icontains-any
+        value: ["citation-management", "figure-preparation"]
+      - type: llm-rubric
+        value: "PASS if references go to citation-management and figures to figure-preparation. FAIL if manuscript-writing absorbs both tasks."

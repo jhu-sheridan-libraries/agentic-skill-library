@@ -122,12 +122,14 @@ export { createRegistryBuilder } from "./registry";
 
 export type { SelectionAliasMetadata } from "./builtins/contracts";
 export {
+	AGENTS_CONTRACT,
 	BUILTIN_FORMAT_CONTRACTS,
 	CLAUDE_CODE_CONTRACT,
 	CLINE_CONTRACT,
 	CODEX_CONTRACT,
 	COPILOT_CONTRACT,
 	CURSOR_CONTRACT,
+	GEMINI_CLI_CONTRACT,
 	KANON_CANONICAL_CONTRACT,
 	KIRO_CONTRACT,
 	KIRO_POWER_CONTRACT,
@@ -143,12 +145,14 @@ export {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export {
+	AGENTS_PROFILE,
 	buildCompatibilityProfile,
 	CLAUDE_CODE_PROFILE,
 	CLINE_PROFILE,
 	CODEX_PROFILE,
 	COPILOT_PROFILE,
 	CURSOR_PROFILE,
+	GEMINI_CLI_PROFILE,
 	getAllBuiltinProfileKeys,
 	getBuiltinProfile,
 	KIRO_POWER_PROFILE,
@@ -164,11 +168,13 @@ export {
 export {
 	HARNESS_NATIVE_SOURCE_TRANSLATORS,
 	PATH_BASED_SOURCE_TRANSLATORS,
+	translateAgentsNative,
 	translateClaudeCodeNative,
 	translateClineNative,
 	translateCodexNative,
 	translateCopilotNative,
 	translateCursorNative,
+	translateGeminiCliNative,
 	translateKiroNative,
 	translateKiroPower,
 	translateKiroSkill,
@@ -183,11 +189,13 @@ export {
 
 export {
 	TARGET_TRANSLATORS,
+	translateAgentsTarget,
 	translateClaudeCodeTarget,
 	translateClineTarget,
 	translateCodexTarget,
 	translateCopilotTarget,
 	translateCursorTarget,
+	translateGeminiCliTarget,
 	translateKiroTarget,
 	translateQDeveloperTarget,
 	translateWindsurfTarget,

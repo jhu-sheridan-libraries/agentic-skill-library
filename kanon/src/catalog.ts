@@ -4,6 +4,7 @@ import chalk from "chalk";
 import { resolveFormat } from "./format-registry";
 import { isParseError, loadKnowledgeArtifact } from "./parser";
 import type { CatalogEntry, HarnessName } from "./schemas";
+import { byCodePoint } from "./sort";
 
 /**
  * Load a single artifact directory into a CatalogEntry.
@@ -106,7 +107,7 @@ async function scanSourceDir(sourceDir: string): Promise<CatalogEntry[]> {
 	const dirEntries = await readdir(sourceDir, { withFileTypes: true });
 	const subdirs = dirEntries
 		.filter((e) => e.isDirectory())
-		.sort((a, b) => a.name.localeCompare(b.name));
+		.sort((a, b) => byCodePoint(a.name, b.name));
 
 	for (const subdir of subdirs) {
 		const subdirPath = join(sourceDir, subdir.name);
@@ -127,7 +128,7 @@ async function scanSourceDir(sourceDir: string): Promise<CatalogEntry[]> {
 			const inner = await readdir(subdirPath, { withFileTypes: true });
 			const innerDirs = inner
 				.filter((e) => e.isDirectory())
-				.sort((a, b) => a.name.localeCompare(b.name));
+				.sort((a, b) => byCodePoint(a.name, b.name));
 
 			for (const innerDir of innerDirs) {
 				const artifactPath = join(subdirPath, innerDir.name);
@@ -152,7 +153,7 @@ async function scanSourceDir(sourceDir: string): Promise<CatalogEntry[]> {
 export function sortCatalogEntries(entries: CatalogEntry[]): CatalogEntry[] {
 	return [...entries].sort((a, b) => {
 		if (b.priority !== a.priority) return b.priority - a.priority;
-		return a.name.localeCompare(b.name);
+		return byCodePoint(a.name, b.name);
 	});
 }
 
@@ -200,5 +201,13 @@ export async function catalogCommand(): Promise<void> {
 	await writeFile("catalog.json", json, "utf-8");
 	console.error(
 		chalk.green(`✓ Generated catalog.json with ${entries.length} entries`),
+	);
+
+	// Bundle the bazaar-wide registry.yaml with catalog creation, derived from
+	// the same entries so catalog.json and registry.yaml never drift.
+	const { renderBazaarRegistry } = await import("./registry");
+	await writeFile("registry.yaml", renderBazaarRegistry(entries), "utf-8");
+	console.error(
+		chalk.green(`✓ Generated registry.yaml with ${entries.length} entries`),
 	);
 }
