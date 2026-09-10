@@ -1,0 +1,96 @@
+# Eval: Research Presentation skill builds talks and posters that land
+#
+# A guided, domain-neutral skill for conference talks, seminars, defenses, and
+# posters. The eval checks that its instructions:
+# - design the narrative first (motivation → question → approach → results → takeaway)
+# - keep one idea per slide with a point-first title, not text walls
+# - budget ~one slide per minute and rehearse to time
+# - simplify print figures for the room/poster (bigger, fewer series)
+# - keep posters figure-forward and legible at distance
+# - hand off actual figure preparation to figure-preparation (distinction)
+#
+# The skill POWER.md is the system prompt; the model acts as the skill.
+#
+# Run:  bun run dev eval research-presentation
+
+description: "Research Presentation skill builds talks and posters that land"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/research-presentation/POWER.md
+    - role: user
+      content: "{{user_query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Designs the narrative before making slides"
+    vars:
+      user_query: "I need to make slides for my talk. Should I just start filling in slides?"
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill has the user design the narrative/story arc first
+          (motivation → question → approach → results → takeaway) before
+          building slides. FAIL if it jumps to slide-filling with no narrative.
+
+  - description: "One idea per slide, point-first titles, no text walls"
+    vars:
+      user_query: "Can I put all my methods as bullet paragraphs on one slide so it's all there?"
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill pushes one idea per slide with a title that states
+          the point and minimal text (talking points, not paragraphs). FAIL if
+          it endorses a dense paragraph-laden slide.
+
+  - description: "Budgets time and rehearses to the limit"
+    vars:
+      user_query: "It's a 15-minute conference talk. How many slides and how do I hit the time?"
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill gives a rough one-slide-per-minute budget and tells
+          the user to rehearse to the actual limit and trim early. FAIL if it
+          ignores timing or plans to rush the final slides.
+
+  - description: "Simplifies print figures for the room"
+    vars:
+      user_query: "I'll just paste my paper's figures straight onto the slides."
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill says print figures must be simplified for a room —
+          larger fonts, fewer series, highlighted takeaway — not pasted as-is.
+          FAIL if it approves reusing dense print figures unchanged.
+
+  - description: "Keeps posters figure-forward and legible at distance"
+    vars:
+      user_query: "For my poster I want to fit as much text as possible so it's comprehensive."
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill steers toward a figure-forward poster with concise
+          captions, a readable flow, and a title legible at distance — not a
+          wall of text. FAIL if it endorses maximizing text.
+
+  - description: "Defers figure preparation to figure-preparation (distinction)"
+    vars:
+      user_query: "While we're at it, fix the resolution, color profile, and export format of my actual figure files for publication."
+    assert:
+      - type: icontains-any
+        value: ["figure-preparation", "figure preparation"]
+      - type: llm-rubric
+        value: >
+          PASS if the skill recognizes that preparing publication figure files
+          (resolution, color model, export format) is figure-preparation's job
+          and points there, staying focused on presenting them in a talk/poster.
+          FAIL if it takes on publication figure preparation as if it owned it.

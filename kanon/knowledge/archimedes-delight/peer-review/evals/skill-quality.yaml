@@ -1,0 +1,116 @@
+# Eval: Peer Review skill runs a structured, constructive manuscript review
+#
+# A guided, domain-neutral skill for reviewing a whole manuscript or proposal.
+# The eval checks that its instructions:
+# - separate major (validity) from minor (clarity) comments
+# - work through the seven stages rather than free-associating
+# - apply the right reporting standard (CONSORT/STROBE/PRISMA/ARRIVE)
+# - make comments specific and actionable (cite the line/figure + the fix)
+# - stay constructive and civil, and check reproducibility + figure integrity
+# - stay scoped to reviewing the paper, distinct from critical-appraisal's evidence scope
+#
+# The skill POWER.md is the system prompt; the model acts as the skill.
+#
+# Run:  bun run dev eval peer-review
+
+description: "Peer Review skill runs a structured, constructive manuscript review"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/peer-review/POWER.md
+    - role: user
+      content: "{{user_query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Separates major from minor comments"
+    vars:
+      user_query: "I'm reviewing a manuscript. How should I organize my comments?"
+    assert:
+      - type: icontains-any
+        value: ["major", "minor"]
+      - type: llm-rubric
+        value: >
+          PASS if the skill sorts comments into major (affects validity/
+          interpretability — must be addressed) versus minor (clarity/
+          completeness) and optionally questions for authors, so authors know
+          what is blocking. FAIL if it treats all comments as one undifferentiated
+          list.
+
+  - description: "Works through the structured stages"
+    vars:
+      user_query: "Walk me through reviewing this original research paper."
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill follows its structured multi-stage workflow —
+          initial assessment, section review, statistical rigor,
+          reproducibility, figure integrity, ethics, writing — rather than
+          giving a single unstructured impression. FAIL if it produces a
+          one-paragraph gut reaction with no stages.
+
+  - description: "Applies the right reporting standard"
+    vars:
+      user_query: "The paper is a randomized controlled trial. Anything specific I should check?"
+    assert:
+      - type: icontains-any
+        value: ["CONSORT", "flow diagram", "randomization", "blinding"]
+      - type: llm-rubric
+        value: >
+          PASS if the skill invokes CONSORT for a randomized trial (flow
+          diagram, randomization, blinding, ITT) — the reporting standard
+          matched to the study type. FAIL if it ignores reporting standards or
+          names an irrelevant one.
+
+  - description: "Comments are specific and actionable"
+    vars:
+      user_query: "Can I just write 'the methods are weak' as my main comment?"
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill pushes for specific, actionable comments — cite the
+          section/line/figure and state what would fix it — rather than a vague
+          verdict. FAIL if it endorses 'the methods are weak' as sufficient.
+
+  - description: "Checks reproducibility and figure integrity"
+    vars:
+      user_query: "The science seems fine. Can I skip checking the data availability and just glance at the figures?"
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill treats reproducibility (data/code/version
+          availability) and figure integrity (no manipulation, self-contained
+          captions) as required checks, not optional. FAIL if it agrees to skip
+          reproducibility or accept figures at face value.
+
+  - description: "Stays constructive and reviews the paper that was submitted"
+    vars:
+      user_query: "This paper annoys me. Can I just tell them to run a completely different study instead?"
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill keeps the review constructive and civil (critique
+          the work, not the authors) and scoped to the study as submitted,
+          avoiding scope creep into a different paper. FAIL if it endorses a
+          hostile review or demanding an entirely different study.
+
+  - description: "Stays scoped to manuscript review, defers pure evidence-grading to critical-appraisal"
+    vars:
+      user_query: "Forget the manuscript — I just want to know whether the underlying evidence for this one claim is strong. Give me a GRADE rating."
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill recognizes that grading the strength of a single
+          claim's evidence (GRADE, effect sizes, bias) is critical-appraisal's
+          job and points there, rather than reframing the whole request as a
+          seven-stage manuscript review. FAIL if it ignores the distinction and
+          launches a full peer review regardless.

@@ -1,0 +1,103 @@
+# Eval: Research Ideation skill generates ideas and sharpens testable hypotheses
+#
+# A guided, domain-neutral skill covering structured divergent-thinking methods
+# and the observation → hypothesis → prediction → test pipeline. The eval checks
+# that its instructions:
+# - separate divergence from judgment (generate first, evaluate later)
+# - require falsifiable hypotheses with a risky prediction
+# - state a mechanism ("because M"), not a bare correlation guess
+# - reach for a specific method (SCAMPER/TRIZ/morphological) rather than generic tips
+# - design the disconfirming test, not only confirmation
+# - hand off to literature-review for grounding
+#
+# The skill POWER.md is the system prompt; the model acts as the skill.
+#
+# Run:  bun run dev eval research-ideation
+
+description: "Research Ideation skill generates ideas and sharpens testable hypotheses"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/research-ideation/POWER.md
+    - role: user
+      content: "{{user_query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Reaches for a structured divergent-thinking method"
+    vars:
+      user_query: "I'm stuck — I only have one idea for improving our water filter design"
+    assert:
+      - type: icontains-any
+        value: ["SCAMPER", "morphological", "TRIZ", "Six Thinking Hats"]
+      - type: llm-rubric
+        value: >
+          PASS if the skill applies a named structured method (e.g. SCAMPER to
+          transform the existing design) rather than offering generic
+          "think harder" advice. FAIL if it gives unstructured tips.
+
+  - description: "Separates divergence from judgment"
+    vars:
+      user_query: "Give me ideas, but let's immediately shoot down the bad ones as we go"
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill separates idea generation from evaluation —
+          generate first (timeboxed divergence), judge in a later pass — and
+          explains premature critique kills options. FAIL if it agrees to
+          evaluate each idea the moment it appears.
+
+  - description: "Requires a falsifiable hypothesis"
+    vars:
+      user_query: "My hypothesis is that our new material is just better. Good enough?"
+    assert:
+      - type: icontains-any
+        value: ["falsifiable", "falsify", "testable", "prediction"]
+      - type: llm-rubric
+        value: >
+          PASS if the skill flags "just better" as not yet falsifiable and
+          pushes for a specific, testable claim with a measurable prediction.
+          FAIL if it accepts the vague hypothesis.
+
+  - description: "Insists on a stated mechanism"
+    vars:
+      user_query: "Hypothesis: more sunlight increases yield. Done?"
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill asks for a candidate mechanism ("because M") to turn
+          the correlation guess into a testable model, not just an X-affects-Y
+          statement. FAIL if it accepts the mechanism-free hypothesis as
+          complete.
+
+  - description: "Designs a disconfirming test, not only confirmation"
+    vars:
+      user_query: "Design an experiment that will prove my hypothesis is right"
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill steers toward a test that could falsify the
+          hypothesis (a risky, disconfirming prediction), warning against
+          confirmation-seeking. FAIL if it only designs experiments meant to
+          confirm.
+
+  - description: "Hands off to literature-review for grounding"
+    vars:
+      user_query: "This idea feels novel. How do I know it hasn't been done?"
+    assert:
+      - type: icontains-any
+        value: ["literature-review", "literature review"]
+      - type: llm-rubric
+        value: >
+          PASS if the skill points to grounding the idea in prior work via
+          literature-review. FAIL if it asserts novelty without suggesting a
+          literature check.

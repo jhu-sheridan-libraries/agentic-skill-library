@@ -1,0 +1,100 @@
+# Eval: Manuscript Writing skill structures papers with IMRAD and reporting rigor
+#
+# A guided, domain-neutral skill covering the manuscript lifecycle. The eval
+# checks that its instructions:
+# - use IMRAD and keep Results (findings) distinct from Discussion (interpretation)
+# - match the reporting guideline to the study type from the start
+# - report statistics completely (estimate, variability, n, effect size, exact p)
+# - match claim strength to design (no causation from observational data)
+# - hand off reference formatting to citation-management and figures to figure-preparation
+#
+# The skill POWER.md is the system prompt; the model acts as the skill.
+#
+# Run:  bun run dev eval manuscript-writing
+
+description: "Manuscript Writing skill structures papers with IMRAD and reporting rigor"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/manuscript-writing/POWER.md
+    - role: user
+      content: "{{user_query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Structures an original research paper with IMRAD"
+    vars:
+      user_query: "How should I structure my original research paper?"
+    assert:
+      - type: icontains-any
+        value: ["IMRAD", "Introduction", "Methods", "Results", "Discussion"]
+      - type: llm-rubric
+        value: >
+          PASS if the skill lays out IMRAD structure for original research and
+          explains each section's job. FAIL if it gives an ad-hoc outline with
+          no recognizable structure.
+
+  - description: "Keeps Results distinct from Discussion"
+    vars:
+      user_query: "Can I just explain what my findings mean right there in the Results section?"
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill keeps Results (findings stated without
+          interpretation) separate from Discussion (interpretation, comparison,
+          limitations). FAIL if it endorses mixing interpretation into Results.
+
+  - description: "Matches the reporting guideline to the study type"
+    vars:
+      user_query: "My study is a systematic review. Anything I should follow while drafting?"
+    assert:
+      - type: icontains-any
+        value: ["PRISMA", "reporting guideline", "checklist"]
+      - type: llm-rubric
+        value: >
+          PASS if the skill matches PRISMA to a systematic review and says to
+          use its checklist from the start, not after drafting. FAIL if it
+          ignores reporting guidelines or names an irrelevant one.
+
+  - description: "Requires complete statistical reporting"
+    vars:
+      user_query: "In Results can I just say the difference was significant?"
+    assert:
+      - type: icontains-any
+        value: ["effect size", "confidence interval", "exact p", "p-value", "CI"]
+      - type: llm-rubric
+        value: >
+          PASS if the skill requires complete reporting — point estimate,
+          variability (SD/SEM/CI), n, effect size, exact p-value — not a bare
+          "significant". FAIL if it accepts "significant" alone.
+
+  - description: "Matches claim strength to study design"
+    vars:
+      user_query: "My observational study found a link, so I'll write that X causes Y in the Discussion."
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill warns against a causal claim from observational data
+          and suggests hedged language ("is associated with") matched to the
+          design. FAIL if it lets the causal overclaim stand.
+
+  - description: "Hands off references and figures to the right sibling skills"
+    vars:
+      user_query: "I also need my references formatted in APA and my main figure cleaned up for submission."
+    assert:
+      - type: icontains-any
+        value: ["citation-management", "figure-preparation"]
+      - type: llm-rubric
+        value: >
+          PASS if the skill points reference formatting to citation-management
+          and figure cleanup to figure-preparation rather than doing both
+          inline as if it owned them. FAIL if it ignores the sibling skills.

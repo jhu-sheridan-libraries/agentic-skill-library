@@ -1,0 +1,207 @@
+# Eval: Archimedes Delight router dispatches research intents to the right member
+#
+# The router's job is to map a one-sentence research intent to one of nine
+# capability members, ask a clarifying question when intent is ambiguous, and
+# sequence members in research-phase order for multi-part requests. It should
+# NOT do the research itself.
+#
+# Each test combines:
+# - icontains-any: fast check that the correct member name appears
+# - not-icontains: fast check that the most-confusable member is absent
+# - llm-rubric: semantic check that the routing rationale is sound
+#
+# The router POWER.md is provided as the system prompt — the model acts as the
+# router and dispatches; it is not asked to execute the member.
+#
+# Run:  bun run dev eval archimedes-delight
+
+description: "Archimedes Delight router dispatches research intents to the right member"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/archimedes-delight/POWER.md
+    - role: user
+      content: "{{user_query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  # ── Discover phase ───────────────────────────────────────────────────────
+  - description: "Literature survey routes to literature-review, not dataset-discovery"
+    vars:
+      user_query: "Review the literature on intermittent fasting and insulin sensitivity"
+    assert:
+      - type: icontains-any
+        value: ["literature-review", "literature review"]
+      - type: not-icontains
+        value: "dataset-discovery"
+      - type: llm-rubric
+        value: >
+          A request to survey/summarize papers on a topic should route to
+          literature-review. PASS if literature-review is selected. FAIL if it
+          routes to dataset-discovery or any other member.
+
+  - description: "Dataset search routes to dataset-discovery, not literature-review"
+    vars:
+      user_query: "Find open datasets on coastal erosion satellite imagery since 2015"
+    assert:
+      - type: icontains-any
+        value: ["dataset-discovery", "dataset discovery"]
+      - type: not-icontains
+        value: "literature-review"
+      - type: llm-rubric
+        value: >
+          A request to find datasets/repositories should route to
+          dataset-discovery. PASS if dataset-discovery is selected. FAIL if it
+          routes to literature-review or elsewhere.
+
+  - description: "Hypothesis forming routes to research-ideation"
+    vars:
+      user_query: "Help me brainstorm ideas and form a testable hypothesis about soil microbiome and drought"
+    assert:
+      - type: icontains-any
+        value: ["research-ideation", "research ideation", "ideation"]
+      - type: llm-rubric
+        value: >
+          Brainstorming ideas / forming a hypothesis should route to
+          research-ideation. PASS if research-ideation is selected. FAIL
+          otherwise.
+
+  # ── Appraise phase ───────────────────────────────────────────────────────
+  - description: "Judging a study's strength routes to critical-appraisal, not peer-review"
+    vars:
+      user_query: "Is this observational study's claim that coffee lowers mortality actually any good?"
+    assert:
+      - type: icontains-any
+        value: ["critical-appraisal", "critical appraisal"]
+      - type: not-icontains
+        value: "peer-review"
+      - type: llm-rubric
+        value: >
+          Judging whether the evidence supports a claim is critical-appraisal,
+          not a full manuscript review. PASS if critical-appraisal is selected.
+          FAIL if it routes to peer-review.
+
+  - description: "Reviewing a whole manuscript routes to peer-review, not critical-appraisal"
+    vars:
+      user_query: "I've been asked to review this manuscript for a journal — walk me through it"
+    assert:
+      - type: icontains-any
+        value: ["peer-review", "peer review"]
+      - type: not-icontains
+        value: "critical-appraisal"
+      - type: llm-rubric
+        value: >
+          Reviewing a whole submitted manuscript/proposal is peer-review, not
+          appraising a single claim's evidence. PASS if peer-review is selected.
+          FAIL if it routes to critical-appraisal.
+
+  # ── Create phase ─────────────────────────────────────────────────────────
+  - description: "Structuring the paper routes to manuscript-writing, not citation-management"
+    vars:
+      user_query: "Help me structure and write up my paper"
+    assert:
+      - type: icontains-any
+        value: ["manuscript-writing", "manuscript writing"]
+      - type: not-icontains
+        value: "citation-management"
+      - type: llm-rubric
+        value: >
+          Structuring/writing the whole paper is manuscript-writing, not
+          formatting one reference. PASS if manuscript-writing is selected.
+          FAIL if it routes to citation-management.
+
+  - description: "Formatting a reference routes to citation-management, not manuscript-writing"
+    vars:
+      user_query: "Format this dataset reference as an APA citation"
+    assert:
+      - type: icontains-any
+        value: ["citation-management", "citation management"]
+      - type: not-icontains
+        value: "manuscript-writing"
+      - type: llm-rubric
+        value: >
+          Formatting/building a citation is citation-management. PASS if
+          citation-management is selected. FAIL if it routes to
+          manuscript-writing.
+
+  - description: "Fixing a figure routes to figure-preparation, not research-presentation"
+    vars:
+      user_query: "Prepare this figure and graphical abstract for journal submission"
+    assert:
+      - type: icontains-any
+        value: ["figure-preparation", "figure preparation"]
+      - type: not-icontains
+        value: "research-presentation"
+      - type: llm-rubric
+        value: >
+          Preparing a publication figure/graphical abstract is
+          figure-preparation. PASS if figure-preparation is selected. FAIL if
+          it routes to research-presentation.
+
+  # ── Communicate phase ────────────────────────────────────────────────────
+  - description: "Building a talk routes to research-presentation, not figure-preparation"
+    vars:
+      user_query: "Build my conference talk slides for a 15-minute session"
+    assert:
+      - type: icontains-any
+        value: ["research-presentation", "research presentation"]
+      - type: not-icontains
+        value: "figure-preparation"
+      - type: llm-rubric
+        value: >
+          Building a talk/poster is research-presentation. PASS if
+          research-presentation is selected. FAIL if it routes to
+          figure-preparation.
+
+  # ── Ambiguity + multi-intent ─────────────────────────────────────────────
+  - description: "Ambiguous intent triggers one clarifying question, not a guess"
+    vars:
+      user_query: "I need help with my research"
+    assert:
+      - type: llm-rubric
+        value: >
+          The intent is too vague to route confidently. PASS if the router asks
+          a single clarifying question about what the user is trying to
+          accomplish rather than committing to a specific member. FAIL if it
+          picks a member and starts doing work without clarifying.
+
+  - description: "Multi-part request is sequenced in research-phase order"
+    vars:
+      user_query: "Find datasets on urban heat islands, review the literature, then help me write it up"
+    assert:
+      - type: icontains-any
+        value: ["dataset-discovery", "dataset discovery"]
+      - type: icontains-any
+        value: ["literature-review", "literature review"]
+      - type: icontains-any
+        value: ["manuscript-writing", "manuscript writing"]
+      - type: llm-rubric
+        value: >
+          A goal spanning several members should be sequenced in research-phase
+          order (discover → appraise → create → communicate) rather than
+          attempted all at once. PASS if the router proposes handling
+          dataset-discovery and literature-review (discover) before
+          manuscript-writing (create), and reports back between hand-offs. FAIL
+          if it collapses everything into one step or orders create before
+          discover.
+
+  - description: "Router hands off rather than doing the research itself"
+    vars:
+      user_query: "Review the literature on CRISPR off-target effects"
+    assert:
+      - type: llm-rubric
+        value: >
+          The router's role is to select a member and hand off, not to perform
+          the literature review itself. PASS if the response routes to
+          literature-review and hands off (optionally noting it runs
+          autonomously) rather than producing a literature summary inline. FAIL
+          if the router fabricates a synthesis or citation list on the spot.
