@@ -35,7 +35,7 @@ run from `kanon/`. Verify with Bun (`bun test`, `bun run dev validate`,
 
 - [x] 6. Non-interactive flags and batch path
   - [x] 6.1 Add `--attribution-defaults` and `--no-attribution` to the import command in `src/cli.ts`. NOTE: plain non-interactive local imports default to `skip` (not `defaults`) — attribution is an upstream-credit concern and forcing a block on local `kanon import` broke byte-determinism; interactive TTY prompts, and the backfill/`--attribution-defaults` populate blocks.
-  - [~] 6.2 DEFERRED: `scripts/sync-upstream.sh` calls `kanon rosetta translate --profile`, NOT `kanon import` — the batch path is a SEPARATE engine (`rosetta-cli.ts translateCommand`) with its own write path, so `--attribution-defaults` cannot be wired via a one-line script edit. Wiring attribution through `rosetta translate`/profile translation is a larger change the spec did not scope; the one-shot backfill (task 11) covers the corpus regardless of import path.
+  - [ ] 6.2 DEFERRED: `scripts/sync-upstream.sh` calls `kanon rosetta translate --profile`, NOT `kanon import` — the batch path is a SEPARATE engine (`rosetta-cli.ts translateCommand`) with its own write path, so `--attribution-defaults` cannot be wired via a one-line script edit. Wiring attribution through `rosetta translate`/profile translation is a larger change the spec did not scope; the one-shot backfill (task 11) covers the corpus regardless of import path.
   - Verify: CLI tests for each flag and the non-TTY default path; `bun test`.
   - _Requirements: 4_
 
