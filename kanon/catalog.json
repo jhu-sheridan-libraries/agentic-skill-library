@@ -160,7 +160,7 @@
     ],
     "type": "skill",
     "path": "knowledge/archimedes-delight/archimedes-delight",
-    "evals": false,
+    "evals": true,
     "changelog": false,
     "migrations": false,
     "categories": [
@@ -220,7 +220,7 @@
       "workflow-orchestration"
     ],
     "author": "context-bazaar",
-    "version": "0.2.1",
+    "version": "0.2.0",
     "harnesses": [
       "kiro",
       "claude-code",
@@ -267,7 +267,7 @@
     "audience": "intermediate",
     "model-assumptions": [],
     "collections": [
-      "codefactory"
+      "archon"
     ],
     "visibility": "public",
     "priority": 50,
@@ -1285,7 +1285,7 @@
     ],
     "type": "skill",
     "path": "knowledge/archimedes-delight/citation-management",
-    "evals": false,
+    "evals": true,
     "changelog": false,
     "migrations": false,
     "categories": [
@@ -1537,7 +1537,7 @@
     ],
     "type": "skill",
     "path": "knowledge/archimedes-delight/critical-appraisal",
-    "evals": false,
+    "evals": true,
     "changelog": false,
     "migrations": false,
     "categories": [
@@ -1739,7 +1739,7 @@
     ],
     "type": "agent",
     "path": "knowledge/archimedes-delight/dataset-discovery",
-    "evals": false,
+    "evals": true,
     "changelog": false,
     "migrations": false,
     "categories": [
@@ -2190,7 +2190,7 @@
     ],
     "type": "skill",
     "path": "knowledge/archimedes-delight/figure-preparation",
-    "evals": false,
+    "evals": true,
     "changelog": false,
     "migrations": false,
     "categories": [
@@ -2497,8 +2497,8 @@
   },
   {
     "name": "kanon",
-    "displayName": "Kanon",
-    "description": "Onboarding and assistant guide for using the Kanon CLI to author, build, and manage knowledge artifacts for AI coding assistants.",
+    "displayName": "Kanon & Context Bazaar",
+    "description": "Onboarding and assistant guide for using the Kanon CLI & Context Bazaar to author, build, and manage knowledge artifacts for AI coding assistants.",
     "keywords": [
       "kanon",
       "knowledge-artifacts",
@@ -2509,11 +2509,10 @@
       "harness-compilation"
     ],
     "author": "Johns Hopkins DRCC",
-    "version": "0.2.6",
+    "version": "0.2.5",
     "harnesses": [
       "kiro",
-      "claude-code",
-      "codex"
+      "claude-code"
     ],
     "type": "skill",
     "path": "knowledge/kanon",
@@ -2529,8 +2528,7 @@
     "enhances": [],
     "formatByHarness": {
       "kiro": "power",
-      "claude-code": "claude-md",
-      "codex": "agents-md"
+      "claude-code": "claude-md"
     },
     "features": {
       "hooks": false,
@@ -2570,7 +2568,9 @@
       "claude-code",
       "copilot",
       "cursor",
+      "windsurf",
       "cline",
+      "qdeveloper",
       "codex"
     ],
     "type": "skill",
@@ -2589,7 +2589,9 @@
       "claude-code": "claude-md",
       "copilot": "instructions",
       "cursor": "rule",
+      "windsurf": "rule",
       "cline": "rule",
+      "qdeveloper": "rule",
       "codex": "agents-md"
     },
     "features": {
@@ -2756,7 +2758,7 @@
     ],
     "type": "agent",
     "path": "knowledge/archimedes-delight/literature-review",
-    "evals": false,
+    "evals": true,
     "changelog": false,
     "migrations": false,
     "categories": [
@@ -2885,7 +2887,7 @@
     ],
     "type": "skill",
     "path": "knowledge/archimedes-delight/manuscript-writing",
-    "evals": false,
+    "evals": true,
     "changelog": false,
     "migrations": false,
     "categories": [
@@ -3197,7 +3199,7 @@
     ],
     "type": "skill",
     "path": "knowledge/archimedes-delight/peer-review",
-    "evals": false,
+    "evals": true,
     "changelog": false,
     "migrations": false,
     "categories": [
@@ -3416,7 +3418,7 @@
     "audience": "intermediate",
     "model-assumptions": [],
     "collections": [
-      "libraries-ai-workshop"
+      "library-ai-workshop"
     ],
     "attribution": {
       "upstream": [
@@ -3576,7 +3578,7 @@
     ],
     "type": "skill",
     "path": "knowledge/archimedes-delight/research-ideation",
-    "evals": false,
+    "evals": true,
     "changelog": false,
     "migrations": false,
     "categories": [
@@ -3657,7 +3659,7 @@
     ],
     "type": "skill",
     "path": "knowledge/archimedes-delight/research-presentation",
-    "evals": false,
+    "evals": true,
     "changelog": false,
     "migrations": false,
     "categories": [
@@ -3728,7 +3730,7 @@
       "human-review"
     ],
     "author": "Library AI Workshop maintainers",
-    "version": "0.1.1",
+    "version": "0.1.0",
     "harnesses": [
       "codex",
       "claude-code"
@@ -3764,7 +3766,7 @@
     "audience": "advanced",
     "model-assumptions": [],
     "collections": [
-      "libraries-ai-workshop"
+      "library-ai-workshop"
     ],
     "attribution": {
       "upstream": [
@@ -3893,7 +3895,7 @@
     "audience": "advanced",
     "model-assumptions": [],
     "collections": [
-      "libraries-ai-workshop"
+      "library-ai-workshop"
     ],
     "attribution": {
       "upstream": [
@@ -4595,7 +4597,7 @@
     "outcomes": []
   },
   {
-    "name": "typescript-guardian",
+    "name": "type-guardian",
     "displayName": "Type Guardian",
     "description": "TypeScript type discipline — keep the compiler working for you, not against you.",
     "keywords": [
@@ -4688,14 +4690,16 @@
       "vertical-slices"
     ],
     "author": "Steven J. Miklovic",
-    "version": "0.4.5",
+    "version": "0.4.4",
     "harnesses": [
       "kiro",
       "claude-code",
       "codex",
       "copilot",
       "cursor",
+      "windsurf",
       "cline",
+      "qdeveloper",
       "gemini-cli"
     ],
     "type": "skill",
@@ -4717,7 +4721,9 @@
       "codex": "agents-md",
       "copilot": "instructions",
       "cursor": "rule",
+      "windsurf": "rule",
       "cline": "rule",
+      "qdeveloper": "rule",
       "gemini-cli": "gemini-md"
     },
     "features": {
