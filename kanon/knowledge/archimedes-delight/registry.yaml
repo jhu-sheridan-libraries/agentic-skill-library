@@ -34,6 +34,14 @@ entries:
     description: "Autonomous dataset-discovery agent for the Archimedes Delight research collection. Hand off a research question or dataset criteria and receive a ranked shortlist of candidate datasets from open-data repositories (starting with RODA, the Registry of Open Data on AWS) via a define-scope → search → evaluate → shortlist loop. Part of the archimedes-delight collection; for papers use literature-review, for formatting references use citation-management."
     date_added: "2026-09-10"
     tags: ["science", "aws"]
+  - name: "evidence-synthesis"
+    type: agent
+    sub_type: agent
+    category: "writing"
+    path: "knowledge/archimedes-delight/evidence-synthesis/knowledge.md"
+    description: "Autonomous evidence-synthesis agent for the Archimedes Delight research collection. Hand off a screened source set (typically literature-review's output) and receive an integrated synthesis — a literature matrix, convergence/divergence analysis, a contradiction-resolution table, and a gap taxonomy — that connects findings across sources rather than summarizing them one at a time. Part of the archimedes-delight collection; for finding and screening the sources first use literature-review, to appraise a single study use critical-appraisal."
+    date_added: "2026-09-10"
+    tags: ["science"]
   - name: "figure-preparation"
     type: skill
     sub_type: guide
@@ -56,6 +64,14 @@ entries:
     category: "writing"
     path: "knowledge/archimedes-delight/manuscript-writing/knowledge.md"
     description: "Guided scholarly-manuscript writing for the Archimedes Delight research collection. Domain-neutral guidance on IMRAD structure, citation styles, reporting guidelines, figure/table design principles, and venue adaptation. Part of the archimedes-delight collection; for citation formatting use citation-management, for figures use figure-preparation."
+    date_added: "2026-09-10"
+    tags: ["science"]
+  - name: "methodology-design"
+    type: skill
+    sub_type: guide
+    category: "writing"
+    path: "knowledge/archimedes-delight/methodology-design/knowledge.md"
+    description: "Guided research-methodology design for the Archimedes Delight collection. Domain-neutral guidance on letting the research question drive the method — a methodology decision tree by question type, a paradigm table, method and data-strategy selection, validity/reliability criteria, EQUATOR reporting-guideline mapping, preregistration guidance, and lightweight IRB navigation. Part of the archimedes-delight collection; to form the question first use research-ideation, to write it up use manuscript-writing."
     date_added: "2026-09-10"
     tags: ["science"]
   - name: "peer-review"
