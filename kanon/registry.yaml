@@ -311,7 +311,7 @@ entries:
     sub_type: pipeline
     category: "documentation"
     path: "knowledge/kanon/knowledge.md"
-    description: "Onboarding and assistant guide for using the Kanon CLI to author, build, and manage knowledge artifacts for AI coding assistants."
+    description: "Onboarding and assistant guide for using the Kanon CLI & Context Bazaar to author, build, and manage knowledge artifacts for AI coding assistants."
     date_added: "2026-09-10"
     tags: ["devops"]
   - name: "karpathy-mode"
@@ -563,7 +563,7 @@ entries:
     description: "Build and manage Infrastructure as Code with Terraform - access registry providers, modules, policies, and HCP Terraform workflow management"
     date_added: "2026-09-10"
     tags: ["devops", "terraform", "hashicorp"]
-  - name: "typescript-guardian"
+  - name: "type-guardian"
     type: skill
     sub_type: guide
     category: "code-style"
