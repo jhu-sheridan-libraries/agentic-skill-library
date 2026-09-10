@@ -201,4 +201,12 @@ export async function catalogCommand(): Promise<void> {
 	console.error(
 		chalk.green(`✓ Generated catalog.json with ${entries.length} entries`),
 	);
+
+	// Bundle the bazaar-wide registry.yaml with catalog creation, derived from
+	// the same entries so catalog.json and registry.yaml never drift.
+	const { renderBazaarRegistry } = await import("./registry");
+	await writeFile("registry.yaml", renderBazaarRegistry(entries), "utf-8");
+	console.error(
+		chalk.green(`✓ Generated registry.yaml with ${entries.length} entries`),
+	);
 }

@@ -1,6 +1,6 @@
 {
 	"name": "@thinkingsage/kanon",
-	"version": "0.8.0",
+	"version": "0.9.0",
 	"description": "Write knowledge once, compile to every AI coding assistant harness",
 	"type": "module",
 	"bin": {
@@ -23,6 +23,7 @@
 		"build:kanon": "bun build src/cli.ts --compile --external chromium-bidi --outfile kanon",
 		"build:bridge": "bun build src/mcp-bridge.ts --outfile bridge/mcp-server.cjs --target node --format cjs",
 		"build:skills": "bun run scripts/generate-plugin-skills.ts",
+		"build:registry": "bun run scripts/generate-registry.ts",
 		"build:souk-compass": "bun --cwd mcp-servers/souk-compass run build",
 		"prepublishOnly": "bun test && biome check src/cli.ts src/adapters/ src/backends/ src/guild/ src/help/ src/importers/ src/*.ts templates/ bridge/",
 		"test": "bun test",
