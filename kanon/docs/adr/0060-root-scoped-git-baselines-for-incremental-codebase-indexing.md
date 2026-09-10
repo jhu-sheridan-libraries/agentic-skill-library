@@ -1,4 +1,4 @@
-# ADR-0059: Root-Scoped Git Baselines for Incremental Codebase Indexing
+# ADR-0060: Root-Scoped Git Baselines for Incremental Codebase Indexing
 
 **Date:** 2026-08-10
 **Status:** Proposed
@@ -70,7 +70,7 @@ ADR-0058 establishes the policy modules and typed Git-diff fallback boundary, bu
 ## Links and References
 
 - Extends: [ADR-0035](./0035-codebase-indexing-as-separate-collection.md)
-- Extends: [ADR-0058](./0058-composable-indexing-policy-pipeline.md)
+- Extends: [ADR-0059](./0059-composable-indexing-policy-pipeline.md)
 - Spec: `kanon/mcp-servers/souk-compass/.kiro/specs/indexing-improvements/requirements.md` — Requirements 4 and 8
 - Spec: `kanon/mcp-servers/souk-compass/.kiro/specs/indexing-improvements/design.md` — Data Models and Git Diff
 - Implementation: `kanon/mcp-servers/souk-compass/solr/schema.xml`, `src/solr-client.ts`, `src/tools/compass-index-folder.ts`, and `src/tools/compass-reindex-folder.ts`

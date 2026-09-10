@@ -1,4 +1,4 @@
-# ADR 035: Transport-discriminated MCP server schema with shared config builder
+# ADR 036: Transport-discriminated MCP server schema with shared config builder
 
 ## Status
 

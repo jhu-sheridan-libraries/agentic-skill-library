@@ -1,4 +1,4 @@
-# ADR-0058: Composable Indexing Policy Pipeline for Souk Compass
+# ADR-0059: Composable Indexing Policy Pipeline for Souk Compass
 
 ## Status
 
