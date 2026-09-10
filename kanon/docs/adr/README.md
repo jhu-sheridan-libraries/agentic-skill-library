@@ -78,7 +78,7 @@ ADRs document significant architectural decisions made during the project's deve
 | [066](0066-source-format-identifiers-describe-structure-not-vendor.md) | Source format identifiers describe structure, not vendor | Proposed | 2026-09-08 |
 | [067](0067-format-identifiers-describe-structure-not-vendor.md) | Format identifiers describe structure, not vendor | Proposed | 2026-09-08 |
 | [068](0068-categories-for-craft-domains-for-subject.md) | Categories for craft, domains for subject | Proposed | 2026-09-08 |
-| [069](0069-complete-axis-inventory-for-frontmatter-classification.md) | Complete axis inventory for frontmatter classification | Proposed | 2026-09-08 |
+| [069](0069-complete-axis-inventory-for-frontmatter-classification.md) | Canonical frontmatter axis inventory | Proposed | 2026-09-10 |
 | [070](0070-byte-preserving-binary-workflow-assets.md) | Byte-preserving binary workflow assets | Accepted | 2026-09-09 |
 
 ## Creating a New ADR

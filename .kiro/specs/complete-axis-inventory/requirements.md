@@ -1,164 +1,188 @@
 # Requirements Document
 
+## Contract and Context
+
+Apply the Kiro Spec Requirements contract (anchors: Cockburn Use Cases, EARS, Gherkin): frame each capability by actor and goal, express normative behavior as EARS acceptance criteria, and use Given/When/Then examples where a concrete boundary needs pinning.
+
+This refresh is grounded in three current models:
+
+- Kanon's `FrontmatterSchema`, `getKnownFrontmatterKeys()`, catalog projection, outcomes model, and Rosetta format contracts.
+- Academic Research Skills' separation of skill, scoped mode, spectrum, oversight, task type, data-access level, relationships, distribution channel, and enforcement mechanism.
+- SciAgent-Skills' separation of one primary domain category, behavioral subtype (`pipeline | toolkit | database | guide`), sparse cross-cutting tags, bundled-resource roles, and registry-to-file parity.
+
+The reference repositories demonstrate the same core rule: a useful inventory keeps independent questions on independent axes. A semantic subtype is not an output format; a harness is not an install channel; support is not a Boolean; and a category is not a substitute for tags, modes, controls, or relationships.
+
 ## Introduction
 
-The `vendor-neutral-formats-categories` spec established a classification model with five axes — Structure, Craft, Subject, Origin, Destination — and a `checkModelInvariants` guard that fails if a *new* intrinsic-axis field is added without being registered. But that model classified only the fields that refactor touched. Most of `FrontmatterSchema` — `type`, `ecosystem`, `depends`, `enhances`, and the whole governance/lifecycle block (`maturity`, `trust`, `risk-level`, `audience`, `visibility`, `priority`, `license`, `successor`, `replaces`, …) — was never placed on an axis. The model is therefore *correct but incomplete*: a real artifact carries many fields the model does not account for, and the guard's field set is a partial map.
+Kanon currently has a rich canonical model, but no single total inventory explaining what each recognized top-level frontmatter key means. The previous draft attempted a ten-axis inventory, but it was stale against the actual data model: it included nonexistent `domains`, treated `outcomes` as delivery metadata, relied on private Zod internals, assumed invariant code that is not present, and proposed scanning arbitrary prose for harness names.
 
-This spec **completes the axis inventory**. It defines the full, closed set of axes and assigns **every** frontmatter field to exactly one of them, so that:
-
-- `type` is ratified as the **Structure** axis (finishing what ADR-0051 began when it moved the vendor-flavored `power` value off `type` and onto `harness-config.kiro.format`);
-- `ecosystem` gets its own **Applicability** axis (the technical context an artifact applies *to* — languages, runtimes, frameworks), distinct from Craft (what skill it encodes) and Subject (what it is about);
-- `depends`/`enhances` get their own **Relation** axis (edges to other artifacts), which is neither a property of the artifact nor a vendor concern;
-- the governance/lifecycle/presentation fields are named as first-class axes (**Governance**, **Lifecycle**, **Presentation**) rather than an unclassified remainder;
-- and the `checkModelInvariants` guard is extended to a **total** field-to-axis map, so the guard's promise ("no field escapes the model") becomes literally true.
-
-The elegance target is a model that is **complete** (every field placed), **orthogonal** (each field on exactly one axis, each axis answering one question), and **closed under growth** (a new field cannot be added without assigning it an axis, enforced by the existing guard test). No field behavior changes; this is a classification and enforcement refactor, fully backward compatible.
+This specification defines a complete inventory for the canonical keys Kanon recognizes today. It is a classification and enforcement refactor: no frontmatter field, default, adapter output, or catalog value changes. It also documents how future subtype, tag, mode, control, and distribution-channel concepts should be placed without conflating them with harness-native formats.
 
 ## Glossary
 
-- **Kanon_CLI**: The `kanon` (aka `forge`) TypeScript CLI on Bun (`import`, `build`, `install`, `validate`, `catalog`, `rosetta`, …).
-- **Knowledge_Artifact**: A directory under `knowledge/` with a `knowledge.md` and optional supporting files — the harness-agnostic canonical source of truth.
-- **FrontmatterSchema**: The Zod schema in `src/schemas.ts` validating `knowledge.md` YAML frontmatter.
-- **Frontmatter_Field**: A single top-level key defined on FrontmatterSchema (e.g. `type`, `ecosystem`, `maturity`).
-- **Classification_Model**: The complete, closed set of Axes plus the total mapping of every Frontmatter_Field to exactly one Axis.
-- **Axis**: One dimension of the Classification_Model. Each Axis answers exactly one question about an artifact and owns a disjoint set of Frontmatter_Fields.
-- **Intrinsic_Axis**: An Axis describing what an artifact *is*, *does*, or is *about* (Structure, Craft, Subject, Applicability, Relation), as opposed to Origin (where it came from) or Destination (where it is sent). Subject to the "no vendor" invariant.
-- **Edge_Axis**: Origin or Destination — the two Axes at which vendor identity legitimately appears (recorded origin; export target).
-- **Structure_Axis**: The Axis answering "what shape/kind of artifact is this?", owned by `type` (an `AssetType`), decoupled from output format per ADR-0051.
-- **Craft_Axis**: The Axis answering "what engineering skill does it encode?", owned by `categories` (controlled enum).
-- **Subject_Axis**: The Axis answering "what is it about?", owned by `domains` (freeform, governed by warning).
-- **Applicability_Axis**: The Axis answering "what technical context does it apply to?", owned by `ecosystem` (freeform: languages, runtimes, frameworks).
-- **Relation_Axis**: The Axis answering "how does it relate to other artifacts?", owned by `depends` and `enhances` (edges by artifact name).
-- **Governance_Axis**: The Axis answering "how should it be trusted/handled?", owned by `trust`, `risk-level`, `license`, `audience`, `model-assumptions`, `visibility`.
-- **Lifecycle_Axis**: The Axis answering "where is it in its life?", owned by `maturity`, `version`, `successor`, `replaces`, `migrations`.
-- **Presentation_Axis**: The Axis answering "how is it identified and displayed?", owned by `name`, `displayName`, `description`, `keywords`, `author`, `id`, `priority`, `collections`.
-- **Origin_Axis**: The Edge_Axis answering "where did it come from?", owned by `provenance` (machine) and `attribution` (curation).
-- **Destination_Axis**: The Edge_Axis answering "which harness discovers it, and in what output form?", owned by `harnesses`, `inclusion`, `file_patterns`, `harness-config`, and `inherit-hooks`.
-- **Model_Invariant**: A property the Classification_Model guarantees across all artifacts and contracts (INV-1 no vendor on an Intrinsic_Axis, INV-2 orthogonality, INV-3 vendor at the edge only — carried over from the prior spec).
-- **Axis_Assignment**: The declaration, in one authoritative table/registry, of which Axis a given Frontmatter_Field belongs to.
-- **Axis_Registry**: The single source of truth (a `FIELD_AXIS` map) mapping every Frontmatter_Field to its Axis, consumed by `checkModelInvariants` and its extensibility guard.
-- **Model_Invariant_Check**: `checkModelInvariants` in `src/validate.ts`, extended by this spec to consult the Axis_Registry so its field coverage is total.
-- **Total_Coverage**: The property that every Frontmatter_Field appears in the Axis_Registry exactly once — no field is unclassified and none is on two Axes.
-- **ArtifactType / AssetType**: The `type` enum (`skill | rule | workflow | agent | prompt | template | reference-pack`, plus deprecated `power`).
+- **Canonical_Key**: A recognized top-level canonical frontmatter key returned by `getKnownFrontmatterKeys()`. This includes declared Zod keys and recognized validated passthrough keys such as `harness-config`.
+- **Extra_Field**: An unknown passthrough key preserved for round trips but not part of the closed canonical inventory.
+- **Axis**: One independent question answered by one or more Canonical_Keys.
+- **Axis_Registry**: The authoritative mapping from each Canonical_Key to exactly one Axis.
+- **Asset_Type**: Kanon's canonical structural kind: `skill | power | rule | workflow | agent | prompt | template | reference-pack`; `power` is a deprecated alias for `skill`.
+- **Category**: Kanon's controlled semantic classification. Category meaning is repository-local; it MUST NOT be assumed to be a subtype, domain hierarchy, or harness format.
+- **Artifact_Profile**: A potential future semantic subtype such as SciAgent's `pipeline | toolkit | database | guide`. Kanon does not currently persist this field.
+- **Behavior_Control**: A declaration of expected result or operational posture, such as outcomes, modes, oversight, task type, or data-access level.
+- **Harness**: One of the nine values in `SUPPORTED_HARNESSES`.
+- **Output_Format**: A harness-native variant resolved from Rosetta contracts and `harness-config.<harness>.format`.
+- **Distribution_Channel**: A delivery mechanism such as plugin, copied skills, repository clone, or wrapper package. It is distinct from Harness and is not currently a Kanon frontmatter field.
+- **Total_Coverage**: Equality between the Axis_Registry key set and the Canonical_Key set.
 
 ## Requirements
 
-### Requirement 1: A Complete, Closed Axis Set
+### Requirement 1: Define a Complete Current Axis Set
 
-**User Story:** As a maintainer, I want the classification model to define a complete, named set of axes rather than five axes plus an unclassified remainder, so that every artifact field has a principled home and the model is a coherent whole.
-
-#### Acceptance Criteria
-
-1. THE Classification_Model SHALL define exactly these Axes: Structure, Craft, Subject, Applicability, Relation, Governance, Lifecycle, Presentation, Origin, Destination.
-2. THE Classification_Model SHALL designate Structure, Craft, Subject, Applicability, and Relation as Intrinsic_Axes, and Origin and Destination as Edge_Axes.
-3. THE Classification_Model SHALL define each Axis as answering exactly one question, documented in a single authoritative table.
-4. THE set of Axes SHALL be closed: introducing a new classification concept SHALL require either assigning it to an existing Axis or an explicit decision to add an Axis, recorded in an ADR.
-5. THE Model_Invariants (INV-1, INV-2, INV-3) from the prior spec SHALL continue to hold unchanged under the completed Axis set.
-
-### Requirement 2: Total Field-to-Axis Mapping
-
-**User Story:** As a maintainer, I want every frontmatter field assigned to exactly one axis, so that the model leaves nothing unclassified and the invariant guard can make a total promise.
+**User Story:** As a maintainer, I want one orthogonal model for the metadata Kanon recognizes today, so that every canonical key has a principled home.
 
 #### Acceptance Criteria
 
-1. THE Axis_Registry SHALL map every Frontmatter_Field defined on FrontmatterSchema to exactly one Axis (Total_Coverage).
-2. THE Axis_Registry SHALL NOT map any Frontmatter_Field to more than one Axis.
-3. WHEN a Frontmatter_Field exists on FrontmatterSchema but is absent from the Axis_Registry, THE Model_Invariant_Check SHALL fail with an error naming the unclassified field.
-4. WHEN the Axis_Registry maps a name that is not a Frontmatter_Field on FrontmatterSchema, THE Model_Invariant_Check SHALL fail with an error naming the stale entry.
-5. THE Axis_Registry SHALL be the single source of truth consumed by the Model_Invariant_Check and its extensibility guard.
+1. THE Classification_Model SHALL define exactly these Axes: Identity, Structure, Classification, Applicability, Relation, Governance, Lifecycle, Behavior, Origin, and Distribution.
+2. THE Classification_Model SHALL document one question answered by each Axis.
+3. THE Classification_Model SHALL assign every Canonical_Key to exactly one Axis.
+4. THE Classification_Model SHALL NOT invent persisted fields to make an axis appear populated.
+5. WHEN a genuinely independent concept cannot fit an existing Axis without changing that Axis's question, THE maintainer SHALL record an ADR before adding a new Axis.
 
-### Requirement 3: `type` Is the Structure Axis
+### Requirement 2: Use the Recognized Canonical Key Set
 
-**User Story:** As a maintainer applying the model, I want `type` ratified as the Structure axis and confirmed free of output-format meaning, so that structure classification is complete and does not leak into Destination.
-
-#### Acceptance Criteria
-
-1. THE Axis_Registry SHALL assign `type` to the Structure_Axis.
-2. THE Structure_Axis SHALL describe the kind/shape of an artifact (an `AssetType`), independent of any harness output format.
-3. THE `type` field SHALL NOT determine export output format; output format SHALL remain resolved from `harness-config.<harness>.format` on the Destination_Axis (ratifying ADR-0051).
-4. THE deprecated `type` value `power` SHALL be documented as a Destination concept misfiled onto Structure, retained only as a backward-compatible alias for `skill`, consistent with ADR-0051.
-5. IF a future `type` value would encode a vendor or an output format, THEN the model-naming guidance SHALL direct it to the Destination_Axis instead, and the Model_Invariant_Check SHALL treat a Harness_Name appearing as a `type` value as an INV-1 violation.
-
-### Requirement 4: `ecosystem` Is the Applicability Axis
-
-**User Story:** As a knowledge author, I want `ecosystem` recognized as its own axis for the technical context my artifact applies to, so that "applies to TypeScript/React" is not confused with the craft it teaches or the subject it concerns.
+**User Story:** As a schema maintainer, I want coverage based on Kanon's public canonical-key helper, so that declared, optional, defaulted, and validated passthrough keys are handled consistently.
 
 #### Acceptance Criteria
 
-1. THE Axis_Registry SHALL assign `ecosystem` to the Applicability_Axis.
-2. THE Applicability_Axis SHALL answer "what technical context (languages, runtimes, frameworks) does this artifact apply to?", distinct from Craft (skill encoded) and Subject (topic).
-3. THE `ecosystem` field SHALL remain a freeform array of kebab-case strings, unchanged in schema and behavior.
-4. THE Applicability_Axis SHALL be an Intrinsic_Axis subject to INV-1: no `ecosystem` value SHALL equal a Harness_Name (a harness is a Destination, not a technical context an artifact targets).
-5. THE guidance SHALL distinguish Applicability from Destination with a worked example (e.g. `ecosystem: [react]` means "about/for React code"; it does not mean "install into a harness").
+1. THE coverage check SHALL use `getKnownFrontmatterKeys()` as the source of Canonical_Keys.
+2. THE coverage check SHALL include `harness-config`, `migrations`, `outcomes`, and `file_patterns` when returned by the helper.
+3. THE coverage check SHALL NOT use `FrontmatterSchema._def` or another private Zod API.
+4. THE coverage check SHALL NOT require arbitrary Extra_Fields to appear in the Axis_Registry.
+5. WHEN the parser's deprecated `KNOWN_FRONTMATTER_FIELDS` list disagrees with `getKnownFrontmatterKeys()`, THE implementation SHALL remove the duplicate authority or derive it from the canonical helper.
 
-### Requirement 5: `depends` and `enhances` Are the Relation Axis
+### Requirement 3: Map Identity, Structure, and Classification Separately
 
-**User Story:** As a catalog consumer, I want inter-artifact relationships modeled as their own axis, so that composition edges are navigable and not mistaken for properties of a single artifact.
-
-#### Acceptance Criteria
-
-1. THE Axis_Registry SHALL assign `depends` and `enhances` to the Relation_Axis.
-2. THE Relation_Axis SHALL answer "how does this artifact relate to other artifacts?", modeling directed edges by artifact `name`.
-3. THE `depends` and `enhances` fields SHALL remain freeform arrays of kebab-case artifact-name strings, unchanged in schema and behavior.
-4. THE Relation_Axis SHALL be an Intrinsic_Axis subject to INV-1: no `depends`/`enhances` value SHALL equal a Harness_Name.
-5. THE existing warning behavior for unresolved `depends`/`enhances` references (ADR-0007) SHALL be preserved and documented as the Relation_Axis's referential-integrity check.
-
-### Requirement 6: Governance, Lifecycle, and Presentation Axes
-
-**User Story:** As a maintainer, I want the remaining governance, lifecycle, and presentation fields named as first-class axes rather than an unclassified leftover pile, so that the model is genuinely complete and each field's purpose is explicit.
+**User Story:** As an artifact author, I want identity, structural kind, and semantic classification kept independent, so that changing how an artifact is described does not change what it is or how it is delivered.
 
 #### Acceptance Criteria
 
-1. THE Axis_Registry SHALL assign `trust`, `risk-level`, `license`, `audience`, `model-assumptions`, and `visibility` to the Governance_Axis.
-2. THE Axis_Registry SHALL assign `maturity`, `version`, `successor`, `replaces`, and `migrations` to the Lifecycle_Axis.
-3. THE Axis_Registry SHALL assign `name`, `displayName`, `description`, `keywords`, `author`, `id`, `priority`, and `collections` to the Presentation_Axis.
-4. THE Governance, Lifecycle, and Presentation Axes SHALL be Intrinsic_Axes subject to INV-1 (no Harness_Name as a value on these fields).
-5. THE placement of every field named in this requirement SHALL match its current schema semantics with no behavior change.
+1. THE Axis_Registry SHALL assign `name`, `displayName`, `description`, `keywords`, `author`, and `id` to Identity.
+2. THE Axis_Registry SHALL assign `type` to Structure.
+3. THE Axis_Registry SHALL assign `categories` to Classification.
+4. THE `type` value SHALL remain independent of `harness-config.<harness>.format`.
+5. THE `categories` field SHALL retain its current controlled vocabulary and cardinality.
+6. THE documentation SHALL explain that SciAgent's primary category and subtype are separate axes, while Academic Research Skills uses a functional skill taxonomy plus scoped modes; Kanon SHALL therefore avoid treating categories as a universal domain or subtype system.
+7. IF Kanon later adds `profile`, `sub_type`, `tags`, or domain facets, THEN the design SHALL specify their cardinality and authority explicitly rather than overloading `type` or `categories`.
 
-### Requirement 7: Destination Axis Accounts for Delivery Fields
+### Requirement 4: Map Applicability and Relations
 
-**User Story:** As a maintainer, I want all export/delivery-shaping fields grouped on the Destination axis, so that "where and how does this get installed" is one coherent concept and INV-3 (vendor at the edge only) covers all of them.
-
-#### Acceptance Criteria
-
-1. THE Axis_Registry SHALL assign `harnesses`, `inclusion`, `file_patterns`, `harness-config`, and `inherit-hooks` to the Destination_Axis.
-2. THE Destination_Axis SHALL be the sole Axis on which a Harness_Name or output-format value may legitimately appear (per INV-3 and the prior spec's Requirement 13).
-3. THE `harness-config.<harness>.format` value SHALL remain the authority for output format, consistent with Requirement 3.3 and ADR-0051.
-4. THE Model_Invariant_Check SHALL exempt the Destination_Axis fields from the "no Harness_Name in frontmatter" rule, since naming harnesses is their purpose.
-5. THE `outcomes` field SHALL be assigned to an Axis and documented; IF it is determined to be a capability declaration rather than a classification, THEN it SHALL be assigned to the Destination_Axis as an export-capability contract, and this rationale SHALL be recorded.
-
-### Requirement 8: Extend the Invariant Guard to Total Coverage
-
-**User Story:** As a maintainer, I want the existing model-invariant guard to enforce that the axis map is total, so that no future field can be added without being placed on an axis.
+**User Story:** As a catalog consumer, I want technical applicability and graph relationships modeled separately from classification, so that I can filter context and traverse composition without category overload.
 
 #### Acceptance Criteria
 
-1. THE Model_Invariant_Check SHALL consult the Axis_Registry as its single field-to-axis source.
-2. THE Model_Invariant_Check SHALL enforce Total_Coverage: it SHALL fail if any FrontmatterSchema field is missing from the Axis_Registry or if any Axis_Registry entry is not a FrontmatterSchema field.
-3. THE extensibility guard test (Property 12 from the prior spec) SHALL be generalized from "intrinsic-axis fields" to "all fields," so adding any field to FrontmatterSchema without an Axis_Assignment fails the test.
-4. THE Model_Invariant_Check SHALL apply INV-1 to every Intrinsic_Axis field (not only `categories`/`domains`): no Intrinsic_Axis field value SHALL equal a Harness_Name.
-5. THE severity split SHALL be preserved: a Total_Coverage or built-in-registry violation is an error; an authored-artifact metadata violation is a warning.
+1. THE Axis_Registry SHALL assign `ecosystem` to Applicability.
+2. THE Axis_Registry SHALL assign `depends`, `enhances`, and `collections` to Relation.
+3. THE Relation Axis SHALL distinguish directed dependency/enhancement edges from grouping membership.
+4. WHEN a relation target is unresolved, THE existing validation behavior SHALL remain unchanged.
+5. THE documentation SHALL identify stable IDs and normalized arrays as the preferred design if relation semantics are expanded, reflecting the reference repositories' inconsistent scalar/list and prose-only relationships.
 
-### Requirement 9: Backward Compatibility
+### Requirement 5: Map Governance and Lifecycle
 
-**User Story:** As a maintainer of the existing catalog, I want every current artifact to parse, validate, build, and catalog unchanged, so that completing the model is a pure classification/enforcement refactor.
-
-#### Acceptance Criteria
-
-1. THE refactor SHALL make no change to any Frontmatter_Field's Zod definition, default, or runtime behavior.
-2. FOR ALL existing valid Knowledge_Artifacts, parsing then validating after the refactor SHALL produce results identical to before, except for newly emitted INV-1/Total_Coverage diagnostics where a real violation exists.
-3. WHEN the Kanon_CLI builds all artifacts for all harnesses, the emitted output files SHALL be byte-identical to before the refactor.
-4. THE `kanon catalog generate` output SHALL be unchanged by this refactor.
-5. THE Axis_Registry and axis names SHALL be documentation/enforcement constructs and SHALL NOT appear as new persisted frontmatter fields.
-
-### Requirement 10: Documentation and Decision Record
-
-**User Story:** As a contributor, I want the complete axis model documented in one place and recorded as a decision, so that I can see where any field belongs and why, and propose changes coherently.
+**User Story:** As a curator, I want handling policy separated from lifecycle state, so that trust and risk do not become synonyms for maturity or version.
 
 #### Acceptance Criteria
 
-1. THE contributor documentation SHALL present the complete Axis table (all ten Axes, their question, and their fields) in one authoritative place.
-2. THE documentation SHALL state the placement rule: every Frontmatter_Field belongs to exactly one Axis, and vendor identity is confined to the Edge_Axes.
-3. THE complete axis inventory SHALL be recorded in an Architecture Decision Record that supersedes or extends the relevant prior ADRs (0007, 0014, 0051) and links to the prior spec's ADRs.
-4. THE ADR SHALL document the `outcomes` placement rationale (Requirement 7.5) and the `type`-is-Structure ratification (Requirement 3).
-5. THE documentation SHALL include at least one worked artifact showing its fields sorted by Axis (e.g. a real catalog artifact annotated axis-by-axis).
+1. THE Axis_Registry SHALL assign `license`, `trust`, `risk-level`, `audience`, `model-assumptions`, `visibility`, and `priority` to Governance.
+2. THE Axis_Registry SHALL assign `version`, `maturity`, `migrations`, `successor`, and `replaces` to Lifecycle.
+3. THE refactor SHALL preserve every current schema definition and default for these fields.
+4. THE documentation SHALL note that future task type, data-access level, spectrum, and oversight fields require explicit vocabularies and may need per-artifact constraints in addition to enum membership.
+
+### Requirement 6: Treat Outcomes as Behavior
+
+**User Story:** As an outcome registry consumer, I want outcomes classified as intrinsic behavior contracts, so that expected results are not mistaken for harness delivery configuration.
+
+#### Acceptance Criteria
+
+1. THE Axis_Registry SHALL assign `outcomes` to Behavior.
+2. THE Behavior Axis SHALL answer "what result or operating posture does the artifact declare?"
+3. THE outcome kinds `specification`, `operation`, and `invariant` SHALL remain unchanged.
+4. THE Behavior Axis SHALL be independent of Harness, Output_Format, and Distribution_Channel.
+5. THE documentation SHALL use Academic Research Skills' scoped modes, spectrum, oversight, task type, and data-access level as examples of possible future Behavior or Governance fields, not as values to copy into Kanon without a schema decision.
+
+### Requirement 7: Separate Origin from Distribution
+
+**User Story:** As an importer and publisher, I want source lineage separate from target delivery, so that provenance and attribution are not mixed with harness configuration.
+
+#### Acceptance Criteria
+
+1. THE Axis_Registry SHALL assign `provenance` and `attribution` to Origin.
+2. THE Axis_Registry SHALL assign `harnesses`, `inclusion`, `file_patterns`, `harness-config`, and `inherit-hooks` to Distribution.
+3. THE Distribution Axis SHALL contain target harness and delivery-shaping configuration only.
+4. THE model SHALL treat Harness, Output_Format, and Distribution_Channel as distinct concepts.
+5. THE refactor SHALL NOT add a Distribution_Channel field; any later addition SHALL define channel-specific support and degradation independently of Harness.
+
+### Requirement 8: Enforce Total Coverage Without False Positives
+
+**User Story:** As a maintainer, I want a guard that catches inventory drift without interpreting arbitrary prose as categorical data.
+
+#### Acceptance Criteria
+
+1. THE model check SHALL fail when a Canonical_Key is absent from the Axis_Registry.
+2. THE model check SHALL fail when the Axis_Registry contains a stale key that is not a Canonical_Key.
+3. THE model check SHALL report every missing and stale key in one deterministic result.
+4. THE model check SHALL NOT recursively scan free-text Identity, Governance, Lifecycle, or Behavior values for strings equal to harness names.
+5. WHEN vendor neutrality requires enforcement, THE implementation SHALL validate typed vocabularies or explicitly identified classification fields rather than arbitrary text.
+6. THE guard SHALL enforce bidirectional set equality, following the inventory-parity pattern used by Academic Research Skills and SciAgent-Skills.
+
+### Requirement 9: Preserve Runtime Behavior
+
+**User Story:** As a Kanon user, I want the inventory to document and guard the model without changing existing artifacts or generated files.
+
+#### Acceptance Criteria
+
+1. THE change SHALL NOT alter `FrontmatterSchema` field definitions, defaults, parsing, or serialization.
+2. THE change SHALL NOT alter adapter selection, format resolution, compatibility, or capability degradation.
+3. THE change SHALL NOT alter catalog content.
+4. FOR the existing corpus, parse, validate, build, and catalog results SHALL remain equivalent before and after the refactor, except for deterministic inventory self-check failures caused by implementation drift.
+5. THE Axis names SHALL NOT become persisted frontmatter.
+
+### Requirement 10: Document Extension Rules and Reference-Repository Lessons
+
+**User Story:** As a contributor, I want clear extension rules, so that future subtype, tag, mode, resource, and channel additions preserve orthogonality.
+
+#### Acceptance Criteria
+
+1. THE contributor documentation SHALL publish the authoritative Axis table and current field assignments.
+2. THE documentation SHALL state the cardinality and source of truth for every current Axis.
+3. THE documentation SHALL include a comparison table covering Kanon, Academic Research Skills, and SciAgent-Skills.
+4. THE comparison SHALL distinguish observed source-repository facts from Kanon design decisions.
+5. THE documentation SHALL include one worked Kanon artifact and one hypothetical future profile/tag extension.
+6. THE existing ADR-0069 SHALL be refreshed to match this specification before its status changes from Proposed.
+
+## Boundary Scenarios
+
+### Scenario: Recognized Passthrough Key
+
+```gherkin
+Given `harness-config` is validated as a recognized passthrough key
+When total coverage is checked
+Then `harness-config` is included in the canonical key set
+And it is assigned to Distribution
+```
+
+### Scenario: Unknown Preserved Extension
+
+```gherkin
+Given an artifact contains an unknown passthrough key `x-lab-note`
+When total coverage is checked
+Then the artifact still round-trips the key
+And the Axis Registry is not required to classify it
+```
+
+### Scenario: Category Is Not Output Format
+
+```gherkin
+Given an artifact has `type: skill` and `categories: [writing]`
+And its Codex format is `skill`
+When only the category changes
+Then its canonical type and Codex format do not change
+```

@@ -1,0 +1,1 @@
+Refreshed proposed ADR-0069 and its implementation specs around the current canonical frontmatter key set, separating semantic classification, behavior, origin, and harness distribution while incorporating categorical lessons from Academic Research Skills and SciAgent-Skills.
