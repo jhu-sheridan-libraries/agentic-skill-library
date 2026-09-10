@@ -26,10 +26,6 @@ jobs:
         with:
           node-version: "22"
 
-      - uses: actions/setup-node@v7
-        with:
-          node-version: "22"
-
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
@@ -82,10 +78,6 @@ jobs:
         working-directory: kanon
     steps:
       - uses: actions/checkout@v7
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version: "22"
 
       - uses: actions/setup-node@v7
         with:
@@ -238,8 +230,6 @@ jobs:
       - name: Open changelog-sync PR
         continue-on-error: true
         uses: peter-evans/create-pull-request@v7
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
         with:
           base: main
           branch: chore/changelog-${{ github.ref_name }}
