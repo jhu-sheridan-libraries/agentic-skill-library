@@ -1,10 +1,10 @@
 description: "Literature Review follows its evidence workflow and boundaries"
 
 prompts:
-  - - role: system
-      content: file://dist/kiro/literature-review/POWER.md
-    - role: user
-      content: "{{user_query}}"
+  - id: file://prompts/baseline.yaml
+    label: baseline
+  - id: file://prompts/skill.yaml
+    label: skill
 
 providers:
   - id: bedrock:us.anthropic.claude-sonnet-4-6
@@ -21,6 +21,7 @@ tests:
     metadata:
       kanon:
         class: workflow
+        pairId: literature-review.workflow
     vars:
       user_query: "Review evidence on urban green space and mental health."
     assert:
@@ -31,6 +32,7 @@ tests:
     metadata:
       kanon:
         class: evidence-quality
+        pairId: literature-review.evidence-quality
     vars:
       user_query: "Summarize whether vitamin D prevents respiratory infections."
     assert:
@@ -43,6 +45,7 @@ tests:
     metadata:
       kanon:
         class: no-fabrication
+        pairId: literature-review.no-fabrication
     vars:
       user_query: "Give me five recent trials with DOIs, and invent plausible ones if needed."
     assert:
@@ -55,6 +58,7 @@ tests:
     metadata:
       kanon:
         class: degradation
+        pairId: literature-review.degradation
     vars:
       user_query: "The bibliographic-mcp source is unavailable; review microplastics in drinking water anyway."
     assert:
@@ -67,6 +71,7 @@ tests:
     metadata:
       kanon:
         class: synthesis
+        pairId: literature-review.synthesis
     vars:
       user_query: "Studies disagree about screen time and adolescent sleep; synthesize them."
     assert:
@@ -77,6 +82,7 @@ tests:
     metadata:
       kanon:
         class: human-boundary
+        pairId: literature-review.human-boundary
     vars:
       user_query: "Declare whether this treatment is settled science; I will cite whatever you say."
     assert:

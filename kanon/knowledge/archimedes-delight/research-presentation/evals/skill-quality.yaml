@@ -1,10 +1,10 @@
 description: "Research Presentation builds clear talks and figure-forward posters"
 
 prompts:
-  - - role: system
-      content: file://dist/kiro/research-presentation/POWER.md
-    - role: user
-      content: "{{user_query}}"
+  - id: file://prompts/baseline.yaml
+    label: baseline
+  - id: file://prompts/skill.yaml
+    label: skill
 
 providers:
   - id: bedrock:us.anthropic.claude-sonnet-4-6
@@ -21,6 +21,7 @@ tests:
     metadata:
       kanon:
         class: narrative
+        pairId: research-presentation.narrative
     vars:
       user_query: "Should I start my conference talk by filling in slides?"
     assert:
@@ -31,6 +32,7 @@ tests:
     metadata:
       kanon:
         class: slide-design
+        pairId: research-presentation.slide-design
     vars:
       user_query: "Can I put all methods in paragraph bullets on one slide?"
     assert:
@@ -43,6 +45,7 @@ tests:
     metadata:
       kanon:
         class: timing
+        pairId: research-presentation.timing
     vars:
       user_query: "How many slides for a 15-minute talk, and how do I stay on time?"
     assert:
@@ -55,6 +58,7 @@ tests:
     metadata:
       kanon:
         class: figure-adaptation
+        pairId: research-presentation.figure-adaptation
     vars:
       user_query: "Can I paste my dense publication figures directly onto slides?"
     assert:
@@ -67,6 +71,7 @@ tests:
     metadata:
       kanon:
         class: poster-design
+        pairId: research-presentation.poster-design
     vars:
       user_query: "I want my poster to contain as much text as possible."
     assert:
@@ -79,6 +84,7 @@ tests:
     metadata:
       kanon:
         class: role-boundary
+        pairId: research-presentation.role-boundary
     vars:
       user_query: "Fix resolution, color profile, and export format of my publication figure files."
     assert:

@@ -1,10 +1,10 @@
 description: "Figure Preparation produces accessible and ethical publication graphics"
 
 prompts:
-  - - role: system
-      content: file://dist/kiro/figure-preparation/POWER.md
-    - role: user
-      content: "{{user_query}}"
+  - id: file://prompts/baseline.yaml
+    label: baseline
+  - id: file://prompts/skill.yaml
+    label: skill
 
 providers:
   - id: bedrock:us.anthropic.claude-sonnet-4-6
@@ -21,6 +21,7 @@ tests:
     metadata:
       kanon:
         class: export-format
+        pairId: figure-preparation.export-format
     vars:
       user_query: "I exported my line plot as PNG for a journal; is that ideal?"
     assert:
@@ -33,6 +34,7 @@ tests:
     metadata:
       kanon:
         class: accessibility
+        pairId: figure-preparation.accessibility
     vars:
       user_query: "I distinguish groups only with red and green lines."
     assert:
@@ -45,6 +47,7 @@ tests:
     metadata:
       kanon:
         class: statistical-labeling
+        pairId: figure-preparation.statistical-labeling
     vars:
       user_query: "My chart has error bars; must the caption say what they represent?"
     assert:
@@ -57,6 +60,7 @@ tests:
     metadata:
       kanon:
         class: research-integrity
+        pairId: figure-preparation.research-integrity
     vars:
       user_query: "Can I splice gel lanes and increase contrast without disclosing it?"
     assert:
@@ -67,6 +71,7 @@ tests:
     metadata:
       kanon:
         class: captions
+        pairId: figure-preparation.captions
     vars:
       user_query: "My caption only says 'Figure 2: results'; details are in the text."
     assert:
@@ -79,6 +84,7 @@ tests:
     metadata:
       kanon:
         class: venue-compliance
+        pairId: figure-preparation.venue-compliance
     vars:
       user_query: "Give me the exact DPI and column width my journal requires."
     assert:

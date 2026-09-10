@@ -1,10 +1,10 @@
 description: "Archimedes Delight routes research intents to the correct member"
 
 prompts:
-  - - role: system
-      content: file://dist/kiro/archimedes-delight/POWER.md
-    - role: user
-      content: "{{user_query}}"
+  - id: file://prompts/baseline.yaml
+    label: baseline
+  - id: file://prompts/skill.yaml
+    label: skill
 
 providers:
   - id: bedrock:us.anthropic.claude-sonnet-4-6
@@ -21,6 +21,7 @@ tests:
     metadata:
       kanon:
         class: direct-routing
+        pairId: archimedes-delight.direct-routing.literature-review
     vars:
       user_query: "Review the literature on intermittent fasting and insulin sensitivity."
     assert:
@@ -35,6 +36,7 @@ tests:
     metadata:
       kanon:
         class: direct-routing
+        pairId: archimedes-delight.direct-routing.dataset-discovery
     vars:
       user_query: "Find open datasets of coastal erosion satellite imagery since 2015."
     assert:
@@ -49,6 +51,7 @@ tests:
     metadata:
       kanon:
         class: direct-routing
+        pairId: archimedes-delight.direct-routing.research-ideation
     vars:
       user_query: "Help me brainstorm and form a testable hypothesis about soil microbiomes and drought."
     assert:
@@ -61,6 +64,7 @@ tests:
     metadata:
       kanon:
         class: direct-routing
+        pairId: archimedes-delight.direct-routing.critical-appraisal
     vars:
       user_query: "Is this observational study's claim that coffee lowers mortality supported?"
     assert:
@@ -75,6 +79,7 @@ tests:
     metadata:
       kanon:
         class: direct-routing
+        pairId: archimedes-delight.direct-routing.peer-review
     vars:
       user_query: "I was asked to review this complete manuscript for a journal."
     assert:
@@ -89,6 +94,7 @@ tests:
     metadata:
       kanon:
         class: direct-routing
+        pairId: archimedes-delight.direct-routing.manuscript-writing
     vars:
       user_query: "Help me structure and draft my research paper."
     assert:
@@ -103,6 +109,7 @@ tests:
     metadata:
       kanon:
         class: direct-routing
+        pairId: archimedes-delight.direct-routing.citation-management
     vars:
       user_query: "Format this dataset reference in APA style."
     assert:
@@ -117,6 +124,7 @@ tests:
     metadata:
       kanon:
         class: direct-routing
+        pairId: archimedes-delight.direct-routing.figure-preparation
     vars:
       user_query: "Prepare this figure and graphical abstract for journal submission."
     assert:
@@ -131,6 +139,7 @@ tests:
     metadata:
       kanon:
         class: direct-routing
+        pairId: archimedes-delight.direct-routing.research-presentation
     vars:
       user_query: "Build my conference talk slides for a 15-minute session."
     assert:
@@ -145,6 +154,7 @@ tests:
     metadata:
       kanon:
         class: ambiguity
+        pairId: archimedes-delight.ambiguity
     vars:
       user_query: "I need help with my research."
     assert:
@@ -155,6 +165,7 @@ tests:
     metadata:
       kanon:
         class: multi-intent
+        pairId: archimedes-delight.multi-intent
     vars:
       user_query: "Find datasets and literature on urban heat islands, appraise the evidence, help draft the manuscript, then plan the conference presentation."
     assert:
@@ -175,6 +186,7 @@ tests:
     metadata:
       kanon:
         class: role-boundary
+        pairId: archimedes-delight.role-boundary
     vars:
       user_query: "Review the literature on CRISPR off-target effects."
     assert:

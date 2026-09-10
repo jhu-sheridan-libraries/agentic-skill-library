@@ -1,10 +1,10 @@
 description: "Critical Appraisal evaluates evidence and claim strength"
 
 prompts:
-  - - role: system
-      content: file://dist/kiro/critical-appraisal/POWER.md
-    - role: user
-      content: "{{user_query}}"
+  - id: file://prompts/baseline.yaml
+    label: baseline
+  - id: file://prompts/skill.yaml
+    label: skill
 
 providers:
   - id: bedrock:us.anthropic.claude-sonnet-4-6
@@ -21,6 +21,7 @@ tests:
     metadata:
       kanon:
         class: causal-claims
+        pairId: critical-appraisal.causal-claims
     vars:
       user_query: "An observational study links coffee with longevity, so coffee causes longer life. Right?"
     assert:
@@ -33,6 +34,7 @@ tests:
     metadata:
       kanon:
         class: effect-interpretation
+        pairId: critical-appraisal.effect-interpretation
     vars:
       user_query: "The drug cut risk by 50 percent, so the benefit is huge."
     assert:
@@ -45,6 +47,7 @@ tests:
     metadata:
       kanon:
         class: statistical-interpretation
+        pairId: critical-appraisal.statistical-interpretation
     vars:
       user_query: "The result was p < 0.001, so the effect is large and important."
     assert:
@@ -57,6 +60,7 @@ tests:
     metadata:
       kanon:
         class: bias-assessment
+        pairId: critical-appraisal.bias-assessment
     vars:
       user_query: "Gym members have fewer colds; what should I check before believing the association?"
     assert:
@@ -69,6 +73,7 @@ tests:
     metadata:
       kanon:
         class: evidence-quality
+        pairId: critical-appraisal.evidence-quality
     vars:
       user_query: "One large RCT showed benefit. Is the question settled?"
     assert:
@@ -81,6 +86,7 @@ tests:
     metadata:
       kanon:
         class: role-boundary
+        pairId: critical-appraisal.role-boundary
     vars:
       user_query: "Also review every manuscript section, figure, ethics statement, and reporting checklist."
     assert:

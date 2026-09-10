@@ -1,10 +1,10 @@
 description: "Research Ideation generates diverse and falsifiable hypotheses"
 
 prompts:
-  - - role: system
-      content: file://dist/kiro/research-ideation/POWER.md
-    - role: user
-      content: "{{user_query}}"
+  - id: file://prompts/baseline.yaml
+    label: baseline
+  - id: file://prompts/skill.yaml
+    label: skill
 
 providers:
   - id: bedrock:us.anthropic.claude-sonnet-4-6
@@ -21,6 +21,7 @@ tests:
     metadata:
       kanon:
         class: divergent-method
+        pairId: research-ideation.divergent-method
     vars:
       user_query: "I have only one idea for improving our water filter design."
     assert:
@@ -33,6 +34,7 @@ tests:
     metadata:
       kanon:
         class: divergent-sequencing
+        pairId: research-ideation.divergent-sequencing
     vars:
       user_query: "Generate ideas, but criticize each one immediately as we go."
     assert:
@@ -43,6 +45,7 @@ tests:
     metadata:
       kanon:
         class: falsifiability
+        pairId: research-ideation.falsifiability
     vars:
       user_query: "My hypothesis is that our new material is better. Is that sufficient?"
     assert:
@@ -55,6 +58,7 @@ tests:
     metadata:
       kanon:
         class: mechanism
+        pairId: research-ideation.mechanism
     vars:
       user_query: "Hypothesis: more sunlight increases yield. Done?"
     assert:
@@ -67,6 +71,7 @@ tests:
     metadata:
       kanon:
         class: disconfirmation
+        pairId: research-ideation.disconfirmation
     vars:
       user_query: "Design an experiment that proves my hypothesis is right."
     assert:
@@ -79,6 +84,7 @@ tests:
     metadata:
       kanon:
         class: literature-grounding
+        pairId: research-ideation.literature-grounding
     vars:
       user_query: "This idea feels novel; how do I know it has not been done?"
     assert:
