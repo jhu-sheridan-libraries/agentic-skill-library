@@ -230,12 +230,28 @@ jobs:
       - name: Fail if committed artifacts drifted from source
         run: |
           # Compare committed skills/ and bridge against freshly generated output.
-          if [ -n "$(git status --porcelain skills bridge)" ]; then
+          #
+          # Ignore whitespace-only / line-ending noise so the guard fails only on
+          # genuine content drift, not environment differences (CRLF, trailing
+          # whitespace). `git diff` semantics, not a raw `git status`, so the
+          # comparison is normalized and the failure output is a real diff.
+          git config core.autocrlf false
+
+          # Untracked files (a newly generated skill dir, or a stale one that
+          # regeneration replaced) are genuine drift the diff below can't see,
+          # so surface them explicitly.
+          untracked="$(git ls-files --others --exclude-standard -- skills bridge)"
+
+          if ! git diff --quiet --ignore-all-space --ignore-blank-lines -- skills bridge \
+             || [ -n "$untracked" ]; then
             echo "::error::Committed generated artifacts are out of sync with source."
-            echo "::error::Run 'bun run build:skills && bun run build:bridge' in kanon/ and commit the result."
-            echo "--- drift ---"
-            git status --short skills bridge
-            git diff -- skills bridge
+            echo "::error::Regenerate with: (cd kanon && bun run build:skills && bun run build:bridge) then commit skills/ and bridge/."
+            echo "--- changed (tracked) ---"
+            git diff --stat --ignore-all-space -- skills bridge || true
+            echo "--- new/stale (untracked) ---"
+            printf '%s\n' "$untracked"
+            echo "--- full diff ---"
+            git diff --ignore-all-space -- skills bridge || true
             exit 1
           fi
           echo "✓ skills/ and bridge/mcp-server.cjs are in sync with source."

@@ -6,6 +6,20 @@ import { isParseError, loadKnowledgeArtifact } from "./parser";
 import type { CatalogEntry, HarnessName } from "./schemas";
 
 /**
+ * Locale-independent string comparison by Unicode code point.
+ *
+ * `String.prototype.localeCompare` orders differently depending on the host's
+ * ICU locale/collation, which makes generated output (catalog.json, the
+ * committed plugin skills, and registry.yaml) differ between a developer's
+ * machine and CI even when the source is identical — a source of spurious
+ * "generated artifacts drifted" failures. Ordering artifacts by raw code point
+ * is stable everywhere, so all catalog/scan ordering goes through this.
+ */
+function byCodePoint(a: string, b: string): number {
+	return a < b ? -1 : a > b ? 1 : 0;
+}
+
+/**
  * Load a single artifact directory into a CatalogEntry.
  * `catalogPath` is the path string written to the catalog (relative to CWD).
  */
@@ -106,7 +120,7 @@ async function scanSourceDir(sourceDir: string): Promise<CatalogEntry[]> {
 	const dirEntries = await readdir(sourceDir, { withFileTypes: true });
 	const subdirs = dirEntries
 		.filter((e) => e.isDirectory())
-		.sort((a, b) => a.name.localeCompare(b.name));
+		.sort((a, b) => byCodePoint(a.name, b.name));
 
 	for (const subdir of subdirs) {
 		const subdirPath = join(sourceDir, subdir.name);
@@ -127,7 +141,7 @@ async function scanSourceDir(sourceDir: string): Promise<CatalogEntry[]> {
 			const inner = await readdir(subdirPath, { withFileTypes: true });
 			const innerDirs = inner
 				.filter((e) => e.isDirectory())
-				.sort((a, b) => a.name.localeCompare(b.name));
+				.sort((a, b) => byCodePoint(a.name, b.name));
 
 			for (const innerDir of innerDirs) {
 				const artifactPath = join(subdirPath, innerDir.name);
@@ -152,7 +166,7 @@ async function scanSourceDir(sourceDir: string): Promise<CatalogEntry[]> {
 export function sortCatalogEntries(entries: CatalogEntry[]): CatalogEntry[] {
 	return [...entries].sort((a, b) => {
 		if (b.priority !== a.priority) return b.priority - a.priority;
-		return a.name.localeCompare(b.name);
+		return byCodePoint(a.name, b.name);
 	});
 }
 
