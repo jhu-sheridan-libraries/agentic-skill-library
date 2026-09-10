@@ -145,6 +145,12 @@ const MEMBER_CONTRACTS: readonly MemberContract[] = [
 		requiredSections: GUIDED_SKILL_SECTIONS,
 	},
 	{
+		name: "evidence-synthesis",
+		role: "agent",
+		evalFile: "agent-boundary.yaml",
+		requiredSections: AGENT_SECTIONS,
+	},
+	{
 		name: "literature-review",
 		role: "agent",
 		evalFile: "agent-boundary.yaml",
@@ -152,6 +158,12 @@ const MEMBER_CONTRACTS: readonly MemberContract[] = [
 	},
 	{
 		name: "manuscript-writing",
+		role: "guided-skill",
+		evalFile: "skill-quality.yaml",
+		requiredSections: GUIDED_SKILL_SECTIONS,
+	},
+	{
+		name: "methodology-design",
 		role: "guided-skill",
 		evalFile: "skill-quality.yaml",
 		requiredSections: GUIDED_SKILL_SECTIONS,
@@ -396,7 +408,7 @@ function extractHttpsUrls(section: string): readonly string[] {
 }
 
 describe("Archimedes Delight — deterministic structural gate", (): void => {
-	test("discovers exactly ten namespaced collection members", (): void => {
+	test("discovers exactly twelve namespaced collection members", (): void => {
 		const discoveredMembers = fs
 			.readdirSync(COLLECTION_ROOT, { withFileTypes: true })
 			.filter(
@@ -411,7 +423,7 @@ describe("Archimedes Delight — deterministic structural gate", (): void => {
 		).sort();
 
 		expect(discoveredMembers).toEqual(expectedMembers);
-		expect(discoveredMembers).toHaveLength(10);
+		expect(discoveredMembers).toHaveLength(12);
 	});
 
 	test("validates member identity, collection membership, roles, and router dependencies", (): void => {
@@ -427,7 +439,7 @@ describe("Archimedes Delight — deterministic structural gate", (): void => {
 				expect(new Set(artifact.frontmatter.depends)).toEqual(
 					new Set(CAPABILITY_MEMBER_NAMES),
 				);
-				expect(artifact.frontmatter.depends).toHaveLength(9);
+				expect(artifact.frontmatter.depends).toHaveLength(11);
 			} else {
 				expect(artifact.frontmatter.depends).toEqual([]);
 			}
@@ -595,7 +607,7 @@ describe("Archimedes Delight — deterministic structural gate", (): void => {
 					classCounts.set(className, (classCounts.get(className) ?? 0) + 1);
 				}
 				expect(classCounts.size).toBe(4);
-				expect(classCounts.get("direct-routing")).toBe(9);
+				expect(classCounts.get("direct-routing")).toBe(11);
 				expect(classCounts.get("ambiguity")).toBe(1);
 				expect(classCounts.get("multi-intent")).toBe(1);
 				expect(classCounts.get("role-boundary")).toBe(1);
@@ -608,7 +620,7 @@ describe("Archimedes Delight — deterministic structural gate", (): void => {
 					.map(
 						(testCase: EvalTestCase): string => testCase.metadata.kanon.pairId,
 					);
-				expect(directRoutingPairIds).toHaveLength(9);
+				expect(directRoutingPairIds).toHaveLength(11);
 				for (const capabilityMemberName of CAPABILITY_MEMBER_NAMES) {
 					expect(
 						directRoutingPairIds.some((pairId: string): boolean =>
@@ -620,8 +632,8 @@ describe("Archimedes Delight — deterministic structural gate", (): void => {
 			}
 		}
 
-		expect(sourceTestCount).toBe(67);
-		expect(seenPairIds.size).toBe(67);
-		expect(sourceTestCount * expectedPromptReferences.length).toBe(134);
+		expect(sourceTestCount).toBe(79);
+		expect(seenPairIds.size).toBe(79);
+		expect(sourceTestCount * expectedPromptReferences.length).toBe(158);
 	});
 });

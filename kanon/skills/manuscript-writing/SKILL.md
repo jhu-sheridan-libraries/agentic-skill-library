@@ -71,6 +71,29 @@ CONSORT (trials), STROBE (observational), PRISMA (systematic reviews), ARRIVE
 (animal studies), STARD (diagnostic accuracy), TRIPOD (prediction models),
 SPIRIT (protocols), CARE (case reports). Use the checklist while drafting.
 
+### Revision Protocol
+
+Peer-review and editorial feedback is worked systematically, not cherry-picked.
+Handle a round of feedback in four moves:
+
+1. **Categorize** every feedback item by severity — **Critical** (must fix or the
+   paper is unsound), **Major** (substantive weakness), **Minor** (small
+   correction), or **Suggestion** (optional improvement).
+2. **Track** every item in a revision log so nothing is silently dropped:
+
+   | # | Source | Severity | Feedback | Action | Status |
+   |---|---|---|---|---|---|
+   | 1 | Reviewer 2 | Critical | Confound not controlled | Added covariate to model | Resolved |
+   | 2 | Editor | Major | Limitations understated | Expanded limitations paragraph | Resolved |
+   | 3 | Reviewer 1 | Minor | Figure 2 axis unlabeled | Relabeled axis | Resolved |
+   | 4 | Reviewer 3 | Suggestion | Add sensitivity analysis | Out of scope this round | Acknowledged |
+
+3. **Resolve in order** — address all Critical and Major items first, then Minor
+   items and any viable Suggestions.
+4. **Document what you don't change** — record items you decline to address as
+   acknowledged limitations, with the reason, rather than leaving them unanswered
+   in the response-to-reviewers.
+
 ## Decision Framework
 
 ```
@@ -105,6 +128,7 @@ What are you writing?
 5. **Follow the reporting guideline from the start** — use its checklist while drafting, not after.
 6. **Match style to venue** — read 3–5 recent papers from the target journal and mirror their conventions.
 7. **Verify citation–reference correspondence** — every in-text citation has a reference entry and vice versa.
+8. **Work reviewer feedback systematically** — categorize every item by severity, track it in a revision log, resolve Critical/Major first, and document unaddressed items as acknowledged limitations (see the Revision Protocol).
 
 ## Common Pitfalls
 

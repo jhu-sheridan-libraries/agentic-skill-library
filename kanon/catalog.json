@@ -149,7 +149,7 @@
       "router"
     ],
     "author": "Steven J. Miklovic",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "harnesses": [
       "kiro",
       "claude-code",
@@ -172,6 +172,8 @@
     "depends": [
       "literature-review",
       "dataset-discovery",
+      "evidence-synthesis",
+      "methodology-design",
       "citation-management",
       "critical-appraisal",
       "research-ideation",
@@ -1907,6 +1909,79 @@
     "outcomes": []
   },
   {
+    "name": "evidence-synthesis",
+    "displayName": "Evidence Synthesis Agent",
+    "description": "Autonomous evidence-synthesis agent for the Archimedes Delight research collection. Hand off a screened source set (typically literature-review's output) and receive an integrated synthesis — a literature matrix, convergence/divergence analysis, a contradiction-resolution table, and a gap taxonomy — that connects findings across sources rather than summarizing them one at a time. Part of the archimedes-delight collection; for finding and screening the sources first use literature-review, to appraise a single study use critical-appraisal.",
+    "keywords": [
+      "evidence-synthesis",
+      "archimedes-delight",
+      "research",
+      "academia",
+      "synthesis",
+      "knowledge-gaps",
+      "contradiction-resolution"
+    ],
+    "author": "Steven J. Miklovic",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro",
+      "claude-code",
+      "codex",
+      "copilot",
+      "cursor",
+      "gemini-cli"
+    ],
+    "type": "agent",
+    "path": "knowledge/archimedes-delight/evidence-synthesis",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "writing"
+    ],
+    "ecosystem": [
+      "science"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power",
+      "claude-code": "claude-md",
+      "codex": "skill",
+      "copilot": "instructions",
+      "cursor": "rule",
+      "gemini-cli": "gemini-md"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": false,
+      "conditionalInclusion": true
+    },
+    "maturity": "experimental",
+    "model-assumptions": [],
+    "collections": [
+      "archimedes-delight"
+    ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "academic-research-skills: synthesis_agent",
+          "authors": [
+            "academic-research-skills contributors"
+          ],
+          "url": "https://github.com/stevenjmiklovic/academic-research-skills",
+          "license": "CC-BY-4.0",
+          "relationship": "adapted"
+        }
+      ],
+      "notice": "Adapted (domain substance only, pipeline machinery removed) from the academic-research-skills synthesis_agent, licensed CC-BY-4.0. Citation-marker emission, claim-intent manifests, cross-model checkpoints, and phase-boundary fences were deliberately not ported. Attribution to the original authors is retained."
+    },
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
     "name": "facilitate-library-ai-workshop",
     "displayName": "Library AI Workshop Coach",
     "description": "Coach one learner through the Research with AI workshop for research librarians, using fictional or simulated material and keeping source checks and professional judgment with the learner.",
@@ -2959,7 +3034,7 @@
       "scholarly-publishing"
     ],
     "author": "Steven J. Miklovic",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "harnesses": [
       "kiro",
       "claude-code",
@@ -3014,6 +3089,80 @@
         }
       ],
       "notice": "Adapted (condensed and made domain-neutral) from the SciAgent-Skills scientific-writing skill \"scientific-manuscript-writing\", licensed CC-BY-4.0. Attribution to the original authors is retained."
+    },
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "methodology-design",
+    "displayName": "Methodology Design",
+    "description": "Guided research-methodology design for the Archimedes Delight collection. Domain-neutral guidance on letting the research question drive the method — a methodology decision tree by question type, a paradigm table, method and data-strategy selection, validity/reliability criteria, EQUATOR reporting-guideline mapping, preregistration guidance, and lightweight IRB navigation. Part of the archimedes-delight collection; to form the question first use research-ideation, to write it up use manuscript-writing.",
+    "keywords": [
+      "methodology-design",
+      "archimedes-delight",
+      "research-methods",
+      "study-design",
+      "paradigm",
+      "validity",
+      "equator",
+      "preregistration"
+    ],
+    "author": "Steven J. Miklovic",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro",
+      "claude-code",
+      "codex",
+      "copilot",
+      "cursor",
+      "gemini-cli"
+    ],
+    "type": "skill",
+    "path": "knowledge/archimedes-delight/methodology-design",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "writing"
+    ],
+    "ecosystem": [
+      "science"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power",
+      "claude-code": "claude-md",
+      "codex": "skill",
+      "copilot": "instructions",
+      "cursor": "rule",
+      "gemini-cli": "gemini-md"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": false,
+      "conditionalInclusion": true
+    },
+    "maturity": "experimental",
+    "model-assumptions": [],
+    "collections": [
+      "archimedes-delight"
+    ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "academic-research-skills: research_architect_agent",
+          "authors": [
+            "academic-research-skills contributors"
+          ],
+          "url": "https://github.com/stevenjmiklovic/academic-research-skills",
+          "license": "CC-BY-4.0",
+          "relationship": "adapted"
+        }
+      ],
+      "notice": "Adapted (domain substance only, pipeline machinery removed) from the academic-research-skills research_architect_agent, licensed CC-BY-4.0. The replay-validated IRB authority gates, cross-model design-freeze checkpoints, and phase-boundary fences were deliberately not ported; only a lightweight IRB navigation pointer is retained. Attribution to the original authors is retained."
     },
     "visibility": "public",
     "priority": 50,

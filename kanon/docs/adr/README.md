@@ -83,6 +83,7 @@ ADRs document significant architectural decisions made during the project's deve
 | [070](0070-byte-preserving-binary-workflow-assets.md) | Byte-preserving binary workflow assets | Accepted | 2026-09-09 |
 | [071](0071-generated-registry-yaml-as-sciagent-compatible-index.md) | Generated registry.yaml as a SciAgent-compatible index | Proposed | 2026-09-10 |
 | [072](0072-vendor-neutral-agents-harness-and-deprecate-qdeveloper-windsurf.md) | Vendor-neutral `agents` (AGENTS.md) harness; deprecate `qdeveloper` and `windsurf` | Accepted | 2026-09-09 |
+| [073](0073-harvest-pipeline-agent-substance-into-router-dispatched-members.md) | Harvest pipeline-agent substance into router-dispatched collection members | Proposed | 2026-09-10 |
 
 ## Creating a New ADR
 
