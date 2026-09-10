@@ -15,6 +15,7 @@
  */
 
 import type { CatalogEntry } from "./schemas";
+import { byCodePoint } from "./sort";
 
 /** SciAgent-Skills registry entry shape. */
 export interface RegistryEntry {
@@ -83,9 +84,7 @@ export function renderRegistryYaml(
 	// Locale-independent code-point sort so the generated YAML is byte-identical
 	// across environments (localeCompare is ICU/locale-dependent and drifts
 	// between dev machines and CI).
-	const sorted = [...entries].sort((a, b) =>
-		a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
-	);
+	const sorted = [...entries].sort((a, b) => byCodePoint(a.name, b.name));
 	const lines: string[] = [header.trimEnd(), "", "entries:"];
 	for (const e of sorted) {
 		lines.push(`  - name: ${JSON.stringify(e.name)}`);

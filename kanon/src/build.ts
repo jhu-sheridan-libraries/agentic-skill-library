@@ -57,6 +57,7 @@ import type {
 	WorkspaceProject,
 } from "./schemas";
 import { SUPPORTED_HARNESSES } from "./schemas";
+import { byCodePoint } from "./sort";
 import { createTemplateEnv } from "./template-engine";
 import { embedVersion } from "./versioning";
 import { loadWorkspaceConfig, mergeKnowledgeSources } from "./workspace";
@@ -223,7 +224,7 @@ async function collectArtifactPaths(sourceDirs: string[]): Promise<string[]> {
 		const dirEntries = await readdir(sourceDir, { withFileTypes: true });
 		const subdirs = dirEntries
 			.filter((e) => e.isDirectory())
-			.sort((a, b) => a.name.localeCompare(b.name));
+			.sort((a, b) => byCodePoint(a.name, b.name));
 
 		for (const subdir of subdirs) {
 			const subdirPath = join(sourceDir, subdir.name);
@@ -236,7 +237,7 @@ async function collectArtifactPaths(sourceDirs: string[]): Promise<string[]> {
 				const inner = await readdir(subdirPath, { withFileTypes: true });
 				const innerDirs = inner
 					.filter((e) => e.isDirectory())
-					.sort((a, b) => a.name.localeCompare(b.name));
+					.sort((a, b) => byCodePoint(a.name, b.name));
 
 				let foundInnerArtifact = false;
 				for (const innerDir of innerDirs) {

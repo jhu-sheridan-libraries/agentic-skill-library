@@ -4,20 +4,7 @@ import chalk from "chalk";
 import { resolveFormat } from "./format-registry";
 import { isParseError, loadKnowledgeArtifact } from "./parser";
 import type { CatalogEntry, HarnessName } from "./schemas";
-
-/**
- * Locale-independent string comparison by Unicode code point.
- *
- * `String.prototype.localeCompare` orders differently depending on the host's
- * ICU locale/collation, which makes generated output (catalog.json, the
- * committed plugin skills, and registry.yaml) differ between a developer's
- * machine and CI even when the source is identical — a source of spurious
- * "generated artifacts drifted" failures. Ordering artifacts by raw code point
- * is stable everywhere, so all catalog/scan ordering goes through this.
- */
-function byCodePoint(a: string, b: string): number {
-	return a < b ? -1 : a > b ? 1 : 0;
-}
+import { byCodePoint } from "./sort";
 
 /**
  * Load a single artifact directory into a CatalogEntry.
