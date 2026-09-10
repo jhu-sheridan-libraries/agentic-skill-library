@@ -80,7 +80,12 @@ export function renderRegistryYaml(
 	entries: RegistryEntry[],
 	header: string,
 ): string {
-	const sorted = [...entries].sort((a, b) => a.name.localeCompare(b.name));
+	// Locale-independent code-point sort so the generated YAML is byte-identical
+	// across environments (localeCompare is ICU/locale-dependent and drifts
+	// between dev machines and CI).
+	const sorted = [...entries].sort((a, b) =>
+		a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
+	);
 	const lines: string[] = [header.trimEnd(), "", "entries:"];
 	for (const e of sorted) {
 		lines.push(`  - name: ${JSON.stringify(e.name)}`);

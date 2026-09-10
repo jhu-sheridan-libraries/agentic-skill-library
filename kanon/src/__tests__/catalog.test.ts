@@ -601,4 +601,24 @@ describe("sortCatalogEntries", () => {
 		// input not mutated
 		expect(input.map((e) => e.name)).toEqual(inputOrder);
 	});
+
+	/**
+	 * Ordering must be locale-independent (code point), not locale collation,
+	 * so generated output is byte-identical across dev machines and CI.
+	 * Code-point order sorts all uppercase (U+0041..) before lowercase
+	 * (U+0061..); most ICU locale collations interleave them case-insensitively.
+	 */
+	test("orders names by Unicode code point, not locale collation", async () => {
+		const input: CatalogEntry[] = [
+			makeEntry("banana", 50),
+			makeEntry("Apple", 50),
+			makeEntry("cherry", 50),
+			makeEntry("Blueberry", 50),
+		];
+
+		const sorted = sortCatalogEntries(input).map((e) => e.name);
+
+		// Code point: uppercase names first (A, B), then lowercase (b, c).
+		expect(sorted).toEqual(["Apple", "Blueberry", "banana", "cherry"]);
+	});
 });
