@@ -1,6 +1,6 @@
 ---
 name: kanon
-description: "Onboarding and assistant guide for using the Kanon CLI to author, build, and manage knowledge artifacts for AI coding assistants."
+description: "Onboarding and assistant guide for using the Kanon CLI & Context Bazaar to author, build, and manage knowledge artifacts for AI coding assistants."
 ---
 
 # Kanon

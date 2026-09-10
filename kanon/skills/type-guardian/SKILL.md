@@ -1,11 +1,11 @@
 ---
-name: typescript-guardian
+name: type-guardian
 description: "TypeScript type discipline — keep the compiler working for you, not against you."
 ---
 
 ## Overview
 
-Typescript Guardian enforces TypeScript type discipline — keeping the compiler working for you, not against you. Use it when writing, reviewing, or refactoring TypeScript code. These rules keep the type system useful rather than decorative.
+Type Guardian enforces TypeScript type discipline — keeping the compiler working for you, not against you. Use it when writing, reviewing, or refactoring TypeScript code. These rules keep the type system useful rather than decorative.
 
 TypeScript's value is proportional to how seriously you take it.
 
