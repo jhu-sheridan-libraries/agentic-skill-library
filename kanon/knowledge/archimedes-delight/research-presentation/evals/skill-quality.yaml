@@ -1,19 +1,4 @@
-# Eval: Research Presentation skill builds talks and posters that land
-#
-# A guided, domain-neutral skill for conference talks, seminars, defenses, and
-# posters. The eval checks that its instructions:
-# - design the narrative first (motivation → question → approach → results → takeaway)
-# - keep one idea per slide with a point-first title, not text walls
-# - budget ~one slide per minute and rehearse to time
-# - simplify print figures for the room/poster (bigger, fewer series)
-# - keep posters figure-forward and legible at distance
-# - hand off actual figure preparation to figure-preparation (distinction)
-#
-# The skill POWER.md is the system prompt; the model acts as the skill.
-#
-# Run:  bun run dev eval research-presentation
-
-description: "Research Presentation skill builds talks and posters that land"
+description: "Research Presentation builds clear talks and figure-forward posters"
 
 prompts:
   - - role: system
@@ -32,65 +17,72 @@ defaultTest:
     provider: bedrock:us.anthropic.claude-sonnet-4-6
 
 tests:
-  - description: "Designs the narrative before making slides"
+  - description: "Designs the narrative before slides"
+    metadata:
+      kanon:
+        class: narrative
     vars:
-      user_query: "I need to make slides for my talk. Should I just start filling in slides?"
+      user_query: "Should I start my conference talk by filling in slides?"
     assert:
       - type: llm-rubric
-        value: >
-          PASS if the skill has the user design the narrative/story arc first
-          (motivation → question → approach → results → takeaway) before
-          building slides. FAIL if it jumps to slide-filling with no narrative.
+        value: "PASS if motivation, question, approach, results, and takeaway are planned before slides. FAIL if slide filling starts without a narrative."
 
-  - description: "One idea per slide, point-first titles, no text walls"
+  - description: "Uses one idea per slide"
+    metadata:
+      kanon:
+        class: slide-design
     vars:
-      user_query: "Can I put all my methods as bullet paragraphs on one slide so it's all there?"
+      user_query: "Can I put all methods in paragraph bullets on one slide?"
     assert:
+      - type: icontains-any
+        value: ["one idea", "point-first", "minimal text", "talking points"]
       - type: llm-rubric
-        value: >
-          PASS if the skill pushes one idea per slide with a title that states
-          the point and minimal text (talking points, not paragraphs). FAIL if
-          it endorses a dense paragraph-laden slide.
+        value: "PASS if slides carry one idea with a point-first title and talking points rather than paragraphs. FAIL if a text wall is endorsed."
 
-  - description: "Budgets time and rehearses to the limit"
+  - description: "Budgets time and rehearses"
+    metadata:
+      kanon:
+        class: timing
     vars:
-      user_query: "It's a 15-minute conference talk. How many slides and how do I hit the time?"
+      user_query: "How many slides for a 15-minute talk, and how do I stay on time?"
     assert:
+      - type: icontains-any
+        value: ["one slide per minute", "rehearse", "trim"]
       - type: llm-rubric
-        value: >
-          PASS if the skill gives a rough one-slide-per-minute budget and tells
-          the user to rehearse to the actual limit and trim early. FAIL if it
-          ignores timing or plans to rush the final slides.
+        value: "PASS if roughly one slide per minute, rehearsal to the real limit, and trimming are recommended. FAIL if rushing is the plan."
 
-  - description: "Simplifies print figures for the room"
+  - description: "Simplifies figures for the room"
+    metadata:
+      kanon:
+        class: figure-adaptation
     vars:
-      user_query: "I'll just paste my paper's figures straight onto the slides."
+      user_query: "Can I paste my dense publication figures directly onto slides?"
     assert:
+      - type: icontains-any
+        value: ["larger", "fewer series", "highlight", "simplify"]
       - type: llm-rubric
-        value: >
-          PASS if the skill says print figures must be simplified for a room —
-          larger fonts, fewer series, highlighted takeaway — not pasted as-is.
-          FAIL if it approves reusing dense print figures unchanged.
+        value: "PASS if figures are simplified with larger text, fewer series, and a highlighted takeaway. FAIL if print figures are reused unchanged."
 
-  - description: "Keeps posters figure-forward and legible at distance"
+  - description: "Keeps posters figure-forward and legible"
+    metadata:
+      kanon:
+        class: poster-design
     vars:
-      user_query: "For my poster I want to fit as much text as possible so it's comprehensive."
+      user_query: "I want my poster to contain as much text as possible."
     assert:
+      - type: icontains-any
+        value: ["figure-forward", "legible", "distance", "readable flow"]
       - type: llm-rubric
-        value: >
-          PASS if the skill steers toward a figure-forward poster with concise
-          captions, a readable flow, and a title legible at distance — not a
-          wall of text. FAIL if it endorses maximizing text.
+        value: "PASS if the poster is figure-forward, concise, logically ordered, and legible at distance. FAIL if maximizing text is endorsed."
 
-  - description: "Defers figure preparation to figure-preparation (distinction)"
+  - description: "Defers publication file preparation"
+    metadata:
+      kanon:
+        class: role-boundary
     vars:
-      user_query: "While we're at it, fix the resolution, color profile, and export format of my actual figure files for publication."
+      user_query: "Fix resolution, color profile, and export format of my publication figure files."
     assert:
       - type: icontains-any
         value: ["figure-preparation", "figure preparation"]
       - type: llm-rubric
-        value: >
-          PASS if the skill recognizes that preparing publication figure files
-          (resolution, color model, export format) is figure-preparation's job
-          and points there, staying focused on presenting them in a talk/poster.
-          FAIL if it takes on publication figure preparation as if it owned it.
+        value: "PASS if publication-file preparation is handed to figure-preparation while presentation use remains in scope. FAIL if the task is absorbed."

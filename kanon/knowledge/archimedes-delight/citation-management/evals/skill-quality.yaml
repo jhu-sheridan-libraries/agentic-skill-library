@@ -1,18 +1,4 @@
-# Eval: Citation Management skill guides correct, verified, styled citations
-#
-# A guided (human-in-the-loop) skill. The eval checks that its instructions:
-# - fix the style before formatting
-# - verify metadata before formatting (the most-skipped step)
-# - cite datasets as first-class sources (DOI/accession + version + access date)
-# - never guess a missing DOI/version (fabricated identifier = worse than a gap)
-# - keep one style per bibliography
-# - surface the result for the researcher's confirmation
-#
-# The skill POWER.md is the system prompt; the model acts as the skill.
-#
-# Run:  bun run dev eval citation-management
-
-description: "Citation Management skill guides correct, verified, styled citations"
+description: "Citation Management verifies and consistently formats sources"
 
 prompts:
   - - role: system
@@ -31,70 +17,70 @@ defaultTest:
     provider: bedrock:us.anthropic.claude-sonnet-4-6
 
 tests:
-  - description: "Fixes citation style before formatting"
+  - description: "Selects the citation style before formatting"
+    metadata:
+      kanon:
+        class: style-selection
     vars:
-      user_query: "I have a pile of references to format for my paper. Where do we start?"
-    assert:
-      - type: llm-rubric
-        value: >
-          PASS if the skill establishes the citation style first (from the
-          target venue's guidelines or the field default) before formatting any
-          entry, explaining that reformatting a whole bibliography late is
-          costly. FAIL if it starts formatting entries without settling the
-          style.
-
-  - description: "Verifies metadata before formatting"
-    vars:
-      user_query: "Format this: Smith et al., a 2023 paper about coral bleaching"
-    assert:
-      - type: llm-rubric
-        value: >
-          PASS if the skill verifies/collects the required metadata (authors,
-          year, title, DOI/identifier) before producing a formatted citation,
-          rather than emitting a citation from the incomplete reference. FAIL if
-          it fabricates a complete-looking citation from the sparse input.
-
-  - description: "Cites a dataset as a first-class source"
-    vars:
-      user_query: "How do I cite a dataset I pulled from a repository?"
+      user_query: "I have a pile of references to format; where do we start?"
     assert:
       - type: icontains-any
-        value: ["access date", "version", "DOI", "accession"]
+        value: ["style", "venue", "guidelines"]
       - type: llm-rubric
-        value: >
-          PASS if the skill treats the dataset as a citable output — DOI (or
-          accession + repository), plus version and access date — not a bare
-          URL. FAIL if it suggests just pasting the URL or omits version/access
-          date.
+        value: "PASS if the venue or citation style is fixed before entries are formatted. FAIL if formatting starts first."
 
-  - description: "Refuses to guess a missing DOI or version"
+  - description: "Verifies metadata before formatting"
+    metadata:
+      kanon:
+        class: metadata-verification
     vars:
-      user_query: "I don't have the DOI or version handy — just fill in something plausible so the citation looks complete."
+      user_query: "Format this: Smith et al., a 2023 paper about coral bleaching."
+    assert:
+      - type: icontains-any
+        value: ["authors", "title", "DOI", "identifier", "verify"]
+      - type: llm-rubric
+        value: "PASS if authors, year, title, and identifier are verified or requested before formatting. FAIL if missing details are invented."
+
+  - description: "Cites datasets as first-class sources"
+    metadata:
+      kanon:
+        class: dataset-citation
+    vars:
+      user_query: "How should I cite a dataset from a repository?"
+    assert:
+      - type: icontains-any
+        value: ["DOI", "accession", "version", "access date"]
+      - type: llm-rubric
+        value: "PASS if the citation includes a DOI or repository accession plus version and access date. FAIL if only a URL is suggested."
+
+  - description: "Never guesses a missing identifier or version"
+    metadata:
+      kanon:
+        class: no-fabrication
+    vars:
+      user_query: "Fill in a plausible DOI and version so this citation looks complete."
     assert:
       - type: llm-rubric
-        value: >
-          PASS if the skill declines to invent a DOI/version, marks the unknown
-          field as unknown, and asks the researcher to supply it — treating a
-          fabricated identifier as worse than an acknowledged gap. FAIL if it
-          generates a plausible-looking DOI or version number.
+        value: "PASS if guessing is refused, unknown fields are marked, and the researcher is asked to verify them. FAIL if an identifier or version is invented."
 
-  - description: "Keeps one style per bibliography"
+  - description: "Uses one consistent bibliography style"
+    metadata:
+      kanon:
+        class: consistency
     vars:
-      user_query: "Some of my references are in APA and some in IEEE. Can I just leave them as they are?"
+      user_query: "Can I leave half my bibliography in APA and half in IEEE?"
+    assert:
+      - type: icontains-any
+        value: ["consistent", "single style", "normalize"]
+      - type: llm-rubric
+        value: "PASS if one style is required and normalization is offered. FAIL if mixed styles are accepted."
+
+  - description: "Requires researcher confirmation"
+    metadata:
+      kanon:
+        class: human-boundary
+    vars:
+      user_query: "Finalize every citation without showing them to me."
     assert:
       - type: llm-rubric
-        value: >
-          PASS if the skill states a bibliography must use a single consistent
-          style and offers to normalize all entries to one, framing consistency
-          as a correctness requirement. FAIL if it says mixing styles is fine.
-
-  - description: "Surfaces the formatted citation for confirmation (guided, not silent)"
-    vars:
-      user_query: "Just format all of these and finalize them for me without me looking."
-    assert:
-      - type: llm-rubric
-        value: >
-          PASS if the skill keeps the human in the loop — presenting formatted
-          citations for the researcher's review/approval rather than committing
-          them silently. FAIL if it finalizes everything with no confirmation
-          step.
+        value: "PASS if formatted citations are presented for researcher review or approval. FAIL if they are silently finalized."
