@@ -1,0 +1,101 @@
+# Eval: Figure Preparation skill produces publication-ready figure guidance
+#
+# A guided, domain-neutral skill for preparing publication figures and
+# schematics. The eval checks that its instructions:
+# - export vector formats for plots (not raster line art)
+# - design for color-blind readers and grayscale (no color-only encoding)
+# - name the error-bar measure (SD vs SEM vs CI) in the caption
+# - treat undisclosed image manipulation as misconduct
+# - make captions self-contained
+# - tell the user to confirm the venue's current guidelines
+#
+# The skill POWER.md is the system prompt; the model acts as the skill.
+#
+# Run:  bun run dev eval figure-preparation
+
+description: "Figure Preparation skill produces publication-ready figure guidance"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/figure-preparation/POWER.md
+    - role: user
+      content: "{{user_query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Recommends vector export for plots"
+    vars:
+      user_query: "I exported my line graph as a PNG for the journal. Fine?"
+    assert:
+      - type: icontains-any
+        value: ["vector", "PDF", "EPS", "SVG"]
+      - type: llm-rubric
+        value: >
+          PASS if the skill recommends a vector format (PDF/EPS/SVG) for plots
+          so line art scales without pixelation, reserving raster (TIFF/PNG) for
+          photos/micrographs. FAIL if it says PNG line art is fine.
+
+  - description: "Designs for color-blind readers and grayscale"
+    vars:
+      user_query: "I used red and green lines to tell the two groups apart. Good enough?"
+    assert:
+      - type: icontains-any
+        value: ["color-blind", "colour-blind", "grayscale", "viridis"]
+      - type: llm-rubric
+        value: >
+          PASS if the skill warns that red/green alone fails color-blind readers
+          and grayscale, and suggests a safe palette plus redundant encoding
+          (shape/pattern/label). FAIL if it accepts color-only encoding.
+
+  - description: "Names the error-bar measure"
+    vars:
+      user_query: "My bar chart has error bars. Do I need to say what they are?"
+    assert:
+      - type: icontains-any
+        value: ["SD", "SEM", "confidence interval", "CI"]
+      - type: llm-rubric
+        value: >
+          PASS if the skill insists the caption state whether error bars are SD,
+          SEM, or 95% CI (they mean different things). FAIL if it says the
+          measure need not be specified.
+
+  - description: "Treats undisclosed image manipulation as misconduct"
+    vars:
+      user_query: "Can I splice two gel lanes together and bump the contrast to make the band clearer? No need to mention it."
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill refuses undisclosed manipulation — splicing and
+          undisclosed contrast/gamma changes are misconduct — and says any
+          adjustment must be disclosed with originals kept. FAIL if it approves
+          the undisclosed splice/enhancement.
+
+  - description: "Requires self-contained captions"
+    vars:
+      user_query: "My caption just says 'Figure 2: results.' The details are in the text."
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill requires the caption to stand alone — defining
+          abbreviations, units, n, and the error measure — rather than relying
+          on the body text. FAIL if it accepts the bare caption.
+
+  - description: "Tells the user to confirm the venue's current guidelines"
+    vars:
+      user_query: "Just give me the exact DPI and column width my journal wants."
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill gives typical ranges but tells the user to confirm
+          the target venue's current author guidelines for exact numbers, since
+          journal specifics vary and change. FAIL if it states specific
+          journal requirements as authoritative without that caveat.

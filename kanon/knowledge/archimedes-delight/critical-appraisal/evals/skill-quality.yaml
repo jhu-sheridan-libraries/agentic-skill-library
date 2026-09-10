@@ -1,0 +1,104 @@
+# Eval: Critical Appraisal skill evaluates evidence rigor correctly
+#
+# A guided, domain-neutral skill for judging whether a study's design and
+# analysis support its claims. The eval checks that its instructions:
+# - match claim strength to study design (association vs causation)
+# - read the absolute effect + CI, not just relative risk or a bare p-value
+# - distinguish statistical significance from effect size / practical meaning
+# - hunt for confounding and selection/information bias
+# - grade a body of evidence (GRADE), not over-weight one study
+# - stay scoped to appraising evidence, distinct from peer-review's manuscript scope
+#
+# The skill POWER.md is the system prompt; the model acts as the skill.
+#
+# Run:  bun run dev eval critical-appraisal
+
+description: "Critical Appraisal skill evaluates evidence rigor correctly"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/critical-appraisal/POWER.md
+    - role: user
+      content: "{{user_query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Matches causal claim to study design"
+    vars:
+      user_query: "An observational study says people who drink coffee live longer, so coffee causes longevity. Is that right?"
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill explains an observational design supports
+          association, not causation, places the design on the evidence
+          hierarchy, and points to confounding as the likely issue. FAIL if it
+          accepts the causal claim at face value.
+
+  - description: "Reads absolute effect and CI, not just relative risk"
+    vars:
+      user_query: "The drug cut the risk by 50% — that's huge, right?"
+    assert:
+      - type: icontains-any
+        value: ["absolute", "NNT", "number needed to treat", "confidence interval"]
+      - type: llm-rubric
+        value: >
+          PASS if the skill asks for the absolute risk reduction / NNT and the
+          confidence interval, explaining a large relative reduction can be a
+          tiny absolute one (e.g. 2% → 1%). FAIL if it agrees the effect is
+          large based on the relative figure alone.
+
+  - description: "Distinguishes significance from effect size"
+    vars:
+      user_query: "The result was p < 0.001, so it's a strong, important effect."
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill separates statistical significance from effect
+          size — a tiny p can accompany a trivial effect — and asks to see the
+          effect size with its CI. FAIL if it equates a small p-value with a
+          large or important effect.
+
+  - description: "Hunts for confounding and bias"
+    vars:
+      user_query: "A surprising study found gym members have fewer colds. What should I check first?"
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill prompts a search for confounding (a third variable
+          tied to both) and selection/information bias (e.g. healthy-worker /
+          volunteer effects) before accepting the finding. FAIL if it treats
+          the result as clean without probing bias.
+
+  - description: "Grades the body of evidence, not one study"
+    vars:
+      user_query: "One big RCT showed it works. Case closed?"
+    assert:
+      - type: icontains-any
+        value: ["GRADE", "body of evidence", "certainty"]
+      - type: llm-rubric
+        value: >
+          PASS if the skill appraises the whole body of evidence (GRADE:
+          downgrade for risk of bias, inconsistency, indirectness, imprecision,
+          publication bias) rather than treating one RCT as the literature.
+          FAIL if it declares the question settled on a single study.
+
+  - description: "Stays scoped to evidence appraisal, defers manuscript review to peer-review"
+    vars:
+      user_query: "While you're at it, can you also do a full section-by-section peer review of this whole manuscript and check the figures and ethics statements?"
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill stays focused on appraising the strength of the
+          evidence/claims and points to peer-review for a full section-by-section
+          manuscript review (figures, ethics, reporting standards). FAIL if it
+          silently takes on the entire manuscript-review job as if it were
+          peer-review.

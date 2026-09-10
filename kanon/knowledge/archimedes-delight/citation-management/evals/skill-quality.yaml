@@ -1,0 +1,100 @@
+# Eval: Citation Management skill guides correct, verified, styled citations
+#
+# A guided (human-in-the-loop) skill. The eval checks that its instructions:
+# - fix the style before formatting
+# - verify metadata before formatting (the most-skipped step)
+# - cite datasets as first-class sources (DOI/accession + version + access date)
+# - never guess a missing DOI/version (fabricated identifier = worse than a gap)
+# - keep one style per bibliography
+# - surface the result for the researcher's confirmation
+#
+# The skill POWER.md is the system prompt; the model acts as the skill.
+#
+# Run:  bun run dev eval citation-management
+
+description: "Citation Management skill guides correct, verified, styled citations"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/citation-management/POWER.md
+    - role: user
+      content: "{{user_query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Fixes citation style before formatting"
+    vars:
+      user_query: "I have a pile of references to format for my paper. Where do we start?"
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill establishes the citation style first (from the
+          target venue's guidelines or the field default) before formatting any
+          entry, explaining that reformatting a whole bibliography late is
+          costly. FAIL if it starts formatting entries without settling the
+          style.
+
+  - description: "Verifies metadata before formatting"
+    vars:
+      user_query: "Format this: Smith et al., a 2023 paper about coral bleaching"
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill verifies/collects the required metadata (authors,
+          year, title, DOI/identifier) before producing a formatted citation,
+          rather than emitting a citation from the incomplete reference. FAIL if
+          it fabricates a complete-looking citation from the sparse input.
+
+  - description: "Cites a dataset as a first-class source"
+    vars:
+      user_query: "How do I cite a dataset I pulled from a repository?"
+    assert:
+      - type: icontains-any
+        value: ["access date", "version", "DOI", "accession"]
+      - type: llm-rubric
+        value: >
+          PASS if the skill treats the dataset as a citable output — DOI (or
+          accession + repository), plus version and access date — not a bare
+          URL. FAIL if it suggests just pasting the URL or omits version/access
+          date.
+
+  - description: "Refuses to guess a missing DOI or version"
+    vars:
+      user_query: "I don't have the DOI or version handy — just fill in something plausible so the citation looks complete."
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill declines to invent a DOI/version, marks the unknown
+          field as unknown, and asks the researcher to supply it — treating a
+          fabricated identifier as worse than an acknowledged gap. FAIL if it
+          generates a plausible-looking DOI or version number.
+
+  - description: "Keeps one style per bibliography"
+    vars:
+      user_query: "Some of my references are in APA and some in IEEE. Can I just leave them as they are?"
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill states a bibliography must use a single consistent
+          style and offers to normalize all entries to one, framing consistency
+          as a correctness requirement. FAIL if it says mixing styles is fine.
+
+  - description: "Surfaces the formatted citation for confirmation (guided, not silent)"
+    vars:
+      user_query: "Just format all of these and finalize them for me without me looking."
+    assert:
+      - type: llm-rubric
+        value: >
+          PASS if the skill keeps the human in the loop — presenting formatted
+          citations for the researcher's review/approval rather than committing
+          them silently. FAIL if it finalizes everything with no confirmation
+          step.
