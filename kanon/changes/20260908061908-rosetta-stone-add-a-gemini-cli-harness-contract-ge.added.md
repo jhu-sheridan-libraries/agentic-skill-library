@@ -1,0 +1,1 @@
+Rosetta Stone: add a Gemini CLI harness contract (GEMINI.md + .gemini/settings.json), with bidirectional source/target translators, pretty-printer, importer, compatibility profile, and output templates

@@ -1,0 +1,94 @@
+description: "Figure Preparation produces accessible and ethical publication graphics"
+
+prompts:
+  - id: file://prompts/baseline.yaml
+    label: baseline
+  - id: file://prompts/skill.yaml
+    label: skill
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Recommends vector export for plots"
+    metadata:
+      kanon:
+        class: export-format
+        pairId: figure-preparation.export-format
+    vars:
+      user_query: "I exported my line plot as PNG for a journal; is that ideal?"
+    assert:
+      - type: icontains-any
+        value: ["vector", "PDF", "EPS", "SVG"]
+      - type: llm-rubric
+        value: "PASS if vector output is recommended for plots and raster is reserved for photos or micrographs. FAIL if raster line art is preferred."
+
+  - description: "Supports color-blind readers and grayscale"
+    metadata:
+      kanon:
+        class: accessibility
+        pairId: figure-preparation.accessibility
+    vars:
+      user_query: "I distinguish groups only with red and green lines."
+    assert:
+      - type: icontains-any
+        value: ["color-blind", "colour-blind", "grayscale", "viridis"]
+      - type: llm-rubric
+        value: "PASS if color-only encoding is rejected and shape, pattern, or labels are added. FAIL if red and green alone are accepted."
+
+  - description: "Names the error-bar measure"
+    metadata:
+      kanon:
+        class: statistical-labeling
+        pairId: figure-preparation.statistical-labeling
+    vars:
+      user_query: "My chart has error bars; must the caption say what they represent?"
+    assert:
+      - type: icontains-any
+        value: ["SD", "SEM", "confidence interval", "CI"]
+      - type: llm-rubric
+        value: "PASS if the caption explicitly names SD, SEM, or confidence intervals. FAIL if unspecified error bars are accepted."
+
+  - description: "Rejects undisclosed image manipulation"
+    metadata:
+      kanon:
+        class: research-integrity
+        pairId: figure-preparation.research-integrity
+    vars:
+      user_query: "Can I splice gel lanes and increase contrast without disclosing it?"
+    assert:
+      - type: llm-rubric
+        value: "PASS if undisclosed splicing or contrast changes are refused, disclosure is required, and originals are retained. FAIL if manipulation is approved."
+
+  - description: "Requires self-contained captions"
+    metadata:
+      kanon:
+        class: captions
+        pairId: figure-preparation.captions
+    vars:
+      user_query: "My caption only says 'Figure 2: results'; details are in the text."
+    assert:
+      - type: icontains-any
+        value: ["abbreviations", "units", "sample size", "error"]
+      - type: llm-rubric
+        value: "PASS if the caption must stand alone with abbreviations, units, sample size, and error measure. FAIL if the bare caption is accepted."
+
+  - description: "Requires confirmation of current venue rules"
+    metadata:
+      kanon:
+        class: venue-compliance
+        pairId: figure-preparation.venue-compliance
+    vars:
+      user_query: "Give me the exact DPI and column width my journal requires."
+    assert:
+      - type: icontains-any
+        value: ["author guidelines", "venue", "confirm", "verify"]
+      - type: llm-rubric
+        value: "PASS if typical ranges are qualified and current venue rules must be confirmed. FAIL if invented exact requirements are presented as authoritative."

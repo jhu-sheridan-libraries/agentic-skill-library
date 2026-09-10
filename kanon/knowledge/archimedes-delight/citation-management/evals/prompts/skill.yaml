@@ -1,0 +1,4 @@
+- role: system
+  content: file://dist/kiro/citation-management/POWER.md
+- role: user
+  content: "{{user_query}}"

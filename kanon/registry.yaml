@@ -1,0 +1,588 @@
+# Context Bazaar registry — generated from the catalog by
+# scripts/generate-registry.ts (and bundled with `kanon catalog generate`).
+# Do not edit by hand; re-run to refresh.
+
+entries:
+  - name: "adr"
+    type: skill
+    sub_type: pipeline
+    category: "architecture"
+    path: "knowledge/adr/knowledge.md"
+    description: "Create, maintain, and cross-reference Architecture Decision Records (ADRs) in MADR format. Infers decisions from git context, detects duplicates, manages supersession chains, and keeps the index up to date."
+    date_added: "2026-09-10"
+    tags: ["documentation"]
+  - name: "alice-whiterabbit"
+    type: skill
+    sub_type: database
+    category: "architecture"
+    path: "knowledge/alice-whiterabbit/knowledge.md"
+    description: "Guide to ALICE (AWS Language Intelligence and Cognitive Exploration) — manage Bedrock credentials, invoke LLMs, use AI research utilities, mint DOIs, and run digital preservation workflows at Johns Hopkins. Covers CLI commands, infrastructure, TUI development, testing patterns, model selection, research prompt recipes, OAIS lifecycle, and format identification."
+    date_added: "2026-09-10"
+    tags: ["devops", "documentation", "aws", "bedrock", "python"]
+  - name: "archimedes-delight"
+    type: skill
+    sub_type: guide
+    category: "writing"
+    path: "knowledge/archimedes-delight/archimedes-delight/knowledge.md"
+    description: "Router for the Archimedes Delight research-science collection. Assists Johns Hopkins staff and faculty across the research arc — discover, appraise, create, communicate — by directing you to the right member: autonomous literature review and dataset discovery, guided citation management, critical appraisal, research ideation, manuscript writing, peer review, figure preparation, and research presentation."
+    date_added: "2026-09-10"
+    tags: ["science"]
+  - name: "archon-reference-pack"
+    type: reference-pack
+    sub_type: guide
+    category: "devops"
+    path: "knowledge/archon-reference-pack/knowledge.md"
+    description: "Complete reference for authoring Archon workflows, commands, and using the CLI. Covers DAG node types, variables, trigger rules, conditions, structured output, hooks, MCP, skills, and all built-in workflows."
+    date_added: "2026-09-10"
+    tags: ["architecture", "archon", "typescript", "bun"]
+  - name: "arm-soc-migration"
+    type: skill
+    sub_type: database
+    category: "architecture"
+    path: "knowledge/kiro-official/arm-soc-migration/knowledge.md"
+    description: "Guides migration of code from one Arm SoC to another, with architecture-aware analysis and safe migration practices."
+    date_added: "2026-09-10"
+    tags: ["devops", "arm", "embedded"]
+  - name: "aws-agentcore"
+    type: skill
+    sub_type: database
+    category: "architecture"
+    path: "knowledge/kiro-official/aws-agentcore/knowledge.md"
+    description: "Build, test, and deploy AI agents using AWS Bedrock AgentCore with local development workflow. Amazon Bedrock AgentCore is an agentic platform for building, deploying, and operating effective agents."
+    date_added: "2026-09-10"
+    tags: ["devops", "aws", "bedrock"]
+  - name: "aws-amplify"
+    type: skill
+    sub_type: database
+    category: "architecture"
+    path: "knowledge/kiro-official/aws-amplify/knowledge.md"
+    description: "Build and extend full-stack applications with AWS Amplify Gen 2 using type-safe TypeScript, guided workflows, and best practices. Covers adding features to existing Amplify backends, authentication, data models, storage, serverless functions, and AI/ML integration."
+    date_added: "2026-09-10"
+    tags: ["devops", "aws", "amplify"]
+  - name: "aws-devops-agent"
+    type: skill
+    sub_type: database
+    category: "devops"
+    path: "knowledge/kiro-official/aws-devops-agent/knowledge.md"
+    description: "AI agent for AWS operational intelligence via the AWS MCP Server. Investigate incidents, optimize costs, review architecture, map topology, and get remediation — using the aws___call_aws tool with DevOps Agent APIs."
+    date_added: "2026-09-10"
+    tags: ["debugging", "aws"]
+  - name: "aws-healthomics"
+    type: skill
+    sub_type: database
+    category: "devops"
+    path: "knowledge/kiro-official/aws-healthomics/knowledge.md"
+    description: "Create, migrate, run, debug and optimize genomics workflows in AWS HealthOmics"
+    date_added: "2026-09-10"
+    tags: ["aws", "healthomics"]
+  - name: "aws-infrastructure-as-code"
+    type: skill
+    sub_type: database
+    category: "architecture"
+    path: "knowledge/kiro-official/aws-infrastructure-as-code/knowledge.md"
+    description: "Build well-architected AWS infrastructure with CDK using latest documentation, best practices, and code samples. Validate CloudFormation templates, check resource configuration security compliance, and troubleshoot deployments."
+    date_added: "2026-09-10"
+    tags: ["devops", "aws", "cdk", "cloudformation"]
+  - name: "aws-lambda-managed-instances"
+    type: skill
+    sub_type: pipeline
+    category: "documentation"
+    path: "knowledge/kiro-official/aws-lambda-managed-instances/knowledge.md"
+    description: "Evaluate, configure, and migrate workloads to AWS Lambda Managed Instances (LMI). Run Lambda functions on EC2 instances in your account while AWS manages provisioning, patching, scaling, routing, and load balancing."
+    date_added: "2026-09-10"
+  - name: "aws-mcp"
+    type: skill
+    sub_type: database
+    category: "devops"
+    path: "knowledge/kiro-official/aws-mcp/knowledge.md"
+    description: "Perform complex, multi-step AWS tasks by combining real-time access to AWS documentation, syntactically correct API calls and executions, and pre-built workflows called Agent SOPs that follow AWS best practices"
+    date_added: "2026-09-10"
+    tags: ["aws"]
+  - name: "aws-observability"
+    type: skill
+    sub_type: database
+    category: "devops"
+    path: "knowledge/kiro-official/aws-observability/knowledge.md"
+    description: "Comprehensive AWS observability platform combining CloudWatch Logs, Metrics, Alarms, Application Signals (APM), CloudTrail security auditing, Amazon Managed Prometheus (AMP) metric querying, and automated codebase observability gap analysis, for complete monitoring, troubleshooting, and optimization."
+    date_added: "2026-09-10"
+    tags: ["debugging", "performance", "aws", "cloudwatch"]
+  - name: "aws-sam"
+    type: skill
+    sub_type: database
+    category: "architecture"
+    path: "knowledge/kiro-official/aws-sam/knowledge.md"
+    description: "An opinionated Kiro Power to aid development with AWS Serverless Application Model (SAM). Includes MCP tooling and common usage patterns."
+    date_added: "2026-09-10"
+    tags: ["devops", "aws", "sam", "lambda"]
+  - name: "aws-step-functions"
+    type: skill
+    sub_type: pipeline
+    category: "documentation"
+    path: "knowledge/kiro-official/aws-step-functions/knowledge.md"
+    description: "Build workflows with AWS Step Functions state machines using the JSONata query language. Covers Amazon States Language (ASL) structure, state types, variables, data transformation, error handling, AWS service integration, and migrating from the JSONPath to the JSONata query language."
+    date_added: "2026-09-10"
+  - name: "aws-transform"
+    type: skill
+    sub_type: pipeline
+    category: "documentation"
+    path: "knowledge/kiro-official/aws-transform/knowledge.md"
+    description: "Migrate, modernize, and upgrade codebases: .NET Framework to .NET 8/10, mainframe COBOL to Java, VMware VMs to EC2, SQL Server/Oracle/MySQL to Aurora, and Java/Python/Node.js version upgrades or AWS SDK migrations. Assess, plan, and execute code transformations from your IDE."
+    date_added: "2026-09-10"
+  - name: "aws-transform-agent-toolkit"
+    type: skill
+    sub_type: pipeline
+    category: "documentation"
+    path: "knowledge/kiro-official/aws-transform-agent-toolkit/knowledge.md"
+    description: "Build agents to run in AWS Transform. This power provides a self-service agent lifecycle from inception to development to production. Build modernization and migration agents with citation-backed AWS Transform documentation search, package agents as containers, deploy to Bedrock AgentCore across platforms (Windows/macOS/Linux), and register with AWS Transform."
+    date_added: "2026-09-10"
+  - name: "book-agent-publicist"
+    type: skill
+    sub_type: pipeline
+    category: "documentation"
+    path: "knowledge/byron-powers/book-agent-publicist/knowledge.md"
+    description: "A comprehensive guide for the business of books — from finding and working with literary agents to publicity campaigns, media outreach, author branding, and long-term career strategy. Covers both traditional and independent publishing paths."
+    date_added: "2026-09-10"
+    tags: ["writing"]
+  - name: "checkout-api-reference"
+    type: skill
+    sub_type: database
+    category: "documentation"
+    path: "knowledge/kiro-official/checkout-api-reference/knowledge.md"
+    description: "Access Checkout.com's comprehensive API documentation with intelligent search and detailed operation information for payments, customers, disputes, and more."
+    date_added: "2026-09-10"
+    tags: ["checkout-com"]
+  - name: "citation-management"
+    type: skill
+    sub_type: pipeline
+    category: "writing"
+    path: "knowledge/archimedes-delight/citation-management/knowledge.md"
+    description: "Guided citation-management skill for the Archimedes Delight research collection. Turn a dataset or paper reference into a correctly formatted citation, step by step, with the researcher in the loop — extract metadata, choose a style, format, and verify. Includes a citation-pipeline workflow. Part of the archimedes-delight collection; for autonomous paper search use literature-review, for datasets use dataset-discovery."
+    date_added: "2026-09-10"
+    tags: ["science"]
+  - name: "cloud-architect"
+    type: skill
+    sub_type: database
+    category: "architecture"
+    path: "knowledge/kiro-official/cloud-architect/knowledge.md"
+    description: "Build AWS infrastructure with CDK in Python following AWS Well-Architected framework best practices"
+    date_added: "2026-09-10"
+    tags: ["devops", "aws", "cdk", "python"]
+  - name: "cloudwatch-application-signals"
+    type: skill
+    sub_type: database
+    category: "devops"
+    path: "knowledge/kiro-official/cloudwatch-application-signals/knowledge.md"
+    description: ":warning: DEPRECATED: This power has been merged into the AWS Observability power, which provides expanded capabilities including CloudWatch Logs, Metrics, Alarms, Application Signals (APM), CloudTrail security auditing, and automated codebase observability gap analysis. We recommend installing the AWS Observability power for a more comprehensive monitoring experience. See steps in `Migrating to AWS Observability power`"
+    date_added: "2026-09-10"
+    tags: ["performance", "aws", "cloudwatch"]
+  - name: "commit-craft"
+    type: prompt
+    sub_type: guide
+    category: "code-style"
+    path: "knowledge/commit-craft/knowledge.md"
+    description: "Write commit messages that tell the story of why, not just what."
+    date_added: "2026-09-10"
+    tags: ["git"]
+  - name: "critical-appraisal"
+    type: skill
+    sub_type: guide
+    category: "writing"
+    path: "knowledge/archimedes-delight/critical-appraisal/knowledge.md"
+    description: "Guided critical appraisal of scientific evidence for the Archimedes Delight collection. Study-design hierarchy, effect measures (RR/OR/HR/NNT/Cohen's d), bias types, confounding, p-value vs effect size, and GRADE quality assessment. Domain-neutral. Part of the archimedes-delight collection; use when reading a paper or assessing a claim's strength."
+    date_added: "2026-09-10"
+    tags: ["science"]
+  - name: "databricks"
+    type: skill
+    sub_type: pipeline
+    category: "documentation"
+    path: "knowledge/kiro-official/databricks/knowledge.md"
+    description: "Comprehensive Databricks development toolkit with 44 MCP tools (180+ operations) and expert guidance for building data pipelines, ML workflows, dashboards, jobs, and applications on Databricks platform."
+    date_added: "2026-09-10"
+  - name: "datadog"
+    type: skill
+    sub_type: database
+    category: "devops"
+    path: "knowledge/kiro-official/datadog/knowledge.md"
+    description: "Query logs, metrics, traces, RUM events, incidents, and monitors from Datadog for production debugging and performance analysis"
+    date_added: "2026-09-10"
+    tags: ["debugging", "performance", "datadog"]
+  - name: "dataset-discovery"
+    type: agent
+    sub_type: agent
+    category: "writing"
+    path: "knowledge/archimedes-delight/dataset-discovery/knowledge.md"
+    description: "Autonomous dataset-discovery agent for the Archimedes Delight research collection. Hand off a research question or dataset criteria and receive a ranked shortlist of candidate datasets from open-data repositories (starting with RODA, the Registry of Open Data on AWS) via a define-scope → search → evaluate → shortlist loop. Part of the archimedes-delight collection; for papers use literature-review, for formatting references use citation-management."
+    date_added: "2026-09-10"
+    tags: ["science", "aws"]
+  - name: "debug-journal"
+    type: workflow
+    sub_type: pipeline
+    category: "debugging"
+    path: "knowledge/debug-journal/knowledge.md"
+    description: "A systematic debugging workflow — articulate the problem before chasing the solution."
+    date_added: "2026-09-10"
+  - name: "dynatrace"
+    type: skill
+    sub_type: database
+    category: "devops"
+    path: "knowledge/kiro-official/dynatrace/knowledge.md"
+    description: "Query logs, metrics, traces, problems, and Kubernetes events from Dynatrace using DQL for production debugging and performance analysis"
+    date_added: "2026-09-10"
+    tags: ["debugging", "performance", "dynatrace"]
+  - name: "facilitate-library-ai-workshop"
+    type: skill
+    sub_type: pipeline
+    category: "documentation"
+    path: "knowledge/facilitate-library-ai-workshop/knowledge.md"
+    description: "Coach one learner through the Research with AI workshop for research librarians, using fictional or simulated material and keeping source checks and professional judgment with the learner."
+    date_added: "2026-09-10"
+    tags: ["accessibility", "academic-libraries", "research"]
+  - name: "factory-harness"
+    type: workflow
+    sub_type: pipeline
+    category: "architecture"
+    path: "knowledge/factory-harness/knowledge.md"
+    description: "The team-architecture factory. Turns a domain or project description into a reusable agent team and the skills they use, using six team patterns (Pipeline, Fan-out/Fan-in, Expert Pool, Producer-Reviewer, Supervisor, Hierarchical Delegation). Use this whenever someone asks to build, compose, set up, design, engineer, audit, sync, or evolve a harness; scaffold specialist agents and the skills they use; or stand up domain automation. It realizes the same team natively on each harness — Claude Code agent teams plus skills, Codex AGENTS.md plus repo-local skills, Kiro powers plus steering plus agent hooks."
+    date_added: "2026-09-10"
+  - name: "fantasy-novelist"
+    type: skill
+    sub_type: pipeline
+    category: "documentation"
+    path: "knowledge/byron-powers/fantasy-novelist/knowledge.md"
+    description: "Genre-specific companion to the Novelist power for writing fantasy fiction. Provides magic system design, mythic world-building, non-human species and culture creation, prophecy and fate mechanics, and subgenre-aware conventions. Designed for agent consumption."
+    date_added: "2026-09-10"
+    tags: ["writing"]
+  - name: "figma"
+    type: skill
+    sub_type: guide
+    category: "architecture"
+    path: "knowledge/kiro-official/figma/knowledge.md"
+    description: "Connect Figma designs to code components - automatically generate design system rules, map UI components to Figma designs, and maintain design-code consistency"
+    date_added: "2026-09-10"
+    tags: ["figma"]
+  - name: "figure-preparation"
+    type: skill
+    sub_type: guide
+    category: "writing"
+    path: "knowledge/archimedes-delight/figure-preparation/knowledge.md"
+    description: "Guided figure and schematic preparation for the Archimedes Delight collection. A domain-neutral QA checklist for publication figures (resolution, formats, color, fonts, panel labels, accessibility), a consolidated view of common journal requirements, and design principles for schematics and graphical abstracts. Part of the archimedes-delight collection."
+    date_added: "2026-09-10"
+    tags: ["science"]
+  - name: "gcp-aws-migrate"
+    type: skill
+    sub_type: database
+    category: "architecture"
+    path: "knowledge/kiro-official/gcp-aws-migrate/knowledge.md"
+    description: "Expert guidance for migrating workloads from Google Cloud Platform to AWS. This no-cost tool assesses your current cloud provider's usage, geography, and billing data to estimate and compare AWS services and pricing, and recommends migration or continued use of your current provider. AWS pricing is based on current published pricing and may vary over time. The tool may generate a .migration folder containing comparison and migration execution data, which you may delete upon completion or use to migrate to AWS."
+    date_added: "2026-09-10"
+    tags: ["devops", "aws", "gcp", "terraform"]
+  - name: "graviton-migration-power"
+    type: skill
+    sub_type: database
+    category: "architecture"
+    path: "knowledge/kiro-official/graviton-migration-power/knowledge.md"
+    description: "Analyzes source code to identify compatibilities with Graviton processors(Arm64 architecture). Generates reports with incompatibilities and provides suggestions for minimal required and recommended versions for language runtimes and dependency libraries."
+    date_added: "2026-09-10"
+    tags: ["devops", "performance", "aws", "graviton", "arm"]
+  - name: "hello"
+    type: template
+    sub_type: guide
+    category: "documentation"
+    path: "knowledge/hello/knowledge.md"
+    description: "A friendly test artifact that greets you in 20 languages. Use it to verify your power installation is working."
+    date_added: "2026-09-10"
+  - name: "jhu-editorial-check"
+    type: skill
+    sub_type: pipeline
+    category: "documentation"
+    path: "knowledge/jhu-editorial-check/knowledge.md"
+    description: "Review and revise Johns Hopkins communications for editorial style, voice, ethical AI use, official asset risks, and escalation needs without claiming institutional approval."
+    date_added: "2026-09-10"
+    tags: ["writing", "accessibility", "johns-hopkins", "editorial"]
+  - name: "kanon"
+    type: skill
+    sub_type: pipeline
+    category: "documentation"
+    path: "knowledge/kanon/knowledge.md"
+    description: "Onboarding and assistant guide for using the Kanon CLI & Context Bazaar to author, build, and manage knowledge artifacts for AI coding assistants."
+    date_added: "2026-09-10"
+    tags: ["devops"]
+  - name: "karpathy-mode"
+    type: skill
+    sub_type: pipeline
+    category: "code-style"
+    path: "knowledge/karpathy-mode/knowledge.md"
+    description: "Behavioral guidelines to reduce common LLM coding mistakes. Use when writing, reviewing, or refactoring code to avoid overcomplication, make surgical changes, surface assumptions, and define verifiable success criteria."
+    date_added: "2026-09-10"
+  - name: "kiro-specs"
+    type: skill
+    sub_type: guide
+    category: "documentation"
+    path: "knowledge/kiro-specs/knowledge.md"
+    description: "Read, write, modify, and execute Kiro Specs — the three-phase spec-driven workflow (requirements → design → tasks) that lives in .kiro/specs/. Use when creating a new feature spec, updating requirements or design, or working through a tasks.md implementation plan."
+    date_added: "2026-09-10"
+    tags: ["architecture"]
+  - name: "laconic-output"
+    type: skill
+    sub_type: guide
+    category: "code-style"
+    path: "knowledge/laconic-output/knowledge.md"
+    description: "Spartan communication mode — every word earns its place or gets cut. Grammar stays intact, sentences stripped to their load-bearing minimum. No warmth, no hedging, no filler."
+    date_added: "2026-09-10"
+  - name: "literature-review"
+    type: agent
+    sub_type: agent
+    category: "writing"
+    path: "knowledge/archimedes-delight/literature-review/knowledge.md"
+    description: "Autonomous literature-review agent for the Archimedes Delight research collection. Hand off a research question and receive a synthesized, cited literature summary produced by a define-scope → search → triage → synthesize loop, with source-quality screening and an explicit human-in-the-loop boundary. Part of the archimedes-delight collection; for datasets use dataset-discovery, for formatting references use citation-management."
+    date_added: "2026-09-10"
+    tags: ["science"]
+  - name: "localstack"
+    type: skill
+    sub_type: pipeline
+    category: "documentation"
+    path: "knowledge/kiro-official/localstack/knowledge.md"
+    description: "Build, test, and debug AWS applications locally and in CI/CD using LocalStack. Manage the local cloud environment, deploy infrastructure with CDK/Terraform/SAM, analyze logs, enforce IAM policies, inject chaos faults, and manage state snapshots."
+    date_added: "2026-09-10"
+  - name: "manuscript-writing"
+    type: skill
+    sub_type: guide
+    category: "writing"
+    path: "knowledge/archimedes-delight/manuscript-writing/knowledge.md"
+    description: "Guided scholarly-manuscript writing for the Archimedes Delight research collection. Domain-neutral guidance on IMRAD structure, citation styles, reporting guidelines, figure/table design principles, and venue adaptation. Part of the archimedes-delight collection; for citation formatting use citation-management, for figures use figure-preparation."
+    date_added: "2026-09-10"
+    tags: ["science"]
+  - name: "migration-to-aws"
+    type: skill
+    sub_type: pipeline
+    category: "documentation"
+    path: "knowledge/kiro-official/migration-to-aws/knowledge.md"
+    description: "Migrate workloads from Google Cloud Platform to AWS — including AI and agentic workloads regardless of cloud provider. Triggers on: migrate from GCP, GCP to AWS, move off Google Cloud, migrate Terraform to AWS, migrate Cloud SQL to RDS, migrate GKE to EKS, migrate Cloud Run to Fargate, Google Cloud migration, migrate from OpenAI to Bedrock, move off OpenAI, switch from ChatGPT API to AWS, migrate from Gemini to Bedrock, migrate LangChain to Bedrock, migrate LangGraph to AWS, migrate agentic workloads to AWS, move AI workloads to AWS, migrate my AI app to AWS. Runs a 6-phase process: discover GCP resources from Terraform files, app code, or billing exports, clarify migration requirements, design AWS architecture, estimate costs, generate migration artifacts, and collect optional feedback. Clarify must finish before Design, Estimate, or Generate. Includes AI provider migration guidance (for example, OpenAI to Amazon Bedrock) by selecting closest-fit Bedrock model families for required modality, latency/quality targets, context windows, and cost constraints. Model mapping is compatibility-guided, not 1:1 parity; validate prompts, tool-calling behavior, and eval metrics before cutover. Do not use for: Azure or on-premises migrations to AWS, AWS-to-GCP reverse migration, general AWS architecture advice without migration intent, GCP-to-GCP refactoring, or multi-cloud deployments that do not involve migrating off GCP."
+    date_added: "2026-09-10"
+  - name: "mystery-series-novelist"
+    type: skill
+    sub_type: pipeline
+    category: "documentation"
+    path: "knowledge/byron-powers/mystery-series-novelist/knowledge.md"
+    description: "Genre-specific companion to the Novelist power for writing mystery and detective fiction series. Provides clue architecture, suspect management, fair-play validation, series continuity tracking, and subgenre-aware plotting. Designed for agent consumption."
+    date_added: "2026-09-10"
+    tags: ["writing"]
+  - name: "neon"
+    type: skill
+    sub_type: database
+    category: "devops"
+    path: "knowledge/kiro-official/neon/knowledge.md"
+    description: "Serverless Postgres with database branching, autoscaling, and scale-to-zero - perfect for modern development workflows"
+    date_added: "2026-09-10"
+    tags: ["neon", "postgres"]
+  - name: "novelist"
+    type: skill
+    sub_type: pipeline
+    category: "writing"
+    path: "knowledge/byron-powers/novelist/knowledge.md"
+    description: "A complete novel-writing companion covering both creative craft and professional publishing. Guides authors from first idea through drafting, revision, market positioning, and agent submission with Fiction Seeds for voice consistency."
+    date_added: "2026-09-10"
+  - name: "peer-review"
+    type: skill
+    sub_type: guide
+    category: "writing"
+    path: "knowledge/archimedes-delight/peer-review/knowledge.md"
+    description: "Guided peer review for the Archimedes Delight collection. A structured seven-stage evaluation of manuscripts and proposals — initial assessment, section review, statistical rigor, reproducibility, figure integrity, ethics, writing — plus reporting-standard checks and review-report structure. Domain-neutral. Part of the archimedes-delight collection; for evidence quality use critical-appraisal."
+    date_added: "2026-09-10"
+    tags: ["science"]
+  - name: "postman"
+    type: skill
+    sub_type: database
+    category: "testing"
+    path: "knowledge/kiro-official/postman/knowledge.md"
+    description: "Automate API testing and collection management with Postman - create workspaces, collections, environments, and run tests programmatically"
+    date_added: "2026-09-10"
+    tags: ["devops", "postman"]
+  - name: "power-builder"
+    type: skill
+    sub_type: pipeline
+    category: "documentation"
+    path: "knowledge/kiro-official/power-builder/knowledge.md"
+    description: "Complete guide for building and testing new Kiro Powers with templates, best practices, and validation"
+    date_added: "2026-09-10"
+    tags: ["devops"]
+  - name: "practice-library-reference-interview"
+    type: skill
+    sub_type: pipeline
+    category: "documentation"
+    path: "knowledge/practice-library-reference-interview/knowledge.md"
+    description: "Role-play and debrief a fictional research-library reference interview so a librarian or workshop participant can practice question negotiation, privacy boundaries, and a research brief without using real patron data."
+    date_added: "2026-09-10"
+    tags: ["accessibility", "academic-libraries", "research"]
+  - name: "proofreader-review-checklist"
+    type: skill
+    sub_type: guide
+    category: "documentation"
+    path: "knowledge/byron-powers/proofreader-review-checklist/knowledge.md"
+    description: "Structured checklists for proofreading and reviewing writing documents — manuscript chapters, outlines, proposals, query letters, character sheets, and world-building docs."
+    date_added: "2026-09-10"
+    tags: ["writing"]
+  - name: "release-manager"
+    type: skill
+    sub_type: pipeline
+    category: "devops"
+    path: "knowledge/release-manager/knowledge.md"
+    description: "Tool-agnostic release lifecycle management — assess changes, draft changelogs and release notes, cut tagged releases, and announce. Detects whatever release tooling the project uses."
+    date_added: "2026-09-10"
+    tags: ["documentation"]
+  - name: "research-ideation"
+    type: skill
+    sub_type: guide
+    category: "writing"
+    path: "knowledge/archimedes-delight/research-ideation/knowledge.md"
+    description: "Guided research ideation for the Archimedes Delight collection. Structured divergent-thinking methods (SCAMPER, Six Thinking Hats, morphological analysis, TRIZ) plus turning observations into testable hypotheses with predictions and experiment designs. Domain-neutral. Part of the archimedes-delight collection; for literature grounding use literature-review."
+    date_added: "2026-09-10"
+    tags: ["science"]
+  - name: "research-presentation"
+    type: skill
+    sub_type: pipeline
+    category: "writing"
+    path: "knowledge/archimedes-delight/research-presentation/knowledge.md"
+    description: "Guided research presentation for the Archimedes Delight collection. Slide and poster design for conferences, seminars, defenses, and pitches — talk structure, timing, slide/data-viz design, poster layout, accessibility, and QA. Domain-neutral. Part of the archimedes-delight collection; for figures use figure-preparation."
+    date_added: "2026-09-10"
+    tags: ["science"]
+  - name: "review-ai-research-output"
+    type: skill
+    sub_type: pipeline
+    category: "documentation"
+    path: "knowledge/review-ai-research-output/knowledge.md"
+    description: "Audit an AI-assisted research output for evidence, citation fit, source coverage, calculations, reproducibility, disclosure, privacy, and human review before it is shared or used."
+    date_added: "2026-09-10"
+    tags: ["accessibility", "academic-libraries", "research"]
+  - name: "review-ritual"
+    type: skill
+    sub_type: guide
+    category: "testing"
+    path: "knowledge/review-ritual/knowledge.md"
+    description: "Code review as a craft — read with intent, comment with purpose, approve with confidence."
+    date_added: "2026-09-10"
+  - name: "run-library-ai-workshop-cohort"
+    type: skill
+    sub_type: pipeline
+    category: "documentation"
+    path: "knowledge/run-library-ai-workshop-cohort/knowledge.md"
+    description: "Plan, facilitate, and debrief a live Research with AI workshop for a cohort of research librarians, keeping the facilitator in charge of teaching decisions and participant welfare."
+    date_added: "2026-09-10"
+    tags: ["accessibility", "academic-libraries", "research"]
+  - name: "saas-builder"
+    type: skill
+    sub_type: database
+    category: "architecture"
+    path: "knowledge/kiro-official/saas-builder/knowledge.md"
+    description: "Build production-ready multi-tenant SaaS applications with serverless architecture, integrated billing, and enterprise-grade security"
+    date_added: "2026-09-10"
+    tags: ["devops", "security", "aws", "lambda", "dynamodb", "stripe", "react"]
+  - name: "scifi-novelist"
+    type: skill
+    sub_type: pipeline
+    category: "documentation"
+    path: "knowledge/byron-powers/scifi-novelist/knowledge.md"
+    description: "Genre-specific companion to the Novelist power for writing science fiction. Provides speculative technology design, alien species creation, hard-SF consistency validation, and subgenre-aware world-building. Designed for agent consumption."
+    date_added: "2026-09-10"
+    tags: ["writing"]
+  - name: "secure-by-default"
+    type: skill
+    sub_type: pipeline
+    category: "security"
+    path: "knowledge/secure-by-default/knowledge.md"
+    description: "Application security discipline — STRIDE threat modeling, auth/authz flow review, and secure coding patterns. Scoped to developer-facing application security, not infrastructure."
+    date_added: "2026-09-10"
+    tags: ["code-style"]
+  - name: "series-continuity"
+    type: skill
+    sub_type: pipeline
+    category: "writing"
+    path: "knowledge/byron-powers/series-continuity/knowledge.md"
+    description: "Genre-agnostic continuity tracking for fiction series and standalone novels. Manages character state, setting consistency, timeline integrity, within-book continuity, and cross-book series arcs. Designed for agent consumption."
+    date_added: "2026-09-10"
+  - name: "solr-compass"
+    type: skill
+    sub_type: database
+    category: "architecture"
+    path: "knowledge/solr-compass/knowledge.md"
+    description: "Solr-backed semantic search, codebase retrieval, and cross-session memory for context bazaar knowledge artifacts through a guided MCP workflow."
+    date_added: "2026-09-10"
+    tags: ["devops", "context-bazaar"]
+  - name: "spark-troubleshooting-agent"
+    type: skill
+    sub_type: database
+    category: "debugging"
+    path: "knowledge/kiro-official/spark-troubleshooting-agent/knowledge.md"
+    description: "Troubleshoot Spark applications on AWS EMR, Glue, and SageMaker - analyze failures, identify bottlenecks, get code recommendations. For more info, please see: https://docs.aws.amazon.com/emr/latest/ReleaseGuide/spark-troubleshoot.html"
+    date_added: "2026-09-10"
+    tags: ["devops", "performance", "aws", "spark", "emr"]
+  - name: "stackgen"
+    type: skill
+    sub_type: database
+    category: "architecture"
+    path: "knowledge/kiro-official/stackgen/knowledge.md"
+    description: "Design, manage, and deploy cloud infrastructure with StackGen - create appstacks, manage resources, configure environments, and push IaC to Git"
+    date_added: "2026-09-10"
+    tags: ["devops", "stackgen", "terraform"]
+  - name: "strands"
+    type: skill
+    sub_type: database
+    category: "architecture"
+    path: "knowledge/kiro-official/strands/knowledge.md"
+    description: "Build AI agents with Strands SDK using Bedrock, Anthropic, OpenAI, Gemini, or Llama models"
+    date_added: "2026-09-10"
+    tags: ["devops", "aws", "strands", "bedrock"]
+  - name: "stripe"
+    type: skill
+    sub_type: database
+    category: "devops"
+    path: "knowledge/kiro-official/stripe/knowledge.md"
+    description: "Build payment integrations with Stripe - accept payments, manage subscriptions, handle billing, and process refunds"
+    date_added: "2026-09-10"
+    tags: ["security", "stripe"]
+  - name: "technical-author"
+    type: skill
+    sub_type: pipeline
+    category: "documentation"
+    path: "knowledge/byron-powers/technical-author/knowledge.md"
+    description: "A methodical guide for writing technical books from initial concept to published manuscript. Walks authors through every phase of the technical publishing process with structured workflows and practical techniques, tailored for publishers like O'Reilly, Pragmatic Bookshelf, Manning, and Addison-Wesley."
+    date_added: "2026-09-10"
+    tags: ["writing"]
+  - name: "terraform"
+    type: skill
+    sub_type: database
+    category: "architecture"
+    path: "knowledge/kiro-official/terraform/knowledge.md"
+    description: "Build and manage Infrastructure as Code with Terraform - access registry providers, modules, policies, and HCP Terraform workflow management"
+    date_added: "2026-09-10"
+    tags: ["devops", "terraform", "hashicorp"]
+  - name: "type-guardian"
+    type: skill
+    sub_type: guide
+    category: "code-style"
+    path: "knowledge/type-guardian/knowledge.md"
+    description: "TypeScript type discipline — keep the compiler working for you, not against you."
+    date_added: "2026-09-10"
+    tags: ["typescript"]
+  - name: "whetstone"
+    type: skill
+    sub_type: pipeline
+    category: "architecture"
+    path: "knowledge/whetstone/knowledge.md"
+    description: "A collection of 25 developer workflow skills covering planning, design, development, testing, writing, and knowledge management. Actionable, phase-driven workflows with shared vocabulary and natural chaining."
+    date_added: "2026-09-10"
+    tags: ["testing", "code-style"]
+  - name: "writing-clearly-and-concisely"
+    type: skill
+    sub_type: pipeline
+    category: "writing"
+    path: "knowledge/byron-powers/writing-clearly-and-concisely/knowledge.md"
+    description: "Apply Strunk's timeless writing rules to ANY prose humans will read—documentation, commit messages, error messages, explanations, reports, or UI text. Makes your writing clearer, stronger, and more professional."
+    date_added: "2026-09-10"
+  - name: "zapier"
+    type: skill
+    sub_type: pipeline
+    category: "documentation"
+    path: "knowledge/kiro-official/zapier/knowledge.md"
+    description: "Connect 9,000+ apps to your AI workflow — discover, enable, and execute Zapier actions directly from your AI assistant."
+    date_added: "2026-09-10"

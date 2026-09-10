@@ -135,53 +135,70 @@
   {
     "name": "archimedes-delight",
     "displayName": "Archimedes Delight",
-    "description": "Elite academic research library tool for Johns Hopkins staff and faculty. Provides MCP-backed data access to research repositories (starting with RODA — Registry of Open Data on AWS), guided research skills for citation management, autonomous agents for literature review and dataset discovery, and multi-step research workflows.",
+    "description": "Router for the Archimedes Delight research-science collection. Assists Johns Hopkins staff and faculty across the research arc — discover, appraise, create, communicate — by directing you to the right member: autonomous literature review and dataset discovery, guided citation management, critical appraisal, research ideation, manuscript writing, peer review, figure preparation, and research presentation.",
     "keywords": [
       "archimedes-delight",
-      "jh-drcc",
-      "roda",
-      "research-library",
+      "science",
+      "academia",
+      "research",
       "literature-review",
       "dataset-discovery",
       "citation-management",
-      "academic-research"
+      "manuscript-writing",
+      "peer-review",
+      "router"
     ],
-    "author": "Johns Hopkins DRCC",
-    "version": "0.1.1",
+    "author": "Steven J. Miklovic",
+    "version": "0.2.0",
     "harnesses": [
       "kiro",
-      "claude-code"
+      "claude-code",
+      "codex",
+      "copilot",
+      "cursor",
+      "gemini-cli"
     ],
     "type": "skill",
-    "path": "knowledge/archimedes-delight",
-    "evals": false,
+    "path": "knowledge/archimedes-delight/archimedes-delight",
+    "evals": true,
     "changelog": false,
     "migrations": false,
     "categories": [
-      "documentation",
-      "devops"
+      "writing"
     ],
     "ecosystem": [
-      "aws"
+      "science"
     ],
-    "depends": [],
+    "depends": [
+      "literature-review",
+      "dataset-discovery",
+      "citation-management",
+      "critical-appraisal",
+      "research-ideation",
+      "manuscript-writing",
+      "peer-review",
+      "figure-preparation",
+      "research-presentation"
+    ],
     "enhances": [],
     "formatByHarness": {
       "kiro": "power",
-      "claude-code": "claude-md"
+      "claude-code": "claude-md",
+      "codex": "skill",
+      "copilot": "instructions",
+      "cursor": "rule",
+      "gemini-cli": "gemini-md"
     },
     "features": {
       "hooks": false,
-      "mcp": true,
-      "workflows": true,
-      "conditionalInclusion": false
+      "mcp": false,
+      "workflows": false,
+      "conditionalInclusion": true
     },
     "maturity": "experimental",
-    "trust": "community",
-    "audience": "advanced",
     "model-assumptions": [],
     "collections": [
-      "jh-drcc"
+      "archimedes-delight"
     ],
     "visibility": "public",
     "priority": 50,
@@ -1244,6 +1261,65 @@
     "outcomes": []
   },
   {
+    "name": "citation-management",
+    "displayName": "Citation Management",
+    "description": "Guided citation-management skill for the Archimedes Delight research collection. Turn a dataset or paper reference into a correctly formatted citation, step by step, with the researcher in the loop — extract metadata, choose a style, format, and verify. Includes a citation-pipeline workflow. Part of the archimedes-delight collection; for autonomous paper search use literature-review, for datasets use dataset-discovery.",
+    "keywords": [
+      "citation-management",
+      "archimedes-delight",
+      "citations",
+      "bibliography",
+      "research",
+      "academia",
+      "referencing"
+    ],
+    "author": "Steven J. Miklovic",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro",
+      "claude-code",
+      "codex",
+      "copilot",
+      "cursor",
+      "gemini-cli"
+    ],
+    "type": "skill",
+    "path": "knowledge/archimedes-delight/citation-management",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "writing"
+    ],
+    "ecosystem": [
+      "science"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power",
+      "claude-code": "claude-md",
+      "codex": "skill",
+      "copilot": "instructions",
+      "cursor": "rule",
+      "gemini-cli": "gemini-md"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "experimental",
+    "model-assumptions": [],
+    "collections": [
+      "archimedes-delight"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
     "name": "cloud-architect",
     "displayName": "Build infrastructure on AWS",
     "description": "Build AWS infrastructure with CDK in Python following AWS Well-Architected framework best practices",
@@ -1395,7 +1471,9 @@
       "cursor",
       "windsurf",
       "cline",
-      "qdeveloper"
+      "qdeveloper",
+      "gemini-cli",
+      "agents"
     ],
     "type": "prompt",
     "path": "knowledge/commit-craft",
@@ -1418,7 +1496,9 @@
       "cursor": "rule",
       "windsurf": "rule",
       "cline": "rule",
-      "qdeveloper": "rule"
+      "qdeveloper": "rule",
+      "gemini-cli": "gemini-md",
+      "agents": "agents-md"
     },
     "features": {
       "hooks": true,
@@ -1432,6 +1512,79 @@
     "collections": [
       "neon-caravan"
     ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "critical-appraisal",
+    "displayName": "Critical Appraisal",
+    "description": "Guided critical appraisal of scientific evidence for the Archimedes Delight collection. Study-design hierarchy, effect measures (RR/OR/HR/NNT/Cohen's d), bias types, confounding, p-value vs effect size, and GRADE quality assessment. Domain-neutral. Part of the archimedes-delight collection; use when reading a paper or assessing a claim's strength.",
+    "keywords": [
+      "critical-appraisal",
+      "archimedes-delight",
+      "evidence-evaluation",
+      "study-design",
+      "effect-size",
+      "bias",
+      "grade"
+    ],
+    "author": "Steven J. Miklovic",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro",
+      "claude-code",
+      "codex",
+      "copilot",
+      "cursor",
+      "gemini-cli"
+    ],
+    "type": "skill",
+    "path": "knowledge/archimedes-delight/critical-appraisal",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "writing"
+    ],
+    "ecosystem": [
+      "science"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power",
+      "claude-code": "claude-md",
+      "codex": "skill",
+      "copilot": "instructions",
+      "cursor": "rule",
+      "gemini-cli": "gemini-md"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": false,
+      "conditionalInclusion": true
+    },
+    "maturity": "experimental",
+    "model-assumptions": [],
+    "collections": [
+      "archimedes-delight"
+    ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "SciAgent-Skills: scientific-critical-thinking",
+          "authors": [
+            "SciAgent-Skills contributors"
+          ],
+          "url": "https://github.com/SciAgent-Skills",
+          "license": "CC-BY-4.0",
+          "relationship": "adapted"
+        }
+      ],
+      "notice": "Adapted (condensed and made domain-neutral) from the SciAgent-Skills scientific-writing skill \"scientific-critical-thinking\", licensed CC-BY-4.0. Attribution retained."
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -1566,6 +1719,66 @@
     "outcomes": []
   },
   {
+    "name": "dataset-discovery",
+    "displayName": "Dataset Discovery Agent",
+    "description": "Autonomous dataset-discovery agent for the Archimedes Delight research collection. Hand off a research question or dataset criteria and receive a ranked shortlist of candidate datasets from open-data repositories (starting with RODA, the Registry of Open Data on AWS) via a define-scope → search → evaluate → shortlist loop. Part of the archimedes-delight collection; for papers use literature-review, for formatting references use citation-management.",
+    "keywords": [
+      "dataset-discovery",
+      "archimedes-delight",
+      "roda",
+      "open-data",
+      "research",
+      "academia",
+      "datasets"
+    ],
+    "author": "Steven J. Miklovic",
+    "version": "0.1.1",
+    "harnesses": [
+      "kiro",
+      "claude-code",
+      "codex",
+      "copilot",
+      "cursor",
+      "gemini-cli"
+    ],
+    "type": "agent",
+    "path": "knowledge/archimedes-delight/dataset-discovery",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "writing"
+    ],
+    "ecosystem": [
+      "science",
+      "aws"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power",
+      "claude-code": "claude-md",
+      "codex": "skill",
+      "copilot": "instructions",
+      "cursor": "rule",
+      "gemini-cli": "gemini-md"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": false,
+      "conditionalInclusion": true
+    },
+    "maturity": "experimental",
+    "model-assumptions": [],
+    "collections": [
+      "archimedes-delight"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
     "name": "debug-journal",
     "displayName": "Debug Journal",
     "description": "A systematic debugging workflow — articulate the problem before chasing the solution.",
@@ -1584,7 +1797,9 @@
       "cursor",
       "windsurf",
       "cline",
-      "qdeveloper"
+      "qdeveloper",
+      "gemini-cli",
+      "agents"
     ],
     "type": "workflow",
     "path": "knowledge/debug-journal",
@@ -1605,7 +1820,9 @@
       "cursor": "rule",
       "windsurf": "rule",
       "cline": "rule",
-      "qdeveloper": "rule"
+      "qdeveloper": "rule",
+      "gemini-cli": "gemini-md",
+      "agents": "agents-md"
     },
     "features": {
       "hooks": true,
@@ -1952,6 +2169,88 @@
           "relationship": "verbatim"
         }
       ]
+    },
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "figure-preparation",
+    "displayName": "Figure Preparation",
+    "description": "Guided figure and schematic preparation for the Archimedes Delight collection. A domain-neutral QA checklist for publication figures (resolution, formats, color, fonts, panel labels, accessibility), a consolidated view of common journal requirements, and design principles for schematics and graphical abstracts. Part of the archimedes-delight collection.",
+    "keywords": [
+      "figure-preparation",
+      "archimedes-delight",
+      "scientific-figures",
+      "graphical-abstract",
+      "accessibility",
+      "schematics"
+    ],
+    "author": "Steven J. Miklovic",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro",
+      "claude-code",
+      "codex",
+      "copilot",
+      "cursor",
+      "gemini-cli"
+    ],
+    "type": "skill",
+    "path": "knowledge/archimedes-delight/figure-preparation",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "writing"
+    ],
+    "ecosystem": [
+      "science"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power",
+      "claude-code": "claude-md",
+      "codex": "skill",
+      "copilot": "instructions",
+      "cursor": "rule",
+      "gemini-cli": "gemini-md"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": false,
+      "conditionalInclusion": true
+    },
+    "maturity": "experimental",
+    "model-assumptions": [],
+    "collections": [
+      "archimedes-delight"
+    ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "SciAgent-Skills: general-figure-guide and journal figure guides",
+          "authors": [
+            "HITS",
+            "SciAgent-Skills contributors"
+          ],
+          "url": "https://github.com/SciAgent-Skills",
+          "license": "CC-BY-4.0",
+          "relationship": "adapted"
+        },
+        {
+          "work": "SciAgent-Skills: scientific-schematics",
+          "authors": [
+            "SciAgent-Skills contributors"
+          ],
+          "url": "https://github.com/SciAgent-Skills",
+          "license": "CC-BY-4.0",
+          "relationship": "adapted"
+        }
+      ],
+      "notice": "Consolidated and adapted (condensed, made domain-neutral) from the SciAgent-Skills scientific-writing figure guides (general and journal- specific) and \"scientific-schematics\", licensed CC-BY-4.0. Journal-specific numbers are summarized as ranges; always confirm the target venue's current author guidelines. Attribution retained."
     },
     "visibility": "public",
     "priority": 50,
@@ -2443,6 +2742,65 @@
     "outcomes": []
   },
   {
+    "name": "literature-review",
+    "displayName": "Literature Review Agent",
+    "description": "Autonomous literature-review agent for the Archimedes Delight research collection. Hand off a research question and receive a synthesized, cited literature summary produced by a define-scope → search → triage → synthesize loop, with source-quality screening and an explicit human-in-the-loop boundary. Part of the archimedes-delight collection; for datasets use dataset-discovery, for formatting references use citation-management.",
+    "keywords": [
+      "literature-review",
+      "archimedes-delight",
+      "research",
+      "academia",
+      "synthesis",
+      "systematic-review",
+      "evidence-synthesis"
+    ],
+    "author": "Steven J. Miklovic",
+    "version": "0.1.2",
+    "harnesses": [
+      "kiro",
+      "claude-code",
+      "codex",
+      "copilot",
+      "cursor",
+      "gemini-cli"
+    ],
+    "type": "agent",
+    "path": "knowledge/archimedes-delight/literature-review",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "writing"
+    ],
+    "ecosystem": [
+      "science"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power",
+      "claude-code": "claude-md",
+      "codex": "skill",
+      "copilot": "instructions",
+      "cursor": "rule",
+      "gemini-cli": "gemini-md"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": true,
+      "workflows": false,
+      "conditionalInclusion": true
+    },
+    "maturity": "experimental",
+    "model-assumptions": [],
+    "collections": [
+      "archimedes-delight"
+    ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
     "name": "localstack",
     "displayName": "Develop AWS apps with LocalStack",
     "description": "Build, test, and debug AWS applications locally and in CI/CD using LocalStack. Manage the local cloud environment, deploy infrastructure with CDK/Terraform/SAM, analyze logs, enforce IAM policies, inject chaos faults, and manage state snapshots.",
@@ -2508,6 +2866,79 @@
           "relationship": "verbatim"
         }
       ]
+    },
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "manuscript-writing",
+    "displayName": "Manuscript Writing",
+    "description": "Guided scholarly-manuscript writing for the Archimedes Delight research collection. Domain-neutral guidance on IMRAD structure, citation styles, reporting guidelines, figure/table design principles, and venue adaptation. Part of the archimedes-delight collection; for citation formatting use citation-management, for figures use figure-preparation.",
+    "keywords": [
+      "manuscript-writing",
+      "archimedes-delight",
+      "academic-writing",
+      "imrad",
+      "reporting-guidelines",
+      "scholarly-publishing"
+    ],
+    "author": "Steven J. Miklovic",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro",
+      "claude-code",
+      "codex",
+      "copilot",
+      "cursor",
+      "gemini-cli"
+    ],
+    "type": "skill",
+    "path": "knowledge/archimedes-delight/manuscript-writing",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "writing"
+    ],
+    "ecosystem": [
+      "science"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power",
+      "claude-code": "claude-md",
+      "codex": "skill",
+      "copilot": "instructions",
+      "cursor": "rule",
+      "gemini-cli": "gemini-md"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": false,
+      "conditionalInclusion": true
+    },
+    "maturity": "experimental",
+    "model-assumptions": [],
+    "collections": [
+      "archimedes-delight"
+    ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "SciAgent-Skills: scientific-manuscript-writing",
+          "authors": [
+            "HITS",
+            "SciAgent-Skills contributors"
+          ],
+          "url": "https://github.com/SciAgent-Skills",
+          "license": "CC-BY-4.0",
+          "relationship": "adapted"
+        }
+      ],
+      "notice": "Adapted (condensed and made domain-neutral) from the SciAgent-Skills scientific-writing skill \"scientific-manuscript-writing\", licensed CC-BY-4.0. Attribution to the original authors is retained."
     },
     "visibility": "public",
     "priority": 50,
@@ -2748,6 +3179,78 @@
     "collections": [
       "byron-powers"
     ],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "peer-review",
+    "displayName": "Peer Review",
+    "description": "Guided peer review for the Archimedes Delight collection. A structured seven-stage evaluation of manuscripts and proposals — initial assessment, section review, statistical rigor, reproducibility, figure integrity, ethics, writing — plus reporting-standard checks and review-report structure. Domain-neutral. Part of the archimedes-delight collection; for evidence quality use critical-appraisal.",
+    "keywords": [
+      "peer-review",
+      "archimedes-delight",
+      "manuscript-review",
+      "reproducibility",
+      "reporting-standards",
+      "scholarly-publishing"
+    ],
+    "author": "Steven J. Miklovic",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro",
+      "claude-code",
+      "codex",
+      "copilot",
+      "cursor",
+      "gemini-cli"
+    ],
+    "type": "skill",
+    "path": "knowledge/archimedes-delight/peer-review",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "writing"
+    ],
+    "ecosystem": [
+      "science"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power",
+      "claude-code": "claude-md",
+      "codex": "skill",
+      "copilot": "instructions",
+      "cursor": "rule",
+      "gemini-cli": "gemini-md"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": false,
+      "conditionalInclusion": true
+    },
+    "maturity": "experimental",
+    "model-assumptions": [],
+    "collections": [
+      "archimedes-delight"
+    ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "SciAgent-Skills: peer-review-methodology",
+          "authors": [
+            "SciAgent-Skills contributors"
+          ],
+          "url": "https://github.com/SciAgent-Skills",
+          "license": "CC-BY-4.0",
+          "relationship": "adapted"
+        }
+      ],
+      "notice": "Adapted (condensed and made domain-neutral) from the SciAgent-Skills scientific-writing skill \"peer-review-methodology\", licensed CC-BY-4.0. Attribution retained."
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -3059,6 +3562,169 @@
     "outcomes": []
   },
   {
+    "name": "research-ideation",
+    "displayName": "Research Ideation",
+    "description": "Guided research ideation for the Archimedes Delight collection. Structured divergent-thinking methods (SCAMPER, Six Thinking Hats, morphological analysis, TRIZ) plus turning observations into testable hypotheses with predictions and experiment designs. Domain-neutral. Part of the archimedes-delight collection; for literature grounding use literature-review.",
+    "keywords": [
+      "research-ideation",
+      "archimedes-delight",
+      "brainstorming",
+      "hypothesis-generation",
+      "scamper",
+      "triz",
+      "divergent-thinking"
+    ],
+    "author": "Steven J. Miklovic",
+    "version": "0.1.0",
+    "harnesses": [
+      "kiro",
+      "claude-code",
+      "codex",
+      "copilot",
+      "cursor",
+      "gemini-cli"
+    ],
+    "type": "skill",
+    "path": "knowledge/archimedes-delight/research-ideation",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "writing"
+    ],
+    "ecosystem": [
+      "science"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power",
+      "claude-code": "claude-md",
+      "codex": "skill",
+      "copilot": "instructions",
+      "cursor": "rule",
+      "gemini-cli": "gemini-md"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": false,
+      "conditionalInclusion": true
+    },
+    "maturity": "experimental",
+    "model-assumptions": [],
+    "collections": [
+      "archimedes-delight"
+    ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "SciAgent-Skills: scientific-brainstorming",
+          "authors": [
+            "SciAgent-Skills contributors"
+          ],
+          "url": "https://github.com/SciAgent-Skills",
+          "license": "CC-BY-4.0",
+          "relationship": "adapted"
+        },
+        {
+          "work": "SciAgent-Skills: hypothesis-generation",
+          "authors": [
+            "SciAgent-Skills contributors"
+          ],
+          "url": "https://github.com/SciAgent-Skills",
+          "license": "CC-BY-4.0",
+          "relationship": "adapted"
+        }
+      ],
+      "notice": "Adapted (condensed and made domain-neutral) from the SciAgent-Skills scientific-writing skills \"scientific-brainstorming\" and \"hypothesis-generation\", licensed CC-BY-4.0. Attribution retained."
+    },
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "research-presentation",
+    "displayName": "Research Presentation",
+    "description": "Guided research presentation for the Archimedes Delight collection. Slide and poster design for conferences, seminars, defenses, and pitches — talk structure, timing, slide/data-viz design, poster layout, accessibility, and QA. Domain-neutral. Part of the archimedes-delight collection; for figures use figure-preparation.",
+    "keywords": [
+      "research-presentation",
+      "archimedes-delight",
+      "slides",
+      "posters",
+      "conference-talk",
+      "accessibility"
+    ],
+    "author": "Steven J. Miklovic",
+    "version": "0.2.0",
+    "harnesses": [
+      "kiro",
+      "claude-code",
+      "codex",
+      "copilot",
+      "cursor",
+      "gemini-cli"
+    ],
+    "type": "skill",
+    "path": "knowledge/archimedes-delight/research-presentation",
+    "evals": true,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "writing"
+    ],
+    "ecosystem": [
+      "science"
+    ],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "kiro": "power",
+      "claude-code": "claude-md",
+      "codex": "skill",
+      "copilot": "instructions",
+      "cursor": "rule",
+      "gemini-cli": "gemini-md"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "experimental",
+    "model-assumptions": [],
+    "collections": [
+      "archimedes-delight"
+    ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "SciAgent-Skills: scientific-slides",
+          "authors": [
+            "SciAgent-Skills contributors"
+          ],
+          "url": "https://github.com/SciAgent-Skills",
+          "license": "CC-BY-4.0",
+          "relationship": "adapted"
+        },
+        {
+          "work": "SciAgent-Skills: latex-research-posters",
+          "authors": [
+            "SciAgent-Skills contributors"
+          ],
+          "url": "https://github.com/SciAgent-Skills",
+          "license": "CC-BY-4.0",
+          "relationship": "adapted"
+        }
+      ],
+      "notice": "Adapted (condensed and made domain-neutral) from the SciAgent-Skills scientific-writing skills \"scientific-slides\" and \"latex-research-posters\", licensed CC-BY-4.0. Attribution retained."
+    },
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
     "name": "review-ai-research-output",
     "displayName": "Review AI Research Output",
     "description": "Audit an AI-assisted research output for evidence, citation fit, source coverage, calculations, reproducibility, disclosure, privacy, and human review before it is shared or used.",
@@ -3149,7 +3815,9 @@
       "cursor",
       "windsurf",
       "cline",
-      "qdeveloper"
+      "qdeveloper",
+      "gemini-cli",
+      "agents"
     ],
     "type": "skill",
     "path": "knowledge/review-ritual",
@@ -3170,7 +3838,9 @@
       "cursor": "rule",
       "windsurf": "rule",
       "cline": "rule",
-      "qdeveloper": "rule"
+      "qdeveloper": "rule",
+      "gemini-cli": "gemini-md",
+      "agents": "agents-md"
     },
     "features": {
       "hooks": true,
@@ -3958,7 +4628,9 @@
       "cursor",
       "windsurf",
       "cline",
-      "qdeveloper"
+      "qdeveloper",
+      "gemini-cli",
+      "agents"
     ],
     "type": "skill",
     "path": "knowledge/type-guardian",
@@ -3981,7 +4653,9 @@
       "cursor": "rule",
       "windsurf": "rule",
       "cline": "rule",
-      "qdeveloper": "rule"
+      "qdeveloper": "rule",
+      "gemini-cli": "gemini-md",
+      "agents": "agents-md"
     },
     "features": {
       "hooks": true,

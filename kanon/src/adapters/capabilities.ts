@@ -117,6 +117,39 @@ export const CAPABILITY_MATRIX: CapabilityMatrix = {
 		file_match_inclusion: { support: "full" },
 		system_prompt_merging: { support: "none", degradation: "inline" },
 	},
+	"gemini-cli": {
+		// Gemini CLI has no declarative event-hook system.
+		hooks: { support: "none", degradation: "inline" },
+		// MCP servers are first-class via .gemini/settings.json "mcpServers".
+		mcp: { support: "full" },
+		// Scoping is via hierarchical/nested GEMINI.md, not glob file patterns.
+		path_scoping: { support: "none", degradation: "comment" },
+		workflows: { support: "none", degradation: "inline" },
+		toggleable_rules: { support: "none", degradation: "omit" },
+		// Sub-agents are not a declarative file surface.
+		agents: { support: "none", degradation: "omit" },
+		file_match_inclusion: { support: "none", degradation: "omit" },
+		// GEMINI.md files are concatenated into the model context every prompt.
+		system_prompt_merging: { support: "full" },
+	},
+	agents: {
+		// The AGENTS.md standard defines only a single Markdown instruction file.
+		// It has no event-hook system.
+		hooks: { support: "none", degradation: "inline" },
+		// No MCP configuration is part of the vendor-neutral AGENTS.md standard;
+		// each consuming tool configures MCP its own way.
+		mcp: { support: "none", degradation: "comment" },
+		// Scoping is via nested AGENTS.md files, not glob file patterns.
+		path_scoping: { support: "none", degradation: "comment" },
+		// Workflow phase content is folded into the single AGENTS.md body.
+		workflows: { support: "none", degradation: "inline" },
+		toggleable_rules: { support: "none", degradation: "omit" },
+		// No declarative sub-agent file surface.
+		agents: { support: "none", degradation: "omit" },
+		file_match_inclusion: { support: "none", degradation: "omit" },
+		// AGENTS.md is read into the agent's context on task start.
+		system_prompt_merging: { support: "full" },
+	},
 };
 
 // --- Zod Validation at Module Load Time ---
