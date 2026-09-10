@@ -141,7 +141,10 @@ describe("registry projection", () => {
 				name: "in",
 				collections: ["archimedes-delight"],
 			});
-			const other = makeCatalogEntry({ name: "out", collections: ["something-else"] });
+			const other = makeCatalogEntry({
+				name: "out",
+				collections: ["something-else"],
+			});
 			const yaml = renderCollectionRegistry(
 				[member, other],
 				"archimedes-delight",
