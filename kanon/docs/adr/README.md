@@ -81,6 +81,8 @@ ADRs document significant architectural decisions made during the project's deve
 | [069](0069-complete-axis-inventory-for-frontmatter-classification.md) | Canonical frontmatter axis inventory | Proposed | 2026-09-10 |
 | [070](0070-byte-preserving-binary-workflow-assets.md) | Byte-preserving binary workflow assets | Accepted | 2026-09-09 |
 | [071](0071-generated-registry-yaml-as-sciagent-compatible-index.md) | Generated registry.yaml as a SciAgent-compatible index | Proposed | 2026-09-10 |
+| [072](0072-code-point-ordering-for-deterministic-output.md) | Locale-independent code-point ordering for deterministic output | Accepted | 2026-09-10 |
+| [073](0073-harvest-pipeline-agent-substance-into-router-dispatched-members.md) | Harvest pipeline-agent substance into router-dispatched collection members | Proposed | 2026-09-10 |
 
 ## Creating a New ADR
 

@@ -47,6 +47,21 @@ tests:
       - type: llm-rubric
         value: "PASS if dataset-discovery is selected. FAIL if literature-review or another member is selected."
 
+  - description: "Routes cross-source integration to evidence-synthesis"
+    metadata:
+      kanon:
+        class: direct-routing
+        pairId: archimedes-delight.direct-routing.evidence-synthesis
+    vars:
+      user_query: "I already have 12 screened papers; integrate their findings and tell me where they conflict and what's missing."
+    assert:
+      - type: icontains-any
+        value: ["evidence-synthesis", "evidence synthesis"]
+      - type: not-icontains
+        value: "literature-review"
+      - type: llm-rubric
+        value: "PASS if integrating an existing source set routes to evidence-synthesis, not literature-review. FAIL otherwise."
+
   - description: "Routes hypothesis formation to research-ideation"
     metadata:
       kanon:
@@ -59,6 +74,21 @@ tests:
         value: ["research-ideation", "research ideation"]
       - type: llm-rubric
         value: "PASS if research-ideation is selected for brainstorming and hypothesis formation. FAIL otherwise."
+
+  - description: "Routes study design to methodology-design"
+    metadata:
+      kanon:
+        class: direct-routing
+        pairId: archimedes-delight.direct-routing.methodology-design
+    vars:
+      user_query: "Help me choose the research paradigm and method for my study on remote-work productivity."
+    assert:
+      - type: icontains-any
+        value: ["methodology-design", "methodology design"]
+      - type: not-icontains
+        value: "research-ideation"
+      - type: llm-rubric
+        value: "PASS if selecting a paradigm and method routes to methodology-design, not research-ideation. FAIL otherwise."
 
   - description: "Routes claim evaluation to critical-appraisal"
     metadata:

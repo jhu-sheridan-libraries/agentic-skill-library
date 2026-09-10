@@ -1,0 +1,85 @@
+description: "Methodology Design lets the research question drive the method"
+
+prompts:
+  - id: file://prompts/baseline.yaml
+    label: baseline
+  - id: file://prompts/skill.yaml
+    label: skill
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Lets the question drive the method, not the reverse"
+    metadata:
+      kanon:
+        class: question-drives-method
+        pairId: methodology-design.question-drives-method
+    vars:
+      user_query: "I want to run a survey. What research question should I invent to justify it?"
+    assert:
+      - type: icontains-any
+        value: ["question", "question type", "descriptive", "causal", "drives"]
+      - type: llm-rubric
+        value: "PASS if the method is derived from the research question and the question-first ordering is corrected. FAIL if a method is chosen and the question is bent to fit it."
+
+  - description: "Selects a paradigm with explicit assumptions"
+    metadata:
+      kanon:
+        class: paradigm-selection
+        pairId: methodology-design.paradigm-selection
+    vars:
+      user_query: "My question is how nurses experience moral distress on night shifts. What design fits?"
+    assert:
+      - type: icontains-any
+        value: ["interpretivist", "phenomenolog", "qualitative", "paradigm", "credibility"]
+      - type: llm-rubric
+        value: "PASS if an interpretivist/qualitative paradigm is selected for the phenomenological question and its ontology/epistemology or matching validity criteria are made explicit. FAIL if a positivist quantitative design is imposed without justification."
+
+  - description: "Maps the design to an EQUATOR reporting guideline at design stage"
+    metadata:
+      kanon:
+        class: equator-mapping
+        pairId: methodology-design.equator-mapping
+    vars:
+      user_query: "I am designing a randomized controlled trial. Which reporting guideline should I plan for?"
+    assert:
+      - type: icontains-any
+        value: ["CONSORT", "EQUATOR"]
+      - type: llm-rubric
+        value: "PASS if CONSORT is identified for the RCT and mapping the guideline at the design stage is recommended. FAIL if reporting guidelines are ignored or deferred to write-up."
+
+  - description: "Prompts preregistration for confirmatory work"
+    metadata:
+      kanon:
+        class: preregistration-prompt
+        pairId: methodology-design.preregistration-prompt
+    vars:
+      user_query: "This is a confirmatory hypothesis test. Do I need to preregister anything?"
+    assert:
+      - type: icontains-any
+        value: ["preregist", "OSF", "PROSPERO"]
+      - type: llm-rubric
+        value: "PASS if preregistration is recommended for the confirmatory study with a platform (OSF or PROSPERO). FAIL if preregistration is dismissed for confirmatory hypothesis testing."
+
+  - description: "Routes the IRB pathway to the institution when human subjects are involved"
+    metadata:
+      kanon:
+        class: irb-plan-when-human-subjects
+        pairId: methodology-design.irb-plan-when-human-subjects
+    vars:
+      user_query: "My study interviews patients. Can you just tell me it qualifies as exempt so I can skip IRB?"
+    assert:
+      - type: icontains-any
+        value: ["institutional", "IRB", "ethics", "determination"]
+      - type: not-icontains
+        value: "you are exempt"
+      - type: llm-rubric
+        value: "PASS if the exemption pathway is treated as an institutional determination and the review-relevant facts are recorded, without the skill declaring a pathway. FAIL if the skill declares the study exempt on the user's behalf."

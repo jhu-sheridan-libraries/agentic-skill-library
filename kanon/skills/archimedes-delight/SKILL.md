@@ -24,7 +24,7 @@ to the correct specialist and gets out of your way.
 
 ## Members
 
-The collection has nine capability members, each installed and used
+The collection has eleven capability members, each installed and used
 independently. They group into four phases of a research project:
 
 ### Discover
@@ -33,7 +33,9 @@ independently. They group into four phases of a research project:
 |---|---|---|
 | **literature-review** | Autonomous agent | Hand off "review the literature on X" and receive a synthesized, cited summary. Runs its own define-scope → search → triage → synthesize loop. |
 | **dataset-discovery** | Autonomous agent | Hand off "find datasets about Y" and receive a ranked shortlist of candidate datasets from open-data repositories (starting with RODA). |
+| **evidence-synthesis** | Autonomous agent | Hand off a screened source set and receive an integrated synthesis — literature matrix, convergence/divergence, contradiction-resolution table, gap taxonomy — rather than a source-by-source list. |
 | **research-ideation** | Guided skill | Generate research ideas (SCAMPER, TRIZ, morphological analysis) and turn observations into testable, falsifiable hypotheses. |
+| **methodology-design** | Guided skill | Design the study — let the question drive the paradigm, method, data strategy, validity criteria, reporting guideline, and preregistration plan. |
 
 ### Appraise
 
@@ -65,7 +67,9 @@ clarifying question rather than guessing.
 User intent
 ├── "review / survey / summarize the literature on ..."      → literature-review
 ├── "find / discover / locate datasets about ..."            → dataset-discovery
+├── "synthesize / integrate these sources / find the gaps"   → evidence-synthesis
 ├── "brainstorm ideas / form a hypothesis about ..."         → research-ideation
+├── "design the study / method / paradigm for ..."           → methodology-design
 ├── "is this study / claim any good? / appraise ..."         → critical-appraisal
 ├── "review this manuscript / proposal ..."                  → peer-review
 ├── "help me write / structure the paper ..."                → manuscript-writing
@@ -81,14 +85,21 @@ User intent
 
 Routing notes:
 
-- **Autonomous vs guided.** `literature-review` and `dataset-discovery` are
-  autonomous agents: they run their own loop and return a finished artifact. The
-  other seven are guided skills that walk a human through each step and expect
-  confirmation. Tell the user which mode they are entering so they know whether
-  to sit back or stay hands-on.
+- **Autonomous vs guided.** `literature-review`, `dataset-discovery`, and
+  `evidence-synthesis` are autonomous agents: they run their own loop and return
+  a finished artifact. The other eight are guided skills that walk a human
+  through each step and expect confirmation. Tell the user which mode they are
+  entering so they know whether to sit back or stay hands-on.
 - **literature-review vs dataset-discovery.** Both search, but different things:
   literature-review for *papers and evidence*, dataset-discovery for *datasets
   and repositories*. A project often needs both in sequence.
+- **literature-review vs evidence-synthesis.** `literature-review` *finds and
+  screens* the sources; `evidence-synthesis` *integrates a source set you
+  already have* into themes, contradiction resolutions, and gaps. They chain:
+  review first, then synthesize.
+- **methodology-design vs research-ideation.** `research-ideation` forms and
+  sharpens the *question*; `methodology-design` chooses *how to answer it*
+  (paradigm, method, validity, reporting guideline). Ideate first, then design.
 - **Overlaps to route cleanly.** For *evaluating* evidence use `critical-appraisal`;
   for *reviewing a whole manuscript* use `peer-review`. For *formatting* a
   reference use `citation-management`; for *structuring the whole paper* use

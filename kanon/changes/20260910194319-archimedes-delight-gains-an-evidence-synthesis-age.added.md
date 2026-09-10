@@ -1,0 +1,1 @@
+archimedes-delight gains an evidence-synthesis agent and a methodology-design guided skill (adapted from academic-research-skills pipeline agents, pipeline machinery excluded per ADR-0073), and manuscript-writing gains a revision-log Revision Protocol

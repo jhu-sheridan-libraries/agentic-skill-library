@@ -1,0 +1,4 @@
+- role: system
+  content: file://dist/kiro/evidence-synthesis/POWER.md
+- role: user
+  content: "{{user_query}}"
