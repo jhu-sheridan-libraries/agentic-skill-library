@@ -30,6 +30,8 @@ function hookJsonFor(hook: CanonicalHook): Record<string, unknown> {
 		f.relativePath.endsWith(".kiro.hook"),
 	);
 	if (!hookFile) throw new Error("expected a .kiro.hook file");
+	if (typeof hookFile.content !== "string")
+		throw new Error("expected text content for .kiro.hook file");
 	return JSON.parse(hookFile.content);
 }
 

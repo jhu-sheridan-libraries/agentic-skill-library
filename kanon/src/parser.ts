@@ -2,6 +2,11 @@ import { exists, readdir, readFile } from "node:fs/promises";
 import { basename, join, resolve } from "node:path";
 import matter from "gray-matter";
 import * as yaml from "js-yaml";
+import {
+	binaryMediaType,
+	isBinaryWorkflowFile,
+	isExecutableWorkflowFile,
+} from "./binary-assets";
 import { parseCanonical } from "./rosetta/canonical";
 import {
 	type CanonicalHook,
@@ -282,12 +287,30 @@ export async function parseWorkflows(
 	const workflows: WorkflowFile[] = [];
 
 	for (const filename of filenames) {
-		const content = await readFile(join(workflowsDir, filename), "utf-8");
+		const absPath = join(workflowsDir, filename);
 		const name = filename
 			.replace(/\.[^./]+$/, "")
 			.replace(/[/-]/g, " ")
 			.replace(/\b\w/g, (c) => c.toUpperCase());
-		workflows.push({ name, filename, content: content.trim() });
+		if (isBinaryWorkflowFile(filename)) {
+			const bytes = new Uint8Array(await readFile(absPath));
+			workflows.push({
+				name,
+				filename,
+				content: bytes,
+				binary: true,
+				executable: false,
+			});
+		} else {
+			const content = await readFile(absPath, "utf-8");
+			workflows.push({
+				name,
+				filename,
+				content: content.trim(),
+				binary: false,
+				executable: isExecutableWorkflowFile(filename),
+			});
+		}
 	}
 
 	return { data: workflows, warnings };
@@ -410,18 +433,33 @@ async function readArtifactDocuments(
 		// Missing is fine — optional
 	}
 
-	// Read workflows directory (optional)
+	// Read workflows directory (optional). Binary assets (e.g. a bundled
+	// .docx template) are read as raw bytes so they survive byte-for-byte;
+	// text files are decoded as UTF-8. Scripts get the executable bit.
 	const workflowsDir = join(artifactDir, "workflows");
 	const workflowsExist = await exists(workflowsDir);
 	if (workflowsExist) {
 		const workflowFiles = await collectWorkflowFiles(workflowsDir);
 		for (const filename of workflowFiles) {
-			const content = await readFile(join(workflowsDir, filename), "utf-8");
-			documents.push({
-				path: `workflows/${filename}`,
-				content,
-				executable: false,
-			});
+			const absPath = join(workflowsDir, filename);
+			if (isBinaryWorkflowFile(filename)) {
+				const bytes = new Uint8Array(await readFile(absPath));
+				documents.push({
+					path: `workflows/${filename}`,
+					content: bytes,
+					executable: false,
+					...(binaryMediaType(filename)
+						? { mediaType: binaryMediaType(filename) }
+						: {}),
+				});
+			} else {
+				const content = await readFile(absPath, "utf-8");
+				documents.push({
+					path: `workflows/${filename}`,
+					content,
+					executable: isExecutableWorkflowFile(filename),
+				});
+			}
 		}
 	}
 

@@ -288,6 +288,17 @@ export const kiroAdapter: HarnessAdapter = (
 
 		// Copy workflows to steering/ with progressive inspection
 		for (const wf of artifact.workflows) {
+			// Binary assets (e.g. a bundled .docx) are not steering markdown;
+			// copy them through byte-for-byte without inclusion analysis.
+			if (wf.binary || typeof wf.content !== "string") {
+				files.push({
+					relativePath: `steering/${wf.filename}`,
+					content: wf.content,
+					...(wf.executable ? { executable: true } : {}),
+				});
+				continue;
+			}
+
 			const parseResult = parseKiroSteeringFile(wf.content, wf.filename);
 			const wfInclusion =
 				parseResult.ok && parseResult.frontmatter
@@ -323,6 +334,7 @@ export const kiroAdapter: HarnessAdapter = (
 			files.push({
 				relativePath: `steering/${wf.filename}`,
 				content: wf.content,
+				...(wf.executable ? { executable: true } : {}),
 			});
 		}
 	}

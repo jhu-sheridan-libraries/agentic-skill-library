@@ -63,14 +63,24 @@ export const windsurfAdapter: HarnessAdapter = (
 		content: ruleContent,
 	});
 
-	// Copy workflows to .windsurf/workflows/
+	// Copy workflows to .windsurf/workflows/. Binary assets are copied
+	// byte-for-byte; only text workflows go through the template.
 	for (const wf of artifact.workflows) {
+		if (wf.binary || typeof wf.content !== "string") {
+			files.push({
+				relativePath: `.windsurf/workflows/${wf.filename}`,
+				content: wf.content,
+				...(wf.executable ? { executable: true } : {}),
+			});
+			continue;
+		}
 		const wfContent = renderTemplate(templateEnv, "windsurf/workflow.md.njk", {
 			workflow: wf,
 		});
 		files.push({
 			relativePath: `.windsurf/workflows/${wf.filename}`,
 			content: wfContent,
+			...(wf.executable ? { executable: true } : {}),
 		});
 	}
 

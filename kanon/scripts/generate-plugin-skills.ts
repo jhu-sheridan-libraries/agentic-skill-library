@@ -14,7 +14,7 @@
  *   bun run scripts/generate-plugin-skills.ts
  */
 
-import { mkdir, rm, writeFile } from "node:fs/promises";
+import { chmod, mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { generateCatalog, SOURCE_DIRS } from "../src/catalog";
 import { isParseError, loadKnowledgeArtifact } from "../src/parser";
@@ -71,7 +71,16 @@ export async function generatePluginSkills(
 				const outPath = join(referencesDir, wf.filename);
 				const outDir = outPath.substring(0, outPath.lastIndexOf("/"));
 				await mkdir(outDir, { recursive: true });
-				await writeFile(outPath, wf.content, "utf-8");
+				// Preserve binary assets (e.g. a bundled .docx) byte-for-byte;
+				// write text as UTF-8. Set the executable bit for scripts.
+				if (typeof wf.content === "string") {
+					await writeFile(outPath, wf.content, "utf-8");
+				} else {
+					await writeFile(outPath, wf.content);
+				}
+				if (wf.executable) {
+					await chmod(outPath, 0o755);
+				}
 			}
 		}
 

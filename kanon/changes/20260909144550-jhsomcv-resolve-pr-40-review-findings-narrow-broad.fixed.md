@@ -1,0 +1,1 @@
+jhsomcv: resolve PR #40 review findings — narrow broad except clauses in verify_pubs.py, guard similarity-score division by zero, add a bounds check in fill_template.py, wrap all script file I/O in context managers, and drop an unused import; attribution relationship for the bundled scripts is now 'adapted'
