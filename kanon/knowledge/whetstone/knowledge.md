@@ -30,16 +30,14 @@ keywords:
   - test-optimization
   - vertical-slices
 author: Steven J. Miklovic
-version: 0.4.4
+version: 0.4.5
 harnesses:
   - kiro
   - claude-code
   - codex
   - copilot
   - cursor
-  - windsurf
   - cline
-  - qdeveloper
   - gemini-cli
 type: skill
 inclusion: auto
@@ -590,7 +588,7 @@ When a workflow completes and the user asks what to do next, **name the specific
 
 ## Companion Powers
 
-These external powers complement codeshop but are NOT bundled — they are activated separately via the Powers system. Suggest them when the user's context would benefit from their specialized guidance.
+These external powers complement codeshop but are NOT bundled — they are activated separately. Suggest them when the user's context would benefit from their specialized guidance.
 
 - **adr** — Full ADR lifecycle management: create, update, review, health check, and cross-reference ADRs. Suggest activating when `refactor-architecture` or `challenge-domain-model` surfaces architectural decisions worth recording.
 

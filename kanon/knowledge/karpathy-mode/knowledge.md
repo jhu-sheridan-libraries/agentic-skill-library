@@ -17,9 +17,7 @@ harnesses:
   - claude-code
   - copilot
   - cursor
-  - windsurf
   - cline
-  - qdeveloper
   - codex
 type: skill
 inclusion: always

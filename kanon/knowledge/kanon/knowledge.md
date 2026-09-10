@@ -1,7 +1,7 @@
 ---
 name: kanon
-displayName: Kanon & Context Bazaar
-description: Onboarding and assistant guide for using the Kanon CLI & Context Bazaar to author, build, and manage knowledge artifacts for AI coding assistants.
+displayName: Kanon
+description: Onboarding and assistant guide for using the Kanon CLI to author, build, and manage knowledge artifacts for AI coding assistants.
 keywords:
   - kanon
   - knowledge-artifacts
@@ -11,10 +11,11 @@ keywords:
   - forge-cli
   - harness-compilation
 author: Johns Hopkins DRCC
-version: 0.2.5
+version: 0.2.6
 harnesses:
   - kiro
   - claude-code
+  - codex
 type: skill
 inclusion: auto
 categories:

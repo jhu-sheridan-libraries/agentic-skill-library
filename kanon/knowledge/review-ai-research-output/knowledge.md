@@ -14,7 +14,7 @@ keywords:
   - privacy
   - human-review
 author: Library AI Workshop maintainers
-version: 0.1.0
+version: 0.1.1
 type: skill
 harnesses:
   - codex
@@ -37,7 +37,7 @@ trust: community
 audience: advanced
 model-assumptions: []
 collections:
-  - library-ai-workshop
+  - libraries-ai-workshop
 inherit-hooks: false
 visibility: public
 priority: 50

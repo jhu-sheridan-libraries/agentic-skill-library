@@ -13,7 +13,7 @@ keywords:
   - remote-coding
   - workflow-orchestration
 author: context-bazaar
-version: 0.2.0
+version: 0.2.1
 harnesses:
   - kiro
   - claude-code
@@ -34,7 +34,7 @@ ecosystem:
 depends: []
 enhances: []
 collections:
-  - archon
+  - codefactory
 maturity: experimental
 trust: community
 license: MIT
