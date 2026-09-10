@@ -2,41 +2,75 @@
 
 ## Overview
 
-Archimedes Delight is a **single** knowledge artifact, `kanon/knowledge/archimedes-delight/` (`type: power`), bundling four capability kinds: data-access MCP servers (RODA, plus a placeholder for literature search), guided research skills (citation management, dataset-discovery guidance), human-followed research workflows (dataset-to-citation pipeline), and two autonomous research agents (literature review, dataset discovery). It follows the same shape as `alice-whiterabbit` and `kanon`, the two existing `jh-drcc` artifacts that already combine steering content with MCP servers and workflows.
+Archimedes Delight is a **collection** of knowledge artifacts under a shared namespace directory, `kanon/knowledge/archimedes-delight/`, with a **router** artifact (also named `archimedes-delight`) that directs the user to the right member. It follows the `byron-powers` precedent: a namespaced container directory holding one member directory per artifact, each declaring `collections: [archimedes-delight]` in its own frontmatter, plus a metadata-only collection manifest at `collections/archimedes-delight.yaml` (ADR-0016).
 
-An earlier iteration of this design split the literature-review agent into its own `type: agent` artifact with a `depends: [archimedes-delight]` link. That was reconsidered: per **ADR-0014**, `type` is a single asset-taxonomy tag used for discovery, validation, and collection curation — it is explicitly decoupled from output format (ADR-0012/0013), which lives entirely in `harness-config.<harness>.format`. There is no distinct "agent runtime" that `type: agent` unlocks in this pipeline. Concretely, Kiro's format registry (`src/format-registry.ts`) defines only `steering` and `power` as valid Kiro formats — there is no Kiro `agent` format — so a `type: agent` artifact on Kiro renders through the exact same `power`/`steering` template path as this artifact already uses. On Claude Code, both `power` and `agent` render as a CLAUDE.md section regardless. The only harnesses where `agent` produces genuinely different output are Copilot (`AGENTS.md`) and Q Developer (`.q/agents/`), neither of which this artifact targets. Since "agent" behavior here is just documented body content (a loop description) plus MCP access — exactly what `power` already bundles — splitting it out would buy only a distinct catalog tag, at the cost of a second artifact, a second `jh-drcc` collection member, and `depends`-composition wiring that serves no other purpose. Both agents therefore live inside the power and read its MCP servers directly, with no `depends` field needed at all.
+The collection has ten members — a router plus nine capabilities, grouped by research phase (discover → appraise → create → communicate):
 
-Capability-to-primitive mapping, all within this one artifact:
+- **`archimedes-delight`** (router; `type: skill`, Kiro format `power`) — the entry point. Describes the collection and routes intent to the correct member. Declares `depends: [<all nine capability members>]`.
 
-- **MCP data access** → `mcp-servers.yaml` (RODA server, real and working; a Literature_Search_MCP_Server placeholder — see below).
-- **Skills** (citation management, dataset-discovery guidance) → `knowledge.md` body sections, each documented as a `manual`-inclusion steering topic (mirroring how `alice-whiterabbit` exposes `model-selection`, `research-prompts`, etc. via `#topic` triggers).
-- **Workflows** (human-followed) → `workflows/*.md`, one per Research_Workflow, loaded automatically by `loadKnowledgeArtifact()` and surfaced through Kiro's per-workflow steering files (`fileMatch`/`manual` inclusion, same pattern as `alice-whiterabbit/workflows/*.md`). Literature review and autonomous dataset discovery are explicitly excluded here (Requirement 5.5).
-- **Agents** (autonomous) → dedicated `knowledge.md` body sections, clearly delimited from the Skills/Workflows sections, describing each agent's loop, inputs, and outputs. Rendered through the same `power`/steering template path as everything else in the artifact — no separate build path.
+Discover:
+- **`literature-review`** (`type: agent`) — autonomous literature review over the Literature_Search_MCP_Server (the bundled `bibliographic-mcp` server).
+- **`dataset-discovery`** (`type: agent`) — autonomous dataset discovery over the RODA_MCP_Server.
+- **`research-ideation`** (`type: skill`) — divergent-thinking methods + hypothesis formulation.
 
-No changes to `build.ts`, `parser.ts`, `schemas.ts`, or any adapter are needed. This is pure content authored within existing pipeline capabilities.
+Appraise:
+- **`critical-appraisal`** (`type: skill`) — evaluate evidence (design hierarchy, effect sizes, bias, GRADE).
+- **`peer-review`** (`type: skill`) — structured seven-stage manuscript/proposal review.
+
+Create:
+- **`manuscript-writing`** (`type: skill`) — IMRAD, reporting guidelines, venue adaptation.
+- **`citation-management`** (`type: skill`) — guided citation formatting, with a `citation-pipeline` workflow.
+- **`figure-preparation`** (`type: skill`) — figure QA, journal requirements, schematics.
+
+Communicate:
+- **`research-presentation`** (`type: skill`) — slides and posters.
+
+The four capability members drawn from the sibling `SciAgent-Skills` project's `scientific-writing` set (`research-ideation`, `critical-appraisal`, `peer-review`, `manuscript-writing`, `figure-preparation`, `research-presentation`) are **adaptations of CC-BY-4.0 source**, condensed and made domain-neutral (no life-sciences-specific content), each carrying an `attribution` block crediting SciAgent-Skills with `relationship: adapted`. Overlapping SciAgent skills (`citation-management`, `literature-review`) were folded into the existing same-named members rather than duplicated, and its database-client skills (PubMed/OpenAlex/bioRxiv) were excluded in favor of the `bibliographic-mcp` data-access path.
+
+**Why a collection, not one artifact.** An earlier iteration of this design folded all four capabilities into a *single* `type: power` artifact with body sections, reasoning (per **ADR-0014**) that `type` is a taxonomy tag decoupled from output format and that Kiro has no distinct `agent` format, so splitting bought only a catalog tag. That reasoning still holds for *output format*, but a collection was chosen for a different reason: **discoverability and independent installation**. As separate members, each capability is its own `CatalogEntry`, can be installed on its own, renders as its own Claude Code plugin skill, and carries its own `type` (`agent` vs `skill`) so a harness that *does* distinguish agents (Copilot `AGENTS.md`, Q Developer) gets the right shape. The router artifact preserves the "one front door" experience the single-artifact design gave, without collapsing the members into one entry.
+
+Concretely, the namespace layout is required by the pipeline's one-level discovery rule (`collectArtifactPaths` in `build.ts`/`validate.ts`/`catalog.ts`): a directory that contains a `knowledge.md` **is** a single artifact and is not descended into. So `knowledge/archimedes-delight/` must be a **pure container** (no root `knowledge.md`); the router lives at `knowledge/archimedes-delight/archimedes-delight/knowledge.md` alongside the three capability members. This mirrors `byron-powers/` exactly.
+
+Capability-to-primitive mapping, one member per capability:
+
+- **MCP data access** → each agent member's own `mcp-servers.yaml` (RODA under `dataset-discovery`; the Literature_Search_MCP_Server placeholder under `literature-review`).
+- **Guided skill** (citation management) → `citation-management/knowledge.md` body + `citation-management/workflows/citation-pipeline.md`.
+- **Autonomous agents** (literature review, dataset discovery) → their own member `knowledge.md`, each `type: agent`, documenting a goal, inputs, outputs, and an explicit autonomous loop.
+- **Routing** → `archimedes-delight/knowledge.md`, which maps user intent to the correct member.
+
+**Positioning — human-in-the-loop.** Archimedes Delight targets JHU staff and faculty engaged in advanced research, so the agent members adopt an explicit human-in-the-loop boundary (following the ARS `deep-research` stance, "AI is your copilot, not the pilot"): **the agent triages and synthesizes; the researcher judges and verifies.** Neither agent asserts a question is settled, and neither fabricates a source, result, or metadata value to fill a gap — a missing answer is reported as a gap.
+
+The member content is authored within existing pipeline capabilities (the namespaced-collection layout is already supported) — no changes to `build.ts`, `parser.ts`, `schemas.ts`, or any adapter. The **registry.yaml generation** is the one code addition: a pure projection module `src/registry.ts` (catalog entry → SciAgent-style registry entry) plus a thin CLI `scripts/generate-registry.ts`, with `catalogCommand` in `catalog.ts` writing a bazaar-wide `registry.yaml` alongside `catalog.json`. See "Registry generation" below and the Decisions section.
 
 ## Architecture
 
 ```mermaid
 graph TD
-    subgraph "kanon/knowledge/archimedes-delight/ (type: power)"
-        KM[knowledge.md<br/>frontmatter + body:<br/>overview, skills, agents, steering table]
-        MCP[mcp-servers.yaml<br/>awslabs.roda-mcp-server +<br/>literature-search placeholder]
-        WF1[workflows/dataset-discovery.md]
-        WF2[workflows/citation-pipeline.md]
+    subgraph "kanon/knowledge/archimedes-delight/ (pure container)"
+        ROUTER[archimedes-delight/knowledge.md<br/>type: skill · router<br/>members table + routing tree]
+        LR[literature-review/<br/>type: agent · knowledge.md<br/>+ mcp-servers.yaml: lit-search placeholder]
+        DD[dataset-discovery/<br/>type: agent · knowledge.md<br/>+ mcp-servers.yaml: RODA]
+        CM[citation-management/<br/>type: skill · knowledge.md<br/>+ workflows/citation-pipeline.md]
     end
 
-    KM -->|loadKnowledgeArtifact| PARSE[parser.ts]
-    MCP -->|merged MCP servers| PARSE
-    WF1 --> PARSE
-    WF2 --> PARSE
+    ROUTER -->|depends: 3 members| LR
+    ROUTER --> DD
+    ROUTER --> CM
+
+    LR -->|loadKnowledgeArtifact| PARSE[parser.ts]
+    DD --> PARSE
+    CM --> PARSE
+    ROUTER --> PARSE
 
     PARSE --> BUILD[build.ts]
     BUILD --> KIRO[adapters/kiro.ts<br/>POWER.md + steering/*.md + mcp.json]
-    BUILD --> CC[adapters/claude-code.ts<br/>CLAUDE.md section, partial]
+    BUILD --> CC[adapters/claude-code.ts<br/>CLAUDE.md section]
 
-    PARSE --> CATALOG[catalog.ts → catalog.json<br/>one CatalogEntry]
-    KM -->|collections: [jh-drcc]| COLLMEM[buildCollectionMembership]
+    PARSE --> CATALOG[catalog.ts → catalog.json<br/>4 CatalogEntry records]
+    ROUTER -->|collections: [archimedes-delight]| COLLMEM[buildCollectionMembership]
+    LR --> COLLMEM
+    DD --> COLLMEM
+    CM --> COLLMEM
 ```
 
 ### Request/build-time flow for a researcher
@@ -50,20 +84,20 @@ sequenceDiagram
     participant User as Staff/faculty researcher
 
     Dev->>CLI: kanon build (or bun run dev build)
-    CLI->>Build: scan knowledge/archimedes-delight
-    Build->>Kiro: adapt(artifact, templateEnv)
-    Kiro->>Kiro: render POWER.md, steering/*.md, mcp.json entry
-    Build-->>Dev: dist/kiro/archimedes-delight/*
+    CLI->>Build: scan knowledge/archimedes-delight/* (4 members)
+    Build->>Kiro: adapt(each member, templateEnv)
+    Kiro->>Kiro: render POWER.md/steering + mcp.json per member
+    Build-->>Dev: dist/kiro/{archimedes-delight,literature-review,dataset-discovery,citation-management}/*
 
-    User->>User: open Kiro with archimedes-delight installed
+    User->>User: open Kiro with the collection installed
     User->>Kiro: "review the literature on X"
-    Kiro->>Kiro: apply Literature Review Agent section:<br/>define scope → search → triage → synthesize
+    Kiro->>Kiro: router → literature-review member:<br/>define scope → search → triage (quality screen) → synthesize
     Kiro->>LitSearch_MCP: search (once placeholder is a real endpoint)
     LitSearch_MCP-->>Kiro: candidate results
-    Kiro->>User: synthesized summary with citations
+    Kiro->>User: synthesized summary with citations (or "search not wired up yet")
 
     User->>Kiro: "find datasets about Y"
-    Kiro->>Kiro: apply Dataset Discovery Agent section:<br/>define scope → search → evaluate → shortlist
+    Kiro->>Kiro: router → dataset-discovery member:<br/>define scope → search → evaluate → shortlist
     Kiro->>RODA_MCP: search/query RODA datasets
     RODA_MCP-->>Kiro: dataset metadata / search results
     Kiro->>User: ranked shortlist of candidate datasets
@@ -74,70 +108,107 @@ sequenceDiagram
 ### Directory layout (new files only)
 
 ```
-kanon/knowledge/archimedes-delight/
-├── knowledge.md              # frontmatter + overview + skills + agents + steering table
-├── mcp-servers.yaml          # awslabs.roda-mcp-server + literature-search placeholder
-└── workflows/
-    └── citation-pipeline.md  # dataset/paper → formatted citation
+kanon/collections/archimedes-delight.yaml        # metadata-only collection manifest (ADR-0016)
+kanon/knowledge/archimedes-delight/              # PURE CONTAINER — no root knowledge.md
+├── registry.yaml                                # generated collection index (SciAgent-style)
+├── archimedes-delight/                          # router member
+│   ├── knowledge.md                             # overview + members table + routing tree
+│   └── hooks.yaml                               # [] (no automation for v1)
+├── literature-review/                           # autonomous agent member (discover)
+│   ├── knowledge.md                             # goal, inputs, outputs, loop, failure modes
+│   └── mcp-servers.yaml                         # bibliographic-mcp (bundled server)
+├── dataset-discovery/                           # autonomous agent member (discover)
+│   ├── knowledge.md                             # goal, inputs, outputs, loop, failure modes
+│   └── mcp-servers.yaml                         # awslabs.roda-mcp-server (stdio)
+├── research-ideation/knowledge.md               # guided skill (discover) — CC-BY adapted
+├── critical-appraisal/knowledge.md              # guided skill (appraise) — CC-BY adapted
+├── peer-review/knowledge.md                     # guided skill (appraise) — CC-BY adapted
+├── manuscript-writing/knowledge.md              # guided skill (create) — CC-BY adapted
+├── figure-preparation/knowledge.md              # guided skill (create) — CC-BY adapted
+├── research-presentation/knowledge.md           # guided skill (communicate) — CC-BY adapted
+└── citation-management/                         # guided skill member (create)
+    ├── knowledge.md                             # guide: concepts, decision framework, pitfalls
+    └── workflows/
+        └── citation-pipeline.md                 # dataset/paper → formatted citation
 ```
 
-`dataset-discovery` is not a `workflows/*.md` file in this revision — dataset discovery is documented as an autonomous agent section (see below), not a human-followed workflow, so only `citation-pipeline.md` remains as a Research_Workflow. No `hooks.yaml` is needed (no automation triggers required for v1); no `evals/` initially — can be added later without design changes.
+Dataset discovery and literature review are **agent members** (`type: agent`), not `workflows/*.md` files — they run their own loop rather than being human-followed steps (Requirement 5.5). Only `citation-pipeline.md` is a Research_Workflow, and it lives under the `citation-management` member. RODA's `mcp-servers.yaml` lives with `dataset-discovery`; the literature-search entry lives with `literature-review`; each stays a flat top-level YAML list so more data-access servers can be appended without restructuring (Requirement 3.5). The six SciAgent-adapted guided skills each carry an `attribution` block (CC-BY-4.0, `relationship: adapted`). `registry.yaml` is generated (see Registry generation below), not hand-authored. No `evals/` initially — can be added per-member later.
 
-### `knowledge.md` frontmatter (concrete values)
+### Registry generation
+
+Kanon's authoritative machine index is `catalog.json`; `registry.yaml` is a lighter, human-readable, SciAgent-Skills-compatible index (one entry per artifact: `name`, `type`, `sub_type`, `category`, `path`, `description`, `date_added`, `tags?`). It is **generated**, never hand-edited, from the same parsed catalog so the two never drift. Two scopes:
+
+- **Bazaar-wide** — every catalog artifact → a top-level `kanon/registry.yaml`. Bundled with catalog creation: `catalogCommand` in `src/catalog.ts` writes it alongside `catalog.json` on every `kanon catalog generate`.
+- **Collection-scoped** — only members of one collection → that collection's own `registry.yaml` (e.g. `kanon/knowledge/archimedes-delight/registry.yaml`), for a substantial collection that warrants its own index. Produced by `bun run scripts/generate-registry.ts --collection archimedes-delight` (also `bun run build:registry`).
+
+The pure projection lives in `src/registry.ts` (`toRegistryEntry`, `renderBazaarRegistry`, `renderCollectionRegistry`), shared by both paths. Kanon has no `sub_type` field, so it is **inferred** from artifact shape: `type: agent` → `agent`; has MCP servers → `database`; has workflows → `pipeline`; otherwise → `guide`. `category` is the artifact's first `categories` entry; remaining categories plus `ecosystem` become `tags`.
+
+### Router `knowledge.md` frontmatter (concrete values)
 
 ```yaml
 name: archimedes-delight
 displayName: Archimedes Delight
+version: 0.2.0
 description: >-
-  Elite academic research library tool for Johns Hopkins staff and faculty.
-  Provides MCP-backed data access to research repositories (starting with
-  RODA — Registry of Open Data on AWS), guided research skills for citation
-  management, autonomous agents for literature review and dataset
-  discovery, and multi-step research workflows.
+  Router for the Archimedes Delight research-science collection. Directs JHU
+  staff and faculty across the research arc — discover, appraise, create,
+  communicate — to the right member.
 keywords:
   - archimedes-delight
-  - jh-drcc
-  - roda
-  - research-library
+  - research
+  - academia
   - literature-review
   - dataset-discovery
   - citation-management
-  - academic-research
-author: Johns Hopkins DRCC
-version: 0.1.0
+  - manuscript-writing
+  - router
+author: Steven J. Miklovic
+type: skill
+inclusion: manual
+categories:
+  - writing
 harnesses:
   - kiro
   - claude-code
-type: power
-inclusion: auto
-categories:
-  - documentation
-  - devops
+  - codex
+  - copilot
+  - cursor
+  - gemini-cli
 ecosystem:
-  - aws
-depends: []
+  - science
+depends:
+  - literature-review
+  - dataset-discovery
+  - citation-management
+  - critical-appraisal
+  - research-ideation
+  - manuscript-writing
+  - peer-review
+  - figure-preparation
+  - research-presentation
 enhances: []
 maturity: experimental
-trust: community
-audience: advanced
 model-assumptions: []
 collections:
-  - jh-drcc
+  - archimedes-delight
 inherit-hooks: false
 harness-config:
   kiro:
     format: power
-  claude-code:
-    format: claude-md
+    inclusion: manual
+  codex:
+    format: skill
 ```
+
+Each capability member uses the same author/collection/harness set, with `type: agent` for `literature-review` and `dataset-discovery` and `type: skill` for the seven guided skills (`research-ideation`, `critical-appraisal`, `peer-review`, `manuscript-writing`, `figure-preparation`, `research-presentation`, `citation-management`). The six SciAgent-adapted guided skills additionally carry an `attribution` block (`upstream[].{work, authors, license: CC-BY-4.0, url, relationship: adapted}` plus a `notice`). Codex's format is `skill` for all members (codex only supports `agents-md` and `skill`; `agent` is not a valid codex format).
 
 Design decisions on specific fields, tied to requirements:
 
-- `type: power` (Requirement 1.2) — chosen over `reference-pack` because power is designed for exactly this "broad capability bundle with an entry-point doc + steering topics" shape, matching `alice-whiterabbit`'s and `kanon`'s own precedent. `reference-pack` is for manual-inclusion-only reference material and has no natural home for MCP servers or workflow steering. `agent` was considered and rejected as the *top-level* type too — see Overview — since it's a single-artifact taxonomy tag, not a container, and `power` already accommodates agent-loop content as body sections.
-- `depends: []` — no dependency composition is used; both agents read MCP servers declared directly in this artifact's own `mcp-servers.yaml`.
-- `maturity: experimental` and `audience: advanced` — this is a new, unreleased artifact (Requirement 1) aimed at expert researchers, not a stable general-audience tool; distinguishes it from `alice-whiterabbit` (`stable`) and `jhu-editorial-check`.
-- `trust: community` — matches every other `jh-drcc` artifact's trust lane; nothing here claims official JHU endorsement.
-- `harnesses: [kiro, claude-code]` (Requirement 6.1) — Kiro gets full power support; Claude Code gets partial (rendered as a CLAUDE.md section) per `compatibility.ts`. No other harness is targeted in v1, so no partial/none surprises there — `kanon build --strict` only evaluates the harnesses actually listed.
+- `type: skill` on the router (Requirement 1.2) — canonical per ADR-0051, with `harness-config.kiro.format: power` giving Kiro a proper power entry point. (`type: power` is a deprecated alias that raises a validation warning; the router uses `skill` to stay clean.) `type: agent` on the two agent members is what lets a harness that distinguishes agents render them correctly.
+- `depends: [<all nine capability members>]` on the router — declares the collection's shape and resolves cleanly because every name is discovered as a sibling member. The capability members themselves use `depends: []`; each is self-contained (agents read only the MCP servers in their own `mcp-servers.yaml`), so no cross-member composition is exercised.
+- `collections: [archimedes-delight]` on every member — membership is derived at build time from this field alone (ADR-0016); removing a member directory drops it from the collection with no manifest edit.
+- `maturity: experimental` — new, unreleased artifacts aimed at expert researchers.
+- `harnesses: [kiro, claude-code, codex, copilot, cursor, gemini-cli]` (Requirement 6.1) — Kiro gets full power support; other harnesses render with expected capability-degradation warnings (e.g. `toggleable-rules` omitted, `workflows` inlined) rather than errors. `kanon build --strict` only evaluates the harnesses actually listed.
 
 ### `mcp-servers.yaml` (concrete content)
 
@@ -170,78 +241,160 @@ Translating the user-supplied native MCP JSON into this repo's list shape (Requi
   autoApprove: []
 ```
 
-`autoApprove: []` on RODA is the deliberate default from Requirement 3.3 — the actual `awslabs.roda-mcp-server` tool list isn't enumerated at authoring time (open question carried from requirements), so nothing is pre-approved until a maintainer inspects the package's tools and opts specific read-only ones in. This mirrors `bedrock-agentcore-mcp-server`'s entry in `alice-whiterabbit/mcp-servers.yaml`, which also ships `autoApprove: []` for the same reason. The literature-search placeholder ships `autoApprove: []` for the same conservative reason, doubly so since its `url` isn't even real yet.
-
 No `disabled` field is set on either entry (Requirement 7.5) — a placeholder `url` is a functional gap to resolve later, not a reason to mark the server disabled; `disabled` is a separate decision left for whoever wires up the real endpoint.
 
-No `${ENV_VAR}` credential placeholders are needed for RODA specifically (Requirement 3.4) — RODA is a public AWS Registry of Open Data service with no auth in its documented MCP config. The requirement's `${ENV_VAR}` guidance remains documented in `knowledge.md`'s body as guidance for *future* data-access servers added to this file that do need credentials (e.g. a JHU-internal repository API, or the eventual real literature-search endpoint if it requires auth), satisfying 3.4 without inventing unused config now.
+No `${ENV_VAR}` credential placeholders are needed for RODA specifically (Requirement 3.4) — RODA is a public AWS Registry of Open Data service with no auth in its documented MCP config. The `${ENV_VAR}` guidance is documented in the member body as guidance for *future* credentialed data-access servers (e.g. a JHU-internal repository API, or a real literature-search endpoint if it requires auth), satisfying 3.4 without inventing unused config now.
 
-### `knowledge.md` body structure
+#### RODA Data Access section (Requirement 3.2, written in SciAgent database-skill shape)
+
+The `dataset-discovery` member documents RODA the way SciAgent-Skills documents a `database` sub-type skill — task-perspective "when to use" bullets, then enumerated operations, then a routing pointer — rather than a one-line "search, metadata, discovery" gloss. The `## Data Access` section reads:
+
+- **When to use RODA** (bullets from the researcher's task, e.g. "you need an openly-licensed dataset to work with", "you want to discover what public datasets exist for a domain", "you have a dataset name and need its metadata/location") — and one negative bullet routing papers away: "for *papers and evidence*, use the `literature-review` member instead."
+- **Operations** — enumerated to the extent discoverable from the installed `awslabs.roda-mcp-server` package: search datasets, retrieve dataset metadata, discover/browse the registry. The section notes the tool list must be confirmed against the installed package version before any operation is added to `autoApprove`.
+- **RODA-vs-literature routing pointer** — one line stating that RODA serves datasets and the Literature_Search_MCP_Server serves papers, so an agent/user picks the right server for the task (this also lives in the router's routing tree).
+
+#### `autoApprove` policy (Requirement 3.3, Open Question 1)
+
+Both servers ship `autoApprove: []`. The member body documents the **read-only-only rubric** a future maintainer applies when opting tools in, adapted from the read/search/metadata framing SciAgent's database skills use:
+
+- Auto-approve **only** tools that are read-only — search, metadata retrieval, discovery/browse.
+- **Never** auto-approve anything that mutates state, incurs non-trivial cost, or has side effects.
+- Confirm each candidate tool's behavior against the *installed* package version before adding it (tool lists change across versions).
+
+This answers Open Question 1: the qualifying set is "read-only search/metadata/discovery tools, confirmed against the installed version"; everything else stays behind manual approval. The literature-search placeholder keeps `[]` regardless, since its endpoint isn't real yet.
+
+### Member `knowledge.md` body structures
+
+Each member is authored to its own kind. The agent members follow the ARS
+`deep-research` phase shape; the citation member follows SciAgent's prose-guide
+template; the router body is a routing map.
+
+#### Router — `archimedes-delight/knowledge.md`
 
 ```markdown
 # Archimedes Delight
 
 ## Overview
-<what it is, who it's for; note that literature review and dataset
-discovery are autonomous agents (below), distinct from the guided
-skills and workflows>
+<front desk of the research library — a router, not a doer>
 
-## Data Access
+## Members
+| Member | Kind | Use it when you want to… |
+| literature-review | Autonomous agent | "review the literature on X" → cited summary |
+| dataset-discovery | Autonomous agent | "find datasets about Y" → ranked shortlist |
+| citation-management | Guided skill | turn a reference into a formatted citation |
 
-### RODA MCP Server
-<what awslabs.roda-mcp-server exposes: search, metadata, discovery over
-Registry of Open Data on AWS; note that tool list should be confirmed
-against the installed package version before enabling autoApprove entries>
+## Routing
+<intent → member decision tree, incl. RODA-vs-literature and
+autonomous-vs-guided distinctions, and the human-in-the-loop boundary>
 
-### Literature Search MCP Server (placeholder)
-<state plainly: no official institutional remote MCP server exists today
-for PubMed, arXiv, or Semantic Scholar (confirmed during this spec's
-authoring); this entry's url is a placeholder pending a JHU DRCC-hosted
-instance; cyanheads/pubmed-mcp-server is a documented candidate
-implementation for that future instance, self-hostable via transport:
-http/sse; do not substitute an unaffiliated third party's personally-
-hosted instance>
-
-## Available Steering Files
-| File | Inclusion | Trigger | Content |
-|---|---|---|---|
-| **citation-pipeline** | manual | `#citation-pipeline` | Turning a discovered dataset/paper into a formatted citation |
-
-## Research Skills
-### Citation Management
-<inputs, outputs, dependency on citation-pipeline workflow>
-
-## Autonomous Research Agents
-<clearly delimited from Research Skills above — these run their own
-loop rather than being guided step-by-step>
-
-### Literature Review Agent
-- **Inputs:** a research question or topic (free text)
-- **Outputs:** a synthesized literature summary with citations
-- **Loop:** define scope → search via Literature Search MCP Server →
-  triage/screen results → synthesize findings
-- **Current limitation:** the Literature Search MCP Server is currently a
-  placeholder (see Data Access above); until a real endpoint is wired up,
-  this agent should tell the user the search step cannot be completed
-  rather than silently failing or fabricating results
-
-### Dataset Discovery Agent
-- **Inputs:** a research question or dataset criteria (free text)
-- **Outputs:** a ranked shortlist of candidate datasets
-- **Loop:** define scope → search via RODA MCP Server → evaluate
-  candidate datasets (relevance, size, license, format) → shortlist
-- **Current limitation:** RODA's exact tool list is unconfirmed at
-  authoring time (see Data Access above); the agent should rely only on
-  documented/confirmed RODA tools once `autoApprove` is populated, and
-  otherwise proceed as normal since the RODA endpoint itself is real and
-  working
+## Getting Started
+<ask goal → map to member → confirm mode → hand off; sequence members
+for multi-part goals>
 ```
 
-This satisfies Requirement 4.3 (document purpose/inputs/outputs per skill), Requirement 8.2/8.3 (document each agent's loop, inputs, and outputs), and Requirement 8.5 (agents visually and structurally distinguished from skills/workflows). Since `type` is `power`, `generate-plugin-skills.ts`'s selector (`type === "skill" || type === "power"`) already includes this artifact, so it still renders as a single combined Claude Code plugin skill (`skills/archimedes-delight/SKILL.md`) covering the skill, the workflow, and both agent sections — no per-capability sub-artifact is needed to appear in the plugin skill library.
+#### Agent members — ARS phase shape (Requirement 8; answers Open Question 2)
+
+Both `literature-review` and `dataset-discovery` are structured as ARS phases:
+a `## Goal`, `## Inputs`, `## Outputs`, and a `## Autonomous Loop` in which **each
+step names its own deliverable** (this heading set also satisfies the validator's
+`agent-should-document-loop` convention). Each closes with a `## Failure Modes`
+table and a human-in-the-loop boundary.
+
+`literature-review` loop (define scope → search → triage → synthesize), each step
+carrying a deliverable, e.g.:
+
+```markdown
+## Autonomous Loop
+1. **Define scope** → a scoped question brief (in/out-of-scope + sub-questions)
+2. **Search** → a candidate source list (documented strategy, deduplicated)
+3. **Triage** → a screened, quality-graded source set
+4. **Synthesize** → the cited summary + gaps + limitations
+```
+
+**Source quality in triage (Requirement 8; ARS source-verification concerns).**
+The triage step is not just relevance filtering — it folds in the ARS
+`source_verification_agent` concerns: grade by **evidence tier** (systematic
+reviews/RCTs > single observational studies > preprints/opinion), check
+**currency** for fast-moving fields, and run a **predatory-journal / conflict-of-
+interest screen**. Off-topic and duplicate results are dropped.
+
+**"Synthesis, not summary" note.** The synthesize step carries a one-line quality
+rule (from ARS `synthesis_agent`): *integrate across sources rather than
+summarizing them one at a time; surface and explain contradictions instead of
+cherry-picking; weight claims by evidence quality.*
+
+`dataset-discovery` loop (define scope → search via RODA → evaluate → shortlist),
+evaluate scoring on relevance, size, license, format, and currency/provenance,
+each step likewise carrying a deliverable.
+
+**Failure-modes tables.** Each agent documents a small table (answering Open
+Question 2 — graceful degradation vs. explicit "not wired up"):
+
+| Member | Key rows |
+|---|---|
+| literature-review | **Literature-search MCP is still a placeholder** → tell the user search isn't wired up; offer to synthesize user-supplied sources; never fabricate. Too few sources → broaden + report thin evidence. Contradictions → surface + weight, don't cherry-pick. Won't converge → propose narrower sub-questions. Only low-quality sources → say so, don't launder. |
+| dataset-discovery | **RODA tool not in confirmed/approved set** → use only documented read-only tools; report the unused capability rather than calling an unapproved tool. No candidates → broaden criteria + report empty. Unclear license → flag as unconfirmed, don't assert fitness. Vague criteria → return to scope. Missing metadata → report unknown, never fabricate. |
+
+**Human-in-the-loop boundary** (positioning). Each agent states plainly that it
+triages/synthesizes while the researcher judges/verifies, and that it never
+invents a source, result, or metadata value to fill a gap.
+
+#### Citation member — SciAgent prose-guide shape (Requirements 4, 5)
+
+`citation-management/knowledge.md` follows SciAgent's `SKILL_TEMPLATE_PROSE.md`:
+`## Overview` → `## Key Concepts` (source type, citation style, metadata
+completeness) → `## Decision Framework` (an ASCII decision tree *and* a decision
+table: paper-vs-dataset, DOI-vs-accession, venue style vs. field default) →
+`## Best Practices` (fix style first, verify metadata before formatting, cite
+datasets as first-class, one style per bibliography, confirm with the researcher)
+→ `## Common Pitfalls` (5+, each with a "how to avoid" — e.g. formatting before
+metadata is complete; citing a dataset as a bare URL; mixing styles; guessing a
+missing DOI; ignoring the venue's required style) → `## Workflow` (points at
+`citation-pipeline`) → `## Further Reading` → `## Related Skills`.
+
+This satisfies Requirement 4.3 (purpose/inputs/outputs), Requirements 8.2/8.3
+(each agent's loop, inputs, outputs), and Requirement 8.5 (agents structurally
+distinguished from the guided skill — they're separate members with `type:
+agent`). Because each member carries `type: skill`/`agent` + `claude-code`,
+`generate-plugin-skills.ts` renders one plugin skill **per member** (four
+`skills/<member>/SKILL.md` files), not one combined skill — the collection is the
+grouping mechanism, so per-member plugin skills are the intended output.
+
+#### Router persona and voice (Requirement 9)
+
+The router carries a light-touch, erudite **Router persona** with an
+Archimedes-of-Syracuse classical framing. This is realized entirely in the
+router member's `knowledge.md`, and only in two places:
+
+- **`## Overview`** and **`## Getting Started`** (the hand-off prose) — these
+  adopt the persona: an erudite, professional voice pitched for JHU staff and
+  faculty, a light signature framing that evokes Archimedes of Syracuse (for
+  example a sparing "Eureka" / lever-and-fulcrum nod or a single classical
+  flourish), and occasional dry wit. The flourish is used **sparingly** —
+  roughly one touch per section, never saturating the prose (Requirement 9.1,
+  9.5).
+- **Everything else stays factual and neutral.** The `## Members` table, the
+  `## Routing` decision tree, and the routing notes keep their existing
+  task-focused tone unchanged — the persona never touches routing logic,
+  the members table, or any precision-bearing content (Requirement 9.2, 9.3).
+
+Guardrails the persona must not cross (Requirement 9.4):
+
+- It preserves the **human-in-the-loop boundary** — the agents still triage and
+  synthesize while the researcher judges and verifies.
+- It preserves the **never-fabricate rule** — the router still never invents a
+  source, result, or metadata value to fill a gap; a light voice is layered
+  on top of, never in place of, that honesty.
+- It does not alter **routing accuracy** — intent-to-member mapping is unchanged.
+
+All nine capability members retain their existing neutral, task-focused voice;
+the persona is confined to the router (Requirement 9.2). This is a
+**content-only** change to the router's `knowledge.md` — no schema, adapter, or
+build-pipeline change (Requirement 9.6).
 
 ### Workflow file (Requirement 5)
 
-The one remaining `workflows/*.md` file follows the shared structure `loadKnowledgeArtifact()` expects (filename + trimmed content, no per-file frontmatter):
+`citation-management/workflows/citation-pipeline.md` follows the shared structure `loadKnowledgeArtifact()` expects (filename + trimmed content, no per-file frontmatter):
 
 ```markdown
 # Citation Pipeline
@@ -251,53 +404,61 @@ The one remaining `workflows/*.md` file follows the shared structure `loadKnowle
 
 ## Depends On
 - MCP servers: none (works from a dataset/paper reference already in hand,
-  or from the Dataset Discovery Agent's output)
-- Skills: Citation Management
+  or from the dataset-discovery member's output)
+- Skills: Citation Management (this member)
 
 ## Steps
-1. Extract metadata from the dataset/paper reference
-2. Select citation style
+1. Extract metadata from the dataset/paper reference (mark unknowns as unknown)
+2. Select citation style (venue style, else field default)
 3. Format
-4. Verify
+4. Verify (all required fields present + resolvable, else report the gap)
 ```
 
-Single-procedure (Requirement 5.4). Literature review and dataset discovery are intentionally not workflow files (Requirement 5.5) — both are documented as Autonomous Research Agents in `knowledge.md` instead, since they run their own loop rather than steps a human executes.
+Single-procedure (Requirement 5.4). Literature review and dataset discovery are intentionally not workflow files (Requirement 5.5) — both are their own `type: agent` members, since they run their own loop rather than steps a human executes.
 
 ## Data Models
 
-No new Zod schemas or `KNOWN_FRONTMATTER_FIELDS` entries are introduced. All frontmatter fields used above already exist in `FrontmatterSchema`. `mcp-servers.yaml` uses the existing discriminated-union shape (`StdioMcpServerSchema` for RODA, `UrlMcpServerSchema` for the literature-search placeholder) already consumed by `build.ts`'s MCP-merge step. No `depends` composition is used — `resolveComposition()` in `build.ts` is not exercised by this artifact.
+No new Zod schemas or `KNOWN_FRONTMATTER_FIELDS` entries are introduced. All frontmatter fields used across the members already exist in `FrontmatterSchema`. Each agent member's `mcp-servers.yaml` uses the existing discriminated-union shape (`StdioMcpServerSchema` for RODA, `UrlMcpServerSchema` for the literature-search placeholder) already consumed by `build.ts`'s MCP-merge step. The router's `depends` resolves against sibling member names at validate time (name-set membership in `validateAll`); no `resolveComposition()` build-time merge is exercised — the members read only their own MCP servers.
 
 ## Error Handling
 
 | Failure mode | Handling |
 |---|---|
-| `kanon validate --security` flags an env var in `mcp-servers.yaml` | N/A for `FASTMCP_LOG_LEVEL` (not credential-shaped); documented pattern (`${ENV_VAR}`) given in body for any future credentialed server, satisfying Requirement 3.4 before it's ever needed |
-| `kanon build --strict` run for a harness not in `harnesses:` | Not applicable — `harnesses: [kiro, claude-code]` are `full`/`partial`-defined for `power` in `compatibility.ts`; no undeclared harness is targeted (Requirement 6.2/6.3) |
-| `loadKnowledgeArtifact()` encounters a malformed workflow file | Existing parser behavior (warnings array) surfaces via `kanon validate`; addressed by keeping the workflow file to plain markdown with no custom frontmatter, matching every existing workflow file in the repo |
-| A future maintainer adds a second data-access MCP server incorrectly (e.g. wrong list nesting) | `mcp-servers.yaml` stays a flat top-level YAML list (Requirement 3.5) — appending a new `- name: ...` entry requires no restructuring, same as `alice-whiterabbit`'s two-entry file |
-| Collection membership drift | Not applicable — membership is derived at build time from `collections: [jh-drcc]` alone (Requirement 2), no manifest edit, no separate failure path |
-| Literature-search placeholder `url` is left unresolved indefinitely | Not a build error (Requirement 7.4) — `kanon build` succeeds; the functional gap is surfaced only in documentation (the Data Access section) and in the Literature Review Agent's "Current limitation" note, which instructs the agent to tell the user rather than fail silently or fabricate results |
-| A reader confuses an Autonomous Research Agent section for a guided Research Skill | Mitigated structurally, not just by naming — the body groups agents under their own `## Autonomous Research Agents` heading, separate from `## Research Skills`, per Requirement 8.5 |
+| `kanon validate --security` flags an env var in a member's `mcp-servers.yaml` | N/A for `FASTMCP_LOG_LEVEL` (not credential-shaped); documented pattern (`${ENV_VAR}`) given in the member body for any future credentialed server, satisfying Requirement 3.4 before it's ever needed |
+| Router `type: power` deprecation warning | Avoided — the router uses `type: skill` + `harness-config.kiro.format: power` (ADR-0051 canonical form), so no deprecation warning is emitted |
+| Namespace container mistakenly given a root `knowledge.md` | Would collapse the whole collection into a single artifact (one-level discovery rule). Mitigated by keeping `knowledge/archimedes-delight/` a pure container — the router lives in its own `archimedes-delight/` subdir, per the `byron-powers` precedent |
+| `agent` member body lacks loop documentation | Avoided — both agent members use the `## Goal`/`## Inputs`/`## Outputs`/`## Autonomous Loop` heading set, which satisfies the `agent-should-document-loop` convention check |
+| `loadKnowledgeArtifact()` encounters a malformed workflow file | Existing parser behavior (warnings array) surfaces via `kanon validate`; addressed by keeping `citation-pipeline.md` to plain markdown with no custom frontmatter |
+| A future maintainer adds a second data-access MCP server incorrectly | Each member's `mcp-servers.yaml` stays a flat top-level YAML list (Requirement 3.5) — appending a new `- name: ...` entry requires no restructuring |
+| Collection membership drift | Not applicable — membership is derived at build time from each member's `collections: [archimedes-delight]` (Requirement 2/ADR-0016); deleting a member directory drops it with no manifest edit |
+| Literature-search placeholder `url` is left unresolved indefinitely | Not a build error (Requirement 7.4) — `kanon build` succeeds; the gap is surfaced in the `literature-review` member's Data Access section and its Failure Modes table, which instructs the agent to tell the user rather than fail silently or fabricate |
+| A reader confuses an agent for the guided skill | Mitigated structurally — agents are separate members with `type: agent` and their own goal/loop/failure-mode structure, distinct from the `citation-management` guided skill (Requirement 8.5) |
 
 ## Testing Strategy
 
-This is a content-only, single-artifact addition; the existing test suite already exercises the pipeline generically, so testing here means **validating the artifact against that pipeline**, not adding new unit tests to `kanon`'s own `src/__tests__/`.
+The member content is validated against the existing, already-tested pipeline; the one code addition (registry generation) is covered by the existing catalog tests plus a small YAML-parse check.
 
-- **`bun run dev catalog generate`** (or `kanon catalog generate`) — confirms `archimedes-delight` appears as a valid `CatalogEntry` in `catalog.json` (Requirement 1.6).
-- **`bun run dev validate`** — confirms no schema errors across `knowledge.md`, `mcp-servers.yaml`, and `workflows/citation-pipeline.md` (Requirement 6.4).
-- **`bun run dev validate --security`** — confirms no credential-like hardcoded value is flagged in `mcp-servers.yaml`, and that the literature-search placeholder's non-real `url` doesn't itself trigger a security warning (Requirement 3.6).
-- **`bun run dev build`** (default, non-strict) and **`bun run dev build --strict`** — confirms Kiro output (`POWER.md`, `steering/citation-pipeline.md`, MCP config entry with both servers) and Claude Code output (CLAUDE.md section, including both agent sub-sections) render without strict-mode errors (Requirement 6.2/6.3).
-- **Manual collection check** — after build, inspect that `buildCollectionMembership()`'s output (or the browse UI / MCP bridge `collection_list` tool) lists `archimedes-delight` under `jh-drcc` (Requirement 2.3).
-- **`bun run build:skills`** — confirms `archimedes-delight` is selected (via `type: power` + `claude-code` harness) and a `skills/archimedes-delight/SKILL.md` is generated and committed, containing both agent sections and the citation skill/workflow, exercising the plugin-skill path noted in Components above.
+- **`bun run dev catalog generate`** — confirms all ten members (router + nine capabilities) appear as valid `CatalogEntry` records in `catalog.json` (Requirement 1.6), and now also writes the bazaar-wide `registry.yaml`.
+- **`bun run dev validate`** — confirms no schema errors across every member's `knowledge.md`, both `mcp-servers.yaml` files, and `citation-pipeline.md`, that the router's nine `depends` references resolve, and that the six SciAgent-adapted members' `attribution` blocks parse (Requirement 6.4).
+- **`bun run dev validate --security`** — confirms no credential-like hardcoded value is flagged (the bibliographic-mcp entry's polite-pool email is an `${ENV_VAR}`) (Requirement 3.6).
+- **`bun run dev build`** (non-strict) and **`bun run dev build --strict`** — confirms every member renders to its declared harnesses; expected capability-degradation warnings are informational, not errors (Requirement 6.2/6.3).
+- **Collection membership check** — confirm the catalog lists all ten members under `archimedes-delight`, with no edit to `collections/archimedes-delight.yaml` (Requirement 2.3).
+- **`bun run build:skills`** — confirms each qualifying member (`type: skill` + `claude-code` — the router and seven guided skills) generates its own `skills/<member>/SKILL.md`, and the two `type: agent` members correctly do not.
+- **Registry generation** — the existing `src/__tests__/catalog.test.ts` covers the shared catalog scan; `src/registry.ts` is a pure projection whose output is checked by parsing both generated `registry.yaml` files as YAML and asserting the expected entry counts (10 collection-scoped, all-artifacts bazaar-wide). `bun run scripts/generate-registry.ts --collection archimedes-delight` regenerates the collection index.
+- **Manual persona check (Requirement 9)** — confirm the Archimedes persona is present in the router's `## Overview` and `## Getting Started` prose and absent from the router's members table, routing tree, and routing notes, and from every capability member.
 
-No property-based tests are warranted — this artifact introduces no executable logic, only declarative content consumed by an already-tested compiler.
+The member content introduces no executable logic. The registry projection (`src/registry.ts`) is small, pure, and deterministic; a focused unit test pinning `inferSubType` and the YAML shape is warranted if the projection grows.
 
 ## Decisions and Trade-offs
 
-1. **One artifact, not two (or three).** Reconsidered from an earlier draft that split literature review into its own `type: agent` artifact. Per ADR-0014, `type` is a single taxonomy tag decoupled from output format; Kiro has no distinct `agent` format (only `steering`/`power`), so splitting bought only a catalog-filter tag at the cost of a second artifact, collection member, and unused `depends` wiring. Folding agents into the power keeps one catalog entry, one collection membership, one version, and zero cross-artifact composition — the right trade for two agents that are functionally just documented loops over MCP servers this artifact already owns.
-2. **`type: power`, not `reference-pack` or `agent`.** Power gives a proper Kiro entry point and matches the "one bundle, several capabilities" shape of the two other multi-capability `jh-drcc` artifacts, and accommodates agent-loop content as body sections without needing to be the top-level type itself.
-3. **Inline research skills and agents instead of namespaced sub-artifacts.** Keeps one artifact = one catalog entry = one collection membership, and still produces a single combined Claude Code plugin skill via the existing `power`-inclusive selector in `generate-plugin-skills.ts` — no schema or script change needed.
-4. **`autoApprove: []` for RODA and the literature-search placeholder.** Safer default for RODA pending tool-list confirmation; doubly appropriate for the placeholder since its endpoint isn't even real yet. Deferred rather than guessed.
-5. **Literature-search MCP server is a documented placeholder, not a working third-party-hosted URL.** The only real remote instance found during research (`cyanheads/pubmed-mcp-server`'s community-hosted `https://pubmed.caseyjhand.com/mcp`) is an unaffiliated individual's personal hosting with no SLA — unsuitable as the backbone of an "elite academic research library tool." Trade-off: literature review has no working search capability until JHU DRCC stands up its own instance; the agent's documented "Current limitation" behavior (tell the user, don't fabricate) is the mitigation until then. Dataset discovery has no equivalent gap — RODA is real and working.
-6. **No `${ENV_VAR}` credentials wired up for RODA.** RODA's public/no-auth MCP config, as given, needs none; the credential-boundary guidance from `CLAUDE.md` is documented for future data-access servers instead of applied to a server that doesn't need it, avoiding speculative config.
-7. **No changes to `build.ts`/`parser.ts`/`schemas.ts`/adapters.** Every capability needed (MCP servers, steering topics, workflows, URL-based MCP servers) already has a home in the existing pipeline; extending the pipeline, or exercising the `depends`-composition path, would be unjustified scope for a content-only artifact that doesn't need it.
+1. **A collection with a router, not one bundled artifact.** An earlier draft folded all capabilities into a single `type: power` artifact with body sections, reasoning (per ADR-0014) that `type` is decoupled from output format and Kiro has no distinct `agent` format, so splitting bought "only a catalog tag." The collection was chosen instead for **discoverability, independent installation, and correct per-capability typing**: each member is its own `CatalogEntry`, installs on its own, renders as its own plugin skill, and carries `type: agent` vs `type: skill` so agent-aware harnesses (Copilot `AGENTS.md`, Q Developer) get the right shape. The router (`archimedes-delight`) preserves the single-front-door experience. Trade-off: four catalog entries and four collection members instead of one, plus a router to maintain — accepted for the discovery and typing benefits.
+2. **Router is `type: skill` + `harness-config.kiro.format: power`, not `type: power`.** `type: power` is a deprecated alias (ADR-0051) that raises a validation warning; the canonical form gives the same Kiro power entry point with a clean validate. Agent members are `type: agent`; the guided member is `type: skill`.
+3. **Namespaced layout (pure container + member subdirs), following `byron-powers`.** Required by the one-level `collectArtifactPaths` discovery rule: a directory with a root `knowledge.md` is treated as one artifact and not descended into, so `knowledge/archimedes-delight/` must have no root `knowledge.md` and the router lives in its own subdir alongside the members.
+4. **`autoApprove: []` for RODA and the literature-search placeholder, with a documented read-only-only rubric.** Safer default for RODA pending tool-list confirmation; the member body records the qualifying set (read-only search/metadata/discovery, confirmed against the installed version) so a future maintainer can opt tools in safely. Doubly appropriate for the placeholder since its endpoint isn't real yet.
+5. **Literature-search MCP server is a documented placeholder, not a working third-party-hosted URL.** The only real remote instance found during research (`cyanheads/pubmed-mcp-server`'s community-hosted instance) is an unaffiliated individual's personal hosting with no SLA — unsuitable for an elite academic research tool. Trade-off: `literature-review` has no working search until JHU DRCC stands up its own instance; the member's Failure Modes behavior (tell the user, don't fabricate) is the mitigation. `dataset-discovery` has no equivalent gap — RODA is real and working.
+6. **Human-in-the-loop positioning on the agent members.** Following ARS `deep-research`, each agent states that it triages/synthesizes while the researcher judges/verifies, and never fabricates to fill a gap — appropriate for an elite-faculty tool where trust and honesty about evidence matter more than autonomous completion.
+7. **No `${ENV_VAR}` credentials wired up for RODA.** RODA's public/no-auth config needs none; the credential-boundary guidance is documented for future credentialed servers instead of applied speculatively.
+8. **No changes to `build.ts`/`parser.ts`/`schemas.ts`/adapters.** The namespaced-collection layout, per-member MCP servers, workflows, and URL-based MCP servers are all already supported; the member content needs no pipeline change. (Registry generation adds a *separate* code path — Decision 11 — not a change to these.)
+9. **A light-touch Archimedes persona confined to the router.** The router adopts an erudite, Archimedes-of-Syracuse voice in its `## Overview` and `## Getting Started` prose only, giving the collection a distinctive front door for JHU faculty. It is deliberately kept *out* of the substance-bearing sections (members table, routing tree, routing notes) and off the capability members, so it cannot degrade routing accuracy, precision, or the never-fabricate/human-in-the-loop guarantees. Trade-off: a touch of voice to author and maintain, accepted for the engagement benefit and bounded so it never risks the collection's credibility.
+10. **Curated, domain-neutral SciAgent import with attribution, not a bulk copy.** Six guided-skill members (`research-ideation`, `critical-appraisal`, `peer-review`, `manuscript-writing`, `figure-preparation`, `research-presentation`) are adaptations of the sibling SciAgent-Skills `scientific-writing` set (CC-BY-4.0), condensed and stripped of life-sciences-specific content. Overlapping SciAgent skills (`citation-management`, `literature-review`) were folded into the existing same-named members rather than duplicated; SciAgent's database-client skills (PubMed/OpenAlex/bioRxiv) were excluded because the `bibliographic-mcp` server already owns that data-access path; and the eight journal-specific figure guides were consolidated into one `figure-preparation` member. Each adapted member carries an `attribution` block (`relationship: adapted`, `license: CC-BY-4.0`) satisfying CC-BY's attribution term. Trade-off: manual adaptation effort per member, accepted to keep the collection domain-neutral and correctly licensed rather than importing narrow or mislicensed content wholesale.
+11. **`registry.yaml` is generated from the catalog, not hand-authored, via a shared pure projection.** Kanon indexes via `catalog.json`; a SciAgent-Skills-style `registry.yaml` is added as a lighter human-readable index. The mapping/serialization is a pure module `src/registry.ts`, reused by both the bazaar-wide path (bundled into `catalogCommand`, written alongside `catalog.json`) and the collection-scoped CLI (`scripts/generate-registry.ts --collection`). This is the one code addition in this spec. Because Kanon has no `sub_type` field, it is inferred from artifact shape (`agent`→`agent`, MCP→`database`, workflows→`pipeline`, else `guide`); `category` is the first `categories` entry and remaining categories + `ecosystem` become `tags`. Trade-off: an inferred `sub_type` is best-effort, not authoritative — accepted because the registry is a discovery aid, with `catalog.json` remaining the source of truth. A new bundled MCP server or this generator both warrant an ADR at implementation close-out (tracked in tasks).
