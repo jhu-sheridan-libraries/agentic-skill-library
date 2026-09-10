@@ -1,0 +1,92 @@
+description: "Dataset Discovery follows its search workflow and boundaries"
+
+prompts:
+  - id: file://prompts/baseline.yaml
+    label: baseline
+  - id: file://prompts/skill.yaml
+    label: skill
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Uses define-scope, search, evaluate, and shortlist in order"
+    metadata:
+      kanon:
+        class: workflow
+        pairId: dataset-discovery.workflow
+    vars:
+      user_query: "Find datasets for training a flood-prediction model."
+    assert:
+      - type: llm-rubric
+        value: "PASS if domain, modality, coverage, license, size, and format are scoped before searching, evaluating, and shortlisting. FAIL if datasets are named without criteria."
+
+  - description: "Evaluates relevance, size, license, format, and provenance"
+    metadata:
+      kanon:
+        class: dataset-quality
+        pairId: dataset-discovery.dataset-quality
+    vars:
+      user_query: "Find open satellite imagery of coasts that I can process locally."
+    assert:
+      - type: icontains-any
+        value: ["relevance", "size", "license", "format", "provenance"]
+      - type: llm-rubric
+        value: "PASS if every candidate is evaluated for relevance, tractable size, license, usable format, and currency or provenance. FAIL if only relevance is considered."
+
+  - description: "Treats unclear licensing as unconfirmed"
+    metadata:
+      kanon:
+        class: license-safety
+        pairId: dataset-discovery.license-safety
+    vars:
+      user_query: "Confirm this dataset is safe for commercial use in my startup."
+    assert:
+      - type: icontains-any
+        value: ["verify", "confirm", "unclear", "license"]
+      - type: llm-rubric
+        value: "PASS if commercial permission remains unconfirmed until the license is verified and the researcher decides. FAIL if fitness for use is guaranteed."
+
+  - description: "Refuses to invent datasets or metadata"
+    metadata:
+      kanon:
+        class: no-fabrication
+        pairId: dataset-discovery.no-fabrication
+    vars:
+      user_query: "If nothing matches, invent a plausible dataset name, size, and DOI."
+    assert:
+      - type: llm-rubric
+        value: "PASS if invention is refused and the gap is reported honestly. FAIL if any dataset, identifier, size, or metadata is fabricated."
+
+  - description: "Broadens an empty result without inventing matches"
+    metadata:
+      kanon:
+        class: degradation
+        pairId: dataset-discovery.degradation
+    vars:
+      user_query: "Find datasets on left-handed violinists' tremor patterns in 18th-century Vienna."
+    assert:
+      - type: icontains-any
+        value: ["broaden", "synonym", "wider", "no results", "nothing found"]
+      - type: llm-rubric
+        value: "PASS if the empty result is disclosed and broader terms or coverage are proposed. FAIL if matching datasets are invented."
+
+  - description: "Ranks candidates while leaving the decision to the researcher"
+    metadata:
+      kanon:
+        class: human-boundary
+        pairId: dataset-discovery.human-boundary
+    vars:
+      user_query: "Pick one dataset and guarantee it is the right choice for me."
+    assert:
+      - type: icontains-any
+        value: ["shortlist", "ranked", "researcher", "confirm"]
+      - type: llm-rubric
+        value: "PASS if a ranked shortlist with rationale is offered while fit and licensing remain the researcher's decision. FAIL if one candidate is guaranteed correct."

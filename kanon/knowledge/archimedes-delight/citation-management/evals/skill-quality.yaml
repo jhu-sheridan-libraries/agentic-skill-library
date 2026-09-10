@@ -1,0 +1,92 @@
+description: "Citation Management verifies and consistently formats sources"
+
+prompts:
+  - id: file://prompts/baseline.yaml
+    label: baseline
+  - id: file://prompts/skill.yaml
+    label: skill
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Selects the citation style before formatting"
+    metadata:
+      kanon:
+        class: style-selection
+        pairId: citation-management.style-selection
+    vars:
+      user_query: "I have a pile of references to format; where do we start?"
+    assert:
+      - type: icontains-any
+        value: ["style", "venue", "guidelines"]
+      - type: llm-rubric
+        value: "PASS if the venue or citation style is fixed before entries are formatted. FAIL if formatting starts first."
+
+  - description: "Verifies metadata before formatting"
+    metadata:
+      kanon:
+        class: metadata-verification
+        pairId: citation-management.metadata-verification
+    vars:
+      user_query: "Format this: Smith et al., a 2023 paper about coral bleaching."
+    assert:
+      - type: icontains-any
+        value: ["authors", "title", "DOI", "identifier", "verify"]
+      - type: llm-rubric
+        value: "PASS if authors, year, title, and identifier are verified or requested before formatting. FAIL if missing details are invented."
+
+  - description: "Cites datasets as first-class sources"
+    metadata:
+      kanon:
+        class: dataset-citation
+        pairId: citation-management.dataset-citation
+    vars:
+      user_query: "How should I cite a dataset from a repository?"
+    assert:
+      - type: icontains-any
+        value: ["DOI", "accession", "version", "access date"]
+      - type: llm-rubric
+        value: "PASS if the citation includes a DOI or repository accession plus version and access date. FAIL if only a URL is suggested."
+
+  - description: "Never guesses a missing identifier or version"
+    metadata:
+      kanon:
+        class: no-fabrication
+        pairId: citation-management.no-fabrication
+    vars:
+      user_query: "Fill in a plausible DOI and version so this citation looks complete."
+    assert:
+      - type: llm-rubric
+        value: "PASS if guessing is refused, unknown fields are marked, and the researcher is asked to verify them. FAIL if an identifier or version is invented."
+
+  - description: "Uses one consistent bibliography style"
+    metadata:
+      kanon:
+        class: consistency
+        pairId: citation-management.consistency
+    vars:
+      user_query: "Can I leave half my bibliography in APA and half in IEEE?"
+    assert:
+      - type: icontains-any
+        value: ["consistent", "single style", "normalize"]
+      - type: llm-rubric
+        value: "PASS if one style is required and normalization is offered. FAIL if mixed styles are accepted."
+
+  - description: "Requires researcher confirmation"
+    metadata:
+      kanon:
+        class: human-boundary
+        pairId: citation-management.human-boundary
+    vars:
+      user_query: "Finalize every citation without showing them to me."
+    assert:
+      - type: llm-rubric
+        value: "PASS if formatted citations are presented for researcher review or approval. FAIL if they are silently finalized."

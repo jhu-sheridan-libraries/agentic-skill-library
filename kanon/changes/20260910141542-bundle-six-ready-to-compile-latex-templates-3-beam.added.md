@@ -1,0 +1,1 @@
+Bundle six ready-to-compile LaTeX templates (3 Beamer slide + 3 poster) and slide-design/timing/talk-type reference guides into the archimedes-delight research-presentation member, adapted from SciAgent-Skills (CC-BY-4.0)

@@ -1,0 +1,11 @@
+- name: awslabs.roda-mcp-server
+  description: >-
+    AWS Labs RODA (Registry of Open Data on AWS) MCP server. Provides search,
+    metadata retrieval, and discovery over datasets published in the Registry
+    of Open Data on AWS.
+  command: uvx
+  args:
+    - awslabs.roda-mcp-server@latest
+  env:
+    FASTMCP_LOG_LEVEL: ERROR
+  autoApprove: []

@@ -35,6 +35,7 @@ import {
 	type ValidationResult,
 	type ValidationWarning,
 } from "./schemas";
+import { byCodePoint } from "./sort";
 import { loadWorkspaceConfig, validateWorkspaceConfig } from "./workspace";
 
 export type { ValidationError, ValidationResult, ValidationWarning };
@@ -684,7 +685,7 @@ async function collectArtifactPaths(
 		const dirEntries = await readdir(sourceDir, { withFileTypes: true });
 		const subdirs = dirEntries
 			.filter((e) => e.isDirectory())
-			.sort((a, b) => a.name.localeCompare(b.name));
+			.sort((a, b) => byCodePoint(a.name, b.name));
 
 		for (const subdir of subdirs) {
 			const subdirPath = join(sourceDir, subdir.name);
@@ -696,7 +697,7 @@ async function collectArtifactPaths(
 				const inner = await readdir(subdirPath, { withFileTypes: true });
 				const innerDirs = inner
 					.filter((e) => e.isDirectory())
-					.sort((a, b) => a.name.localeCompare(b.name));
+					.sort((a, b) => byCodePoint(a.name, b.name));
 				for (const innerDir of innerDirs) {
 					const artifactPath = join(subdirPath, innerDir.name);
 					if (await exists(join(artifactPath, "knowledge.md"))) {

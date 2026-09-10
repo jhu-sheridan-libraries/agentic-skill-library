@@ -12,9 +12,11 @@
 | `codex` | reference-only | `\$\{[A-Z_]+\}` |
 | `copilot` | reject | — |
 | `cursor` | reject | — |
+| `gemini-cli` | reference-only | `\$\{[A-Z_]+\}` |
 | `kiro` | reference-only | `\$\{[A-Z_]+\}` |
 | `qdeveloper` | reject | — |
 | `windsurf` | reject | — |
+| `agents` | reference-only | `\$\{[A-Z_]+\}` |
 | `kiro-power` | reference-only | `\$\{[A-Z_]+\}` |
 | `kiro-skill` | reference-only | `\$\{[A-Z_]+\}` |
 | `superpowers` | reference-only | `\$\{[A-Z_]+\}` |

@@ -1,0 +1,105 @@
+description: "Peer Review produces structured and actionable manuscript feedback"
+
+prompts:
+  - id: file://prompts/baseline.yaml
+    label: baseline
+  - id: file://prompts/skill.yaml
+    label: skill
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Separates major and minor comments"
+    metadata:
+      kanon:
+        class: review-prioritization
+        pairId: peer-review.review-prioritization
+    vars:
+      user_query: "How should I organize comments on this manuscript?"
+    assert:
+      - type: icontains-any
+        value: ["major", "minor"]
+      - type: llm-rubric
+        value: "PASS if validity or interpretability issues are major and clarity issues are minor. FAIL if comments are undifferentiated."
+
+  - description: "Uses all seven review stages"
+    metadata:
+      kanon:
+        class: workflow
+        pairId: peer-review.workflow
+    vars:
+      user_query: "Walk me through reviewing this original research paper."
+    assert:
+      - type: llm-rubric
+        value: "PASS if review covers initial assessment, sections, statistics, reproducibility, figure integrity, ethics, and writing. FAIL if it is unstructured or omits stages."
+
+  - description: "Applies the correct reporting standard"
+    metadata:
+      kanon:
+        class: reporting-standards
+        pairId: peer-review.reporting-standards
+    vars:
+      user_query: "This manuscript reports a randomized controlled trial; what should I check?"
+    assert:
+      - type: icontains-any
+        value: ["CONSORT", "flow diagram", "randomization", "blinding", "intention-to-treat"]
+      - type: llm-rubric
+        value: "PASS if CONSORT and core RCT checks are used. FAIL if no standard or an irrelevant standard is chosen."
+
+  - description: "Makes comments specific and actionable"
+    metadata:
+      kanon:
+        class: actionable-feedback
+        pairId: peer-review.actionable-feedback
+    vars:
+      user_query: "Can my main comment just say that the methods are weak?"
+    assert:
+      - type: icontains-any
+        value: ["section", "line", "figure", "specific", "actionable"]
+      - type: llm-rubric
+        value: "PASS if the reviewer must identify a location, explain the issue, and state a feasible fix. FAIL if the vague comment is accepted."
+
+  - description: "Checks reproducibility and figure integrity"
+    metadata:
+      kanon:
+        class: research-integrity
+        pairId: peer-review.research-integrity
+    vars:
+      user_query: "Can I skip data availability and only glance at the figures?"
+    assert:
+      - type: icontains-any
+        value: ["data", "code", "version", "manipulation", "caption"]
+      - type: llm-rubric
+        value: "PASS if data, code, versions, figure manipulation, and self-contained captions remain required checks. FAIL if they are skipped."
+
+  - description: "Keeps feedback constructive and in scope"
+    metadata:
+      kanon:
+        class: constructive-scope
+        pairId: peer-review.constructive-scope
+    vars:
+      user_query: "The paper annoys me; can I demand that the authors run a completely different study?"
+    assert:
+      - type: llm-rubric
+        value: "PASS if the work, not the authors, is critiqued civilly and requests stay feasible for the submitted study. FAIL if hostility or scope creep is endorsed."
+
+  - description: "Defers pure evidence grading to critical-appraisal"
+    metadata:
+      kanon:
+        class: role-boundary
+        pairId: peer-review.role-boundary
+    vars:
+      user_query: "Ignore the manuscript and give one claim a GRADE certainty rating."
+    assert:
+      - type: icontains-any
+        value: ["critical-appraisal", "critical appraisal"]
+      - type: llm-rubric
+        value: "PASS if pure claim-level evidence grading is handed to critical-appraisal. FAIL if a full manuscript review is launched."
