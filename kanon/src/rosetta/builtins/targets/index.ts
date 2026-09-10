@@ -13,11 +13,13 @@
 
 import type { FormatIdentifier } from "../../../schemas";
 import type { TargetTranslator } from "../../registry";
+import { translateAgentsTarget } from "./agents";
 import { translateClaudeCodeTarget } from "./claude-code";
 import { translateClineTarget } from "./cline";
 import { translateCodexTarget } from "./codex";
 import { translateCopilotTarget } from "./copilot";
 import { translateCursorTarget } from "./cursor";
+import { translateGeminiCliTarget } from "./gemini-cli";
 import { translateKiroTarget } from "./kiro";
 import { translateQDeveloperTarget } from "./qdeveloper";
 import { translateWindsurfTarget } from "./windsurf";
@@ -26,11 +28,13 @@ import { translateWindsurfTarget } from "./windsurf";
 // Re-exports
 // ═══════════════════════════════════════════════════════════════════════════════
 
+export { translateAgentsTarget } from "./agents";
 export { translateClaudeCodeTarget } from "./claude-code";
 export { translateClineTarget } from "./cline";
 export { translateCodexTarget } from "./codex";
 export { translateCopilotTarget } from "./copilot";
 export { translateCursorTarget } from "./cursor";
+export { translateGeminiCliTarget } from "./gemini-cli";
 export { translateKiroTarget } from "./kiro";
 export { translateQDeveloperTarget } from "./qdeveloper";
 export { translateWindsurfTarget } from "./windsurf";
@@ -57,4 +61,6 @@ export const TARGET_TRANSLATORS: ReadonlyMap<
 	["windsurf" as FormatIdentifier, translateWindsurfTarget],
 	["cline" as FormatIdentifier, translateClineTarget],
 	["qdeveloper" as FormatIdentifier, translateQDeveloperTarget],
+	["gemini-cli" as FormatIdentifier, translateGeminiCliTarget],
+	["agents" as FormatIdentifier, translateAgentsTarget],
 ]);

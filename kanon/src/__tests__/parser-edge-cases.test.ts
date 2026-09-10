@@ -9,6 +9,7 @@ import {
 	parseKnowledgeMd,
 	parseWorkflows,
 } from "../parser";
+import { SUPPORTED_HARNESSES } from "../schemas";
 
 let tempDir: string;
 
@@ -38,8 +39,10 @@ describe("parseKnowledgeMd edge cases", () => {
 
 		expect(result.data.frontmatter.name).toBe("my-cool-artifact");
 		expect(result.data.body).toBe("# Hello World\n\nSome body content here.");
-		// Defaults should be applied
-		expect(result.data.frontmatter.harnesses).toHaveLength(8);
+		// Defaults should be applied — every supported harness is enabled by default.
+		expect(result.data.frontmatter.harnesses).toHaveLength(
+			SUPPORTED_HARNESSES.length,
+		);
 	});
 
 	/**
@@ -65,7 +68,9 @@ describe("parseKnowledgeMd edge cases", () => {
 		expect(result.data.frontmatter.version).toBe("0.1.0");
 		expect(result.data.frontmatter.type).toBe("skill");
 		expect(result.data.frontmatter.inclusion).toBe("always");
-		expect(result.data.frontmatter.harnesses).toHaveLength(8);
+		expect(result.data.frontmatter.harnesses).toHaveLength(
+			SUPPORTED_HARNESSES.length,
+		);
 	});
 
 	/**

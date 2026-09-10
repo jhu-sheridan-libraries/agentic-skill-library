@@ -13,11 +13,13 @@
 
 import type { FormatIdentifier } from "../../../schemas";
 import type { SourceTranslator } from "../../registry";
+import { translateAgentsNative } from "./agents-native";
 import { translateClaudeCodeNative } from "./claude-code-native";
 import { translateClineNative } from "./cline-native";
 import { translateCodexNative } from "./codex-native";
 import { translateCopilotNative } from "./copilot-native";
 import { translateCursorNative } from "./cursor-native";
+import { translateGeminiCliNative } from "./gemini-cli-native";
 import { translateKiroNative } from "./kiro-native";
 import { translateKiroPower } from "./kiro-power";
 import { translateKiroSkill } from "./kiro-skill";
@@ -45,9 +47,11 @@ export { translateKiroNative } from "./kiro-native";
 // Re-exports — Harness-native source translators (task 6.4)
 // ═══════════════════════════════════════════════════════════════════════════════
 
+export { translateAgentsNative } from "./agents-native";
 export { translateClineNative } from "./cline-native";
 export { translateCopilotNative } from "./copilot-native";
 export { translateCursorNative } from "./cursor-native";
+export { translateGeminiCliNative } from "./gemini-cli-native";
 export { translateQDeveloperNative } from "./qdeveloper-native";
 export { translateWindsurfNative } from "./windsurf-native";
 
@@ -92,4 +96,6 @@ export const HARNESS_NATIVE_SOURCE_TRANSLATORS: ReadonlyMap<
 	["windsurf" as FormatIdentifier, translateWindsurfNative],
 	["cline" as FormatIdentifier, translateClineNative],
 	["qdeveloper" as FormatIdentifier, translateQDeveloperNative],
+	["gemini-cli" as FormatIdentifier, translateGeminiCliNative],
+	["agents" as FormatIdentifier, translateAgentsNative],
 ]);

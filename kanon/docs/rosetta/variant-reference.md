@@ -44,6 +44,14 @@ Default variant: `rule`
 |---|---|---|---|
 | `rule` | Cursor rule format | `.cursor/rules/*.mdc` | — |
 
+## gemini-cli
+
+Default variant: `gemini-md`
+
+| Variant | Description | Path Conventions | Option Overrides |
+|---|---|---|---|
+| `gemini-md` | GEMINI.md Markdown format | `GEMINI.md` | — |
+
 ## kiro
 
 Default variant: `steering`
@@ -69,3 +77,11 @@ Default variant: `rule`
 | Variant | Description | Path Conventions | Option Overrides |
 |---|---|---|---|
 | `rule` | Windsurf rule format | `.windsurf/rules/*.md` | — |
+
+## agents
+
+Default variant: `agents-md`
+
+| Variant | Description | Path Conventions | Option Overrides |
+|---|---|---|---|
+| `agents-md` | Vendor-neutral AGENTS.md Markdown format | `AGENTS.md` | — |

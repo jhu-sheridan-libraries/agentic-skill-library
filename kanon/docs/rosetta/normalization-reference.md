@@ -39,6 +39,12 @@
 |---|---|---|
 | `mdc-frontmatter` | Normalize MDC frontmatter format | source |
 
+## gemini-cli
+
+| Rule ID | Description | Scope |
+|---|---|---|
+| `merge-sections` | Merge duplicate heading sections | source |
+
 ## kiro
 
 | Rule ID | Description | Scope |
@@ -56,6 +62,12 @@
 | Rule ID | Description | Scope |
 |---|---|---|
 | `rule-frontmatter` | Normalize Markdown frontmatter in rule files | source |
+
+## agents
+
+| Rule ID | Description | Scope |
+|---|---|---|
+| `merge-sections` | Merge duplicate heading sections | source |
 
 ## kiro-power
 

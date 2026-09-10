@@ -12,6 +12,10 @@ export const SUPPORTED_HARNESSES = [
 	"windsurf",
 	"cline",
 	"qdeveloper",
+	"gemini-cli",
+	// Vendor-neutral AGENTS.md target — a single root AGENTS.md consumable by
+	// any agent that reads the AGENTS.md open standard (see ADR-0067).
+	"agents",
 ] as const;
 
 export const HarnessNameSchema = z.enum(SUPPORTED_HARNESSES);

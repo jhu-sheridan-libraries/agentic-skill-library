@@ -12,9 +12,9 @@
 | `codex` | 1.0.0 | — | — |
 | `copilot` | 1.0.0 | — | — |
 | `cursor` | 1.0.0 | — | — |
+| `gemini-cli` | 1.0.0 | — | — |
 | `kiro` | 1.0.0 | — | — |
-| `qdeveloper` | 1.0.0 | — | — |
-| `windsurf` | 1.0.0 | — | — |
+| `agents` | 1.0.0 | — | — |
 | `kiro-power` | 0.1.0 | — | — |
 | `kiro-skill` | 0.1.0 | — | — |
 
@@ -22,4 +22,6 @@
 
 | Format | Introduced In | Deprecated In | Replacement |
 |---|---|---|---|
+| `qdeveloper` | 1.0.0 | 1.1.0 | agents |
+| `windsurf` | 1.0.0 | 1.1.0 | agents |
 | `superpowers` | 0.1.0 | 1.0.0 | — |
