@@ -1471,7 +1471,9 @@
       "cursor",
       "windsurf",
       "cline",
-      "qdeveloper"
+      "qdeveloper",
+      "gemini-cli",
+      "agents"
     ],
     "type": "prompt",
     "path": "knowledge/commit-craft",
@@ -1494,7 +1496,9 @@
       "cursor": "rule",
       "windsurf": "rule",
       "cline": "rule",
-      "qdeveloper": "rule"
+      "qdeveloper": "rule",
+      "gemini-cli": "gemini-md",
+      "agents": "agents-md"
     },
     "features": {
       "hooks": true,
@@ -1793,7 +1797,9 @@
       "cursor",
       "windsurf",
       "cline",
-      "qdeveloper"
+      "qdeveloper",
+      "gemini-cli",
+      "agents"
     ],
     "type": "workflow",
     "path": "knowledge/debug-journal",
@@ -1814,7 +1820,9 @@
       "cursor": "rule",
       "windsurf": "rule",
       "cline": "rule",
-      "qdeveloper": "rule"
+      "qdeveloper": "rule",
+      "gemini-cli": "gemini-md",
+      "agents": "agents-md"
     },
     "features": {
       "hooks": true,
@@ -3807,7 +3815,9 @@
       "cursor",
       "windsurf",
       "cline",
-      "qdeveloper"
+      "qdeveloper",
+      "gemini-cli",
+      "agents"
     ],
     "type": "skill",
     "path": "knowledge/review-ritual",
@@ -3828,7 +3838,9 @@
       "cursor": "rule",
       "windsurf": "rule",
       "cline": "rule",
-      "qdeveloper": "rule"
+      "qdeveloper": "rule",
+      "gemini-cli": "gemini-md",
+      "agents": "agents-md"
     },
     "features": {
       "hooks": true,
@@ -4616,7 +4628,9 @@
       "cursor",
       "windsurf",
       "cline",
-      "qdeveloper"
+      "qdeveloper",
+      "gemini-cli",
+      "agents"
     ],
     "type": "skill",
     "path": "knowledge/type-guardian",
@@ -4639,7 +4653,9 @@
       "cursor": "rule",
       "windsurf": "rule",
       "cline": "rule",
-      "qdeveloper": "rule"
+      "qdeveloper": "rule",
+      "gemini-cli": "gemini-md",
+      "agents": "agents-md"
     },
     "features": {
       "hooks": true,
@@ -4690,17 +4706,12 @@
       "vertical-slices"
     ],
     "author": "Steven J. Miklovic",
-    "version": "0.4.4",
+    "version": "0.4.3",
     "harnesses": [
       "kiro",
       "claude-code",
       "codex",
-      "copilot",
-      "cursor",
-      "windsurf",
-      "cline",
-      "qdeveloper",
-      "gemini-cli"
+      "cursor"
     ],
     "type": "skill",
     "path": "knowledge/whetstone",
@@ -4719,12 +4730,7 @@
       "kiro": "power",
       "claude-code": "claude-md",
       "codex": "agents-md",
-      "copilot": "instructions",
-      "cursor": "rule",
-      "windsurf": "rule",
-      "cline": "rule",
-      "qdeveloper": "rule",
-      "gemini-cli": "gemini-md"
+      "cursor": "rule"
     },
     "features": {
       "hooks": true,

@@ -291,13 +291,6 @@ entries:
     path: "knowledge/hello/knowledge.md"
     description: "A friendly test artifact that greets you in 20 languages. Use it to verify your power installation is working."
     date_added: "2026-09-10"
-  - name: "jhsomcv"
-    type: skill
-    sub_type: pipeline
-    category: "documentation"
-    path: "knowledge/jhsomcv/knowledge.md"
-    description: "Convert any CV (Word, PDF, Excel, text, or pasted) into the ABMF-required Johns Hopkins University School of Medicine promotions CV as a Microsoft Word .docx — full I–XII section taxonomy with NONE in every empty category, PubMed-verified publication classification, bolded author name, underlined mentees, and a confirmed-correct departmental CV's spacing as the default layout. Trigger on '/jhsomcv', 'put my CV in the Hopkins format', 'Silver Book CV', 'ABMF CV format', 'promotions committee CV', or any request to reformat an academic CV for a Johns Hopkins School of Medicine appointment or promotion."
-    date_added: "2026-09-10"
   - name: "jhu-editorial-check"
     type: skill
     sub_type: pipeline
