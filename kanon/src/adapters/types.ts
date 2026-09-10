@@ -10,7 +10,12 @@ import type { HarnessCapabilityName } from "./capabilities";
 
 export interface OutputFile {
 	relativePath: string;
-	content: string;
+	/**
+	 * File content. A string for text output; a Uint8Array for binary assets
+	 * (e.g. a bundled .docx) that must be written byte-for-byte rather than
+	 * through a lossy UTF-8 round-trip.
+	 */
+	content: string | Uint8Array;
 	executable?: boolean;
 }
 

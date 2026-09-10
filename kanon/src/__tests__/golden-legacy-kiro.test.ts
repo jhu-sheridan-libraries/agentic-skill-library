@@ -56,7 +56,9 @@ describe("Golden-file test for legacy Kiro artifact output", () => {
 
 		// Strip lines matching the audit comment pattern
 		const auditCommentPattern = /^\s*<!-- forge:kiro-inclusion: .* -->\s*$/gm;
-		const strippedContent = steeringFile?.content
+		const steeringContent =
+			typeof steeringFile?.content === "string" ? steeringFile.content : "";
+		const strippedContent = steeringContent
 			.split("\n")
 			.filter((line) => !auditCommentPattern.test(line))
 			.join("\n");

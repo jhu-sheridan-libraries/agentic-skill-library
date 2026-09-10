@@ -353,22 +353,32 @@ export function parseCanonical(
 		}
 		seenNormalizedPaths.add(normalized);
 
-		const wfContent =
-			typeof wfDoc.content === "string"
-				? wfDoc.content
-				: new TextDecoder().decode(wfDoc.content);
-
 		// Derive workflow name from filename (strip extension, normalize separators)
 		const name = relativePath
 			.replace(/\.[^./]+$/, "")
 			.replace(/[/-]/g, " ")
 			.replace(/\b\w/g, (c) => c.toUpperCase());
 
-		workflows.push({
-			name,
-			filename: relativePath,
-			content: wfContent.trim(),
-		});
+		// Preserve binary documents (e.g. a bundled .docx) as raw bytes. Only
+		// text documents are decoded and trimmed; decoding bytes as UTF-8 and
+		// trimming would corrupt a binary asset.
+		if (wfDoc.content instanceof Uint8Array) {
+			workflows.push({
+				name,
+				filename: relativePath,
+				content: wfDoc.content,
+				binary: true,
+				executable: wfDoc.executable ?? false,
+			});
+		} else {
+			workflows.push({
+				name,
+				filename: relativePath,
+				content: wfDoc.content.trim(),
+				binary: false,
+				executable: wfDoc.executable ?? false,
+			});
+		}
 	}
 
 	// --- Step 7: Parse body.<harness>.md documents ---

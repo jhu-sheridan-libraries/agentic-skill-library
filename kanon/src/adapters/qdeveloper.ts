@@ -81,6 +81,15 @@ export const qdeveloperAdapter: HarnessAdapter = (
 
 	// Generate .q/agents/ files from workflows (regardless of format)
 	for (const wf of artifact.workflows) {
+		// Binary assets can't be an agent-markdown body; copy them through.
+		if (wf.binary || typeof wf.content !== "string") {
+			files.push({
+				relativePath: `.q/agents/${wf.filename}`,
+				content: wf.content,
+				...(wf.executable ? { executable: true } : {}),
+			});
+			continue;
+		}
 		const agentContent = renderTemplate(
 			templateEnv,
 			"qdeveloper/agent.md.njk",
@@ -89,6 +98,7 @@ export const qdeveloperAdapter: HarnessAdapter = (
 		files.push({
 			relativePath: `.q/agents/${wf.filename}`,
 			content: agentContent,
+			...(wf.executable ? { executable: true } : {}),
 		});
 	}
 

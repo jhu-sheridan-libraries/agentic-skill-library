@@ -1395,7 +1395,8 @@
       "cursor",
       "windsurf",
       "cline",
-      "qdeveloper"
+      "qdeveloper",
+      "gemini-cli"
     ],
     "type": "prompt",
     "path": "knowledge/commit-craft",
@@ -1418,7 +1419,8 @@
       "cursor": "rule",
       "windsurf": "rule",
       "cline": "rule",
-      "qdeveloper": "rule"
+      "qdeveloper": "rule",
+      "gemini-cli": "gemini-md"
     },
     "features": {
       "hooks": true,
@@ -1584,7 +1586,8 @@
       "cursor",
       "windsurf",
       "cline",
-      "qdeveloper"
+      "qdeveloper",
+      "gemini-cli"
     ],
     "type": "workflow",
     "path": "knowledge/debug-journal",
@@ -1605,7 +1608,8 @@
       "cursor": "rule",
       "windsurf": "rule",
       "cline": "rule",
-      "qdeveloper": "rule"
+      "qdeveloper": "rule",
+      "gemini-cli": "gemini-md"
     },
     "features": {
       "hooks": true,
@@ -2130,6 +2134,81 @@
     "maturity": "experimental",
     "model-assumptions": [],
     "collections": [],
+    "visibility": "public",
+    "priority": 50,
+    "outcomes": []
+  },
+  {
+    "name": "jhsomcv",
+    "displayName": "jhsomCV",
+    "description": "Convert any CV (Word, PDF, Excel, text, or pasted) into the ABMF-required Johns Hopkins University School of Medicine promotions CV as a Microsoft Word .docx — full I–XII section taxonomy with NONE in every empty category, PubMed-verified publication classification, bolded author name, underlined mentees, and a confirmed-correct departmental CV's spacing as the default layout. Trigger on '/jhsomcv', 'put my CV in the Hopkins format', 'Silver Book CV', 'ABMF CV format', 'promotions committee CV', or any request to reformat an academic CV for a Johns Hopkins School of Medicine appointment or promotion.",
+    "keywords": [
+      "johns-hopkins",
+      "jhsom",
+      "abmf-cv",
+      "promotions-cv",
+      "silver-book",
+      "academic-cv",
+      "curriculum-vitae",
+      "pubmed-verification",
+      "publication-classification",
+      "docx"
+    ],
+    "author": "jhsomCV contributors (David Stonko)",
+    "version": "0.1.2",
+    "harnesses": [
+      "claude-code",
+      "codex",
+      "cursor",
+      "copilot"
+    ],
+    "type": "skill",
+    "path": "knowledge/jhsomcv",
+    "evals": false,
+    "changelog": false,
+    "migrations": false,
+    "categories": [
+      "documentation"
+    ],
+    "ecosystem": [],
+    "depends": [],
+    "enhances": [],
+    "formatByHarness": {
+      "claude-code": "claude-md",
+      "codex": "skill",
+      "cursor": "rule",
+      "copilot": "instructions"
+    },
+    "features": {
+      "hooks": false,
+      "mcp": false,
+      "workflows": true,
+      "conditionalInclusion": true
+    },
+    "maturity": "beta",
+    "trust": "community",
+    "audience": "advanced",
+    "model-assumptions": [],
+    "collections": [
+      "jh-dsai"
+    ],
+    "attribution": {
+      "upstream": [
+        {
+          "work": "jhsomcv",
+          "authors": [
+            "jhsomCV contributors"
+          ],
+          "url": "https://github.com/davidstonko/jhsomcv",
+          "license": "MIT",
+          "source-repo": "davidstonko/jhsomcv",
+          "source-commit": "91a315df7e1e9391b6285a44153ff969f2a444dc",
+          "relationship": "adapted"
+        }
+      ],
+      "curated-by": "JH DSAI maintainers",
+      "notice": "MIT License. Copyright (c) 2026 jhsomCV contributors."
+    },
     "visibility": "public",
     "priority": 50,
     "outcomes": []
@@ -3149,7 +3228,8 @@
       "cursor",
       "windsurf",
       "cline",
-      "qdeveloper"
+      "qdeveloper",
+      "gemini-cli"
     ],
     "type": "skill",
     "path": "knowledge/review-ritual",
@@ -3170,7 +3250,8 @@
       "cursor": "rule",
       "windsurf": "rule",
       "cline": "rule",
-      "qdeveloper": "rule"
+      "qdeveloper": "rule",
+      "gemini-cli": "gemini-md"
     },
     "features": {
       "hooks": true,
@@ -3958,7 +4039,8 @@
       "cursor",
       "windsurf",
       "cline",
-      "qdeveloper"
+      "qdeveloper",
+      "gemini-cli"
     ],
     "type": "skill",
     "path": "knowledge/type-guardian",
@@ -3981,7 +4063,8 @@
       "cursor": "rule",
       "windsurf": "rule",
       "cline": "rule",
-      "qdeveloper": "rule"
+      "qdeveloper": "rule",
+      "gemini-cli": "gemini-md"
     },
     "features": {
       "hooks": true,
@@ -4032,12 +4115,17 @@
       "vertical-slices"
     ],
     "author": "Steven J. Miklovic",
-    "version": "0.4.3",
+    "version": "0.4.4",
     "harnesses": [
       "kiro",
       "claude-code",
       "codex",
-      "cursor"
+      "copilot",
+      "cursor",
+      "windsurf",
+      "cline",
+      "qdeveloper",
+      "gemini-cli"
     ],
     "type": "skill",
     "path": "knowledge/whetstone",
@@ -4056,7 +4144,12 @@
       "kiro": "power",
       "claude-code": "claude-md",
       "codex": "agents-md",
-      "cursor": "rule"
+      "copilot": "instructions",
+      "cursor": "rule",
+      "windsurf": "rule",
+      "cline": "rule",
+      "qdeveloper": "rule",
+      "gemini-cli": "gemini-md"
     },
     "features": {
       "hooks": true,

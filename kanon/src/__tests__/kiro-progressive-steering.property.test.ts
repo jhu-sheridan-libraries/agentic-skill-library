@@ -8,6 +8,14 @@ const VALID_KIRO_INCLUSION_MODES = ["always", "fileMatch", "manual"] as const;
 
 // --- Helpers ---
 
+/** Narrow an OutputFile's content to a string (steering output is always text). */
+function asText(content: string | Uint8Array): string {
+	if (typeof content !== "string") {
+		throw new Error("expected text content, got binary");
+	}
+	return content;
+}
+
 /** Build a minimal valid frontmatter object with a given kiro harness-config. */
 function buildFrontmatterWithKiroConfig(kiroConfig: Record<string, unknown>) {
 	return {
@@ -350,7 +358,7 @@ describe("Kiro Progressive Steering audit comment properties", () => {
 					);
 					expect(steeringFile).toBeDefined();
 
-					const content = steeringFile!.content;
+					const content = asText(steeringFile!.content);
 
 					// Regex from the design: match audit comment lines
 					const auditCommentRegex =
@@ -422,7 +430,7 @@ describe("Kiro Progressive Steering audit comment properties", () => {
 					);
 					expect(steeringFile).toBeDefined();
 
-					const content = steeringFile!.content;
+					const content = asText(steeringFile!.content);
 
 					// Power-format uses plain Markdown without audit comments
 					// (the official Kiro powers format has no frontmatter or HTML comments)
@@ -577,7 +585,9 @@ describe("Kiro Progressive Steering POWER.md inclusion absence", () => {
 					expect(powerMdFile).toBeDefined();
 
 					// Assert that POWER.md content does NOT contain an inclusion: line
-					const hasInclusionLine = /^inclusion:/m.test(powerMdFile!.content);
+					const hasInclusionLine = /^inclusion:/m.test(
+						asText(powerMdFile!.content),
+					);
 					expect(hasInclusionLine).toBeFalse();
 				},
 			),
@@ -638,7 +648,7 @@ describe("Kiro Progressive Steering power-format steering file properties", () =
 				);
 				expect(steeringFile).toBeDefined();
 
-				const content = steeringFile!.content;
+				const content = asText(steeringFile!.content);
 
 				// Power-format produces plain Markdown: no YAML frontmatter delimiters
 				expect(content).not.toContain("---");
@@ -709,7 +719,7 @@ describe("Kiro Progressive Steering fileMatchPattern suppression properties", ()
 					expect(steeringFile).toBeDefined();
 
 					// Parse the emitted YAML frontmatter
-					const parsed = matter(steeringFile!.content);
+					const parsed = matter(asText(steeringFile!.content));
 
 					// Assert: fileMatchPattern key is NOT present in the emitted frontmatter
 					expect(parsed.data.fileMatchPattern).toBeUndefined();
