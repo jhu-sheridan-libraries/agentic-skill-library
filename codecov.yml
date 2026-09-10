@@ -1,0 +1,47 @@
+# Codecov configuration.
+# The kanon CI job (.github/workflows/ci.yml) runs
+#   bun test --coverage --coverage-reporter=lcov
+# and uploads kanon/coverage/lcov.info via codecov/codecov-action@v7.
+# lcov records paths as `src/...` (the action runs with working-directory: kanon),
+# so `fixes` below remaps them onto the real repo tree at `kanon/src/...`.
+
+coverage:
+  # Round displayed percentages down to whole numbers.
+  precision: 1
+  round: down
+  range: "70...90"
+
+  status:
+    # Whole-repo coverage. `auto` compares against the PR base rather than a
+    # hardcoded number that would go stale, with a small cushion so trivial
+    # line-count shuffles do not red the build. Current baseline ~80.7%.
+    project:
+      default:
+        target: auto
+        threshold: 1%
+        if_ci_failed: error
+    # New/changed code. Hold added lines to roughly the current project bar.
+    patch:
+      default:
+        target: 80%
+        threshold: 1%
+
+# codecov-action uploads from kanon/, so lcov SF paths are `src/...`.
+# Map them back to their location in the repo so the file browser and PR
+# annotations resolve.
+fixes:
+  - "src/::kanon/src/"
+
+# Keep PR comments concise and only when coverage is affected.
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
+  require_changes: true
+
+# Do not measure coverage of generated output, tests, or templates.
+ignore:
+  - "kanon/dist"
+  - "kanon/bridge"
+  - "kanon/coverage"
+  - "kanon/src/**/__tests__"
+  - "kanon/templates"

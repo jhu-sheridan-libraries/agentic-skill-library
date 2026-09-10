@@ -8,7 +8,16 @@ import type { WizardResult } from "./wizard";
  * Serialize frontmatter and body into a gray-matter-compatible markdown string.
  */
 export function buildKnowledgeMd(result: WizardResult): string {
-	const frontmatterYaml = yaml.dump(result.frontmatter, { lineWidth: -1 });
+	// forceQuotes: js-yaml's dumper leaves some string scalars unquoted that a
+	// YAML 1.1 loader (e.g. gray-matter's, used by parser.ts on every load)
+	// then resolves as a non-string — e.g. a valid kebab-case identifier like
+	// "1e310" reads back as a float (Infinity), and "no"/"true"/"0x1f" as
+	// bool/number. Quoting every scalar guarantees the frontmatter round-trips
+	// as authored, regardless of which YAML engine reads it back.
+	const frontmatterYaml = yaml.dump(result.frontmatter, {
+		lineWidth: -1,
+		forceQuotes: true,
+	});
 	const body =
 		result.knowledgeBody.trim().length > 0
 			? result.knowledgeBody
