@@ -92,6 +92,16 @@ describe("registry projection", () => {
 			expect(r.category).toBe("uncategorized");
 			expect(r.tags).toBeUndefined();
 		});
+
+		test("tolerates missing categories/ecosystem arrays without crashing", () => {
+			// Malformed entry: arrays absent entirely (defensive null-safety).
+			const entry = makeCatalogEntry();
+			(entry as { categories?: unknown }).categories = undefined;
+			(entry as { ecosystem?: unknown }).ecosystem = undefined;
+			const r = toRegistryEntry(entry, "2026-01-02");
+			expect(r.category).toBe("uncategorized");
+			expect(r.tags).toBeUndefined();
+		});
 	});
 
 	describe("renderRegistryYaml", () => {
@@ -159,6 +169,32 @@ describe("registry projection", () => {
 	describe("isoDate", () => {
 		test("returns a YYYY-MM-DD string", () => {
 			expect(isoDate()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+		});
+	});
+
+	describe("generateCollectionRegistry — input validation", () => {
+		test("rejects an empty or whitespace-only collection name", async () => {
+			const { generateCollectionRegistry } = await import(
+				"../../scripts/generate-registry"
+			);
+			await expect(generateCollectionRegistry("")).rejects.toThrow(
+				"collection name cannot be empty",
+			);
+			await expect(generateCollectionRegistry("   ")).rejects.toThrow(
+				"collection name cannot be empty",
+			);
+		});
+
+		test("rejects a collection name containing path separators", async () => {
+			const { generateCollectionRegistry } = await import(
+				"../../scripts/generate-registry"
+			);
+			await expect(generateCollectionRegistry("../evil")).rejects.toThrow(
+				"path separators",
+			);
+			await expect(generateCollectionRegistry("a\\b")).rejects.toThrow(
+				"path separators",
+			);
 		});
 	});
 });
