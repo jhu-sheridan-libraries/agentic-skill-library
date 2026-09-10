@@ -36,7 +36,7 @@ trust: community
 audience: intermediate
 model-assumptions: []
 collections:
-  - library-ai-workshop
+  - libraries-ai-workshop
 inherit-hooks: false
 visibility: public
 priority: 50
