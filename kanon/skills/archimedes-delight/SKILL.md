@@ -1,166 +1,116 @@
 ---
 name: archimedes-delight
-description: "Elite academic research library tool for Johns Hopkins staff and faculty. Provides MCP-backed data access to research repositories (starting with RODA — Registry of Open Data on AWS), guided research skills for citation management, autonomous agents for literature review and dataset discovery, and multi-step research workflows."
+description: "Router for the Archimedes Delight research-science collection. Assists Johns Hopkins staff and faculty across the research arc — discover, appraise, create, communicate — by directing you to the right member: autonomous literature review and dataset discovery, guided citation management, critical appraisal, research ideation, manuscript writing, peer review, figure preparation, and research presentation."
 ---
 
 # Archimedes Delight
 
 ## Overview
 
-Archimedes Delight is an elite academic research library tool for Johns Hopkins
-staff and faculty engaged in advanced scholarly research. It bundles four kinds
-of capability in one package:
+*"Give me a place to stand and I will move the earth."* Archimedes settled for a
+lever; you get a whole workshop. Archimedes Delight is a research-science
+collection for Johns Hopkins staff and faculty engaged in advanced scholarly
+work, spanning the full arc of a project — discover, appraise, create,
+communicate.
 
-- **Data access** via MCP servers (starting with RODA — the Registry of Open
-  Data on AWS — plus a placeholder for literature search).
-- **Guided research skills** that a human drives step by step with AI
-  assistance (citation management).
-- **Autonomous research agents** that run their own search / evaluate /
-  synthesize loop (literature review, dataset discovery).
-- **Research workflows** that sequence a repeatable multi-step procedure
-  (the dataset/paper-to-citation pipeline).
+It does not try to be one monolithic tool. Like its namesake, it prefers the
+right instrument for the job over brute force. This artifact is a **router**: it
+helps you (and your AI assistant) pick the right member for the task at hand,
+then hands off to that member's focused instructions.
 
-Two of these capabilities — **literature review** and **dataset discovery** —
-are *autonomous agents*, documented under "Autonomous Research Agents" below.
-They run their own loop rather than being driven step by step. The rest are
-*guided*: a human directs each step. This distinction matters for anyone (a
-person or an external agent runtime) deciding which capability to hand off
-versus which to walk through.
+Think of it as the front desk of a very well-run research library. It does not
+do the research itself — no bathtub, no "Eureka!" on your behalf — it points you
+to the correct specialist and gets out of your way.
 
-### Consuming these capabilities
+## Members
 
-Each capability is declared in a machine-readable form so it can be consumed
-without reading prose:
+The collection has nine capability members, each installed and used
+independently. They group into four phases of a research project:
 
-- **MCP servers** live in `mcp-servers.yaml` (this artifact's directory) and are
-  merged into each target harness's MCP config at build time. Any runtime that
-  speaks MCP can call them directly.
-- **The catalog entry** for `archimedes-delight` (in `catalog.json`, via
-  `kanon catalog generate`) exposes this artifact's metadata, collection
-  membership, and content to the catalog MCP bridge (`catalog_list`,
-  `artifact_content`, `collection_list`).
-- **Agent loops** below are written as explicit define-scope → search →
-  triage/evaluate → synthesize steps with named inputs and outputs, so an
-  external orchestrator can execute them rather than paraphrase them.
+### Discover
 
-## Data Access
+| Member | Kind | Use it when you want to… |
+|---|---|---|
+| **literature-review** | Autonomous agent | Hand off "review the literature on X" and receive a synthesized, cited summary. Runs its own define-scope → search → triage → synthesize loop. |
+| **dataset-discovery** | Autonomous agent | Hand off "find datasets about Y" and receive a ranked shortlist of candidate datasets from open-data repositories (starting with RODA). |
+| **research-ideation** | Guided skill | Generate research ideas (SCAMPER, TRIZ, morphological analysis) and turn observations into testable, falsifiable hypotheses. |
 
-### RODA MCP Server
+### Appraise
 
-The `awslabs.roda-mcp-server` MCP server provides search, metadata retrieval,
-and discovery over datasets published in the **Registry of Open Data on AWS
-(RODA)**. It launches via `uvx awslabs.roda-mcp-server@latest` and needs no
-credentials — RODA is a public, no-auth service.
+| Member | Kind | Use it when you want to… |
+|---|---|---|
+| **critical-appraisal** | Guided skill | Judge whether a study's design and analysis support its claims — evidence hierarchy, effect sizes, bias, GRADE. |
+| **peer-review** | Guided skill | Run a structured seven-stage review of a manuscript or proposal and produce an actionable report. |
 
-**Tool list:** confirm the exact tools exposed by the installed package version
-before populating `autoApprove` in `mcp-servers.yaml`. It ships with
-`autoApprove: []` deliberately: nothing is pre-approved until a maintainer
-inspects the package's tools and opts specific **read-only** ones (search,
-metadata, discovery) in. An external unattended runtime (for example, a polling
-worker that only permits allowlisted read-only tools) should treat the
-intersection of RODA's confirmed read-only tools and its own safe-tool allowlist
-as the callable set — populating `autoApprove` here and the runtime's allowlist
-are two separate gates that must agree.
+### Create
 
-### Literature Search MCP Server (placeholder)
+| Member | Kind | Use it when you want to… |
+|---|---|---|
+| **manuscript-writing** | Guided skill | Structure and write a paper — IMRAD, reporting guidelines, venue adaptation. |
+| **citation-management** | Guided skill | Turn a dataset or paper reference into a correctly formatted citation, step by step. |
+| **figure-preparation** | Guided skill | Prepare publication figures and schematics — QA checklist, journal requirements, accessibility. |
 
-No official or institutionally-hosted remote MCP server exists today for PubMed,
-arXiv, or Semantic Scholar (confirmed by research during this artifact's
-authoring). The `archimedes-delight-literature-search` entry in
-`mcp-servers.yaml` is therefore a **placeholder** whose `url`
-(`https://TBD.internal.jh.edu/mcp`) points at nothing yet. It is pending a JHU
-DRCC-hosted instance.
+### Communicate
 
-A documented candidate implementation for that future instance is
-[`cyanheads/pubmed-mcp-server`](https://github.com/cyanheads/pubmed-mcp-server),
-which supports self-hosting via `transport: http` or `sse`. Do **not** point
-this entry at an unaffiliated third party's personally-hosted instance in
-production — an elite research-library tool should not inherit an unaffiliated
-individual's uptime and trust risk.
+| Member | Kind | Use it when you want to… |
+|---|---|---|
+| **research-presentation** | Guided skill | Build a conference talk or poster — narrative, slide/poster design, timing, QA. |
 
-### Credential guidance for future data-access servers
+## Routing
 
-RODA needs no credentials, so none are wired up here. When a future data-access
-server is added to `mcp-servers.yaml` that *does* require credentials (a
-JHU-internal repository API, or the eventual real literature-search endpoint if
-it requires auth), reference them via `${ENV_VAR}` placeholders rather than
-hardcoded values, consistent with the `kanon.config.yaml` / `~/.forge/config.yaml`
-credential boundary. `kanon validate --security` will flag credential-like
-values hardcoded in `mcp-servers.yaml`.
+Match the user's intent to a member. When intent is ambiguous, ask one
+clarifying question rather than guessing.
 
-## Available Steering Files
+```
+User intent
+├── "review / survey / summarize the literature on ..."      → literature-review
+├── "find / discover / locate datasets about ..."            → dataset-discovery
+├── "brainstorm ideas / form a hypothesis about ..."         → research-ideation
+├── "is this study / claim any good? / appraise ..."         → critical-appraisal
+├── "review this manuscript / proposal ..."                  → peer-review
+├── "help me write / structure the paper ..."                → manuscript-writing
+├── "cite / format a reference / build a bibliography ..."   → citation-management
+├── "prepare / fix this figure / graphical abstract ..."     → figure-preparation
+├── "build my talk / slides / poster ..."                    → research-presentation
+└── unclear
+    ├── They want to understand a field       → literature-review
+    ├── They need data to work with           → dataset-discovery
+    ├── They have a source and need to cite it → citation-management
+    └── They have a draft to improve          → peer-review or manuscript-writing
+```
 
-| File | Inclusion | Trigger | Content |
-|---|---|---|---|
-| **citation-pipeline** | manual | `#citation-pipeline` in chat | Turning a discovered dataset or paper into a formatted citation |
+Routing notes:
 
-## Research Skills
+- **Autonomous vs guided.** `literature-review` and `dataset-discovery` are
+  autonomous agents: they run their own loop and return a finished artifact. The
+  other seven are guided skills that walk a human through each step and expect
+  confirmation. Tell the user which mode they are entering so they know whether
+  to sit back or stay hands-on.
+- **literature-review vs dataset-discovery.** Both search, but different things:
+  literature-review for *papers and evidence*, dataset-discovery for *datasets
+  and repositories*. A project often needs both in sequence.
+- **Overlaps to route cleanly.** For *evaluating* evidence use `critical-appraisal`;
+  for *reviewing a whole manuscript* use `peer-review`. For *formatting* a
+  reference use `citation-management`; for *structuring the whole paper* use
+  `manuscript-writing`. For a *figure* use `figure-preparation`; for a *talk or
+  poster* use `research-presentation`.
+- **Human-in-the-loop boundary.** The autonomous agents triage and synthesize;
+  the researcher judges and verifies. Neither agent fabricates sources or results
+  to fill a gap — if a data source is unavailable, the agent says so rather than
+  inventing an answer.
 
-Guided, human-in-the-loop capabilities. A human drives each step; the AI
-assists. These are distinct from the Autonomous Research Agents below.
+## Getting Started
 
-### Citation Management
+Archimedes reportedly needed a single fixed point to move the world. You need a
+single clear sentence. When a user activates Archimedes Delight:
 
-- **Purpose:** turn a dataset or paper reference into a correctly-formatted
-  citation in a chosen style.
-- **Inputs:** a dataset or paper reference (a RODA dataset record, a DOI, a
-  BibTeX entry, or free-text bibliographic details) and a target citation style.
-- **Outputs:** a formatted citation string in the requested style, plus a note
-  of any missing metadata fields the reference could not supply.
-- **Dependencies:** exercisable using only this artifact's own capabilities —
-  the `citation-pipeline` workflow (see Available Steering Files) and, when the
-  input is a dataset reference, the RODA MCP Server for metadata retrieval. No
-  external dependency is required.
+1. Ask what they're trying to accomplish in one sentence.
+2. Map it to a member using the routing tree above.
+3. Confirm the member and mode ("This will run autonomously and return a
+   summary" / "I'll walk you through this step by step").
+4. Hand off to that member's instructions.
 
-## Autonomous Research Agents
-
-These capabilities run their own loop rather than being driven step by step.
-Hand off a goal ("review the literature on X", "find datasets about Y") and
-receive a synthesized result. They are structurally separated from the guided
-Research Skills above precisely so a reader — or an external agent runtime —
-can tell which capabilities execute autonomously and which require step-by-step
-human direction. Both agents draw **only** on MCP servers already declared in
-this artifact's own `mcp-servers.yaml`; there is no cross-artifact composition.
-
-### Literature Review Agent
-
-- **Inputs:** a research question or topic (free text).
-- **Outputs:** a synthesized literature summary with citations.
-- **Loop:**
-  1. Define scope — turn the question into search terms, date ranges, and
-     inclusion/exclusion criteria.
-  2. Search — query the Literature Search MCP Server.
-  3. Triage — screen results against the inclusion/exclusion criteria.
-  4. Synthesize — summarize the screened set and attach citations.
-- **Current limitation:** the Literature Search MCP Server is currently a
-  placeholder (see Data Access above). Until a real endpoint is wired up, the
-  agent must handle the missing search step explicitly rather than fabricate
-  results:
-  - In an **interactive** session, tell the user the search step cannot be
-    completed because the endpoint is not yet configured.
-  - In an **unattended** run (for example, a scheduled or polling agent runtime
-    with no human in the loop), skip and log the gap — do not "ask the user",
-    do not fabricate results, and do not fail the whole run silently. Report the
-    capability as unavailable and continue.
-
-### Dataset Discovery Agent
-
-- **Inputs:** a research question or dataset criteria (free text).
-- **Outputs:** a ranked shortlist of candidate datasets.
-- **Loop:**
-  1. Define scope — turn the question into dataset criteria (domain, size,
-     license, format).
-  2. Search — query the RODA MCP Server.
-  3. Evaluate — score candidates on relevance, size, license, and format.
-  4. Shortlist — return a ranked list with the reasoning for each ranking.
-- **Current limitation:** RODA's exact tool list is unconfirmed at authoring
-  time (see Data Access above). The agent should rely only on documented and
-  confirmed RODA tools once `autoApprove` is populated. Otherwise it proceeds
-  normally — the RODA endpoint itself is real and working, so this agent has no
-  placeholder gap, unlike the Literature Review Agent.
-
-## Reference Pointers
-
-Load these only when the workflow calls for them (progressive disclosure):
-
-- `references/citation-pipeline.md` — Citation Pipeline
+If the user's goal spans several members (for example, "find datasets on X,
+review the literature, then help me write it up"), resist the urge to solve the
+whole earth at once: sequence the members in research-phase order — discover →
+appraise → create → communicate — and report back between hand-offs.
