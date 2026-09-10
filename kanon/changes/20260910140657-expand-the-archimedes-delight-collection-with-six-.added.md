@@ -1,0 +1,1 @@
+Expand the archimedes-delight collection with six SciAgent-adapted research-craft skills (research-ideation, critical-appraisal, peer-review, manuscript-writing, figure-preparation, research-presentation; CC-BY-4.0) and add registry.yaml generation (bazaar-wide, bundled with catalog generate, plus a collection-scoped generator)
