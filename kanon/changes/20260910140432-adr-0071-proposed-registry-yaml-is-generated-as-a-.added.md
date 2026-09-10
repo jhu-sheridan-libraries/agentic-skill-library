@@ -1,0 +1,1 @@
+ADR-0071 (Proposed): registry.yaml is generated as a SciAgent-compatible index from the same catalog entries as catalog.json — a pure projection in src/registry.ts, with sub_type inferred from artifact shape, emitted bazaar-wide by catalog generate and collection-scoped by build:registry
