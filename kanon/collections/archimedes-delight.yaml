@@ -1,0 +1,7 @@
+name: archimedes-delight
+displayName: "Archimedes Delight"
+description: "A research science skillset that assists Johns Hopkins staff and faculty with scholarly discovery, synthesis, and publication. The archimedes-delight artifact routes to focused members: autonomous literature review, dataset discovery over open-data repositories, and guided citation management."
+version: "0.1.0"
+author: Steven J. Miklovic
+trust: community
+tags: [science, academia, research, literature-review, dataset-discovery, citation-management]

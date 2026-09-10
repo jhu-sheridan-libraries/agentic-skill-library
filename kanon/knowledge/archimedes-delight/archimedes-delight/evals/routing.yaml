@@ -1,0 +1,184 @@
+description: "Archimedes Delight routes research intents to the correct member"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/archimedes-delight/POWER.md
+    - role: user
+      content: "{{user_query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Routes literature surveys to literature-review"
+    metadata:
+      kanon:
+        class: direct-routing
+    vars:
+      user_query: "Review the literature on intermittent fasting and insulin sensitivity."
+    assert:
+      - type: icontains-any
+        value: ["literature-review", "literature review"]
+      - type: not-icontains
+        value: "dataset-discovery"
+      - type: llm-rubric
+        value: "PASS if literature-review is selected and receives the handoff. FAIL if dataset-discovery is selected or the router performs the review."
+
+  - description: "Routes dataset searches to dataset-discovery"
+    metadata:
+      kanon:
+        class: direct-routing
+    vars:
+      user_query: "Find open datasets of coastal erosion satellite imagery since 2015."
+    assert:
+      - type: icontains-any
+        value: ["dataset-discovery", "dataset discovery"]
+      - type: not-icontains
+        value: "literature-review"
+      - type: llm-rubric
+        value: "PASS if dataset-discovery is selected. FAIL if literature-review or another member is selected."
+
+  - description: "Routes hypothesis formation to research-ideation"
+    metadata:
+      kanon:
+        class: direct-routing
+    vars:
+      user_query: "Help me brainstorm and form a testable hypothesis about soil microbiomes and drought."
+    assert:
+      - type: icontains-any
+        value: ["research-ideation", "research ideation"]
+      - type: llm-rubric
+        value: "PASS if research-ideation is selected for brainstorming and hypothesis formation. FAIL otherwise."
+
+  - description: "Routes claim evaluation to critical-appraisal"
+    metadata:
+      kanon:
+        class: direct-routing
+    vars:
+      user_query: "Is this observational study's claim that coffee lowers mortality supported?"
+    assert:
+      - type: icontains-any
+        value: ["critical-appraisal", "critical appraisal"]
+      - type: not-icontains
+        value: "peer-review"
+      - type: llm-rubric
+        value: "PASS if claim-level evidence evaluation routes to critical-appraisal, not peer-review. FAIL otherwise."
+
+  - description: "Routes whole-manuscript review to peer-review"
+    metadata:
+      kanon:
+        class: direct-routing
+    vars:
+      user_query: "I was asked to review this complete manuscript for a journal."
+    assert:
+      - type: icontains-any
+        value: ["peer-review", "peer review"]
+      - type: not-icontains
+        value: "critical-appraisal"
+      - type: llm-rubric
+        value: "PASS if whole-manuscript review routes to peer-review, not critical-appraisal. FAIL otherwise."
+
+  - description: "Routes paper drafting to manuscript-writing"
+    metadata:
+      kanon:
+        class: direct-routing
+    vars:
+      user_query: "Help me structure and draft my research paper."
+    assert:
+      - type: icontains-any
+        value: ["manuscript-writing", "manuscript writing"]
+      - type: not-icontains
+        value: "citation-management"
+      - type: llm-rubric
+        value: "PASS if structuring and drafting route to manuscript-writing, not citation-management. FAIL otherwise."
+
+  - description: "Routes reference formatting to citation-management"
+    metadata:
+      kanon:
+        class: direct-routing
+    vars:
+      user_query: "Format this dataset reference in APA style."
+    assert:
+      - type: icontains-any
+        value: ["citation-management", "citation management"]
+      - type: not-icontains
+        value: "manuscript-writing"
+      - type: llm-rubric
+        value: "PASS if reference formatting routes to citation-management, not manuscript-writing. FAIL otherwise."
+
+  - description: "Routes publication graphics to figure-preparation"
+    metadata:
+      kanon:
+        class: direct-routing
+    vars:
+      user_query: "Prepare this figure and graphical abstract for journal submission."
+    assert:
+      - type: icontains-any
+        value: ["figure-preparation", "figure preparation"]
+      - type: not-icontains
+        value: "research-presentation"
+      - type: llm-rubric
+        value: "PASS if publication graphics route to figure-preparation, not research-presentation. FAIL otherwise."
+
+  - description: "Routes talks and posters to research-presentation"
+    metadata:
+      kanon:
+        class: direct-routing
+    vars:
+      user_query: "Build my conference talk slides for a 15-minute session."
+    assert:
+      - type: icontains-any
+        value: ["research-presentation", "research presentation"]
+      - type: not-icontains
+        value: "figure-preparation"
+      - type: llm-rubric
+        value: "PASS if talks or posters route to research-presentation, not figure-preparation. FAIL otherwise."
+
+  - description: "Asks one clarifying question for ambiguous intent"
+    metadata:
+      kanon:
+        class: ambiguity
+    vars:
+      user_query: "I need help with my research."
+    assert:
+      - type: llm-rubric
+        value: "PASS if exactly one focused clarifying question is asked before routing. FAIL if a route is guessed, several questions are asked, or research starts."
+
+  - description: "Sequences multi-intent work across all research phases"
+    metadata:
+      kanon:
+        class: multi-intent
+    vars:
+      user_query: "Find datasets and literature on urban heat islands, appraise the evidence, help draft the manuscript, then plan the conference presentation."
+    assert:
+      - type: icontains-any
+        value: ["dataset-discovery", "dataset discovery"]
+      - type: icontains-any
+        value: ["literature-review", "literature review"]
+      - type: icontains-any
+        value: ["critical-appraisal", "critical appraisal"]
+      - type: icontains-any
+        value: ["manuscript-writing", "manuscript writing"]
+      - type: icontains-any
+        value: ["research-presentation", "research presentation"]
+      - type: llm-rubric
+        value: "PASS if discover work precedes appraisal, creation, and communication, with handoffs between phases. FAIL if phases are collapsed or misordered."
+
+  - description: "Hands off instead of performing research"
+    metadata:
+      kanon:
+        class: role-boundary
+    vars:
+      user_query: "Review the literature on CRISPR off-target effects."
+    assert:
+      - type: icontains-any
+        value: ["literature-review", "literature review"]
+      - type: llm-rubric
+        value: "PASS if the router hands off to literature-review without synthesizing evidence or inventing citations. FAIL if it performs research inline."

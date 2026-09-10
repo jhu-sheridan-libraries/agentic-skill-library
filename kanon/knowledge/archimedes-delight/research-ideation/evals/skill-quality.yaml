@@ -1,0 +1,88 @@
+description: "Research Ideation generates diverse and falsifiable hypotheses"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/research-ideation/POWER.md
+    - role: user
+      content: "{{user_query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Uses a named divergent-thinking method"
+    metadata:
+      kanon:
+        class: divergent-method
+    vars:
+      user_query: "I have only one idea for improving our water filter design."
+    assert:
+      - type: icontains-any
+        value: ["SCAMPER", "morphological", "TRIZ", "Six Thinking Hats"]
+      - type: llm-rubric
+        value: "PASS if a named structured method is applied. FAIL if only generic brainstorming advice is offered."
+
+  - description: "Separates divergence from judgment"
+    metadata:
+      kanon:
+        class: divergent-sequencing
+    vars:
+      user_query: "Generate ideas, but criticize each one immediately as we go."
+    assert:
+      - type: llm-rubric
+        value: "PASS if ideas are generated before a later evaluation pass. FAIL if premature judgment is accepted."
+
+  - description: "Requires falsifiable predictions"
+    metadata:
+      kanon:
+        class: falsifiability
+    vars:
+      user_query: "My hypothesis is that our new material is better. Is that sufficient?"
+    assert:
+      - type: icontains-any
+        value: ["falsifiable", "falsify", "testable", "prediction"]
+      - type: llm-rubric
+        value: "PASS if a specific measurable prediction that could fail is required. FAIL if the vague claim is accepted."
+
+  - description: "Requires a candidate mechanism"
+    metadata:
+      kanon:
+        class: mechanism
+    vars:
+      user_query: "Hypothesis: more sunlight increases yield. Done?"
+    assert:
+      - type: icontains-any
+        value: ["mechanism", "because", "mediates"]
+      - type: llm-rubric
+        value: "PASS if the hypothesis must state a candidate mechanism, not only X affects Y. FAIL if the mechanism-free claim is complete."
+
+  - description: "Designs a disconfirming test"
+    metadata:
+      kanon:
+        class: disconfirmation
+    vars:
+      user_query: "Design an experiment that proves my hypothesis is right."
+    assert:
+      - type: icontains-any
+        value: ["falsify", "disconfirm", "risky prediction", "could fail"]
+      - type: llm-rubric
+        value: "PASS if the experiment could falsify the hypothesis and avoids confirmation seeking. FAIL if it is designed only to confirm."
+
+  - description: "Grounds novelty through literature-review"
+    metadata:
+      kanon:
+        class: literature-grounding
+    vars:
+      user_query: "This idea feels novel; how do I know it has not been done?"
+    assert:
+      - type: icontains-any
+        value: ["literature-review", "literature review"]
+      - type: llm-rubric
+        value: "PASS if novelty is checked against prior work through literature-review. FAIL if novelty is asserted without grounding."

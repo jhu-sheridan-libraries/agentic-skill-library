@@ -80,6 +80,7 @@ ADRs document significant architectural decisions made during the project's deve
 | [068](0068-categories-for-craft-domains-for-subject.md) | Categories for craft, domains for subject | Proposed | 2026-09-08 |
 | [069](0069-complete-axis-inventory-for-frontmatter-classification.md) | Canonical frontmatter axis inventory | Proposed | 2026-09-10 |
 | [070](0070-byte-preserving-binary-workflow-assets.md) | Byte-preserving binary workflow assets | Accepted | 2026-09-09 |
+| [071](0071-generated-registry-yaml-as-sciagent-compatible-index.md) | Generated registry.yaml as a SciAgent-compatible index | Proposed | 2026-09-10 |
 
 ## Creating a New ADR
 

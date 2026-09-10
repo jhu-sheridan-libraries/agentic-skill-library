@@ -1,0 +1,88 @@
+description: "Research Presentation builds clear talks and figure-forward posters"
+
+prompts:
+  - - role: system
+      content: file://dist/kiro/research-presentation/POWER.md
+    - role: user
+      content: "{{user_query}}"
+
+providers:
+  - id: bedrock:us.anthropic.claude-sonnet-4-6
+    config:
+      region: us-east-1
+      temperature: 0
+
+defaultTest:
+  options:
+    provider: bedrock:us.anthropic.claude-sonnet-4-6
+
+tests:
+  - description: "Designs the narrative before slides"
+    metadata:
+      kanon:
+        class: narrative
+    vars:
+      user_query: "Should I start my conference talk by filling in slides?"
+    assert:
+      - type: llm-rubric
+        value: "PASS if motivation, question, approach, results, and takeaway are planned before slides. FAIL if slide filling starts without a narrative."
+
+  - description: "Uses one idea per slide"
+    metadata:
+      kanon:
+        class: slide-design
+    vars:
+      user_query: "Can I put all methods in paragraph bullets on one slide?"
+    assert:
+      - type: icontains-any
+        value: ["one idea", "point-first", "minimal text", "talking points"]
+      - type: llm-rubric
+        value: "PASS if slides carry one idea with a point-first title and talking points rather than paragraphs. FAIL if a text wall is endorsed."
+
+  - description: "Budgets time and rehearses"
+    metadata:
+      kanon:
+        class: timing
+    vars:
+      user_query: "How many slides for a 15-minute talk, and how do I stay on time?"
+    assert:
+      - type: icontains-any
+        value: ["one slide per minute", "rehearse", "trim"]
+      - type: llm-rubric
+        value: "PASS if roughly one slide per minute, rehearsal to the real limit, and trimming are recommended. FAIL if rushing is the plan."
+
+  - description: "Simplifies figures for the room"
+    metadata:
+      kanon:
+        class: figure-adaptation
+    vars:
+      user_query: "Can I paste my dense publication figures directly onto slides?"
+    assert:
+      - type: icontains-any
+        value: ["larger", "fewer series", "highlight", "simplify"]
+      - type: llm-rubric
+        value: "PASS if figures are simplified with larger text, fewer series, and a highlighted takeaway. FAIL if print figures are reused unchanged."
+
+  - description: "Keeps posters figure-forward and legible"
+    metadata:
+      kanon:
+        class: poster-design
+    vars:
+      user_query: "I want my poster to contain as much text as possible."
+    assert:
+      - type: icontains-any
+        value: ["figure-forward", "legible", "distance", "readable flow"]
+      - type: llm-rubric
+        value: "PASS if the poster is figure-forward, concise, logically ordered, and legible at distance. FAIL if maximizing text is endorsed."
+
+  - description: "Defers publication file preparation"
+    metadata:
+      kanon:
+        class: role-boundary
+    vars:
+      user_query: "Fix resolution, color profile, and export format of my publication figure files."
+    assert:
+      - type: icontains-any
+        value: ["figure-preparation", "figure preparation"]
+      - type: llm-rubric
+        value: "PASS if publication-file preparation is handed to figure-preparation while presentation use remains in scope. FAIL if the task is absorbed."
