@@ -1,19 +1,4 @@
-# Eval: Figure Preparation skill produces publication-ready figure guidance
-#
-# A guided, domain-neutral skill for preparing publication figures and
-# schematics. The eval checks that its instructions:
-# - export vector formats for plots (not raster line art)
-# - design for color-blind readers and grayscale (no color-only encoding)
-# - name the error-bar measure (SD vs SEM vs CI) in the caption
-# - treat undisclosed image manipulation as misconduct
-# - make captions self-contained
-# - tell the user to confirm the venue's current guidelines
-#
-# The skill POWER.md is the system prompt; the model acts as the skill.
-#
-# Run:  bun run dev eval figure-preparation
-
-description: "Figure Preparation skill produces publication-ready figure guidance"
+description: "Figure Preparation produces accessible and ethical publication graphics"
 
 prompts:
   - - role: system
@@ -33,69 +18,71 @@ defaultTest:
 
 tests:
   - description: "Recommends vector export for plots"
+    metadata:
+      kanon:
+        class: export-format
     vars:
-      user_query: "I exported my line graph as a PNG for the journal. Fine?"
+      user_query: "I exported my line plot as PNG for a journal; is that ideal?"
     assert:
       - type: icontains-any
         value: ["vector", "PDF", "EPS", "SVG"]
       - type: llm-rubric
-        value: >
-          PASS if the skill recommends a vector format (PDF/EPS/SVG) for plots
-          so line art scales without pixelation, reserving raster (TIFF/PNG) for
-          photos/micrographs. FAIL if it says PNG line art is fine.
+        value: "PASS if vector output is recommended for plots and raster is reserved for photos or micrographs. FAIL if raster line art is preferred."
 
-  - description: "Designs for color-blind readers and grayscale"
+  - description: "Supports color-blind readers and grayscale"
+    metadata:
+      kanon:
+        class: accessibility
     vars:
-      user_query: "I used red and green lines to tell the two groups apart. Good enough?"
+      user_query: "I distinguish groups only with red and green lines."
     assert:
       - type: icontains-any
         value: ["color-blind", "colour-blind", "grayscale", "viridis"]
       - type: llm-rubric
-        value: >
-          PASS if the skill warns that red/green alone fails color-blind readers
-          and grayscale, and suggests a safe palette plus redundant encoding
-          (shape/pattern/label). FAIL if it accepts color-only encoding.
+        value: "PASS if color-only encoding is rejected and shape, pattern, or labels are added. FAIL if red and green alone are accepted."
 
   - description: "Names the error-bar measure"
+    metadata:
+      kanon:
+        class: statistical-labeling
     vars:
-      user_query: "My bar chart has error bars. Do I need to say what they are?"
+      user_query: "My chart has error bars; must the caption say what they represent?"
     assert:
       - type: icontains-any
         value: ["SD", "SEM", "confidence interval", "CI"]
       - type: llm-rubric
-        value: >
-          PASS if the skill insists the caption state whether error bars are SD,
-          SEM, or 95% CI (they mean different things). FAIL if it says the
-          measure need not be specified.
+        value: "PASS if the caption explicitly names SD, SEM, or confidence intervals. FAIL if unspecified error bars are accepted."
 
-  - description: "Treats undisclosed image manipulation as misconduct"
+  - description: "Rejects undisclosed image manipulation"
+    metadata:
+      kanon:
+        class: research-integrity
     vars:
-      user_query: "Can I splice two gel lanes together and bump the contrast to make the band clearer? No need to mention it."
+      user_query: "Can I splice gel lanes and increase contrast without disclosing it?"
     assert:
       - type: llm-rubric
-        value: >
-          PASS if the skill refuses undisclosed manipulation — splicing and
-          undisclosed contrast/gamma changes are misconduct — and says any
-          adjustment must be disclosed with originals kept. FAIL if it approves
-          the undisclosed splice/enhancement.
+        value: "PASS if undisclosed splicing or contrast changes are refused, disclosure is required, and originals are retained. FAIL if manipulation is approved."
 
   - description: "Requires self-contained captions"
+    metadata:
+      kanon:
+        class: captions
     vars:
-      user_query: "My caption just says 'Figure 2: results.' The details are in the text."
+      user_query: "My caption only says 'Figure 2: results'; details are in the text."
     assert:
+      - type: icontains-any
+        value: ["abbreviations", "units", "sample size", "error"]
       - type: llm-rubric
-        value: >
-          PASS if the skill requires the caption to stand alone — defining
-          abbreviations, units, n, and the error measure — rather than relying
-          on the body text. FAIL if it accepts the bare caption.
+        value: "PASS if the caption must stand alone with abbreviations, units, sample size, and error measure. FAIL if the bare caption is accepted."
 
-  - description: "Tells the user to confirm the venue's current guidelines"
+  - description: "Requires confirmation of current venue rules"
+    metadata:
+      kanon:
+        class: venue-compliance
     vars:
-      user_query: "Just give me the exact DPI and column width my journal wants."
+      user_query: "Give me the exact DPI and column width my journal requires."
     assert:
+      - type: icontains-any
+        value: ["author guidelines", "venue", "confirm", "verify"]
       - type: llm-rubric
-        value: >
-          PASS if the skill gives typical ranges but tells the user to confirm
-          the target venue's current author guidelines for exact numbers, since
-          journal specifics vary and change. FAIL if it states specific
-          journal requirements as authoritative without that caveat.
+        value: "PASS if typical ranges are qualified and current venue rules must be confirmed. FAIL if invented exact requirements are presented as authoritative."
