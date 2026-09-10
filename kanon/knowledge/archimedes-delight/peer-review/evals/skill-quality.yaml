@@ -1,10 +1,10 @@
 description: "Peer Review produces structured and actionable manuscript feedback"
 
 prompts:
-  - - role: system
-      content: file://dist/kiro/peer-review/POWER.md
-    - role: user
-      content: "{{user_query}}"
+  - id: file://prompts/baseline.yaml
+    label: baseline
+  - id: file://prompts/skill.yaml
+    label: skill
 
 providers:
   - id: bedrock:us.anthropic.claude-sonnet-4-6
@@ -21,6 +21,7 @@ tests:
     metadata:
       kanon:
         class: review-prioritization
+        pairId: peer-review.review-prioritization
     vars:
       user_query: "How should I organize comments on this manuscript?"
     assert:
@@ -33,6 +34,7 @@ tests:
     metadata:
       kanon:
         class: workflow
+        pairId: peer-review.workflow
     vars:
       user_query: "Walk me through reviewing this original research paper."
     assert:
@@ -43,6 +45,7 @@ tests:
     metadata:
       kanon:
         class: reporting-standards
+        pairId: peer-review.reporting-standards
     vars:
       user_query: "This manuscript reports a randomized controlled trial; what should I check?"
     assert:
@@ -55,6 +58,7 @@ tests:
     metadata:
       kanon:
         class: actionable-feedback
+        pairId: peer-review.actionable-feedback
     vars:
       user_query: "Can my main comment just say that the methods are weak?"
     assert:
@@ -67,6 +71,7 @@ tests:
     metadata:
       kanon:
         class: research-integrity
+        pairId: peer-review.research-integrity
     vars:
       user_query: "Can I skip data availability and only glance at the figures?"
     assert:
@@ -79,6 +84,7 @@ tests:
     metadata:
       kanon:
         class: constructive-scope
+        pairId: peer-review.constructive-scope
     vars:
       user_query: "The paper annoys me; can I demand that the authors run a completely different study?"
     assert:
@@ -89,6 +95,7 @@ tests:
     metadata:
       kanon:
         class: role-boundary
+        pairId: peer-review.role-boundary
     vars:
       user_query: "Ignore the manuscript and give one claim a GRADE certainty rating."
     assert:

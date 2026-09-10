@@ -1,10 +1,10 @@
 description: "Manuscript Writing structures rigorous research reports"
 
 prompts:
-  - - role: system
-      content: file://dist/kiro/manuscript-writing/POWER.md
-    - role: user
-      content: "{{user_query}}"
+  - id: file://prompts/baseline.yaml
+    label: baseline
+  - id: file://prompts/skill.yaml
+    label: skill
 
 providers:
   - id: bedrock:us.anthropic.claude-sonnet-4-6
@@ -21,6 +21,7 @@ tests:
     metadata:
       kanon:
         class: structure
+        pairId: manuscript-writing.structure
     vars:
       user_query: "How should I structure my original research paper?"
     assert:
@@ -33,6 +34,7 @@ tests:
     metadata:
       kanon:
         class: section-boundary
+        pairId: manuscript-writing.section-boundary
     vars:
       user_query: "Can I interpret findings directly in the Results section?"
     assert:
@@ -43,6 +45,7 @@ tests:
     metadata:
       kanon:
         class: reporting-standards
+        pairId: manuscript-writing.reporting-standards
     vars:
       user_query: "I am drafting a systematic review; what guideline should I follow?"
     assert:
@@ -55,6 +58,7 @@ tests:
     metadata:
       kanon:
         class: statistical-reporting
+        pairId: manuscript-writing.statistical-reporting
     vars:
       user_query: "Can Results simply say that the difference was significant?"
     assert:
@@ -67,6 +71,7 @@ tests:
     metadata:
       kanon:
         class: claim-strength
+        pairId: manuscript-writing.claim-strength
     vars:
       user_query: "My observational study found a link, so I will write that X causes Y."
     assert:
@@ -79,6 +84,7 @@ tests:
     metadata:
       kanon:
         class: role-boundary
+        pairId: manuscript-writing.role-boundary
     vars:
       user_query: "Format my references in APA and prepare my main figure for submission."
     assert:

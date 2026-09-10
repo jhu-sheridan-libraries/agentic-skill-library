@@ -35,6 +35,11 @@ interface EvalPromptMessage {
 	readonly content: string;
 }
 
+interface EvalPromptReference {
+	readonly id: string;
+	readonly label: string;
+}
+
 interface EvalProviderConfig {
 	readonly temperature: number;
 }
@@ -53,15 +58,25 @@ interface EvalVariables {
 	readonly user_query: string;
 }
 
+interface EvalKanonMetadata {
+	readonly class: string;
+	readonly pairId: string;
+}
+
+interface EvalMetadata {
+	readonly kanon: EvalKanonMetadata;
+}
+
 interface EvalTestCase {
 	readonly description: string;
+	readonly metadata: EvalMetadata;
 	readonly vars: EvalVariables;
 	readonly assert: readonly EvalAssertion[];
 }
 
 interface EvalConfig {
 	readonly description: string;
-	readonly prompts: readonly (readonly EvalPromptMessage[])[];
+	readonly prompts: readonly EvalPromptReference[];
 	readonly providers: readonly EvalProvider[];
 	readonly tests: readonly EvalTestCase[];
 }
@@ -206,6 +221,14 @@ function isEvalPrompt(value: unknown): value is readonly EvalPromptMessage[] {
 	);
 }
 
+function isEvalPromptReference(value: unknown): value is EvalPromptReference {
+	return (
+		isRecord(value) &&
+		isNonEmptyString(value.id) &&
+		isNonEmptyString(value.label)
+	);
+}
+
 function isEvalProvider(value: unknown): value is EvalProvider {
 	return (
 		isRecord(value) &&
@@ -219,10 +242,20 @@ function isEvalAssertion(value: unknown): value is EvalAssertion {
 	return isRecord(value);
 }
 
+function isEvalMetadata(value: unknown): value is EvalMetadata {
+	return (
+		isRecord(value) &&
+		isRecord(value.kanon) &&
+		isNonEmptyString(value.kanon.class) &&
+		isNonEmptyString(value.kanon.pairId)
+	);
+}
+
 function isEvalTestCase(value: unknown): value is EvalTestCase {
 	return (
 		isRecord(value) &&
 		isNonEmptyString(value.description) &&
+		isEvalMetadata(value.metadata) &&
 		isRecord(value.vars) &&
 		isNonEmptyString(value.vars.user_query) &&
 		Array.isArray(value.assert) &&
@@ -239,7 +272,9 @@ function isEvalConfig(value: unknown): value is EvalConfig {
 		isNonEmptyString(value.description) &&
 		Array.isArray(value.prompts) &&
 		value.prompts.length > 0 &&
-		value.prompts.every((prompt: unknown): boolean => isEvalPrompt(prompt)) &&
+		value.prompts.every((prompt: unknown): boolean =>
+			isEvalPromptReference(prompt),
+		) &&
 		Array.isArray(value.providers) &&
 		value.providers.length > 0 &&
 		value.providers.every((provider: unknown): boolean =>
@@ -257,6 +292,28 @@ function parseEvalConfig(filePath: string): EvalConfig {
 		throw new Error(`Invalid eval configuration structure: ${filePath}`);
 	}
 	return parsed;
+}
+
+function parseEvalPrompt(filePath: string): readonly EvalPromptMessage[] {
+	const parsed: unknown = yaml.load(fs.readFileSync(filePath, "utf-8"));
+	if (!isEvalPrompt(parsed)) {
+		throw new Error(`Invalid eval prompt structure: ${filePath}`);
+	}
+	return parsed;
+}
+
+function resolvePromptPath(
+	evalDirectory: string,
+	promptReference: EvalPromptReference,
+): string {
+	const fileProtocol = "file://";
+	if (!promptReference.id.startsWith(fileProtocol)) {
+		throw new Error(`Eval prompt must use file://: ${promptReference.id}`);
+	}
+	return path.resolve(
+		evalDirectory,
+		promptReference.id.slice(fileProtocol.length),
+	);
 }
 
 function extractLevelTwoSections(
@@ -438,6 +495,20 @@ describe("Archimedes Delight — deterministic structural gate", (): void => {
 	});
 
 	test("validates every artifact-local eval and its source-to-output prompt bridge", (): void => {
+		const expectedPromptReferences: readonly EvalPromptReference[] = [
+			{
+				id: "file://prompts/baseline.yaml",
+				label: "baseline",
+			},
+			{
+				id: "file://prompts/skill.yaml",
+				label: "skill",
+			},
+		];
+		const pairIdPattern = /^[a-z0-9]+(?:[.-][a-z0-9]+)*$/;
+		const seenPairIds = new Set<string>();
+		let sourceTestCount = 0;
+
 		const missingEvalConfigs = MEMBER_CONTRACTS.filter(
 			(contract: MemberContract): boolean =>
 				!fs.existsSync(
@@ -465,9 +536,32 @@ describe("Archimedes Delight — deterministic structural gate", (): void => {
 			const evalPath = path.join(evalDirectory, contract.evalFile);
 			const evalConfig = parseEvalConfig(evalPath);
 			expect(evalConfig.description.trim().length).toBeGreaterThan(0);
-			expect(evalConfig.prompts.length).toBeGreaterThan(0);
+			expect(evalConfig.prompts).toEqual(expectedPromptReferences);
 			expect(evalConfig.providers.length).toBeGreaterThan(0);
 			expect(evalConfig.tests.length).toBeGreaterThan(0);
+
+			const baselinePrompt = parseEvalPrompt(
+				resolvePromptPath(evalDirectory, evalConfig.prompts[0]),
+			);
+			const skillPrompt = parseEvalPrompt(
+				resolvePromptPath(evalDirectory, evalConfig.prompts[1]),
+			);
+			expect(baselinePrompt).toEqual([
+				{
+					role: "user",
+					content: "{{user_query}}",
+				},
+			]);
+			expect(skillPrompt).toEqual([
+				{
+					role: "system",
+					content: expectedPromptPath(contract.name),
+				},
+				{
+					role: "user",
+					content: "{{user_query}}",
+				},
+			]);
 
 			for (const provider of evalConfig.providers) {
 				expect(provider.config.temperature).toBe(0);
@@ -476,19 +570,58 @@ describe("Archimedes Delight — deterministic structural gate", (): void => {
 				expect(testCase.description.trim().length).toBeGreaterThan(0);
 				expect(testCase.vars.user_query.trim().length).toBeGreaterThan(0);
 				expect(testCase.assert.length).toBeGreaterThan(0);
-			}
 
-			const filePromptPaths = evalConfig.prompts
-				.flatMap(
-					(
-						prompt: readonly EvalPromptMessage[],
-					): readonly EvalPromptMessage[] => prompt,
-				)
-				.filter((message: EvalPromptMessage): boolean =>
-					message.content.startsWith("file://"),
-				)
-				.map((message: EvalPromptMessage): string => message.content);
-			expect(filePromptPaths).toEqual([expectedPromptPath(contract.name)]);
+				const { pairId } = testCase.metadata.kanon;
+				expect(testCase.metadata.kanon.class.trim().length).toBeGreaterThan(0);
+				expect(pairIdPattern.test(pairId), `${pairId} must be slug-like`).toBe(
+					true,
+				);
+				expect(
+					pairId.startsWith(`${contract.name}.`),
+					`${pairId} must start with ${contract.name}.`,
+				).toBe(true);
+				expect(
+					seenPairIds.has(pairId),
+					`${pairId} must be globally unique`,
+				).toBe(false);
+				seenPairIds.add(pairId);
+			}
+			sourceTestCount += evalConfig.tests.length;
+
+			if (contract.role === "router") {
+				const classCounts = new Map<string, number>();
+				for (const testCase of evalConfig.tests) {
+					const className = testCase.metadata.kanon.class;
+					classCounts.set(className, (classCounts.get(className) ?? 0) + 1);
+				}
+				expect(classCounts.size).toBe(4);
+				expect(classCounts.get("direct-routing")).toBe(9);
+				expect(classCounts.get("ambiguity")).toBe(1);
+				expect(classCounts.get("multi-intent")).toBe(1);
+				expect(classCounts.get("role-boundary")).toBe(1);
+
+				const directRoutingPairIds = evalConfig.tests
+					.filter(
+						(testCase: EvalTestCase): boolean =>
+							testCase.metadata.kanon.class === "direct-routing",
+					)
+					.map(
+						(testCase: EvalTestCase): string => testCase.metadata.kanon.pairId,
+					);
+				expect(directRoutingPairIds).toHaveLength(9);
+				for (const capabilityMemberName of CAPABILITY_MEMBER_NAMES) {
+					expect(
+						directRoutingPairIds.some((pairId: string): boolean =>
+							pairId.endsWith(`.${capabilityMemberName}`),
+						),
+						`Router direct-routing pairId must end with .${capabilityMemberName}`,
+					).toBe(true);
+				}
+			}
 		}
+
+		expect(sourceTestCount).toBe(67);
+		expect(seenPairIds.size).toBe(67);
+		expect(sourceTestCount * expectedPromptReferences.length).toBe(134);
 	});
 });
