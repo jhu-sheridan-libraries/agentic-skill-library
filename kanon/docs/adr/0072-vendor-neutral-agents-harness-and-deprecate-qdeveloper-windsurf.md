@@ -1,4 +1,4 @@
-# ADR-0067: Vendor-Neutral `agents` (AGENTS.md) Harness; Deprecate `qdeveloper` and `windsurf`
+# ADR-0072: Vendor-Neutral `agents` (AGENTS.md) Harness; Deprecate `qdeveloper` and `windsurf`
 
 ## Status
 
