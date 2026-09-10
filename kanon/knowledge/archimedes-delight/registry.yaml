@@ -1,0 +1,84 @@
+# Registry for the "archimedes-delight" collection — generated from the
+# catalog by scripts/generate-registry.ts. Do not edit by hand.
+
+entries:
+  - name: "archimedes-delight"
+    type: skill
+    sub_type: guide
+    category: "writing"
+    path: "knowledge/archimedes-delight/archimedes-delight/knowledge.md"
+    description: "Router for the Archimedes Delight research-science collection. Assists Johns Hopkins staff and faculty across the research arc — discover, appraise, create, communicate — by directing you to the right member: autonomous literature review and dataset discovery, guided citation management, critical appraisal, research ideation, manuscript writing, peer review, figure preparation, and research presentation."
+    date_added: "2026-09-10"
+    tags: ["science"]
+  - name: "citation-management"
+    type: skill
+    sub_type: pipeline
+    category: "writing"
+    path: "knowledge/archimedes-delight/citation-management/knowledge.md"
+    description: "Guided citation-management skill for the Archimedes Delight research collection. Turn a dataset or paper reference into a correctly formatted citation, step by step, with the researcher in the loop — extract metadata, choose a style, format, and verify. Includes a citation-pipeline workflow. Part of the archimedes-delight collection; for autonomous paper search use literature-review, for datasets use dataset-discovery."
+    date_added: "2026-09-10"
+    tags: ["science"]
+  - name: "critical-appraisal"
+    type: skill
+    sub_type: guide
+    category: "writing"
+    path: "knowledge/archimedes-delight/critical-appraisal/knowledge.md"
+    description: "Guided critical appraisal of scientific evidence for the Archimedes Delight collection. Study-design hierarchy, effect measures (RR/OR/HR/NNT/Cohen's d), bias types, confounding, p-value vs effect size, and GRADE quality assessment. Domain-neutral. Part of the archimedes-delight collection; use when reading a paper or assessing a claim's strength."
+    date_added: "2026-09-10"
+    tags: ["science"]
+  - name: "dataset-discovery"
+    type: agent
+    sub_type: agent
+    category: "writing"
+    path: "knowledge/archimedes-delight/dataset-discovery/knowledge.md"
+    description: "Autonomous dataset-discovery agent for the Archimedes Delight research collection. Hand off a research question or dataset criteria and receive a ranked shortlist of candidate datasets from open-data repositories (starting with RODA, the Registry of Open Data on AWS) via a define-scope → search → evaluate → shortlist loop. Part of the archimedes-delight collection; for papers use literature-review, for formatting references use citation-management."
+    date_added: "2026-09-10"
+    tags: ["science", "aws"]
+  - name: "figure-preparation"
+    type: skill
+    sub_type: guide
+    category: "writing"
+    path: "knowledge/archimedes-delight/figure-preparation/knowledge.md"
+    description: "Guided figure and schematic preparation for the Archimedes Delight collection. A domain-neutral QA checklist for publication figures (resolution, formats, color, fonts, panel labels, accessibility), a consolidated view of common journal requirements, and design principles for schematics and graphical abstracts. Part of the archimedes-delight collection."
+    date_added: "2026-09-10"
+    tags: ["science"]
+  - name: "literature-review"
+    type: agent
+    sub_type: agent
+    category: "writing"
+    path: "knowledge/archimedes-delight/literature-review/knowledge.md"
+    description: "Autonomous literature-review agent for the Archimedes Delight research collection. Hand off a research question and receive a synthesized, cited literature summary produced by a define-scope → search → triage → synthesize loop, with source-quality screening and an explicit human-in-the-loop boundary. Part of the archimedes-delight collection; for datasets use dataset-discovery, for formatting references use citation-management."
+    date_added: "2026-09-10"
+    tags: ["science"]
+  - name: "manuscript-writing"
+    type: skill
+    sub_type: guide
+    category: "writing"
+    path: "knowledge/archimedes-delight/manuscript-writing/knowledge.md"
+    description: "Guided scholarly-manuscript writing for the Archimedes Delight research collection. Domain-neutral guidance on IMRAD structure, citation styles, reporting guidelines, figure/table design principles, and venue adaptation. Part of the archimedes-delight collection; for citation formatting use citation-management, for figures use figure-preparation."
+    date_added: "2026-09-10"
+    tags: ["science"]
+  - name: "peer-review"
+    type: skill
+    sub_type: guide
+    category: "writing"
+    path: "knowledge/archimedes-delight/peer-review/knowledge.md"
+    description: "Guided peer review for the Archimedes Delight collection. A structured seven-stage evaluation of manuscripts and proposals — initial assessment, section review, statistical rigor, reproducibility, figure integrity, ethics, writing — plus reporting-standard checks and review-report structure. Domain-neutral. Part of the archimedes-delight collection; for evidence quality use critical-appraisal."
+    date_added: "2026-09-10"
+    tags: ["science"]
+  - name: "research-ideation"
+    type: skill
+    sub_type: guide
+    category: "writing"
+    path: "knowledge/archimedes-delight/research-ideation/knowledge.md"
+    description: "Guided research ideation for the Archimedes Delight collection. Structured divergent-thinking methods (SCAMPER, Six Thinking Hats, morphological analysis, TRIZ) plus turning observations into testable hypotheses with predictions and experiment designs. Domain-neutral. Part of the archimedes-delight collection; for literature grounding use literature-review."
+    date_added: "2026-09-10"
+    tags: ["science"]
+  - name: "research-presentation"
+    type: skill
+    sub_type: pipeline
+    category: "writing"
+    path: "knowledge/archimedes-delight/research-presentation/knowledge.md"
+    description: "Guided research presentation for the Archimedes Delight collection. Slide and poster design for conferences, seminars, defenses, and pitches — talk structure, timing, slide/data-viz design, poster layout, accessibility, and QA. Domain-neutral. Part of the archimedes-delight collection; for figures use figure-preparation."
+    date_added: "2026-09-10"
+    tags: ["science"]
