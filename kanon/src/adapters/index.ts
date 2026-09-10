@@ -242,6 +242,22 @@ function createRosettaAdapter(harness: HarnessName): HarnessAdapter {
 			};
 		}
 
+		// Surface a build-time warning when the harness's format contract is
+		// deprecated, pointing at the declared replacement. The registry's
+		// RS_LIFECYCLE_DEPRECATED check only runs on explicit resolve(); the
+		// build path resolves contracts directly, so we emit it here too.
+		const lifecycleWarnings: AdapterResult["warnings"] = [];
+		if (contract.lifecycle.status === "deprecated") {
+			const replacement = contract.lifecycle.replacement;
+			lifecycleWarnings.push({
+				artifactName: artifact.name,
+				harnessName: harness,
+				message: `Harness "${harness}" is deprecated${
+					replacement ? `; migrate to "${replacement}"` : ""
+				}.`,
+			});
+		}
+
 		// Resolve variant from harness-config using the same logic as before
 		const harnessConfig = (artifact.frontmatter as Record<string, unknown>)[
 			"harness-config"
@@ -287,8 +303,13 @@ function createRosettaAdapter(harness: HarnessName): HarnessAdapter {
 			translatorContext,
 		);
 
-		// Map the output back to AdapterResult shape
-		return mapToAdapterResult(output, artifact.name, harness);
+		// Map the output back to AdapterResult shape, prepending any
+		// lifecycle (deprecation) warnings.
+		const result = mapToAdapterResult(output, artifact.name, harness);
+		if (lifecycleWarnings.length > 0) {
+			result.warnings = [...lifecycleWarnings, ...result.warnings];
+		}
+		return result;
 	};
 }
 
@@ -313,6 +334,7 @@ export const adapterRegistry: Record<HarnessName, HarnessAdapter> = {
 	cline: createRosettaAdapter("cline"),
 	qdeveloper: createRosettaAdapter("qdeveloper"),
 	"gemini-cli": createRosettaAdapter("gemini-cli"),
+	agents: createRosettaAdapter("agents"),
 };
 
 /**

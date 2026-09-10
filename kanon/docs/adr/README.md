@@ -77,6 +77,7 @@ ADRs document significant architectural decisions made during the project's deve
 | [064](0064-structured-upstream-attribution.md) | Structured upstream attribution captured by an import wizard | Accepted | 2026-09-08 |
 | [065](0065-unify-import-and-translate-on-one-engine.md) | Unify `kanon import` and `rosetta translate` on one engine | Accepted | 2026-09-08 |
 | [066](0066-byte-preserving-binary-workflow-assets.md) | Byte-preserving binary workflow assets | Accepted | 2026-09-09 |
+| [067](0067-vendor-neutral-agents-harness-and-deprecate-qdeveloper-windsurf.md) | Vendor-neutral `agents` (AGENTS.md) harness; deprecate `qdeveloper` and `windsurf` | Accepted | 2026-09-09 |
 
 ## Creating a New ADR
 

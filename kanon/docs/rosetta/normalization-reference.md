@@ -63,6 +63,12 @@
 |---|---|---|
 | `rule-frontmatter` | Normalize Markdown frontmatter in rule files | source |
 
+## agents
+
+| Rule ID | Description | Scope |
+|---|---|---|
+| `merge-sections` | Merge duplicate heading sections | source |
+
 ## kiro-power
 
 | Rule ID | Description | Scope |

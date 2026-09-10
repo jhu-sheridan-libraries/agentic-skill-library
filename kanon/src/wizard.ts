@@ -210,10 +210,17 @@ export async function promptFrontmatter(
 		copilot: "Instructions or agents for GitHub Copilot",
 		"claude-code": "CLAUDE.md for Claude Code",
 		codex: "AGENTS.md and skills for OpenAI Codex",
-		windsurf: "Rule files for Windsurf",
+		"gemini-cli": "GEMINI.md context files for Gemini CLI",
+		agents: "Vendor-neutral AGENTS.md (portable across agents)",
+		windsurf: "Rule files for Windsurf (deprecated — prefer agents)",
 		cline: "Rule files for Cline",
-		qdeveloper: "Rules or agents for Amazon Q Developer",
+		qdeveloper:
+			"Rules or agents for Amazon Q Developer (deprecated — prefer agents)",
 	};
+
+	// Harnesses that are deprecated: still selectable for backward compat, but
+	// not selected by default so new artifacts steer toward the replacement.
+	const DEPRECATED_HARNESSES = new Set<string>(["qdeveloper", "windsurf"]);
 
 	const harnesses = await p.multiselect({
 		message: "Which AI coding tools should this target?",
@@ -221,7 +228,9 @@ export async function promptFrontmatter(
 			value: h,
 			label: `${h} — ${HARNESS_DESCRIPTIONS[h]}`,
 		})),
-		initialValues: [...SUPPORTED_HARNESSES],
+		initialValues: SUPPORTED_HARNESSES.filter(
+			(h) => !DEPRECATED_HARNESSES.has(h),
+		),
 		required: false,
 	});
 	handleCancel(harnesses);

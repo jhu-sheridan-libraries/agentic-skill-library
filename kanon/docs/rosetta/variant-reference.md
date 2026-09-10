@@ -77,3 +77,11 @@ Default variant: `rule`
 | Variant | Description | Path Conventions | Option Overrides |
 |---|---|---|---|
 | `rule` | Windsurf rule format | `.windsurf/rules/*.md` | — |
+
+## agents
+
+Default variant: `agents-md`
+
+| Variant | Description | Path Conventions | Option Overrides |
+|---|---|---|---|
+| `agents-md` | Vendor-neutral AGENTS.md Markdown format | `AGENTS.md` | — |

@@ -95,6 +95,14 @@ Threshold: 0.5
 | `windsurf-rules` | path-glob | `.windsurf/rules/*.md` | 50 | no | Windsurf rules directory |
 | `windsurfrules` | basename | `.windsurfrules` | 30 | no | Legacy .windsurfrules file |
 
+## agents
+
+Threshold: 0.5
+
+| Rule ID | Kind | Pattern | Weight | Required | Evidence Label |
+|---|---|---|---|---|---|
+| `agents-md` | basename | `AGENTS.md` | 50 | no | AGENTS.md present |
+
 ## kiro-power
 
 Threshold: 0.5
