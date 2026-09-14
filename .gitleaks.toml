@@ -31,6 +31,7 @@ regexes = [
 paths = [
   '''kanon/knowledge/''',
   '''kanon/dist/''',
+  '''kanon/upstream/''',
   '''kanon/templates/''',
   '''kanon/evals/''',
   # Test files that use synthetic credentials to verify security validation logic
